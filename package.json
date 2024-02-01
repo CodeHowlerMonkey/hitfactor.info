@@ -9,7 +9,7 @@
     "start-web": "cd web && npm run buildWatch",
     "build-web": "cd web && npm run build",
     "prod": "cd api && npm run prod",
-    "postinstall": "(cd api && npm install); (cd web && npm install);"
+    "postinstall": "(cd api && npm install); (cd web && npm install && npm run build);"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"
