@@ -1,2 +1,2 @@
 web: npm run prod
-release: npm run build-web
+release: npm i && npm run build-web
