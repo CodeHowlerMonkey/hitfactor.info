@@ -1,0 +1,51 @@
+{
+    "status": 200,
+    "success": true,
+    "divisions": [
+        {
+            "id": "2",
+            "long_name": "Open",
+            "short_name": "OPN"
+        },
+        {
+            "id": "3",
+            "long_name": "Limited",
+            "short_name": "LTD"
+        },
+        {
+            "id": "4",
+            "long_name": "Limited 10",
+            "short_name": "L10"
+        },
+        {
+            "id": "5",
+            "long_name": "Production",
+            "short_name": "PROD"
+        },
+        {
+            "id": "6",
+            "long_name": "Revolver",
+            "short_name": "REV"
+        },
+        {
+            "id": "7",
+            "long_name": "Single Stack",
+            "short_name": "SS"
+        },
+        {
+            "id": "35",
+            "long_name": "Carry Optics",
+            "short_name": "CO"
+        },
+        {
+            "id": "38",
+            "long_name": "PCC",
+            "short_name": "PCC"
+        },
+        {
+            "id": "41",
+            "long_name": "Limited Optics",
+            "short_name": "LO"
+        }
+    ]
+}

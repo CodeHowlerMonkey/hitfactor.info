@@ -1,0 +1,23 @@
+{
+  "name": "hitfactor-api",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "nodemon --inspect src/index.js --watch src/ --watch ../data/",
+    "prod": "forever src/index.js"
+  },
+  "exports": {
+    "./data": "./../data"
+  },
+  "dependencies": {
+    "@fastify/compress": "^6.5.0",
+    "@fastify/cors": "^9.0.0",
+    "@fastify/static": "^6.12.0",
+    "fastify": "^4.25.2",
+    "lodash": "^4.17.21"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.3"
+  }
+}
