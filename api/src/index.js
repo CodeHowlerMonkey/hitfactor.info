@@ -65,11 +65,14 @@ const start = async () => {
       classifiers.map(basicInfoForClassifier)
     );
     fastify.get("/api/classifiers/:division", (req, res) => {
+      //console.profile();
       const { division } = req.params;
-      return classifiers.map((c) => ({
+      const result = classifiers.map((c) => ({
         ...basicInfoForClassifier(c),
         ...extendedInfoForClassifier(c, division),
       }));
+      //console.profileEnd();
+      return result;
     });
     fastify.get("/api/classifiers/:division/:number", (req, res) => {
       const { division, number } = req.params;

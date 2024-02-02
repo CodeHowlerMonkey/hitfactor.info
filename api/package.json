@@ -15,7 +15,8 @@
     "@fastify/cors": "^9.0.0",
     "@fastify/static": "^6.12.0",
     "fastify": "^4.25.2",
-    "lodash": "^4.17.21"
+    "lodash": "^4.17.21",
+    "memoize": "^10.0.0"
   },
   "devDependencies": {
     "nodemon": "^3.0.3"
