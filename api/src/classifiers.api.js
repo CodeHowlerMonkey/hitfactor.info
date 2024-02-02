@@ -123,8 +123,6 @@ const calcLegitRunStats = (runs, hhf) =>
     { D: 0, C: 0, B: 0, A: 0, M: 0, GM: 0, Hundo: 0, Total: runs.length }
   );
 
-const mem = (fn) => memoize(fn, { cacheKey: (args) => args.join(":") });
-
 export const extendedInfoForClassifier = memoize(
   (c, division) => {
     if (!division) {
@@ -134,12 +132,12 @@ export const extendedInfoForClassifier = memoize(
     const divisionHHFs = divShortToHHFs[division];
     const curHHFInfo = divisionHHFs.find((dHHF) => dHHF.classifier === c.id);
 
-    const sussyRuns = divShortToRuns[division] // TODO: memoize
+    const sussyRuns = divShortToRuns[division]
       .filter(Boolean)
       .filter((run) => run.classifier === c.classifier)
       .filter((run) => run.hf < 0) // NO HF = sussy baka
       .sort((a, b) => b.percent - a.percent); // DESC for sortedUniqBy to pick highest first
-    const runsSortedByPercent = divShortToRuns[division] // TODO: memoize
+    const runsSortedByPercent = divShortToRuns[division]
       .filter(Boolean)
       .filter((run) => run.classifier === c.classifier)
       // .filter(run => run.hf >= 0) // sussy baka filter
@@ -182,7 +180,6 @@ export const extendedInfoForClassifier = memoize(
     // computers and gets too much noise. If they changed HF <= 0.01 it doesn't
     // matter anyway, so toFixed(2)
     const hhfs = _.sortedUniqBy(
-      // TODO: memoize
       runsSortedByHF
         .filter((run) => run.percent !== 0 && run.percent !== 100)
         .map((run) => ({
@@ -247,7 +244,7 @@ export const extendedInfoForClassifier = memoize(
       ...topXPercentileStats(5),
     };
   },
-  { cacheKey: ([c, division]) => c.classifier + ":" + c.division }
+  { cacheKey: ([c, division]) => c.classifier + ":" + division }
 );
 
 export const basicInfoForClassifier = (c) => ({
