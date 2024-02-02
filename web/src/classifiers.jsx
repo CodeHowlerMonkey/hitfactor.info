@@ -22,6 +22,9 @@ const stringSort = (a, b, field, order) => {
   }
 };
 
+// TODO: merge as many columns into one as possible (code + name, maybe even virginia/fixed/comstock)
+// TODO: add GM Runs - Cur GM Runs, and same for hundos
+
 const dateSort = (a, b, field, order) => {
   return order * (new Date(a[field]).getTime() - new Date(b[field]).getTime());
 };
@@ -88,7 +91,6 @@ const ClassifiersTable = ({ division }) => {
       removableSort
       onSort={({ sortField, sortOrder }) => {
         setSortState({ sortField, sortOrder });
-        console.log(JSON.stringify({ sortField, sortOrder }));
       }}
       {...sortState}
     >
