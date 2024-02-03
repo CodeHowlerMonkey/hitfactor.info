@@ -3,6 +3,7 @@ import { DataTable } from "primereact/datatable";
 import { InputText } from "primereact/inputtext";
 import { Column } from "primereact/column";
 import { useApi } from "./client";
+import useTableSort from "./common/useTableSort";
 
 import { numSort, dateSort, classifierCodeSort } from "./utils/sort";
 
@@ -12,11 +13,9 @@ import { numSort, dateSort, classifierCodeSort } from "./utils/sort";
 // TODO: TimeLine component for historical HHFs?
 
 const ClassifiersTable = ({ division, onClassifierSelection }) => {
-  const [sortState, setSortState] = useState({
-    sortField: null,
-    sortOrder: null,
-  });
+  const sortProps = useTableSort();
   const [filter, setFilter] = useState("");
+  const sortState = sortProps;
 
   const data = (useApi("/classifiers/" + (division ?? "")) ?? [])
     .map((d) => ({
@@ -74,10 +73,7 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
       value={data ?? []}
       tableStyle={{ minWidth: "50rem" }}
       removableSort
-      onSort={({ sortField, sortOrder }) => {
-        setSortState({ sortField, sortOrder });
-      }}
-      {...sortState}
+      {...sortProps}
     >
       <Column field="code" header="Number" sortable />
       <Column field="name" header="Name" sortable />

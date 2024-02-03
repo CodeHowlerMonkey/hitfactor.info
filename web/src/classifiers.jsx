@@ -2,6 +2,7 @@ import { useCallback } from "react";
 import { DivisionNav } from "./common";
 import { useNavigate, useParams } from "react-router-dom";
 import ClassifiersTable from "./ClassifiersTable";
+import RunsTable from "./RunsTable";
 
 const Classifiers = () => {
   const navigate = useNavigate();
@@ -22,7 +23,14 @@ const Classifiers = () => {
           }
         />
       )}
-      {classifier && "classifier to render: " + classifier}
+      {classifier && (
+        <RunsTable
+          division={division}
+          classifier={classifier}
+          onShooterSelection={(shooter) => navigate("/shooters/" + shooter)}
+          onClubSelection={(club) => navigate("/clubs/" + club)}
+        />
+      )}
     </div>
   );
 };
