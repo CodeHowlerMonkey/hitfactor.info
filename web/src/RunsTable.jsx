@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { DataTable } from "primereact/datatable";
+import { Button } from "primereact/button";
 import { InputText } from "primereact/inputtext";
 import { Column } from "primereact/column";
 import { useApi } from "./client";
@@ -40,7 +41,9 @@ const RunsTable = ({ division, classifier }) => {
   const apiData = useApi(
     `/classifiers/${division}/${classifier}?sort=${sortField}&order=${sortOrder}&page=${page}`
   );
-  const runsTotal = apiData?.info?.runsTotal;
+  const { code, name } = apiData?.info || {};
+  // info bucket has total runs too for header, needs to be renamed
+  const runsTotal = apiData?.runsTotal;
 
   const data = (apiData?.runs ?? [])
     .map((d) => ({
@@ -73,7 +76,13 @@ const RunsTable = ({ division, classifier }) => {
     <DataTable
       stripedRows
       header={
-        <div className="flex justify-content-end">
+        <div className="flex justify-content-between">
+          <Button icon="pi pi-chevron-left" rounded text aria-label="Back">
+            Classifiers List
+          </Button>
+          <span style={{ fontSize: "2rem", margin: "auto" }}>
+            {code} {name}
+          </span>
           <span className="p-input-icon-left">
             <i className="pi pi-search" />
             <InputText
@@ -96,7 +105,7 @@ const RunsTable = ({ division, classifier }) => {
       onPage={(e) => setPage(e.page + 1)}
       totalRecords={runsTotal}
     >
-      <Column field="place" header="a#" sortable />
+      <Column field="place" header="#" sortable />
       <Column field="hf" header="HF" sortable />
       <Column field="percent" header="%%" sortable />
       <Column field="curPercent" header="Current %%" sortable />
