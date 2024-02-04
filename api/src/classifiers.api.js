@@ -21,10 +21,23 @@ import allHHFs from "../../data/hhf.json" assert { type: "json" };
 
 const divShortToRuns = { opn, ltd, l10, prod, ss, rev, co, lo, pcc };
 
-export const runsForDivisionClassifier = ({ number, division, hhf }) => {
-  const divisionClassifierRuns = divShortToRuns[division]
-    .filter(Boolean)
-    .filter((run) => run.classifier === number);
+export const runsForDivisionClassifier = ({
+  number,
+  division,
+  hhf,
+  includeNoHF = false,
+}) => {
+  const divisionClassifierRuns = divShortToRuns[division].filter((run) => {
+    if (!run) {
+      return false;
+    }
+
+    if (!includeNoHF && run.hf < 0) {
+      return false;
+    }
+
+    return run.classifier === number;
+  });
 
   const divisionClassifierHFsSorted = divisionClassifierRuns
     .filter((run) => run.hf >= 0)
