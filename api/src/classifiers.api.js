@@ -27,36 +27,35 @@ export const runsForDivisionClassifier = ({
   hhf,
   includeNoHF = false,
 }) => {
-  const divisionClassifierRuns = divShortToRuns[division].filter((run) => {
-    if (!run) {
-      return false;
-    }
+  const divisionClassifierRunsSortedByHFOrPercent = divShortToRuns[division]
+    .filter((run) => {
+      if (!run) {
+        return false;
+      }
 
-    if (!includeNoHF && run.hf < 0) {
-      return false;
-    }
+      if (!includeNoHF && run.hf < 0) {
+        return false;
+      }
 
-    return run.classifier === number;
-  });
+      return run.classifier === number;
+    })
+    .sort((a, b) => {
+      if (includeNoHF) {
+        return b.percent - a.percent;
+      }
 
-  const divisionClassifierHFsSorted = divisionClassifierRuns
-    .filter((run) => run.hf >= 0)
-    .map((run) => run.hf)
-    .sort((a, b) => b - a);
+      return b.hf - a.hf;
+    });
 
-  return divisionClassifierRuns.map((run) => {
-    const place = divisionClassifierHFsSorted.findIndex((hf) => hf <= run.hf);
-
-    return {
+  return divisionClassifierRunsSortedByHFOrPercent.map(
+    (run, index, allRuns) => ({
       ...run,
       percent: N(run.percent),
       curPercent: PositiveOrMinus1(Percent(run.hf, hhf)),
-      place,
-      percentile: PositiveOrMinus1(
-        Percent(place, divisionClassifierHFsSorted.length)
-      ),
-    };
-  });
+      place: index + 1,
+      percentile: PositiveOrMinus1(Percent(index, allRuns.length)),
+    })
+  );
 };
 
 const divShortToId = divisions.divisions.reduce(
@@ -247,10 +246,10 @@ export const extendedInfoForClassifier = memoize(
           .map((s) => s.hf)
           .reduce((a, b) => a + b, 0) / 20
       ),
-      top20SussyPercent: runs.slice(0, 20).map((s) => s.percent),
-      top20SussyHF: runs.slice(0, 20).map((s) => s.hf),
-      top20CurPercent,
-      top20HF: top20HF.map((run) => run.hf),
+      //      top20SussyPercent: runs.slice(0, 20).map((s) => s.percent),
+      //      top20SussyHF: runs.slice(0, 20).map((s) => s.hf),
+      //      top20CurPercent,
+      //      top20HF: top20HF.map((run) => run.hf),
 
       ...topXPercentileStats(1),
       ...topXPercentileStats(2),
