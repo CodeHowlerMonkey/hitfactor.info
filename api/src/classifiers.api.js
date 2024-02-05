@@ -21,42 +21,47 @@ import allHHFs from "../../data/hhf.json" assert { type: "json" };
 
 const divShortToRuns = { opn, ltd, l10, prod, ss, rev, co, lo, pcc };
 
-export const runsForDivisionClassifier = ({
-  number,
-  division,
-  hhf,
-  includeNoHF = false,
-}) => {
-  const divisionClassifierRunsSortedByHFOrPercent = divShortToRuns[division]
-    .filter((run) => {
-      if (!run) {
-        return false;
+export const runsForDivisionClassifier = memoize(
+  ({ number, division, hhf, includeNoHF = false }) => {
+    const divisionClassifierRunsSortedByHFOrPercent = divShortToRuns[division]
+      .filter((run) => {
+        if (!run) {
+          return false;
+        }
+
+        if (!includeNoHF && run.hf < 0) {
+          return false;
+        }
+
+        return run.classifier === number;
+      })
+      .sort((a, b) => {
+        if (includeNoHF) {
+          return b.percent - a.percent;
+        }
+
+        return b.hf - a.hf;
+      });
+
+    return divisionClassifierRunsSortedByHFOrPercent.map(
+      (run, index, allRuns) => {
+        const percent = N(run.percent);
+        const curPercent = PositiveOrMinus1(Percent(run.hf, hhf));
+        const curPercentMinusPercent = N(curPercent - percent);
+
+        return {
+          ...run,
+          percent,
+          curPercent,
+          curPercentMinusPercent,
+          place: index + 1,
+          percentile: PositiveOrMinus1(Percent(index, allRuns.length)),
+        };
       }
-
-      if (!includeNoHF && run.hf < 0) {
-        return false;
-      }
-
-      return run.classifier === number;
-    })
-    .sort((a, b) => {
-      if (includeNoHF) {
-        return b.percent - a.percent;
-      }
-
-      return b.hf - a.hf;
-    });
-
-  return divisionClassifierRunsSortedByHFOrPercent.map(
-    (run, index, allRuns) => ({
-      ...run,
-      percent: N(run.percent),
-      curPercent: PositiveOrMinus1(Percent(run.hf, hhf)),
-      place: index + 1,
-      percentile: PositiveOrMinus1(Percent(index, allRuns.length)),
-    })
-  );
-};
+    );
+  },
+  { cacheKey: (ehFuckit) => JSON.stringify(ehFuckit) }
+);
 
 const divShortToId = divisions.divisions.reduce(
   (result, cur) => ({ ...result, [cur.short_name.toLowerCase()]: cur.id }),

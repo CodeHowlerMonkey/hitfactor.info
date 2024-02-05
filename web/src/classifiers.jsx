@@ -4,6 +4,9 @@ import { useNavigate, useParams } from "react-router-dom";
 import ClassifiersTable from "./ClassifiersTable";
 import RunsTable from "./RunsTable";
 
+// TODO: shooters table for single classifier? # attempts, low HF, high HF, same for percent, same for curPercent
+// TODO: all classifiers total number of reshoots (non-uniqueness)
+
 const Classifiers = () => {
   const navigate = useNavigate();
   const onDivisionSelect = useCallback(

@@ -19,3 +19,39 @@ const fullCodeNum = (code) =>
 
 export const classifierCodeSort = (a, b, field, order) =>
   sortState.sortOrder * (fullCodeNum(a.code) - fullCodeNum(b.code));
+
+const singleFieldSort = (a, b, field, order) => {
+  switch (field) {
+    case "sd":
+      return dateSort(a, b, field, order);
+
+    default:
+      if (typeof a[field] === "string") {
+        return stringSort(a, b, field, order);
+      } else {
+        return numSort(a, b, field, order);
+      }
+  }
+};
+
+// TODO: move this somewhere more useful, maybe refactor for
+// better more generalized sorting shit can be moved to sort utils too
+export const sortClassifiers = (data = [], fields, orders) =>
+  !fields?.length
+    ? data
+    : data.sort((a, b) => {
+        for (const methodIndex in fields) {
+          const field = fields[methodIndex];
+          const orderString = orders[methodIndex];
+          const order = Number(orderString) || -1;
+
+          const sortResult = singleFieldSort(a, b, field, order);
+          if (sortResult === 0) {
+            continue;
+          }
+
+          return sortResult;
+        }
+
+        return 0;
+      });

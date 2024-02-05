@@ -20,6 +20,7 @@ import {
   extendedInfoForClassifier,
   runsForDivisionClassifier,
 } from "./classifiers.api.js";
+import { sortClassifiers } from "../../web/src/utils/sort.js";
 
 const PAGE_SIZE = 100;
 
@@ -76,9 +77,8 @@ const start = async () => {
     });
     fastify.get("/api/classifiers/:division/:number", (req, res) => {
       const { division, number } = req.params;
-      const { sort, order: orderString, page: pageString, legacy } = req.query;
+      const { sort, order, page: pageString, legacy } = req.query;
       const includeNoHF = Number(legacy) === 1;
-      const order = Number(orderString) || -1;
       const page = Number(pageString) || 1;
       const c = classifiers.find((cur) => cur.classifier === number);
 
@@ -91,29 +91,17 @@ const start = async () => {
       const extended = extendedInfoForClassifier(c, division);
       const hhf = extended.hhf;
 
-      const runs = runsForDivisionClassifier({
+      const runsUnsorted = runsForDivisionClassifier({
         number,
         division,
         hhf,
         includeNoHF,
-      }).sort((a, b) => {
-        if (!sort) {
-          return b.hf - a.hf;
-        }
-        // TODO: share sorting methods with frontend
-        // handle wrong field names
-        // maybe just bring in qs lib
-
-        const orderMultiplier = Number(order) || -1;
-        if (typeof a[sort] === "string") {
-          return (
-            orderMultiplier *
-            (a[sort].toLowerCase() < b[sort].toLowerCase() ? 1 : -1)
-          );
-        }
-
-        return orderMultiplier * (a[sort] - b[sort]);
       });
+      const runs = sortClassifiers(
+        runsUnsorted,
+        sort?.split?.(","),
+        order?.split?.(",")
+      );
 
       return {
         info: {
@@ -122,6 +110,7 @@ const start = async () => {
         },
         runs: runs.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
         runsTotal: runs.length,
+        runsPage: page,
       };
     });
 
