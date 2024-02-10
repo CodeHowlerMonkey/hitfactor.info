@@ -77,9 +77,17 @@ const start = async () => {
     });
     fastify.get("/api/classifiers/:division/:number", (req, res) => {
       const { division, number } = req.params;
-      const { sort, order, page: pageString, legacy } = req.query;
+      const {
+        sort,
+        order,
+        page: pageString,
+        legacy,
+        hhf: filterHHFString,
+        filter: filterString,
+      } = req.query;
       const includeNoHF = Number(legacy) === 1;
       const page = Number(pageString) || 1;
+      const filterHHF = parseFloat(filterHHFString);
       const c = classifiers.find((cur) => cur.classifier === number);
 
       if (!c) {
@@ -91,17 +99,30 @@ const start = async () => {
       const extended = extendedInfoForClassifier(c, division);
       const hhf = extended.hhf;
 
-      const runsUnsorted = runsForDivisionClassifier({
+      let runsUnsorted = runsForDivisionClassifier({
         number,
         division,
         hhf,
         includeNoHF,
       });
+      if (filterHHF) {
+        runsUnsorted = runsUnsorted.filter(
+          (run) => Math.abs(filterHHF - run.historicalHHF) <= 0.00015
+        );
+      }
+      if (filterString) {
+        runsUnsorted = runsUnsorted.filter((run) =>
+          [run.clubid, run.club_name, run.memberNumber]
+            .join("###")
+            .toLowerCase()
+            .includes(filterString.toLowerCase())
+        );
+      }
       const runs = sortClassifiers(
         runsUnsorted,
         sort?.split?.(","),
         order?.split?.(",")
-      );
+      ).map((run, index) => ({ ...run, index }));
 
       return {
         info: {

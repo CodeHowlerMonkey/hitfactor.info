@@ -47,13 +47,14 @@ export const runsForDivisionClassifier = memoize(
       (run, index, allRuns) => {
         const percent = N(run.percent);
         const curPercent = PositiveOrMinus1(Percent(run.hf, hhf));
-        const curPercentMinusPercent = N(curPercent - percent);
+        const percentMinusCurPercent = N(percent - curPercent);
 
         return {
           ...run,
+          historicalHHF: HF((100 * run.hf) / run.percent),
           percent,
           curPercent,
-          curPercentMinusPercent,
+          percentMinusCurPercent,
           place: index + 1,
           percentile: PositiveOrMinus1(Percent(index, allRuns.length)),
         };
