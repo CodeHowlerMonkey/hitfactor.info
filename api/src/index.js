@@ -19,6 +19,7 @@ import {
   basicInfoForClassifier,
   extendedInfoForClassifier,
   runsForDivisionClassifier,
+  chartData,
 } from "./classifiers.api.js";
 import { sortClassifiers } from "../../web/src/utils/sort.js";
 
@@ -74,6 +75,10 @@ const start = async () => {
       }));
       //console.profileEnd();
       return result;
+    });
+    fastify.get("/api/classifiers/:division/:number/chart", (req, res) => {
+      const { division, number } = req.params;
+      return chartData({ division, number });
     });
     fastify.get("/api/classifiers/:division/:number", (req, res) => {
       const { division, number } = req.params;

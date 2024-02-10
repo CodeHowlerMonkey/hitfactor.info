@@ -21,27 +21,54 @@ import allHHFs from "../../data/hhf.json" assert { type: "json" };
 
 const divShortToRuns = { opn, ltd, l10, prod, ss, rev, co, lo, pcc };
 
+export const selectClassifierDivisionScores = ({
+  number,
+  division,
+  includeNoHF,
+}) =>
+  divShortToRuns[division].filter((run) => {
+    if (!run) {
+      return false;
+    }
+
+    if (!includeNoHF && run.hf < 0) {
+      return false;
+    }
+
+    return run.classifier === number;
+  });
+
+export const chartData = ({ number, division }) => {
+  const runs = selectClassifierDivisionScores({
+    number,
+    division,
+  })
+    .sort((a, b) => b.hf - a.hf)
+    .filter(({ hf }) => hf > 0);
+
+  return _.uniqBy(
+    runs.map((run, index, allRuns) => {
+      return {
+        x: HF(run.hf),
+        y: PositiveOrMinus1(Percent(index, allRuns.length)),
+      };
+    }),
+    ({ x }) => Math.floor(x * 300)
+  );
+};
+
 export const runsForDivisionClassifier = memoize(
   ({ number, division, hhf, includeNoHF = false, hhfs }) => {
-    const divisionClassifierRunsSortedByHFOrPercent = divShortToRuns[division]
-      .filter((run) => {
-        if (!run) {
-          return false;
-        }
+    const divisionClassifierRunsSortedByHFOrPercent =
+      selectClassifierDivisionScores({ number, division, includeNoHF }).sort(
+        (a, b) => {
+          if (includeNoHF) {
+            return b.percent - a.percent;
+          }
 
-        if (!includeNoHF && run.hf < 0) {
-          return false;
+          return b.hf - a.hf;
         }
-
-        return run.classifier === number;
-      })
-      .sort((a, b) => {
-        if (includeNoHF) {
-          return b.percent - a.percent;
-        }
-
-        return b.hf - a.hf;
-      });
+      );
 
     return divisionClassifierRunsSortedByHFOrPercent.map(
       (run, index, allRuns) => {

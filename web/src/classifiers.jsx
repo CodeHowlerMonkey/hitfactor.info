@@ -4,6 +4,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "primereact/button";
 import ClassifiersTable from "./ClassifiersTable";
 import RunsTable, { useRunsTableData } from "./RunsTable";
+import ScoresChart from "./ScoresChart";
 
 // TODO: shooters table for single classifier? # attempts, low HF, high HF, same for percent, same for curPercent
 // TODO: all classifiers total number of reshoots (non-uniqueness)
@@ -12,12 +13,12 @@ const Classifiers = () => {
   const navigate = useNavigate();
   const { division, classifier } = useParams();
   const onDivisionSelect = useCallback(
-    (division) => navigate(`/classifiers/${division}/${classifier}`),
-    [navigate]
+    (division) => navigate(`/classifiers/${division}/${classifier || ""}`),
+    [navigate, division, classifier]
   );
   const onBackToClassifiers = useCallback(
     () => navigate(`/classifiers/${division}`),
-    [navigate]
+    [navigate, division]
   );
 
   const useRunsTableDataResults = useRunsTableData({ division, classifier });
@@ -52,6 +53,9 @@ const Classifiers = () => {
             </h1>
           </div>
           <div className="flex h-20rem">
+            <div className="w-full h-full bg-primary-reverse">
+              <ScoresChart division={division} classifier={classifier} />
+            </div>
             <div className="w-full h-full bg-primary" />
             <div className="w-full h-full bg-primary-reverse" />
           </div>
