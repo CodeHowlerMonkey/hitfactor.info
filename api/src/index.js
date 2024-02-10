@@ -97,13 +97,14 @@ const start = async () => {
 
       const basic = basicInfoForClassifier(c);
       const extended = extendedInfoForClassifier(c, division);
-      const hhf = extended.hhf;
+      const { hhf, hhfs } = extended;
 
       let runsUnsorted = runsForDivisionClassifier({
         number,
         division,
         hhf,
         includeNoHF,
+        hhfs,
       });
       if (filterHHF) {
         runsUnsorted = runsUnsorted.filter(

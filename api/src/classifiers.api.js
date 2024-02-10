@@ -22,7 +22,7 @@ import allHHFs from "../../data/hhf.json" assert { type: "json" };
 const divShortToRuns = { opn, ltd, l10, prod, ss, rev, co, lo, pcc };
 
 export const runsForDivisionClassifier = memoize(
-  ({ number, division, hhf, includeNoHF = false }) => {
+  ({ number, division, hhf, includeNoHF = false, hhfs }) => {
     const divisionClassifierRunsSortedByHFOrPercent = divShortToRuns[division]
       .filter((run) => {
         if (!run) {
@@ -49,9 +49,15 @@ export const runsForDivisionClassifier = memoize(
         const curPercent = PositiveOrMinus1(Percent(run.hf, hhf));
         const percentMinusCurPercent = N(percent - curPercent);
 
+        const findHistoricalHHF = hhfs.findLast(
+          (hhf) => hhf.date <= new Date(run.sd).getTime()
+        )?.hhf;
+
+        const recalcHistoricalHHF = HF((100 * run.hf) / run.percent);
+
         return {
           ...run,
-          historicalHHF: HF((100 * run.hf) / run.percent),
+          historicalHHF: findHistoricalHHF ?? recalcHistoricalHHF,
           percent,
           curPercent,
           percentMinusCurPercent,
