@@ -9,11 +9,15 @@ import RunsTable from "./RunsTable";
 
 const Classifiers = () => {
   const navigate = useNavigate();
+  const { division, classifier } = useParams();
   const onDivisionSelect = useCallback(
-    (division) => navigate(`/classifiers/${division ?? ""}`),
+    (division) => navigate(`/classifiers/${division}/${classifier}`),
     [navigate]
   );
-  const { division, classifier } = useParams();
+  const onBackToClassifiers = useCallback(
+    () => navigate(`/classifiers/${division}`),
+    [navigate]
+  );
 
   return (
     <div className="mx-">
@@ -32,6 +36,7 @@ const Classifiers = () => {
           classifier={classifier}
           onShooterSelection={(shooter) => navigate("/shooters/" + shooter)}
           onClubSelection={(club) => navigate("/clubs/" + club)}
+          onBack={onBackToClassifiers}
         />
       )}
     </div>

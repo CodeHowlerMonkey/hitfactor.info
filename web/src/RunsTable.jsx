@@ -48,7 +48,7 @@ const TableFilter = ({ placeholder, onFilterChange }) => {
 };
 
 // TODO: filter=menu, it has to be done on api cause of pagination fml
-const RunsTable = ({ division, classifier }) => {
+const RunsTable = ({ division, classifier, onBack }) => {
   const {
     query: pageQuery,
     reset: resetPage,
@@ -92,7 +92,13 @@ const RunsTable = ({ division, classifier }) => {
       stripedRows
       header={
         <div className="flex justify-content-between">
-          <Button icon="pi pi-chevron-left" rounded text aria-label="Back">
+          <Button
+            icon="pi pi-chevron-left"
+            rounded
+            text
+            aria-label="Back"
+            onClick={onBack}
+          >
             Classifiers List
           </Button>
           <span style={{ fontSize: "2rem", margin: "auto" }}>
