@@ -1,8 +1,9 @@
 import { useCallback } from "react";
 import { DivisionNav } from "./common";
 import { useNavigate, useParams } from "react-router-dom";
+import { Button } from "primereact/button";
 import ClassifiersTable from "./ClassifiersTable";
-import RunsTable from "./RunsTable";
+import RunsTable, { useRunsTableData } from "./RunsTable";
 
 // TODO: shooters table for single classifier? # attempts, low HF, high HF, same for percent, same for curPercent
 // TODO: all classifiers total number of reshoots (non-uniqueness)
@@ -19,6 +20,9 @@ const Classifiers = () => {
     [navigate]
   );
 
+  const useRunsTableDataResults = useRunsTableData({ division, classifier });
+  const { code, name } = useRunsTableDataResults;
+
   return (
     <div className="mx-">
       <DivisionNav onSelect={onDivisionSelect} />
@@ -31,13 +35,34 @@ const Classifiers = () => {
         />
       )}
       {classifier && (
-        <RunsTable
-          division={division}
-          classifier={classifier}
-          onShooterSelection={(shooter) => navigate("/shooters/" + shooter)}
-          onClubSelection={(club) => navigate("/clubs/" + club)}
-          onBack={onBackToClassifiers}
-        />
+        <>
+          <div className="flex justify-content-between">
+            <Button
+              style={{ fontSize: "2rem", fontWeight: "bold" }}
+              icon="pi pi-chevron-left"
+              rounded
+              text
+              aria-label="Back"
+              onClick={onBackToClassifiers}
+            >
+              Classifiers List
+            </Button>
+            <h1 style={{ margin: "auto" }}>
+              {code} {name}
+            </h1>
+          </div>
+          <div className="flex h-20rem">
+            <div className="w-full h-full bg-primary" />
+            <div className="w-full h-full bg-primary-reverse" />
+          </div>
+
+          <RunsTable
+            {...useRunsTableDataResults}
+            onShooterSelection={(shooter) => navigate("/shooters/" + shooter)}
+            onClubSelection={(club) => navigate("/clubs/" + club)}
+            onBack={onBackToClassifiers}
+          />
+        </>
       )}
     </div>
   );

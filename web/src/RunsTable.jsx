@@ -47,8 +47,7 @@ const TableFilter = ({ placeholder, onFilterChange }) => {
   );
 };
 
-// TODO: filter=menu, it has to be done on api cause of pagination fml
-const RunsTable = ({ division, classifier, onBack }) => {
+export const useRunsTableData = ({ division, classifier }) => {
   const {
     query: pageQuery,
     reset: resetPage,
@@ -72,6 +71,35 @@ const RunsTable = ({ division, classifier, onBack }) => {
     updated: new Date(d.updated).toLocaleDateString(),
   }));
 
+  return {
+    data,
+    runsTotal,
+    code,
+    name,
+    hhfs,
+    query,
+    sortProps,
+    pageProps,
+    filter,
+    setFilter,
+    filterHHF,
+    setFilterHHF,
+  };
+};
+
+const RunsTable = ({ onBack, ...useRunsTableDataResults }) => {
+  const {
+    data,
+    runsTotal,
+    code,
+    name,
+    hhfs,
+    sortProps,
+    pageProps,
+    setFilter,
+    setFilterHHF,
+  } = useRunsTableDataResults;
+
   const HistoricalHHFFilter = (options) => (
     <Dropdown
       value={options.value}
@@ -90,31 +118,19 @@ const RunsTable = ({ division, classifier, onBack }) => {
   return (
     <DataTable
       stripedRows
-      header={
-        <div className="flex justify-content-between">
-          <Button
-            icon="pi pi-chevron-left"
-            rounded
-            text
-            aria-label="Back"
-            onClick={onBack}
-          >
-            Classifiers List
-          </Button>
-          <span style={{ fontSize: "2rem", margin: "auto" }}>
-            {code} {name}
-          </span>
-          <TableFilter
-            placeholder="Filter by Club or Shooter"
-            onFilterChange={(f) => setFilter(f)}
-          />
-        </div>
-      }
       lazy
       value={data ?? []}
       tableStyle={{ minWidth: "50rem" }}
       {...sortProps}
       {...pageProps}
+      paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink"
+      paginatorLeft={<h2>Scores</h2>}
+      paginatorRight={
+        <TableFilter
+          placeholder="Filter by Club or Shooter"
+          onFilterChange={(f) => setFilter(f)}
+        />
+      }
       totalRecords={runsTotal}
       filterDisplay="row"
     >
