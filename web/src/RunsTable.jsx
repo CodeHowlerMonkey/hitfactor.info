@@ -88,19 +88,15 @@ export const useRunsTableData = ({ division, classifier }) => {
   };
 };
 
-const RunsTable = ({ onBack, ...useRunsTableDataResults }) => {
-  const {
-    data,
-    runsTotal,
-    code,
-    name,
-    hhfs,
-    sortProps,
-    pageProps,
-    setFilter,
-    setFilterHHF,
-  } = useRunsTableDataResults;
-
+const RunsTable = ({
+  data,
+  runsTotal,
+  hhfs,
+  sortProps,
+  pageProps,
+  setFilter,
+  setFilterHHF,
+}) => {
   const HistoricalHHFFilter = (options) => (
     <Dropdown
       value={options.value}
