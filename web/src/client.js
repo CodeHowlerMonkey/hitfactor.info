@@ -6,10 +6,12 @@ export const useApi = (endpoint) => {
   const [json, setJson] = useState(null);
   useEffect(() => {
     setJson(null);
-    window
-      .fetch(API_URL + endpoint)
-      .then((r) => r.json())
-      .then((j) => setJson(j));
+    if (endpoint) {
+      window
+        .fetch(API_URL + endpoint)
+        .then((r) => r.json())
+        .then((j) => setJson(j));
+    }
   }, [endpoint]);
   return json;
 };

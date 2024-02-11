@@ -59,9 +59,10 @@ export const useRunsTableData = ({ division, classifier }) => {
   const filtersQuery = qs.stringify({ filter, hhf: filterHHF });
   useEffect(() => console.log(filtersQuery), [filtersQuery]);
 
-  const apiData = useApi(
-    `/classifiers/${division}/${classifier}?${query}&${pageQuery}&${filtersQuery}`
-  );
+  const apiEndpoint = !(division && classifier)
+    ? null
+    : `/classifiers/${division}/${classifier}?${query}&${pageQuery}&${filtersQuery}`;
+  const apiData = useApi(apiEndpoint);
   const { code, name, hhfs } = apiData?.info || {};
   // info bucket has total runs too for header, needs to be renamed
   const runsTotal = apiData?.runsTotal;
