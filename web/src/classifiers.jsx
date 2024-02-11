@@ -22,7 +22,7 @@ const Classifiers = () => {
   );
 
   const useRunsTableDataResults = useRunsTableData({ division, classifier });
-  const { code, name } = useRunsTableDataResults;
+  const { code, name, hhf } = useRunsTableDataResults;
 
   return (
     <div className="mx-">
@@ -52,13 +52,18 @@ const Classifiers = () => {
               {code} {name}
             </h1>
           </div>
-          <div className="flex h-20rem">
+          <div className="flex h-30rem">
             <div className="w-full h-full bg-primary-reverse">
-              <ScoresChart division={division} classifier={classifier} />
+              <ScoresChart
+                division={division}
+                classifier={classifier}
+                hhf={hhf}
+              />
             </div>
             <div className="w-full h-full bg-primary" />
             <div className="w-full h-full bg-primary-reverse" />
           </div>
+          <div className="flex h-20rem"></div>
 
           <RunsTable
             {...useRunsTableDataResults}
