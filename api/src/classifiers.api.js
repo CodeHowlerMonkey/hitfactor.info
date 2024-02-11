@@ -98,7 +98,7 @@ export const runsForDivisionClassifier = memoize(
           historicalHHF: findHistoricalHHF ?? recalcHistoricalHHF,
           percent,
           curPercent,
-          percentMinusCurPercent,
+          percentMinusCurPercent: percent >= 100 ? 0 : percentMinusCurPercent,
           place: index + 1,
           percentile: PositiveOrMinus1(Percent(index, allRuns.length)),
         };
