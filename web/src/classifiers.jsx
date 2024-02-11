@@ -39,7 +39,7 @@ const Classifiers = () => {
         <>
           <div className="flex justify-content-between">
             <Button
-              style={{ fontSize: "2rem", fontWeight: "bold" }}
+              style={{ fontSize: "1.2rem", fontWeight: "bold" }}
               icon="pi pi-chevron-left"
               rounded
               text
