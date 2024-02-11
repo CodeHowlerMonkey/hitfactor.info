@@ -21,6 +21,15 @@ import allHHFs from "../../data/hhf.json" assert { type: "json" };
 
 const divShortToRuns = { opn, ltd, l10, prod, ss, rev, co, lo, pcc };
 
+export const curHHFForDivisionClassifier = ({ division, number }) => {
+  const divisionHHFs = divShortToHHFs[division];
+  const c = classifiersData.classifiers.find(
+    (cur) => cur.classifier === number
+  );
+  const curHHFInfo = divisionHHFs.find((dHHF) => dHHF.classifier === c.id);
+  return HF(curHHFInfo.hhf);
+};
+
 export const selectClassifierDivisionScores = ({
   number,
   division,
@@ -46,6 +55,8 @@ export const chartData = ({ number, division }) => {
     .sort((a, b) => b.hf - a.hf)
     .filter(({ hf }) => hf > 0);
 
+  const hhf = curHHFForDivisionClassifier({ number, division });
+
   return _.uniqBy(
     runs.map((run, index, allRuns) => {
       return {
@@ -53,7 +64,7 @@ export const chartData = ({ number, division }) => {
         y: PositiveOrMinus1(Percent(index, allRuns.length)),
       };
     }),
-    ({ x }) => Math.floor(x * 300)
+    ({ x }) => Math.floor((200 * x) / hhf) // 0.5% grouping for graph points reduction
   );
 };
 
