@@ -4,6 +4,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "primereact/button";
 import ClassifiersTable from "./ClassifiersTable";
 import RunsTable, { useRunsTableData } from "./RunsTable";
+import ClassifierInfoTable from "./ClassifierInfoTable";
 import ScoresChart from "./ScoresChart";
 
 // TODO: shooters table for single classifier? # attempts, low HF, high HF, same for percent, same for curPercent
@@ -51,8 +52,11 @@ export const ClassifierRunsAndInfo = ({
   classifier,
   onBackToClassifiers,
 }) => {
-  const useRunsTableDataResults = useRunsTableData({ division, classifier });
-  const { code, name, hhf } = useRunsTableDataResults;
+  const { info, ...useRunsTableDataResults } = useRunsTableData({
+    division,
+    classifier,
+  });
+  const { code, name, hhf } = info;
 
   return (
     <>
@@ -73,18 +77,14 @@ export const ClassifierRunsAndInfo = ({
       </div>
       <div className="flex h-30rem">
         <div className="w-full h-full bg-primary-reverse">
-          <ScoresChart division={division} classifier={classifier} hhf={hhf} />
+          <ClassifierInfoTable {...{ division, classifier }} {...info} />
         </div>
-        <div className="w-full h-full bg-primary" />
-        <div className="w-full h-full bg-primary-reverse" />
       </div>
-      <div className="flex h-20rem"></div>
 
       <RunsTable
         {...useRunsTableDataResults}
         onShooterSelection={(shooter) => navigate("/shooters/" + shooter)}
         onClubSelection={(club) => navigate("/clubs/" + club)}
-        onBack={onBackToClassifiers}
       />
     </>
   );

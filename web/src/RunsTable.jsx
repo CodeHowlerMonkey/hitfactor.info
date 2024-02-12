@@ -63,7 +63,8 @@ export const useRunsTableData = ({ division, classifier }) => {
     ? null
     : `/classifiers/${division}/${classifier}?${query}&${pageQuery}&${filtersQuery}`;
   const apiData = useApi(apiEndpoint);
-  const { code, name, hhfs, hhf } = apiData?.info || {};
+  const info = apiData?.info || {};
+  const { hhfs } = info;
   // info bucket has total runs too for header, needs to be renamed
   const runsTotal = apiData?.runsTotal;
 
@@ -73,11 +74,9 @@ export const useRunsTableData = ({ division, classifier }) => {
   }));
 
   return {
+    info,
     data,
     runsTotal,
-    code,
-    name,
-    hhf,
     hhfs,
     query,
     sortProps,
