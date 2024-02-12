@@ -18,7 +18,7 @@ const fullCodeNum = (code) =>
   Number(((code.startsWith("99") ? "19" : "20") + code).replace("-", ""));
 
 export const classifierCodeSort = (a, b, field, order) =>
-  sortState.sortOrder * (fullCodeNum(a.code) - fullCodeNum(b.code));
+  order * (fullCodeNum(a[field]) - fullCodeNum(b[field]));
 
 const singleFieldSort = (a, b, field, order) => {
   switch (field) {
