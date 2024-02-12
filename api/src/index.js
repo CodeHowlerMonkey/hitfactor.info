@@ -118,7 +118,7 @@ const start = async () => {
       }
       if (filterString) {
         runsUnsorted = runsUnsorted.filter((run) =>
-          [run.clubid, run.club_name, run.memberNumber]
+          [run.clubid, run.club_name, run.memberNumber, run.name]
             .join("###")
             .toLowerCase()
             .includes(filterString.toLowerCase())

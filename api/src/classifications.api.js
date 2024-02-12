@@ -1,7 +1,6 @@
-import one from "../../data/mergedArray.classifications.1.json" assert { type: "json" };
-import two from "../../data/mergedArray.classifications.2.json" assert { type: "json" };
+import { all } from "./dataUtil/shooters.js";
 
-const all = [...one, ...two];
+export { all };
 
 const classificationRank = (classification) =>
   ["X", "U", "D", "C", "B", "A", "M", "GM"].indexOf(classification);

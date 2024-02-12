@@ -12,10 +12,12 @@ import co from "../../data/merged.active.co.json" assert { type: "json" };
 import lo from "../../data/merged.active.limitedoptics.json" assert { type: "json" };
 import pcc from "../../data/merged.active.pcc.json" assert { type: "json" };
 
+import { divIdToShort } from "./dataUtil/divisions.js";
+import { shooterShortInfo } from "./dataUtil/shooters.js";
+
 // fucking github and its fucking 50Mb file limitation
 const ltd = [...limited1, ...limited2];
 
-import divisions from "../../data/division.json" assert { type: "json" };
 import classifiersData from "../../data/classifiers/classifiers.json" assert { type: "json" };
 import allHHFs from "../../data/hhf.json" assert { type: "json" };
 
@@ -83,6 +85,7 @@ export const runsForDivisionClassifier = memoize(
 
     return divisionClassifierRunsSortedByHFOrPercent.map(
       (run, index, allRuns) => {
+        const { memberNumber } = run;
         const percent = N(run.percent);
         const curPercent = PositiveOrMinus1(Percent(run.hf, hhf));
         const percentMinusCurPercent = N(percent - curPercent);
@@ -95,6 +98,7 @@ export const runsForDivisionClassifier = memoize(
 
         return {
           ...run,
+          ...shooterShortInfo({ memberNumber, division }),
           historicalHHF: findHistoricalHHF ?? recalcHistoricalHHF,
           percent,
           curPercent,
@@ -106,15 +110,6 @@ export const runsForDivisionClassifier = memoize(
     );
   },
   { cacheKey: (ehFuckit) => JSON.stringify(ehFuckit) }
-);
-
-const divShortToId = divisions.divisions.reduce(
-  (result, cur) => ({ ...result, [cur.short_name.toLowerCase()]: cur.id }),
-  {}
-);
-
-const divIdToShort = Object.fromEntries(
-  Object.entries(divShortToId).map((flip) => [flip[1], flip[0]])
 );
 
 const divShortToHHFs = allHHFs.hhfs.reduce((acc, cur) => {
