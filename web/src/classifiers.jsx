@@ -9,7 +9,7 @@ import ScoresChart from "./ScoresChart";
 // TODO: shooters table for single classifier? # attempts, low HF, high HF, same for percent, same for curPercent
 // TODO: all classifiers total number of reshoots (non-uniqueness)
 
-const Classifiers = () => {
+const ClassifiersPage = () => {
   const navigate = useNavigate();
   const { division, classifier } = useParams();
   const onDivisionSelect = useCallback(
@@ -36,45 +36,58 @@ const Classifiers = () => {
         />
       )}
       {classifier && (
-        <>
-          <div className="flex justify-content-between">
-            <Button
-              style={{ fontSize: "1.2rem", fontWeight: "bold" }}
-              icon="pi pi-chevron-left"
-              rounded
-              text
-              aria-label="Back"
-              onClick={onBackToClassifiers}
-            >
-              Classifiers List
-            </Button>
-            <h1 style={{ margin: "auto" }}>
-              {code} {name}
-            </h1>
-          </div>
-          <div className="flex h-30rem">
-            <div className="w-full h-full bg-primary-reverse">
-              <ScoresChart
-                division={division}
-                classifier={classifier}
-                hhf={hhf}
-              />
-            </div>
-            <div className="w-full h-full bg-primary" />
-            <div className="w-full h-full bg-primary-reverse" />
-          </div>
-          <div className="flex h-20rem"></div>
-
-          <RunsTable
-            {...useRunsTableDataResults}
-            onShooterSelection={(shooter) => navigate("/shooters/" + shooter)}
-            onClubSelection={(club) => navigate("/clubs/" + club)}
-            onBack={onBackToClassifiers}
-          />
-        </>
+        <ClassifierRunsAndInfo
+          division={division}
+          classifier={classifier}
+          onBackToClassifiers={onBackToClassifiers}
+        />
       )}
     </div>
   );
 };
 
-export default Classifiers;
+export const ClassifierRunsAndInfo = ({
+  division,
+  classifier,
+  onBackToClassifiers,
+}) => {
+  const useRunsTableDataResults = useRunsTableData({ division, classifier });
+  const { code, name, hhf } = useRunsTableDataResults;
+
+  return (
+    <>
+      <div className="flex justify-content-between">
+        <Button
+          style={{ fontSize: "1.2rem", fontWeight: "bold" }}
+          icon="pi pi-chevron-left"
+          rounded
+          text
+          aria-label="Back"
+          onClick={onBackToClassifiers}
+        >
+          Classifiers List
+        </Button>
+        <h1 style={{ margin: "auto" }}>
+          {code} {name}
+        </h1>
+      </div>
+      <div className="flex h-30rem">
+        <div className="w-full h-full bg-primary-reverse">
+          <ScoresChart division={division} classifier={classifier} hhf={hhf} />
+        </div>
+        <div className="w-full h-full bg-primary" />
+        <div className="w-full h-full bg-primary-reverse" />
+      </div>
+      <div className="flex h-20rem"></div>
+
+      <RunsTable
+        {...useRunsTableDataResults}
+        onShooterSelection={(shooter) => navigate("/shooters/" + shooter)}
+        onClubSelection={(club) => navigate("/clubs/" + club)}
+        onBack={onBackToClassifiers}
+      />
+    </>
+  );
+};
+
+export default ClassifiersPage;
