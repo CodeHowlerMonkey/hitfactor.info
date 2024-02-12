@@ -2,7 +2,7 @@ import _ from "lodash";
 import qs from "query-string";
 import { useEffect, useState } from "react";
 import { DataTable } from "primereact/datatable";
-import { Button } from "primereact/button";
+import { Tag } from "primereact/tag";
 import { InputText } from "primereact/inputtext";
 import { Column } from "primereact/column";
 import { useApi } from "./client";
@@ -10,6 +10,7 @@ import useTableSort from "./common/useTableSort";
 import useTablePagination from "./common/useTablePagination";
 import { Dropdown } from "primereact/dropdown";
 import { useDebounce } from "use-debounce";
+import { bgColorForClass, fgColorForClass } from "./utils/color";
 
 /*
 sd	"4/09/17"
@@ -57,7 +58,6 @@ export const useRunsTableData = ({ division, classifier }) => {
   const [filter, setFilter] = useState("");
   const [filterHHF, setFilterHHF] = useState(undefined);
   const filtersQuery = qs.stringify({ filter, hhf: filterHHF });
-  useEffect(() => console.log(filtersQuery), [filtersQuery]);
 
   const apiEndpoint = !(division && classifier)
     ? null
@@ -144,7 +144,33 @@ const RunsTable = ({
         sortable
         headerTooltip="Record place for this score. Stays the same unless someone beats this score."
       />
-      <Column field="memberNumber" header="Shooter" sortable />
+      <Column
+        field="memberNumber"
+        header="Shooter"
+        sortable
+        body={(run) => (
+          <>
+            <div>
+              {run.memberNumber}
+              <Tag
+                rounded
+                severity="info"
+                value={run.class}
+                style={{
+                  backgroundColor: bgColorForClass[run.class],
+                  color: fgColorForClass[run.class],
+                  padding: "1px 4px",
+                  fontSize: "11px",
+                  margin: "auto",
+                  position: "absolute",
+                  transform: "translateX(4px)",
+                }}
+              />
+            </div>
+            <div style={{ fontSize: 14 }}>{run.name}</div>
+          </>
+        )}
+      />
       <Column field="clubid" header="Club" sortable />
       <Column field="hf" header="HF" sortable />
       <Column
