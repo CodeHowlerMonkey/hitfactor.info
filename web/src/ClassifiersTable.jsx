@@ -106,10 +106,11 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
         sortable
       />
 
-      <Column field="runsGM" header="GM Runs" sortable />
-      <Column field="runsLegitGM" header="Cur HHF GM Runs" sortable />
-      <Column field="runsHundo" header="Hundos" sortable />
-      <Column field="runsLegitHundo" header="Cur HHF Hundos" sortable />
+      <Column field="runs" header="Total Runs" sortable />
+      <Column field="runsTotalsGM" header="GM Runs" sortable />
+      <Column field="runsTotalsLegitGM" header="Cur HHF GM Runs" sortable />
+      <Column field="runsTotalsHundo" header="Hundos" sortable />
+      <Column field="runsTotalsLegitHundo" header="Cur HHF Hundos" sortable />
 
       <Column field="scoring" header="Scoring" sortable />
       <Column field="updated" header="Updated" dataType="date" sortable />

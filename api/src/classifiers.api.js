@@ -189,6 +189,7 @@ export const extendedInfoForClassifier = memoize(
     const divisionHHFs = divShortToHHFs[division];
     const curHHFInfo = divisionHHFs.find((dHHF) => dHHF.classifier === c.id);
 
+    // sussy = include legacy scores without hfs
     const sussyRuns = divShortToRuns[division]
       .filter(Boolean)
       .filter((run) => run.classifier === c.classifier)
@@ -214,8 +215,6 @@ export const extendedInfoForClassifier = memoize(
 
     const runs = _.sortedUniqBy(runsSortedByPercent, (run) => run.memberNumber);
 
-    // TODO: top10Avg, top20Avg, percentiles, madeA percentiles, etc
-
     const hhf = Number(curHHFInfo.hhf);
 
     const top20HF = runsSortedByHF.slice(0, 20);
@@ -230,6 +229,13 @@ export const extendedInfoForClassifier = memoize(
       ),
       [`top${x}PercentileHF`]:
         runsSortedByHF[Math.floor(x * 0.01 * runsSortedByHF.length)].hf,
+    });
+
+    const inversePercentileStats = (xPercent) => ({
+      [`inverse${xPercent}CurPercentPercentile`]: Percent(
+        runsSortedByHF.findLastIndex((c) => (100 * c.hf) / hhf >= xPercent),
+        runsSortedByHF.length
+      ),
     });
 
     // sik maf bro
@@ -252,30 +258,21 @@ export const extendedInfoForClassifier = memoize(
       updated: curHHFInfo.updated,
       hhf,
       hhfs,
+      /* unused / not interesting data
       ..._.transform(
         calcRunStats(runs),
         (r, v, k) => (r["runsUnique" + k] = v)
       ),
       ..._.transform(
-        calcRunStats(runsSortedByPercent),
-        (r, v, k) => (r["runs" + k] = v)
-      ),
-      ..._.transform(
         calcRunStats(sussyRuns),
         (r, v, k) => (r["runsSussy" + k] = v)
       ),
-      ..._.transform(
-        calcLegitRunStats(runs, hhf),
-        (r, v, k) => (r["runsLegit" + k] = v)
-      ),
-      //runStats: calcRunStats(runsSortedByPercent),
-      //runStatsUnique: calcRunStats(runs),
-      runs: runsSortedByPercent.length,
-      runsUniq: runs.length,
-      runsNotUniq: runsSortedByPercent.length - runs.length,
-      //top20CurPercent,
-      top10CurPercentAvg:
-        top20CurPercent.slice(0, 10).reduce((a, b) => a + b, 0) / 10,
+      top20CurPercent,
+      top20SussyPercent: runs.slice(0, 20).map((s) => s.percent),
+      top20SussyHF: runs.slice(0, 20).map((s) => s.hf),
+      top20CurPercent,
+      top20CurPercentAvg: top20CurPercent.reduce((a, b) => a + b, 0) / 20,
+      top20HF: top20HF.map((run) => run.hf),
       top10HFAvg: HF(
         runs
           .filter((s) => s.hf >= 0) // need to filter into non-sussy first for avg math
@@ -283,7 +280,6 @@ export const extendedInfoForClassifier = memoize(
           .map((s) => s.hf)
           .reduce((a, b) => a + b, 0) / 10
       ),
-      top20CurPercentAvg: top20CurPercent.reduce((a, b) => a + b, 0) / 20,
       top20HFAvg: HF(
         runs
           .filter((s) => s.hf >= 0) // need to filter into non-sussy first for avg math
@@ -291,14 +287,29 @@ export const extendedInfoForClassifier = memoize(
           .map((s) => s.hf)
           .reduce((a, b) => a + b, 0) / 20
       ),
-      //      top20SussyPercent: runs.slice(0, 20).map((s) => s.percent),
-      //      top20SussyHF: runs.slice(0, 20).map((s) => s.hf),
-      //      top20CurPercent,
-      //      top20HF: top20HF.map((run) => run.hf),
-
+*/
+      ..._.transform(
+        calcRunStats(runsSortedByPercent),
+        (r, v, k) => (r["runsTotals" + k] = v)
+      ),
+      ..._.transform(
+        calcLegitRunStats(runs, hhf),
+        (r, v, k) => (r["runsTotalsLegit" + k] = v)
+      ),
+      runs: runsSortedByPercent.length,
+      runsUniq: runs.length,
+      runsNotUniq: runsSortedByPercent.length - runs.length,
+      top10CurPercentAvg:
+        top20CurPercent.slice(0, 10).reduce((a, b) => a + b, 0) / 10,
       ...topXPercentileStats(1),
       ...topXPercentileStats(2),
       ...topXPercentileStats(5),
+      ...inversePercentileStats(100),
+      ...inversePercentileStats(95),
+      ...inversePercentileStats(85),
+      ...inversePercentileStats(75),
+      ...inversePercentileStats(60),
+      ...inversePercentileStats(40),
     };
   },
   { cacheKey: ([c, division]) => c.classifier + ":" + division }
