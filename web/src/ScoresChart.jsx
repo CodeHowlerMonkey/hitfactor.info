@@ -1,3 +1,5 @@
+import { ProgressSpinner } from "primereact/progressspinner";
+
 import { Scatter } from "react-chartjs-2";
 import { useApi } from "./client";
 import { Chart, registerables } from "chart.js";
@@ -66,7 +68,11 @@ const point = (name, x, y, alpha) => ({
 // TODO: maybe split the modes into 2 dropdowns, one of xLines, one for yLines to play with
 // TODO: maybe different options / scale depending on viewport size and desktop/tablet/mobile
 export const ScoresChart = ({ division, classifier, hhf }) => {
-  const data = useApi(`/classifiers/${division}/${classifier}/chart`) ?? [];
+  const data = useApi(`/classifiers/${division}/${classifier}/chart`);
+  if (!data?.length) {
+    return <ProgressSpinner />;
+  }
+
   return (
     <Scatter
       options={{
