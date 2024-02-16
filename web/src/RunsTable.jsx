@@ -111,6 +111,10 @@ const RunsTable = ({
       maxSelectedLabels={1}
     />
   );
+  const headerTooltipOptions = {
+    position: "top",
+    style: { maxWidth: "300px" },
+  };
 
   return (
     <DataTable
@@ -136,12 +140,14 @@ const RunsTable = ({
         header="#"
         sortable
         headerTooltip="Index for the dataRow with current filters and sorting options applied. Can be used for manual counting of things. "
+        headerTooltipOptions={headerTooltipOptions}
       />
       <Column
         field="place"
         header="Place"
         sortable
         headerTooltip="Record place for this score. Stays the same unless someone beats this score."
+        headerTooltipOptions={headerTooltipOptions}
       />
       <Column
         field="memberNumber"
@@ -180,24 +186,28 @@ const RunsTable = ({
         filter
         filterElement={HistoricalHHFFilter}
         headerTooltip="Calculated HHF based on HF and Percent. Shows historical HHF value during the time when this score was processed."
+        headerTooltipOptions={headerTooltipOptions}
       />
       <Column
         field="percent"
         header="Percent"
         sortable
         headerTooltip="Classifier percentage for this score during the time that it was processed by USPSA. Maxes out at 100%."
+        headerTooltipOptions={headerTooltipOptions}
       />
       <Column
         field="curPercent"
         header="Current Percent"
         sortable
         headerTooltip="What classifier percentage this score would've earned if it was submitted today, with Current HHFs."
+        headerTooltipOptions={headerTooltipOptions}
       />
       <Column
         field="percentMinusCurPercent"
         header="Percent Change"
         sortable
         headerTooltip="Difference between calculated percent when run was submitted and what it would've been with current High Hit-Factor. \n Positive values mean classifier became harder, negative - easier."
+        headerTooltipOptions={headerTooltipOptions}
       />
       <Column field="percentile" header="Percentile" sortable />
       <Column field="sd" header="Date" sortable />
