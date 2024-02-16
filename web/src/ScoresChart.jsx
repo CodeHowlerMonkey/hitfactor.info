@@ -67,6 +67,7 @@ const point = (name, x, y, alpha) => ({
 // TODO: maybe for HHF mode allow choosing different HHFs from another dropdown
 // TODO: maybe split the modes into 2 dropdowns, one of xLines, one for yLines to play with
 // TODO: maybe different options / scale depending on viewport size and desktop/tablet/mobile
+// TODO: all vs current search mode
 export const ScoresChart = ({ division, classifier, hhf }) => {
   const data = useApi(`/classifiers/${division}/${classifier}/chart`);
   if (!data?.length) {

@@ -25,9 +25,6 @@ import { multisort } from "../../shared/utils/sort.js";
 
 const PAGE_SIZE = 100;
 
-/**
- * Run the server!
- */
 const start = async () => {
   const fastify = Fastify({ logger: true });
   try {
