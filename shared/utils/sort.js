@@ -1,6 +1,10 @@
 export const numSort = (a, b, field, order) => order * (a[field] - b[field]);
 
 export const stringSort = (a, b, field, order) => {
+  if (a[field].toLowerCase() === b[field].toLowerCase()) {
+    return 0;
+  }
+
   if (a[field].toLowerCase() > b[field].toLowerCase()) {
     return order;
   } else {
@@ -36,7 +40,7 @@ const singleFieldSort = (a, b, field, order) => {
 
 // TODO: move this somewhere more useful, maybe refactor for
 // better more generalized sorting shit can be moved to sort utils too
-export const sortClassifiers = (data = [], fields, orders) =>
+export const multisort = (data = [], fields, orders) =>
   !fields?.length
     ? data
     : data.sort((a, b) => {

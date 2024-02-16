@@ -21,7 +21,7 @@ import {
   runsForDivisionClassifier,
   chartData,
 } from "./classifiers.api.js";
-import { sortClassifiers } from "../../web/src/utils/sort.js";
+import { multisort } from "../../shared/utils/sort.js";
 
 const PAGE_SIZE = 100;
 
@@ -124,7 +124,7 @@ const start = async () => {
             .includes(filterString.toLowerCase())
         );
       }
-      const runs = sortClassifiers(
+      const runs = multisort(
         runsUnsorted,
         sort?.split?.(","),
         order?.split?.(",")

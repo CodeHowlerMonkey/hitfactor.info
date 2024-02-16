@@ -5,7 +5,7 @@ import { Column } from "primereact/column";
 import { useApi } from "./client";
 import useTableSort from "./common/useTableSort";
 
-import { numSort, dateSort, classifierCodeSort } from "./utils/sort";
+import { numSort, dateSort, classifierCodeSort } from "../../shared/utils/sort";
 
 // TODO: merge as many columns into one as possible (code + name, maybe even virginia/fixed/comstock)
 // TODO: add GM Runs - Cur GM Runs, and same for hundos
