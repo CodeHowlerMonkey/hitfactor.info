@@ -26,7 +26,7 @@ export const ClassifierInfoTable = ({ division, classifier, hhf, ...info }) => {
       <Column
         field="test"
         header="Scores Distribution"
-        style={{ width: "50%" }}
+        bodyStyle={{ position: "relative", padding: 0 }}
         body={() => (
           <ScoresChart division={division} classifier={classifier} hhf={hhf} />
         )}

@@ -1,9 +1,12 @@
 import { ProgressSpinner } from "primereact/progressspinner";
+import { Button } from "primereact/button";
+import { Dialog } from "primereact/dialog";
 
 import { Scatter } from "react-chartjs-2";
 import { useApi } from "./client";
 import { Chart, registerables } from "chart.js";
 import annotationPlugin from "chartjs-plugin-annotation";
+import { useState } from "react";
 Chart.register(...registerables);
 Chart.register(annotationPlugin);
 
@@ -70,14 +73,17 @@ const point = (name, x, y, alpha) => ({
 // TODO: all vs current search mode
 export const ScoresChart = ({ division, classifier, hhf }) => {
   const data = useApi(`/classifiers/${division}/${classifier}/chart`);
+  const [full, setFull] = useState(false);
   if (!data?.length) {
     return <ProgressSpinner />;
   }
 
-  return (
+  const graph = (
     <Scatter
+      style={{ position: "relative" }}
       options={{
-        maintainAspectRatio: false,
+        // wanted false for rezize but annotations are bugged and draw HHF/GM lines wrong
+        maintainAspectRatio: !full,
         scales: { y: { reverse: true } },
         elements: {
           point: {
@@ -117,6 +123,37 @@ export const ScoresChart = ({ division, classifier, hhf }) => {
         ],
       }}
     />
+  );
+
+  if (full) {
+    return (
+      <Dialog
+        header="Scores Distribution"
+        visible
+        style={{ width: "96vw", height: "96vh", margin: "16px" }}
+        onHide={() => setFull(false)}
+      >
+        {graph}
+      </Dialog>
+    );
+  }
+
+  return (
+    <>
+      {graph}
+      <Button
+        onClick={() => setFull(true)}
+        rounded
+        text
+        icon="pi pi-arrows-alt"
+        style={{
+          position: "absolute",
+          top: 0,
+          right: 0,
+          transform: "rotate(45deg)",
+        }}
+      />
+    </>
   );
 };
 
