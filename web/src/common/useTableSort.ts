@@ -1,8 +1,24 @@
 import { useState, useMemo } from "react";
 import qs from "query-string";
 
-const useTableSort = (mode = "single", onSortCallback) => {
-  const [state, setState] = useState([]);
+interface SingleSortState {
+  field: string,
+  order: 1 | -1
+}
+
+interface UseTableSortArgs {
+  mode: 'single' | 'multiple',
+  onSortCallback?: () => void,
+  initial: SingleSortState | SingleSortState[]
+}
+
+const useTableSort = ({
+  mode = "single",
+  onSortCallback,
+  initial = []
+}: UseTableSortArgs) => {
+  const initialArray = [].concat(initial as any) as SingleSortState[]
+  const [state, setState] = useState<SingleSortState[]>(initialArray);
   const isSingle = mode === "single";
 
   const sortStateProps = isSingle

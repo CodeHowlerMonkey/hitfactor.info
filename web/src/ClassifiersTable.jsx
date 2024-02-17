@@ -2,18 +2,48 @@ import { useState } from "react";
 import { DataTable } from "primereact/datatable";
 import { InputText } from "primereact/inputtext";
 import { Column } from "primereact/column";
+import { Textfit } from "react-textfit";
+
 import { useApi } from "./client";
 import useTableSort from "./common/useTableSort";
+import { headerTooltipOptions } from "./common/Table";
 
 import { numSort, dateSort, classifierCodeSort } from "../../shared/utils/sort";
 
-// TODO: merge as many columns into one as possible (code + name, maybe even virginia/fixed/comstock)
 // TODO: add GM Runs - Cur GM Runs, and same for hundos
 
 // TODO: TimeLine component for historical HHFs?
 
+const renderPercent = (c, { field }) => {
+  const value = c[field];
+  if (value < 0) {
+    return "—";
+  }
+
+  return <>{value}%</>;
+};
+
+const compactPercentColumnStyle = {
+  headerStyle: { width: "64px", padding: "16px 4px", fontSize: "0.8rem" },
+  bodyStyle: {
+    width: "64px",
+    padding: "16px 4px",
+    fontSize: "0.85rem",
+    textAlign: "center",
+  },
+};
+
+const compactNumberColumnStyle = {
+  headerStyle: { width: "100px", padding: "16px 8px", fontSize: "0.85rem" },
+  bodyStyle: {
+    width: "100px",
+    padding: "16px 8px",
+    textAlign: "right",
+  },
+};
+
 const ClassifiersTable = ({ division, onClassifierSelection }) => {
-  const sortProps = useTableSort();
+  const sortProps = useTableSort({ initial: { field: "code", order: 1 } });
   const [filter, setFilter] = useState("");
   const sortState = sortProps;
 
@@ -53,6 +83,8 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
 
   return (
     <DataTable
+      showGridlines
+      size="small"
       selectionMode={"single"}
       selection={null}
       onSelectionChange={({ value }) => onClassifierSelection(value.code)}
@@ -75,45 +107,119 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
       removableSort
       {...sortProps}
     >
-      <Column field="code" header="Number" sortable />
-      <Column field="name" header="Name" sortable />
+      <Column
+        bodyStyle={{ width: "12rem" }}
+        field="code"
+        header="Classifier"
+        sortable
+        body={(c) => (
+          <div className="flex flex-column w-12rem">
+            <div className="flex flex-row justify-content-between">
+              <div className="font-bold text-color-secondary">{c.code}</div>
+              <div className="text-xs text-color-secondary">{c.scoring}</div>
+            </div>
+            <div className="text-color">
+              <Textfit max={16} mode="single">
+                {c.name}
+              </Textfit>
+            </div>
+          </div>
+        )}
+      />
       <Column field="hhf" header="HHF" sortable />
+      <Column field="runs" header="Scores" sortable />
+
       <Column
-        field="top1PercentileCurPercent"
-        header={
-          <>
-            1<sup>th</sup>%
-          </>
-        }
+        field="inverse100CurPercentPercentile"
+        {...compactPercentColumnStyle}
+        header="100% Scores%"
+        body={renderPercent}
         sortable
+        headerTooltip="Total percentage of scores that are equal or higher to the current HHF."
+        headerTooltipOptions={headerTooltipOptions}
       />
       <Column
-        field="top2PercentileCurPercent"
-        header={
-          <>
-            2<sup>th</sup>%
-          </>
-        }
+        field="inverse95CurPercentPercentile"
+        {...compactPercentColumnStyle}
+        header="GM Scores%"
+        body={renderPercent}
         sortable
+        headerTooltip="Total percentage of scores that are equal or higher to the 95% of the current HHF."
+        headerTooltipOptions={headerTooltipOptions}
       />
       <Column
-        field="top5PercentileCurPercent"
-        header={
-          <>
-            5<sup>th</sup>%
-          </>
-        }
+        field="inverse85CurPercentPercentile"
+        {...compactPercentColumnStyle}
+        header="M+ Scores%"
+        body={renderPercent}
         sortable
+        headerTooltip="Total percentage of scores that are equal or higher to the 85% of the current HHF."
+        headerTooltipOptions={headerTooltipOptions}
+      />
+      <Column
+        field="inverse75CurPercentPercentile"
+        {...compactPercentColumnStyle}
+        header="A+ Scores%"
+        body={renderPercent}
+        sortable
+        headerTooltip="Total percentage of scores that are equal or higher to the 75% of the current HHF."
+        headerTooltipOptions={headerTooltipOptions}
+      />
+      <Column
+        field="inverse60CurPercentPercentile"
+        {...compactPercentColumnStyle}
+        header="B+ Scores%"
+        body={renderPercent}
+        sortable
+        headerTooltip="Total percentage of scores that are equal or higher to the 60% of the current HHF."
+        headerTooltipOptions={headerTooltipOptions}
+      />
+      <Column
+        field="inverse40CurPercentPercentile"
+        {...compactPercentColumnStyle}
+        header="C+ Scores%"
+        body={renderPercent}
+        sortable
+        headerTooltip="Total percentage of scores that are equal or higher to the 40% of the current HHF."
+        headerTooltipOptions={headerTooltipOptions}
       />
 
-      <Column field="runs" header="Total Runs" sortable />
-      <Column field="runsTotalsGM" header="GM Runs" sortable />
-      <Column field="runsTotalsLegitGM" header="Cur HHF GM Runs" sortable />
-      <Column field="runsTotalsHundo" header="Hundos" sortable />
-      <Column field="runsTotalsLegitHundo" header="Cur HHF Hundos" sortable />
-
-      <Column field="scoring" header="Scoring" sortable />
-      <Column field="updated" header="Updated" dataType="date" sortable />
+      <Column
+        align="right"
+        {...compactNumberColumnStyle}
+        field="runsTotalsLegitGM"
+        header="GM"
+        sortable
+        headerTooltip="Number of runs that WOULD BE scored as 95% or more, using CURRENT HHF."
+        headerTooltipOptions={headerTooltipOptions}
+      />
+      <Column
+        align="right"
+        {...compactNumberColumnStyle}
+        field="runsTotalsGM"
+        header="Old GM"
+        sortable
+        headerTooltip="Number of runs that WERE scored as 95% or more, potentially using Older Historical HHF when the score was processed."
+        headerTooltipOptions={headerTooltipOptions}
+      />
+      <Column
+        align="right"
+        {...compactNumberColumnStyle}
+        field="runsTotalsLegitHundo"
+        header="100%"
+        sortable
+        headerTooltip="Number of runs that WOULD BE scored as 100% or more, using CURRENT HHF."
+        headerTooltipOptions={headerTooltipOptions}
+      />
+      <Column
+        align="right"
+        {...compactNumberColumnStyle}
+        field="runsTotalsHundo"
+        header="Old 100%"
+        sortable
+        headerTooltip="Number of runs that WERE scored as 100% or more, potentially using Older Historical HHF when the score was processed."
+        headerTooltipOptions={headerTooltipOptions}
+      />
     </DataTable>
   );
 };

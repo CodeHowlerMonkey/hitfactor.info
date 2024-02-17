@@ -18,6 +18,7 @@ export const ClassifierInfoTable = ({ division, classifier, hhf, ...info }) => {
 
   return (
     <DataTable
+      style={{ height: "100%" }}
       tableStyle={{ height: "100%" }}
       value={[{ test: 1, test2: 2, test3: 3 }]}
       //      tableStyle={{ minWidth: "50rem" }}

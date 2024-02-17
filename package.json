@@ -10,12 +10,12 @@
     "build-web": "cd web && npm run build",
     "prod": "cd api && npm run prod",
     "postinstall": "(cd api && npm install); (cd web && npm install && npm run build);"
-
   },
   "devDependencies": {
     "concurrently": "^8.2.2"
   },
   "dependencies": {
-    "forever": "^4.0.3"
+    "forever": "^4.0.3",
+    "react-textfit": "^1.1.1"
   }
 }

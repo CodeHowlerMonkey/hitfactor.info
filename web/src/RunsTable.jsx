@@ -8,6 +8,7 @@ import { Column } from "primereact/column";
 import { useApi } from "./client";
 import useTableSort from "./common/useTableSort";
 import useTablePagination from "./common/useTablePagination";
+import { headerTooltipOptions } from "./common/Table";
 import { Dropdown } from "primereact/dropdown";
 import { useDebounce } from "use-debounce";
 import { bgColorForClass, fgColorForClass } from "./utils/color";
@@ -111,10 +112,6 @@ const RunsTable = ({
       maxSelectedLabels={1}
     />
   );
-  const headerTooltipOptions = {
-    position: "top",
-    style: { maxWidth: "300px" },
-  };
 
   return (
     <DataTable
