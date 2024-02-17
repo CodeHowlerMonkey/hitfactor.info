@@ -21,7 +21,18 @@ const ltd = [...limited1, ...limited2];
 import classifiersData from "../../data/classifiers/classifiers.json" assert { type: "json" };
 import allHHFs from "../../data/hhf.json" assert { type: "json" };
 
-const divShortToRuns = { opn, ltd, l10, prod, ss, rev, co, lo, pcc };
+const divShortToRuns = {
+  opn,
+  ltd,
+  l10,
+  prod,
+  ss,
+  rev,
+  co,
+  lo,
+  pcc,
+  loco: [...co, ...lo],
+};
 
 export const curHHFForDivisionClassifier = ({ division, number }) => {
   const divisionHHFs = divShortToHHFs[division];
@@ -36,8 +47,8 @@ export const selectClassifierDivisionScores = ({
   number,
   division,
   includeNoHF,
-}) =>
-  divShortToRuns[division].filter((run) => {
+}) => {
+  return divShortToRuns[division].filter((run) => {
     if (!run) {
       return false;
     }
@@ -48,6 +59,7 @@ export const selectClassifierDivisionScores = ({
 
     return run.classifier === number;
   });
+};
 
 export const chartData = ({ number, division }) => {
   const runs = selectClassifierDivisionScores({
@@ -116,9 +128,16 @@ const divShortToHHFs = allHHFs.hhfs.reduce((acc, cur) => {
   const divShortName = divIdToShort[cur.division];
   const curArray = acc[divShortName] || [];
 
+  // TODO: merge HHF in a smart way
+  let extra = {};
+  if (divShortName === "lo") {
+    extra = { loco: [...curArray, cur] };
+  }
+
   return {
     ...acc,
     [divShortName]: [...curArray, cur],
+    ...extra,
   };
 }, {});
 
