@@ -152,7 +152,7 @@ const RunsTable = ({
         sortable
         body={(run) => (
           <>
-            <div>
+            <div style={{ position: "relative" }}>
               {run.memberNumber}
               <Tag
                 rounded
