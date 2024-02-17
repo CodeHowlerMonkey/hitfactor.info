@@ -58,14 +58,14 @@ export const chartData = ({ number, division }) => {
     .filter(({ hf }) => hf > 0);
 
   const hhf = curHHFForDivisionClassifier({ number, division });
+  const allPoints = runs.map((run, index, allRuns) => ({
+    x: HF(run.hf),
+    y: PositiveOrMinus1(Percent(index, allRuns.length)),
+  }));
+  return allPoints;
 
   return _.uniqBy(
-    runs.map((run, index, allRuns) => {
-      return {
-        x: HF(run.hf),
-        y: PositiveOrMinus1(Percent(index, allRuns.length)),
-      };
-    }),
+    allPoints,
     ({ x }) => Math.floor((200 * x) / hhf) // 0.5% grouping for graph points reduction
   );
 };
