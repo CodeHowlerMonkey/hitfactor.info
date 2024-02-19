@@ -12,6 +12,7 @@ import { headerTooltipOptions } from "./common/Table";
 import { Dropdown } from "primereact/dropdown";
 import { useDebounce } from "use-debounce";
 import { bgColorForClass, fgColorForClass } from "./utils/color";
+import { stringSort } from "../../shared/utils/sort";
 
 /*
 sd	"4/09/17"
@@ -49,6 +50,26 @@ const TableFilter = ({ placeholder, onFilterChange }) => {
   );
 };
 
+const DropdownFilter = ({
+  onFilter,
+  filterOptions,
+  filterValue,
+  filterValueLabel,
+  placeholder = "Any",
+  filter,
+}) => (
+  <Dropdown
+    options={filterOptions}
+    value={filterValue}
+    optionLabel={filterValueLabel}
+    onChange={(e) => onFilter?.(e.value)}
+    placeholder={placeholder}
+    showClear
+    maxSelectedLabels={1}
+    filter={filter}
+  />
+);
+
 export const useRunsTableData = ({ division, classifier }) => {
   const {
     query: pageQuery,
@@ -58,14 +79,19 @@ export const useRunsTableData = ({ division, classifier }) => {
   const { query, ...sortProps } = useTableSort("multiple", () => resetPage());
   const [filter, setFilter] = useState("");
   const [filterHHF, setFilterHHF] = useState(undefined);
-  const filtersQuery = qs.stringify({ filter, hhf: filterHHF });
+  const [filterClub, setFilterClub] = useState(undefined);
+  const filtersQuery = qs.stringify({
+    filter,
+    hhf: filterHHF,
+    club: filterClub,
+  });
 
   const apiEndpoint = !(division && classifier)
     ? null
     : `/classifiers/${division}/${classifier}?${query}&${pageQuery}&${filtersQuery}`;
   const apiData = useApi(apiEndpoint);
   const info = apiData?.info || {};
-  const { hhfs } = info;
+  const { hhfs, clubs } = info;
   // info bucket has total runs too for header, needs to be renamed
   const runsTotal = apiData?.runsTotal;
 
@@ -78,6 +104,7 @@ export const useRunsTableData = ({ division, classifier }) => {
     info,
     data,
     runsTotal,
+    clubs,
     hhfs,
     query,
     sortProps,
@@ -86,33 +113,22 @@ export const useRunsTableData = ({ division, classifier }) => {
     setFilter,
     filterHHF,
     setFilterHHF,
+    filterClub,
+    setFilterClub,
   };
 };
 
 const RunsTable = ({
   data,
   runsTotal,
+  clubs,
   hhfs,
   sortProps,
   pageProps,
   setFilter,
   setFilterHHF,
+  setFilterClub,
 }) => {
-  const HistoricalHHFFilter = (options) => (
-    <Dropdown
-      value={options.value}
-      options={_.uniqBy(hhfs, (c) => c.hhf)}
-      onChange={(e) => {
-        setFilterHHF(e.value?.hhf);
-        options.filterApplyCallback(e.value);
-      }}
-      optionLabel="hhf"
-      placeholder="Any"
-      showClear
-      maxSelectedLabels={1}
-    />
-  );
-
   return (
     <DataTable
       stripedRows
@@ -173,7 +189,27 @@ const RunsTable = ({
           </>
         )}
       />
-      <Column field="clubid" header="Club" sortable />
+      <Column
+        field="clubid"
+        header="Club"
+        sortable
+        showFilterMenu={false}
+        filter
+        filterElement={(options) => (
+          <DropdownFilter
+            filter
+            filterOptions={clubs}
+            filterValueLabel="label"
+            filterValue={options?.value}
+            onFilter={(value) => {
+              console.log("on filter");
+              setFilterClub(value?.id);
+              options.filterApplyCallback(value);
+              console.log(value);
+            }}
+          />
+        )}
+      />
       <Column field="hf" header="HF" sortable />
       <Column
         field="historicalHHF"
@@ -181,7 +217,17 @@ const RunsTable = ({
         sortable
         showFilterMenu={false}
         filter
-        filterElement={HistoricalHHFFilter}
+        filterElement={(options) => (
+          <DropdownFilter
+            filterOptions={_.uniqBy(hhfs, (c) => c.hhf)}
+            filterValueLabel="hhf"
+            filterValue={options?.value}
+            onFilter={(value) => {
+              setFilterHHF(value?.hhf);
+              options.filterApplyCallback(value);
+            }}
+          />
+        )}
         headerTooltip="Calculated HHF based on HF and Percent. Shows historical HHF value during the time when this score was processed."
         headerTooltipOptions={headerTooltipOptions}
       />

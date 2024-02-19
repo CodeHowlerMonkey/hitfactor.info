@@ -91,6 +91,7 @@ const start = async () => {
         page: pageString,
         legacy,
         hhf: filterHHFString,
+        club: filterClubString,
         filter: filterString,
       } = req.query;
       const includeNoHF = Number(legacy) === 1;
@@ -126,6 +127,11 @@ const start = async () => {
             .toLowerCase()
             .includes(filterString.toLowerCase())
         );
+      }
+      if (filterClubString) {
+        runsUnsorted = runsUnsorted
+          .filter((run) => run.clubid === filterClubString)
+          .slice(0, 10);
       }
       const runs = multisort(
         runsUnsorted,

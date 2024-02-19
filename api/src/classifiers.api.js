@@ -20,6 +20,7 @@ const ltd = [...limited1, ...limited2];
 
 import classifiersData from "../../data/classifiers/classifiers.json" assert { type: "json" };
 import allHHFs from "../../data/hhf.json" assert { type: "json" };
+import { clubSort, stringSort } from "../../shared/utils/sort.js";
 
 const divShortToRuns = {
   opn,
@@ -284,11 +285,20 @@ export const extendedInfoForClassifier = memoize(
       (hhfData) => N(hhfData.hhf, 2)
     );
     const actualLastUpdate = hhfs[hhfs.length - 1].date;
+    const clubs = _.uniqBy(runsSortedByHF, "clubid")
+      .map(({ clubid: id, club_name: name }) => ({
+        id,
+        name,
+        label: id + " " + name,
+      }))
+      .sort((a, b) => stringSort(a, b, "id", 1));
 
     return {
       updated: actualLastUpdate, // before was using curHHFInfo.updated, and it's bs
       hhf,
       hhfs,
+      clubsCount: clubs.length,
+      clubs,
       /* unused / not interesting data
       ..._.transform(
         calcRunStats(runs),

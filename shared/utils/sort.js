@@ -1,15 +1,31 @@
 export const numSort = (a, b, field, order) => order * (a[field] - b[field]);
 
-export const stringSort = (a, b, field, order) => {
-  if (a[field].toLowerCase() === b[field].toLowerCase()) {
+export const stringCompare = (a, b) => {
+  if (a.toLowerCase() === b.toLowerCase()) {
     return 0;
   }
 
-  if (a[field].toLowerCase() > b[field].toLowerCase()) {
-    return order;
+  if (a.toLowerCase() > b.toLowerCase()) {
+    return 1;
   } else {
-    return -order;
+    return -1;
   }
+};
+
+export const stringSort = (a, b, field, order) => {
+  return order * stringCompare(a[field], b[field]);
+};
+
+export const clubSort = (a, b, field, order) => {
+  const aa = a[field].match(/[a-zA-Z]+|[0-9]+/g);
+  const bb = b[field].match(/[a-zA-Z]+|[0-9]+/g);
+
+  const stringSortResult = order * stringCompare(aa[0], bb[0]);
+  if (!stringSortResult) {
+    return order * (Number(aa[1]) - Number(bb[1]));
+  }
+
+  return stringSortResult;
 };
 
 export const dateSort = (a, b, field, order) => {
