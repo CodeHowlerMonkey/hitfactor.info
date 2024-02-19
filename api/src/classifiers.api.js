@@ -272,9 +272,10 @@ export const extendedInfoForClassifier = memoize(
         .sort((a, b) => a.date - b.date),
       (hhfData) => N(hhfData.hhf, 2)
     );
+    const actualLastUpdate = hhfs[hhfs.length - 1].date;
 
     return {
-      updated: curHHFInfo.updated,
+      updated: actualLastUpdate, // before was using curHHFInfo.updated, and it's bs
       hhf,
       hhfs,
       /* unused / not interesting data

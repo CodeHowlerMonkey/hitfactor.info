@@ -127,6 +127,7 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
         )}
       />
       <Column field="hhf" header="HHF" sortable />
+      <Column field="updated" header="Updated" sortable />
       <Column field="runs" header="Scores" sortable />
 
       <Column
