@@ -18,6 +18,7 @@ export const ClassifierInfoTable = ({ division, classifier, hhf, ...info }) => {
 
   return (
     <DataTable
+      scrollable={false}
       style={{ height: "100%" }}
       tableStyle={{ height: "100%" }}
       value={[{ test: 1, test2: 2, test3: 3 }]}
@@ -54,14 +55,17 @@ export const ClassifierInfoTable = ({ division, classifier, hhf, ...info }) => {
       <Column
         field="test2"
         header="Historical HHFs"
+        bodyStyle={{ padding: 0 }}
         body={() => (
-          <DataTable
-            stripedRows
-            value={[{ test: 1, test2: 2, test3: 3 }, { test: 2 }]}
-          >
-            <Column field="test" header="HHF" />
-            <Column field="test2" header="Date" />
-          </DataTable>
+          <div className="h-full w-full" style={{ overflowY: "scroll" }}>
+            <DataTable showHeaders={false} stripedRows value={info.hhfs}>
+              <Column field="hhf" />
+              <Column
+                field="date"
+                body={(c) => new Date(c.date).toLocaleDateString()}
+              />
+            </DataTable>
+          </div>
         )}
       />
     </DataTable>
