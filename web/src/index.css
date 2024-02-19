@@ -15,6 +15,11 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* primereact tables don't want to take full height without this */
+.h-full .p-datatable-wrapper {
+  height: 100%
+}
+
 /*
 a {
   font-weight: 500;

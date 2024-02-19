@@ -42,10 +42,15 @@ const start = async () => {
     fastify.setNotFoundHandler((req, reply) => reply.sendFile("index.html"));
     fastify.get("/wsb/:number", (req, reply) => {
       const { number } = req.params;
+      const { preview } = req.query;
       // I'm paranoid and dont trust .includes lol
       const classifierNumber = classifierNumbers.find((c) => c === number);
       if (classifierNumber) {
-        return reply.sendFile(classifierNumber + ".pdf", pathWsb);
+        if (!preview) {
+          return reply.sendFile(classifierNumber + ".pdf", pathWsb);
+        }
+
+        return reply.sendFile(classifierNumber + ".jpg", pathWsb);
       }
       return reply.redirect("/404");
     });

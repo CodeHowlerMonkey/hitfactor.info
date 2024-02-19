@@ -26,33 +26,29 @@ export const ClassifierInfoTable = ({ division, classifier, hhf, ...info }) => {
       <Column
         field="test"
         header="Scores Distribution"
-        bodyStyle={{ position: "relative", padding: 0 }}
+        bodyStyle={{ position: "relative", padding: 0, width: "46%" }}
         body={() => (
           <ScoresChart division={division} classifier={classifier} hhf={hhf} />
         )}
       />
       <Column
         field="test"
-        header="Stats"
+        header="WSB"
+        bodyStyle={{ width: "27%", minWidth: "320px" }}
         body={() => (
-          <>
-            <DataTable stripedRows value={[info]}>
-              <Column field="runsD" header="D" />
-              <Column field="runsC" header="C" />
-              <Column field="runsB" header="B" />
-              <Column field="runsA" header="A" />
-              <Column field="runsM" header="M" />
-              <Column field="runsGM" header="GM" />
-              <Column field="runsHundo" header="Hundo" />
-            </DataTable>
-            <DataTable
-              stripedRows
-              value={[{ test: 1, test2: 2, test3: 3 }, { test: 2 }]}
-            >
-              <Column field="test" header="HHF" />
-              <Column field="test2" header="Date" />
-            </DataTable>
-          </>
+          <div
+            onClick={() => window.open(`/wsb/${classifier}`, "_blank")}
+            style={{
+              cursor: "pointer",
+              width: "100%",
+              height: "100%",
+              backgroundColor: "clear",
+              backgroundImage: `url(/wsb/${classifier}?preview=1)`,
+              backgroundSize: "auto 100%",
+              backgroundRepeat: "no-repeat",
+              backgroundPosition: "top center",
+            }}
+          />
         )}
       />
       <Column
