@@ -80,7 +80,8 @@ const start = async () => {
     });
     fastify.get("/api/classifiers/:division/:number/chart", (req, res) => {
       const { division, number } = req.params;
-      return chartData({ division, number });
+      const { full } = req.query;
+      return chartData({ division, number, full });
     });
     fastify.get("/api/classifiers/:division/:number", (req, res) => {
       const { division, number } = req.params;

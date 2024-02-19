@@ -72,8 +72,10 @@ const point = (name, x, y, alpha) => ({
 // TODO: maybe different options / scale depending on viewport size and desktop/tablet/mobile
 // TODO: all vs current search mode
 export const ScoresChart = ({ division, classifier, hhf }) => {
-  const data = useApi(`/classifiers/${division}/${classifier}/chart`);
   const [full, setFull] = useState(false);
+  const data = useApi(
+    `/classifiers/${division}/${classifier}/chart?full=${full ? 1 : 0}`
+  );
   if (!data?.length) {
     return <ProgressSpinner />;
   }

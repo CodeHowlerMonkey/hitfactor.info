@@ -43,6 +43,7 @@ export const ClassifierInfoTable = ({ division, classifier, hhf, ...info }) => {
               cursor: "pointer",
               width: "100%",
               height: "100%",
+              minHeight: "26rem",
               backgroundColor: "clear",
               backgroundImage: `url(/wsb/${classifier}?preview=1)`,
               backgroundSize: "auto 100%",
@@ -55,9 +56,12 @@ export const ClassifierInfoTable = ({ division, classifier, hhf, ...info }) => {
       <Column
         field="test2"
         header="Historical HHFs"
-        bodyStyle={{ padding: 0 }}
+        bodyStyle={{ padding: 0, maxHeight: "26rem" }}
         body={() => (
-          <div className="h-full w-full" style={{ overflowY: "scroll" }}>
+          <div
+            className="h-26 w-full"
+            style={{ overflowY: "scroll", maxHeight: "26rem" }}
+          >
             <DataTable showHeaders={false} stripedRows value={info.hhfs}>
               <Column field="hhf" />
               <Column

@@ -61,7 +61,8 @@ export const selectClassifierDivisionScores = ({
   });
 };
 
-export const chartData = ({ number, division }) => {
+export const chartData = ({ number, division, full: fullString }) => {
+  const full = Number(fullString);
   const runs = selectClassifierDivisionScores({
     number,
     division,
@@ -74,12 +75,22 @@ export const chartData = ({ number, division }) => {
     x: HF(run.hf),
     y: PositiveOrMinus1(Percent(index, allRuns.length)),
   }));
-  return allPoints;
 
-  return _.uniqBy(
-    allPoints,
-    ({ x }) => Math.floor((200 * x) / hhf) // 0.5% grouping for graph points reduction
-  );
+  // for zoomed in mode return all points
+  if (full === 1) {
+    return allPoints;
+  }
+
+  // always return top 100 points, and reduce by 0.5% grouping for other to make render easier
+  const first50 = allPoints.slice(0, 50);
+  const other = allPoints.slice(50, allPoints.length);
+  return [
+    ...first50,
+    ..._.uniqBy(
+      other,
+      ({ x }) => Math.floor((200 * x) / hhf) // 0.5% grouping for graph points reduction
+    ),
+  ];
 };
 
 export const runsForDivisionClassifier = memoize(
