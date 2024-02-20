@@ -22,6 +22,8 @@ import classifiersData from "../../data/classifiers/classifiers.json" assert { t
 import allHHFs from "../../data/hhf.json" assert { type: "json" };
 import { clubSort, stringSort } from "../../shared/utils/sort.js";
 
+import { HF, N, Percent, PositiveOrMinus1 } from "./dataUtil/numbers.js";
+
 const divShortToRuns = {
   opn,
   ltd,
@@ -152,12 +154,6 @@ const divShortToHHFs = allHHFs.hhfs.reduce((acc, cur) => {
     ...extra,
   };
 }, {});
-
-/** Number toFixed(2) float parser util */
-const N = (arg, fix = 2) => Number(parseFloat(arg).toFixed(fix));
-const HF = (arg) => N(arg, 4);
-const Percent = (n, total) => N((100.0 * n) / total);
-const PositiveOrMinus1 = (n) => (n >= 0 ? n : -1);
 
 const calcRunStats = (runs) =>
   runs.reduce(

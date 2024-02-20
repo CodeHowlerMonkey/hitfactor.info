@@ -13,6 +13,8 @@ const __dirname = dirname(__filename);
 // import active from "../../data/merged.active.json" assert { type: "json" };
 
 import classifications from "./classifications.api.js";
+import { shootersTable } from "./dataUtil/shooters.js";
+
 import {
   classifiers,
   classifierNumbers,
@@ -82,6 +84,23 @@ const start = async () => {
       const { division, number } = req.params;
       const { full } = req.query;
       return chartData({ division, number, full });
+    });
+    fastify.get("/api/shooters/:division", (req, res) => {
+      const { division } = req.params;
+      const { sort, order, page: pageString } = req.query;
+      const page = Number(pageString) || 1;
+
+      const data = multisort(
+        shootersTable[division],
+        sort?.split?.(","),
+        order?.split?.(",")
+      ).map((run, index) => ({ ...run, index }));
+
+      return {
+        shooters: data.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
+        shootersTotal: data.length,
+        shootersPage: page,
+      };
     });
     fastify.get("/api/classifiers/:division/:number", (req, res) => {
       const { division, number } = req.params;
