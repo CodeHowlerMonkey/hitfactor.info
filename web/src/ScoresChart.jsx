@@ -65,7 +65,6 @@ const point = (name, x, y, alpha) => ({
   },
 });
 
-// TODO: open in full size modal button
 // TODO: different modes for class xLines (95/85/75-hhf, A-centric, 1/5/15/40/75-percentile, etc)
 // TODO: maybe for HHF mode allow choosing different HHFs from another dropdown
 // TODO: maybe split the modes into 2 dropdowns, one of xLines, one for yLines to play with

@@ -10,10 +10,6 @@ import { headerTooltipOptions } from "./common/Table";
 
 import { numSort, dateSort, classifierCodeSort } from "../../shared/utils/sort";
 
-// TODO: add GM Runs - Cur GM Runs, and same for hundos
-
-// TODO: TimeLine component for historical HHFs?
-
 const renderPercent = (c, { field }) => {
   const value = c[field];
   if (value < 0) {

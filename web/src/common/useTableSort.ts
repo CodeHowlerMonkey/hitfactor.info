@@ -21,10 +21,6 @@ const useTableSort = ({
   const [state, setState] = useState<SingleSortState[]>(initialArray);
   const isSingle = mode === "single";
 
-  const sortStateProps = isSingle
-    ? { sortField: state[0]?.field, sortOrder: state[0]?.order }
-    : state;
-
   return useMemo(
     () => ({
       ...(isSingle
