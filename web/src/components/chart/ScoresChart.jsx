@@ -2,16 +2,9 @@ import { ProgressSpinner } from "primereact/progressspinner";
 import { Button } from "primereact/button";
 import { Dialog } from "primereact/dialog";
 
-import { Scatter } from "react-chartjs-2";
-import { useApi } from "./client";
-import { Chart, registerables } from "chart.js";
-import annotationPlugin from "chartjs-plugin-annotation";
+import { Scatter } from "./common";
+import { useApi } from "../../client";
 import { useState } from "react";
-Chart.register(...registerables);
-Chart.register(annotationPlugin);
-
-//              [{ x: -10, y: 0 }],
-// 1 5 15 40 75
 
 const annotationColor = (alpha) => `rgba(255, 99, 132, ${alpha})`;
 const yLine = (name, y, alpha) => ({

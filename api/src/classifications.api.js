@@ -17,6 +17,7 @@ const divisions = [
   "Carry Optics", // 35
   "PCC", // 38
   "Limited Optics", // 41
+  // LO/CO 411
 ];
 
 const highestClassification = (classificationObj) =>

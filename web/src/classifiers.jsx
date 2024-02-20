@@ -5,7 +5,6 @@ import { Button } from "primereact/button";
 import ClassifiersTable from "./ClassifiersTable";
 import RunsTable, { useRunsTableData } from "./RunsTable";
 import ClassifierInfoTable from "./ClassifierInfoTable";
-import ScoresChart from "./ScoresChart";
 
 // TODO: shooters table for single classifier? # attempts, low HF, high HF, same for percent, same for curPercent
 // TODO: all classifiers total number of reshoots (non-uniqueness)
