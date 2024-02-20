@@ -76,7 +76,11 @@ export const useRunsTableData = ({ division, classifier }) => {
     reset: resetPage,
     ...pageProps
   } = useTablePagination();
-  const { query, ...sortProps } = useTableSort("multiple", () => resetPage());
+  const { query, ...sortProps } = useTableSort({
+    mode: "multiple",
+    onSortCallback: () => resetPage(),
+    initial: [{ field: "hf", order: -1 }],
+  });
   const [filter, setFilter] = useState("");
   const [filterHHF, setFilterHHF] = useState(undefined);
   const [filterClub, setFilterClub] = useState(undefined);
