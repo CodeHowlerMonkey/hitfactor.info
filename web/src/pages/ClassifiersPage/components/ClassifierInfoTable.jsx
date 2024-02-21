@@ -1,7 +1,7 @@
 import _ from "lodash";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
-import ScoresChart from "./components/chart/ScoresChart";
+import ScoresChart from "../../../components/chart/ScoresChart";
 
 export const ClassifierInfoTable = ({ division, classifier, hhf, ...info }) => (
   <DataTable

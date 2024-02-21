@@ -5,14 +5,14 @@ import { DataTable } from "primereact/datatable";
 import { Tag } from "primereact/tag";
 import { InputText } from "primereact/inputtext";
 import { Column } from "primereact/column";
-import { useApi } from "./client";
-import useTableSort from "./common/useTableSort";
-import useTablePagination from "./common/useTablePagination";
-import { headerTooltipOptions } from "./common/Table";
+import { useApi } from "../utils/client";
+import useTableSort from "./Table/useTableSort";
+import useTablePagination from "./Table/useTablePagination";
+import { headerTooltipOptions } from "./Table/Table";
 import { Dropdown } from "primereact/dropdown";
 import { useDebounce } from "use-debounce";
-import { bgColorForClass, fgColorForClass } from "./utils/color";
-import { stringSort } from "../../shared/utils/sort";
+import { bgColorForClass, fgColorForClass } from "../utils/color";
+import { stringSort } from "../../../shared/utils/sort";
 
 /*
 sd	"4/09/17"
@@ -135,6 +135,7 @@ const RunsTable = ({
 }) => {
   return (
     <DataTable
+      loading={!data?.length}
       stripedRows
       lazy
       value={data ?? []}

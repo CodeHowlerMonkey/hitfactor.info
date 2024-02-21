@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { PieChart } from "react-minimal-pie-chart";
-import { Row, Column } from "./common";
-import { useApi } from "./client";
+import { Row, Column } from "../../components";
+import { useApi } from "../../utils/client";
 import { Checkbox } from "primereact/checkbox";
 import { TabView, TabPanel } from "primereact/tabview";
 import MultiProgress from "react-multi-progress";

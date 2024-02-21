@@ -4,11 +4,15 @@ import { InputText } from "primereact/inputtext";
 import { Column } from "primereact/column";
 import { Textfit } from "react-textfit";
 
-import { useApi } from "./client";
-import useTableSort from "./common/useTableSort";
-import { headerTooltipOptions } from "./common/Table";
+import { useApi } from "../../../utils/client";
+import useTableSort from "../../../components/Table/useTableSort";
+import { headerTooltipOptions } from "../../../components/Table/Table";
 
-import { numSort, dateSort, classifierCodeSort } from "../../shared/utils/sort";
+import {
+  numSort,
+  dateSort,
+  classifierCodeSort,
+} from "../../../../../shared/utils/sort";
 
 const renderPercent = (c, { field }) => {
   const value = c[field];

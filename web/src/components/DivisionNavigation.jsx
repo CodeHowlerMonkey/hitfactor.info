@@ -1,28 +1,7 @@
 import { TabView, TabPanel } from "primereact/tabview";
-import { divisions } from "../../../data/division.json";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-
-export const Row = ({ children }) => (
-  <div
-    style={{ display: "flex", flexDirection: "row", justifyContent: "center" }}
-  >
-    {children}
-  </div>
-);
-
-export const Column = ({ children }) => (
-  <div
-    style={{
-      flex: 1,
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "center",
-    }}
-  >
-    {children}
-  </div>
-);
+import { divisions } from "../../../data/division.json";
 
 const divisionForIndex = (index) =>
   divisions[index]?.short_name?.toLowerCase?.();
@@ -31,17 +10,9 @@ const indexForDivision = (division) =>
     (c) => c?.short_name?.toLowerCase() === (division || "invalid")
   );
 
-export const DivisionNav = ({ onSelect }) => {
+export const DivisionNavigation = ({ onSelect }) => {
   const { division } = useParams();
   const [activeIndex, setActiveIndex] = useState(indexForDivision(division));
-
-  /*
-  // call parent when division selection changes
-  useEffect(
-    () => onSelect?.(divisionForIndex(activeIndex)),
-    [activeIndex, onSelect]
-  );
-  */
 
   // update selection if navigation changes
   useEffect(() => {
@@ -70,3 +41,5 @@ export const DivisionNav = ({ onSelect }) => {
     </div>
   );
 };
+
+export default DivisionNavigation;

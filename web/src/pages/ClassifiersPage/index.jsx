@@ -1,10 +1,10 @@
 import { useCallback } from "react";
-import { DivisionNav } from "./common";
+import { DivisionNavigation } from "../../components";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "primereact/button";
-import ClassifiersTable from "./ClassifiersTable";
-import RunsTable, { useRunsTableData } from "./RunsTable";
-import ClassifierInfoTable from "./ClassifierInfoTable";
+import ClassifiersTable from "./components/ClassifiersTable";
+import RunsTable, { useRunsTableData } from "../../components/RunsTable";
+import ClassifierInfoTable from "./components/ClassifierInfoTable";
 
 // TODO: shooters table for single classifier? # attempts, low HF, high HF, same for percent, same for curPercent
 // TODO: all classifiers total number of reshoots (non-uniqueness)
@@ -21,12 +21,9 @@ const ClassifiersPage = () => {
     [navigate, division]
   );
 
-  const useRunsTableDataResults = useRunsTableData({ division, classifier });
-  const { code, name, hhf } = useRunsTableDataResults;
-
   return (
     <div className="mx-">
-      <DivisionNav onSelect={onDivisionSelect} />
+      <DivisionNavigation onSelect={onDivisionSelect} />
       {division && !classifier && (
         <ClassifiersTable
           division={division}

@@ -3,7 +3,7 @@ import { Button } from "primereact/button";
 import { Dialog } from "primereact/dialog";
 
 import { Scatter } from "./common";
-import { useApi } from "../../client";
+import { useApi } from "../../utils/client";
 import { useState } from "react";
 
 const annotationColor = (alpha) => `rgba(255, 99, 132, ${alpha})`;
