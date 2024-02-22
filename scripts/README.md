@@ -15,5 +15,5 @@ Various scripts that are meant to be executed in the browser as a snippet.
    - I was able to load all data into single file using cat (had to write shell script using `ls -1` output) and jq (simply converting it to compact and json array isntead of \n separated jsons)
    - data mined in Mid-January 2024 after removal of A7 and nation-wide growing protest
 4. First data manipulation (pie chart and classifications stats) were done directly in the browserd and dynamically generated and downloaded
-    - later this was saved and processed in data/ folder
+    - later this was saved and processed in `data/` folder
 
