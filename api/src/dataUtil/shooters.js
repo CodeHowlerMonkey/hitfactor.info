@@ -28,7 +28,13 @@ export const fullAll = all
   .map((c) => ({
     data: c.member_data,
     memberNumber: c.member_data.member_number,
-    name: [c.member_data.first_name, c.member_data.last_name].join(" "),
+    name: [
+      c.member_data.first_name,
+      c.member_data.last_name,
+      c.member_data.suffix,
+    ]
+      .filter(Boolean)
+      .join(" "),
     classifications: c.classifications.reduce(
       (acc, c) => ({
         ...acc,
