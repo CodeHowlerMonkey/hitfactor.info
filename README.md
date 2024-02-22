@@ -32,7 +32,7 @@ In case of non-cooperation from USPSA leadership and/or loss of the org, create 
 ##### Technical Stack
 
 * Main language: JavaScript (ES13)
-* Monorepo, Node/Fastify Backend, React Frontend.
+* Monorepo, Node/Fastify Backend, React (vite-swc) Frontend.
 * Backend serves API and static files: (build of React Frontend, downloadables, etc)
 * All data is loaded on node process startup; no database
 
