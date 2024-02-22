@@ -11,6 +11,12 @@
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"
   },
+  "overrides": {
+    "react-textfit": {
+      "react": ">=15.0.0",
+      "react-dom": ">=15.0.0"
+    }
+  },
   "dependencies": {
     "@vitejs/plugin-react-swc": "^3.5.0",
     "chart.js": "^4.4.1",
@@ -25,6 +31,7 @@
     "react-minimal-pie-chart": "^8.4.0",
     "react-multi-progress": "^1.3.0",
     "react-router-dom": "^6.21.3",
+    "react-textfit": "^1.1.1",
     "use-debounce": "^10.0.0",
     "vite": "^5.0.8"
   },
