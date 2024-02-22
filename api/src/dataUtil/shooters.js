@@ -4,6 +4,9 @@ export const all = [...one, ...two];
 import { Percent } from "./numbers.js";
 
 import { divIdToShort } from "./divisions.js";
+import { divShortToShooterToRuns } from "./classifiers.js";
+
+import { byMemberNumber } from "./byMemberNumber.js";
 
 export const shortAll = all
   //  .filter((c) => c.member_data.privacy === "0")
@@ -23,6 +26,7 @@ export const shortAll = all
 export const fullAll = all
   //  .filter((c) => c.member_data.privacy === "0")
   .map((c) => ({
+    data: c.member_data,
     memberNumber: c.member_data.member_number,
     name: [c.member_data.first_name, c.member_data.last_name].join(" "),
     classifications: c.classifications.reduce(
@@ -48,7 +52,7 @@ export const fullAll = all
     ),
   }));
 
-export const byMemberNumber = shortAll.reduce((acc, c) => {
+export const shortByMemberNumber = shortAll.reduce((acc, c) => {
   acc[c.memberNumber] = c;
   return acc;
 }, {});
@@ -60,7 +64,7 @@ export const byMemberNumberFull = fullAll.reduce((acc, c) => {
 
 export const shooterShortInfo = ({ memberNumber, division }) => {
   try {
-    const { classifications, ...info } = byMemberNumber[memberNumber];
+    const { classifications, ...info } = shortByMemberNumber[memberNumber];
     return {
       class: classifications[division],
       division,
@@ -148,6 +152,8 @@ const shootersFullForDivision = (division) =>
     .map((c, index, all) => ({
       ...c,
       currentPercentile: Percent(index, all.length),
+      classifiersCount:
+        divShortToShooterToRuns[division][c.memberNumber]?.length ?? 0,
     }));
 
 export const shootersTable = {
@@ -160,4 +166,16 @@ export const shootersTable = {
   co: shootersFullForDivision("co"),
   pcc: shootersFullForDivision("pcc"),
   lo: shootersFullForDivision("lo"),
+};
+
+export const shootersTableByMemberNumber = {
+  opn: byMemberNumber(shootersTable.opn),
+  ltd: byMemberNumber(shootersTable.ltd),
+  l10: byMemberNumber(shootersTable.l10),
+  prod: byMemberNumber(shootersTable.prod),
+  ss: byMemberNumber(shootersTable.ss),
+  rev: byMemberNumber(shootersTable.rev),
+  co: byMemberNumber(shootersTable.co),
+  lo: byMemberNumber(shootersTable.lo),
+  pcc: byMemberNumber(shootersTable.pcc),
 };

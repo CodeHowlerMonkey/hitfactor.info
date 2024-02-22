@@ -13,7 +13,10 @@ const __dirname = dirname(__filename);
 // import active from "../../data/merged.active.json" assert { type: "json" };
 
 import classifications from "./classifications.api.js";
-import { shootersTable } from "./dataUtil/shooters.js";
+import {
+  shootersTable,
+  shootersTableByMemberNumber,
+} from "./dataUtil/shooters.js";
 
 import {
   classifiers,
@@ -24,6 +27,7 @@ import {
   chartData,
 } from "./classifiers.api.js";
 import { multisort } from "../../shared/utils/sort.js";
+import { divShortToShooterToRuns } from "./dataUtil/classifiers.js";
 
 const PAGE_SIZE = 100;
 
@@ -100,6 +104,26 @@ const start = async () => {
         shooters: data.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
         shootersTotal: data.length,
         shootersPage: page,
+      };
+    });
+    fastify.get("/api/shooters/:division/:memberNumber", (req, res) => {
+      const { division, memberNumber } = req.params;
+      const { sort, order, page: pageString } = req.query;
+      const page = Number(pageString) || 1;
+
+      const info = shootersTableByMemberNumber[division][memberNumber][0];
+
+      const data = multisort(
+        divShortToShooterToRuns[division][memberNumber],
+        sort?.split?.(","),
+        order?.split?.(",")
+      ).map((run, index) => ({ ...run, index }));
+
+      return {
+        info,
+        classifiers: data.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
+        classifiersTotal: data.length,
+        classifiersPage: page,
       };
     });
     fastify.get("/api/classifiers/:division/:number", (req, res) => {
