@@ -10,14 +10,27 @@ import classifiersData from "../../data/classifiers/classifiers.json" assert { t
 import allHHFs from "../../data/hhf.json" assert { type: "json" };
 import { clubSort, stringSort } from "../../shared/utils/sort.js";
 
-export const curHHFForDivisionClassifier = ({ division, number }) => {
-  const divisionHHFs = divShortToHHFs[division];
-  const c = classifiersData.classifiers.find(
-    (cur) => cur.classifier === number
-  );
-  const curHHFInfo = divisionHHFs.find((dHHF) => dHHF.classifier === c.id);
-  return HF(curHHFInfo.hhf);
-};
+export const curHHFForDivisionClassifier = memoize(
+  ({ division, number }) => {
+    if (!number) {
+      return NaN;
+    }
+
+    const divisionHHFs = divShortToHHFs[division];
+    const c = classifiersData.classifiers.find(
+      (cur) => cur.classifier === number
+    );
+
+    // major match or classifier not found for some reason
+    if (!c) {
+      return NaN;
+    }
+
+    const curHHFInfo = divisionHHFs.find((dHHF) => dHHF.classifier === c.id);
+    return HF(curHHFInfo.hhf);
+  },
+  { cacheKey: (ehFuckit) => JSON.stringify(ehFuckit) }
+);
 
 export const selectClassifierDivisionScores = ({
   number,

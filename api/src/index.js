@@ -25,9 +25,11 @@ import {
   extendedInfoForClassifier,
   runsForDivisionClassifier,
   chartData,
+  curHHFForDivisionClassifier,
 } from "./classifiers.api.js";
 import { multisort } from "../../shared/utils/sort.js";
 import { divShortToShooterToRuns } from "./dataUtil/classifiers.js";
+import { Percent, PositiveOrMinus1 } from "./dataUtil/numbers.js";
 
 const PAGE_SIZE = 100;
 
@@ -112,12 +114,21 @@ const start = async () => {
       const page = Number(pageString) || 1;
 
       const info = shootersTableByMemberNumber[division][memberNumber][0];
+      const classifiers = divShortToShooterToRuns[division][memberNumber];
 
       const data = multisort(
-        divShortToShooterToRuns[division][memberNumber],
+        classifiers,
         sort?.split?.(","),
         order?.split?.(",")
-      ).map((run, index) => ({ ...run, index }));
+      ).map((run, index) => {
+        const hhf = curHHFForDivisionClassifier({
+          number: run.classifier,
+          division,
+        });
+        const curPercent = PositiveOrMinus1(Percent(run.hf, hhf));
+
+        return { ...run, curPercent, index };
+      });
 
       return {
         info,
