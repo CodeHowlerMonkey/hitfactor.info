@@ -16,6 +16,7 @@ import classifications from "./classifications.api.js";
 import {
   shootersTable,
   shootersTableByMemberNumber,
+  shooterChartData,
 } from "./dataUtil/shooters.js";
 
 import {
@@ -25,11 +26,8 @@ import {
   extendedInfoForClassifier,
   runsForDivisionClassifier,
   chartData,
-  curHHFForDivisionClassifier,
 } from "./classifiers.api.js";
 import { multisort } from "../../shared/utils/sort.js";
-import { divShortToShooterToRuns } from "./dataUtil/classifiers.js";
-import { Percent, PositiveOrMinus1 } from "./dataUtil/numbers.js";
 
 const PAGE_SIZE = 100;
 
@@ -85,57 +83,6 @@ const start = async () => {
       }));
       //console.profileEnd();
       return result;
-    });
-    fastify.get("/api/classifiers/:division/:number/chart", (req, res) => {
-      const { division, number } = req.params;
-      const { full } = req.query;
-      return chartData({ division, number, full });
-    });
-    fastify.get("/api/shooters/:division", (req, res) => {
-      const { division } = req.params;
-      const { sort, order, page: pageString } = req.query;
-      const page = Number(pageString) || 1;
-
-      const data = multisort(
-        shootersTable[division],
-        sort?.split?.(","),
-        order?.split?.(",")
-      ).map((run, index) => ({ ...run, index }));
-
-      return {
-        shooters: data.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
-        shootersTotal: data.length,
-        shootersPage: page,
-      };
-    });
-    fastify.get("/api/shooters/:division/:memberNumber", (req, res) => {
-      const { division, memberNumber } = req.params;
-      const { sort, order, page: pageString } = req.query;
-      const page = Number(pageString) || 1;
-
-      const info = shootersTableByMemberNumber[division][memberNumber][0];
-      const classifiers = divShortToShooterToRuns[division][memberNumber];
-
-      const data = multisort(
-        classifiers,
-        sort?.split?.(","),
-        order?.split?.(",")
-      ).map((run, index) => {
-        const hhf = curHHFForDivisionClassifier({
-          number: run.classifier,
-          division,
-        });
-        const curPercent = PositiveOrMinus1(Percent(run.hf, hhf));
-
-        return { ...run, curPercent, index };
-      });
-
-      return {
-        info,
-        classifiers: data.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
-        classifiersTotal: data.length,
-        classifiersPage: page,
-      };
     });
     fastify.get("/api/classifiers/:division/:number", (req, res) => {
       const { division, number } = req.params;
@@ -202,6 +149,54 @@ const start = async () => {
         runsTotal: runs.length,
         runsPage: page,
       };
+    });
+    fastify.get("/api/classifiers/:division/:number/chart", (req, res) => {
+      const { division, number } = req.params;
+      const { full } = req.query;
+      return chartData({ division, number, full });
+    });
+    fastify.get("/api/shooters/:division", (req, res) => {
+      const { division } = req.params;
+      const { sort, order, page: pageString } = req.query;
+      const page = Number(pageString) || 1;
+
+      const data = multisort(
+        shootersTable[division],
+        sort?.split?.(","),
+        order?.split?.(",")
+      ).map((run, index) => ({ ...run, index }));
+
+      return {
+        shooters: data.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
+        shootersTotal: data.length,
+        shootersPage: page,
+      };
+    });
+    fastify.get("/api/shooters/:division/:memberNumber", (req, res) => {
+      const { division, memberNumber } = req.params;
+      const { sort, order, page: pageString } = req.query;
+      const page = Number(pageString) || 1;
+
+      const { classifiers, ...info } =
+        shootersTableByMemberNumber[division][memberNumber][0];
+      const data = multisort(
+        classifiers,
+        sort?.split?.(","),
+        order?.split?.(",")
+      );
+
+      return {
+        info,
+        classifiers: data.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
+        classifiersTotal: data.length,
+        classifiersPage: page,
+      };
+    });
+    fastify.get("/api/shooters/:division/:memberNumber/chart", (req, res) => {
+      console.log("proper route");
+      const { division, memberNumber } = req.params;
+      const { y } = req.query;
+      return shooterChartData({ division, memberNumber, y });
     });
 
     await fastify.listen({ port: process.env.PORT || 3333, host: "0.0.0.0" });
