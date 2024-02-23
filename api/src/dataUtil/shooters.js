@@ -1,12 +1,13 @@
 import one from "../../../data/mergedArray.classifications.1.json" assert { type: "json" };
 import two from "../../../data/mergedArray.classifications.2.json" assert { type: "json" };
 export const all = [...one, ...two];
-import { Percent } from "./numbers.js";
+import { Percent, PositiveOrMinus1 } from "./numbers.js";
 
 import { divIdToShort } from "./divisions.js";
 import { divShortToShooterToRuns } from "./classifiers.js";
 
 import { byMemberNumber } from "./byMemberNumber.js";
+import { curHHFForDivisionClassifier } from "../classifiers.api.js";
 
 export const shortAll = all
   //  .filter((c) => c.member_data.privacy === "0")
@@ -158,8 +159,17 @@ const shootersFullForDivision = (division) =>
     .map((c, index, all) => ({
       ...c,
       currentPercentile: Percent(index, all.length),
-      classifiersCount:
-        divShortToShooterToRuns[division][c.memberNumber]?.length ?? 0,
+      classifiers: (
+        divShortToShooterToRuns[division][c.memberNumber] ?? []
+      ).map((run, index) => {
+        const hhf = curHHFForDivisionClassifier({
+          number: run.classifier,
+          division,
+        });
+        const curPercent = PositiveOrMinus1(Percent(run.hf, hhf));
+
+        return { ...run, curPercent, index };
+      }),
     }));
 
 export const shootersTable = {
@@ -184,4 +194,18 @@ export const shootersTableByMemberNumber = {
   co: byMemberNumber(shootersTable.co),
   lo: byMemberNumber(shootersTable.lo),
   pcc: byMemberNumber(shootersTable.pcc),
+};
+
+export const shooterChartData = ({ memberNumber, division, y }) => {
+  // monke done fucked up, monke doesn't know why it has to use [0], monke dum
+  let runs = shootersTableByMemberNumber[division][memberNumber][0].classifiers;
+  const yField = y === "percent" ? "percent" : "curPercent";
+  if (yField === "curPercent") {
+    runs = runs.filter(({ curPercent }) => curPercent > 0);
+  }
+
+  return runs.map((run) => ({
+    x: run.sd,
+    y: run[yField],
+  }));
 };
