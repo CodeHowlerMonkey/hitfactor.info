@@ -20,7 +20,9 @@
   "dependencies": {
     "@vitejs/plugin-react-swc": "^3.5.0",
     "chart.js": "^4.4.1",
+    "chartjs-adapter-date-fns": "^3.0.0",
     "chartjs-plugin-annotation": "^3.0.1",
+    "date-fns": "^3.3.1",
     "primeflex": "^3.3.1",
     "primeicons": "^6.0.1",
     "primereact": "^10.3.3",

@@ -93,7 +93,7 @@ const router = createBrowserRouter([
         Component: React.lazy(() => import("../pages/ClassifiersPage")),
       },
       {
-        path: "shooters",
+        path: "shooters/:division?/:memberNumber?",
         Component: React.lazy(() => import("../pages/ShootersPage")),
       },
       {
