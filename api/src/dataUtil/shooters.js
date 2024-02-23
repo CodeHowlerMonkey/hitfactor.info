@@ -207,5 +207,6 @@ export const shooterChartData = ({ memberNumber, division, y }) => {
   return runs.map((run) => ({
     x: run.sd,
     y: run[yField],
+    classifier: run.classifier,
   }));
 };
