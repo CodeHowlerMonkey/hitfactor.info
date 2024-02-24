@@ -1,3 +1,5 @@
+// TODO: rename to scores
+
 import opn from "../../../data/merged.active.open.json" assert { type: "json" };
 import limited1 from "../../../data/merged.active.limited.1.json" assert { type: "json" };
 import limited2 from "../../../data/merged.active.limited.2.json" assert { type: "json" };
@@ -9,28 +11,6 @@ import co from "../../../data/merged.active.co.json" assert { type: "json" };
 import lo from "../../../data/merged.active.limitedoptics.json" assert { type: "json" };
 import pcc from "../../../data/merged.active.pcc.json" assert { type: "json" };
 import { byMemberNumber } from "./byMemberNumber.js";
-
-import classifiersData from "../../../data/classifiers/classifiers.json" assert { type: "json" };
-
-export const basicInfoForClassifier = (c) => ({
-  id: c.id,
-  code: c.classifier,
-  name: c.name,
-  scoring: c.scoring,
-});
-
-export const basicInfoForClassifierCode = (number) => {
-  if (!number) {
-    return {};
-  }
-  const c = classifiersData.classifiers.find(
-    (cur) => cur.classifier === number
-  );
-  if (!c) {
-    return {};
-  }
-  return basicInfoForClassifier(c);
-};
 
 // fucking github and its fucking 50Mb file limitation
 const ltd = [...limited1, ...limited2];

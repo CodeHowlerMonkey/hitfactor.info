@@ -1,15 +1,17 @@
-import { basicInfoForClassifier } from "../../../dataUtil/classifiers.js";
+import {
+  basicInfoForClassifier,
+  classifiers,
+} from "../../../dataUtil/classifiersData.js";
 
 import {
-  classifiers,
   extendedInfoForClassifier,
   runsForDivisionClassifier,
   chartData,
 } from "../../../classifiers.api.js";
 
 import { multisort } from "../../../../../shared/utils/sort.js";
+import { PAGE_SIZE } from "../../../../../shared/constants/pagination.js";
 
-const PAGE_SIZE = 100;
 const classifiersRoutes = async (fastify, opts) => {
   console.log("should have classifiers");
   fastify.get("/", (req, res) => classifiers.map(basicInfoForClassifier));

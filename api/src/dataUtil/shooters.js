@@ -7,7 +7,7 @@ import { divIdToShort } from "./divisions.js";
 import { divShortToShooterToRuns } from "./classifiers.js";
 
 import { byMemberNumber } from "./byMemberNumber.js";
-import { curHHFForDivisionClassifier } from "../classifiers.api.js";
+import { curHHFForDivisionClassifier } from "./hhf.js";
 
 export const shortAll = all
   //  .filter((c) => c.member_data.privacy === "0")

@@ -169,10 +169,7 @@ const staticInefficientlyCalculatedDataButIDGAF = {
 };
 
 const classificationsRoutes = async (fastify, opts) => {
-  fastify.get(
-    "/api/classifications",
-    (req, res) => staticInefficientlyCalculatedDataButIDGAF
-  );
+  fastify.get("/", (req, res) => staticInefficientlyCalculatedDataButIDGAF);
 };
 
 export default classificationsRoutes;

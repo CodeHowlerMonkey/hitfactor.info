@@ -4,8 +4,9 @@ import {
   shooterChartData,
 } from "../../../dataUtil/shooters.js";
 
-import { basicInfoForClassifierCode } from "../../../dataUtil/classifiers.js";
+import { basicInfoForClassifierCode } from "../../../dataUtil/classifiersData.js";
 import { multisort } from "../../../../../shared/utils/sort.js";
+import { PAGE_SIZE } from "../../../../../shared/constants/pagination.js";
 
 const shootersRoutes = async (fastify, opts) => {
   fastify.get("/:division", (req, res) => {
