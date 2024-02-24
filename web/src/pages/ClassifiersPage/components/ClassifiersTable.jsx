@@ -13,6 +13,7 @@ import {
   dateSort,
   classifierCodeSort,
 } from "../../../../../shared/utils/sort";
+import ClassifierCell from "../../../components/ClassifierCell";
 
 const renderPercent = (c, { field }) => {
   const value = c[field];
@@ -112,19 +113,7 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
         field="code"
         header="Classifier"
         sortable
-        body={(c) => (
-          <div className="flex flex-column w-12rem">
-            <div className="flex flex-row justify-content-between">
-              <div className="font-bold text-color-secondary">{c.code}</div>
-              <div className="text-xs text-color-secondary">{c.scoring}</div>
-            </div>
-            <div className="text-color">
-              <Textfit max={16} mode="single">
-                {c.name}
-              </Textfit>
-            </div>
-          </div>
-        )}
+        body={(c) => <ClassifierCell {...c} />}
       />
       <Column field="hhf" header="HHF" sortable />
       <Column field="updated" header="Updated" sortable />
