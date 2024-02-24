@@ -1,9 +1,9 @@
-import { all } from "../../../dataUtil/shooters.js";
+import { all } from "../../../dataUtil/classifications.js";
 
 const classificationRank = (classification) =>
   ["X", "U", "D", "C", "B", "A", "M", "GM"].indexOf(classification);
-const hasClassification = (classification) =>
-  ["D", "C", "B", "A", "M", "GM"].indexOf(classification) !== -1;
+/* const hasClassification = (classification) =>
+  ["D", "C", "B", "A", "M", "GM"].indexOf(classification) !== -1; */
 
 const divisions = [
   "Open", // 2
