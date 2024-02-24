@@ -190,7 +190,7 @@ const start = async () => {
       const page = Number(pageString) || 1;
 
       const { classifiers, ...info } =
-        shootersTableByMemberNumber[division][memberNumber][0];
+        shootersTableByMemberNumber[division]?.[memberNumber]?.[0] || {};
       const data = multisort(
         classifiers,
         sort?.split?.(","),
