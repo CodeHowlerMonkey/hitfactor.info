@@ -12,7 +12,7 @@ interface UseTableSortArgs {
   initial: SingleSortState | SingleSortState[]
 }
 
-const useTableSort = ({
+export const useTableSort = ({
   mode = "single",
   onSortCallback,
   initial = []

@@ -30,7 +30,7 @@ const ShootersPage = () => {
       {division && !memberNumber && (
         <ShootersTable
           division={division}
-          onSelection={(memberNumber) => navigate("./" + memberNumber)}
+          onShooterSelection={(memberNumber) => navigate("./" + memberNumber)}
         />
       )}
       {memberNumber && (
