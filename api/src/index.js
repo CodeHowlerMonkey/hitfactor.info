@@ -44,12 +44,19 @@ const start = async () => {
     const pathReact = path.join(__dirname, "./../../web/dist/");
     const pathWsb = path.join(__dirname, "./../../data/classifiers/");
 
-    // static: react app and downloads
-    await fastify.register(FastifyStatic, {
-      root: pathReact,
-      prefix: "/",
-    });
-    fastify.setNotFoundHandler((req, reply) => reply.sendFile("index.html"));
+    // static: react app in prod only (dev uses vite /api proxy)
+    console.log(process.env.NODE_ENV);
+    if (process.env.NODE_ENV !== "development") {
+      console.log("using fastifystatic for react");
+      await fastify.register(FastifyStatic, {
+        root: pathReact,
+        prefix: "/",
+      });
+      fastify.setNotFoundHandler((req, reply) => reply.sendFile("index.html"));
+    } else {
+      console.log("NO STATIC");
+    }
+
     fastify.get("/wsb/:number", (req, reply) => {
       const { number } = req.params;
       const { preview } = req.query;

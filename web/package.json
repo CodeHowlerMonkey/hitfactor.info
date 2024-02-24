@@ -7,7 +7,7 @@
     "start": "vite",
     "dev": "vite",
     "build": "vite build",
-    "buildWatch": "vite build --watch --mode development --sourcemap true",
+    "__DEPRECATED__buildWatch": "vite build --watch --mode development --sourcemap true",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"
   },
