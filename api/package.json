@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "start": "nodemon --inspect src/index.js --watch src/ --watch ../data/",
-    "prod": "node --max-old-space-size=2048 src/index.js"
+    "prod": "node --max-old-space-size=4096 src/index.js"
   },
   "exports": {
     "./data": "./../data"
