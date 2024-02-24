@@ -20,6 +20,10 @@ const ClassifiersPage = () => {
     () => navigate(`/classifiers/${division}`),
     [navigate, division]
   );
+  const onShooterSelection = (memberNumber) =>
+    navigate(`/shooters/${division}/${memberNumber}`);
+
+  const onClubSelection = (club) => navigate("/clubs/" + club);
 
   return (
     <div className="mx-">
@@ -37,6 +41,8 @@ const ClassifiersPage = () => {
           division={division}
           classifier={classifier}
           onBackToClassifiers={onBackToClassifiers}
+          onShooterSelection={onShooterSelection}
+          onClubSelection={onClubSelection}
         />
       )}
     </div>
@@ -47,6 +53,8 @@ export const ClassifierRunsAndInfo = ({
   division,
   classifier,
   onBackToClassifiers,
+  onShooterSelection,
+  onClubSelection,
 }) => {
   const { info, ...useRunsTableDataResults } = useRunsTableData({
     division,
@@ -79,8 +87,8 @@ export const ClassifierRunsAndInfo = ({
 
       <RunsTable
         {...useRunsTableDataResults}
-        onShooterSelection={(shooter) => navigate("/shooters/" + shooter)}
-        onClubSelection={(club) => navigate("/clubs/" + club)}
+        onShooterSelection={onShooterSelection}
+        onClubSelection={onClubSelection}
       />
     </>
   );
