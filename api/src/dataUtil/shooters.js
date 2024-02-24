@@ -207,14 +207,13 @@ export const shootersTableByMemberNumber = {
 export const shooterChartData = ({ memberNumber, division, y }) => {
   // monke done fucked up, monke doesn't know why it has to use [0], monke dum
   let runs = shootersTableByMemberNumber[division][memberNumber][0].classifiers;
-  const yField = y === "percent" ? "percent" : "curPercent";
-  if (yField === "curPercent") {
-    runs = runs.filter(({ curPercent }) => curPercent > 0);
-  }
 
-  return runs.map((run) => ({
-    x: run.sd,
-    y: run[yField],
-    classifier: run.classifier,
-  }));
+  return runs
+    .map((run) => ({
+      x: run.sd,
+      curPercent: run.curPercent,
+      percent: run.percent,
+      classifier: run.classifier,
+    }))
+    .filter((run) => !!run.classifier); // no majors for now in the graph
 };

@@ -6,6 +6,7 @@ import ShootersTable from "./components/ShootersTable";
 // import RunsTable, { useRunsTableData } from "../../components/ShootersTable";
 import ShooterInfoTable from "./components/ShooterInfoTable";
 import { useApi } from "../../utils/client";
+import { divShortToLong } from "../../../../api/src/dataUtil/divisions";
 
 // TODO: shooters table for single classifier? # attempts, low HF, high HF, same for percent, same for curPercent
 // TODO: all classifiers total number of reshoots (non-uniqueness)
@@ -63,7 +64,7 @@ export const ShooterRunsAndInfo = ({
     memberNumber,
   });
 
-  const { code, name, hhf } = info;
+  const { name } = info;
 
   return (
     <>
@@ -79,7 +80,7 @@ export const ShooterRunsAndInfo = ({
           Shooters List
         </Button>
         <h1 style={{ margin: "auto" }}>
-          {memberNumber} {name}
+          {memberNumber} - {name} - {divShortToLong[division]}
         </h1>
       </div>
       <div className="flex" style={{ height: "29rem", overflowY: "none" }}>

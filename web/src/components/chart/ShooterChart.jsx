@@ -28,7 +28,6 @@ const yLine = (name, y, alpha) => ({
   },
 });
 
-// TODO: curPercent vs percent modes
 export const ScoresChart = ({ division, memberNumber }) => {
   const [full, setFull] = useState(false);
   const [percentMode, setPercentMode] = useState(false);
@@ -97,9 +96,15 @@ export const ScoresChart = ({ division, memberNumber }) => {
       data={{
         datasets: [
           {
-            label: "Percent / Date",
-            data,
+            label: "Percent",
+            data: data.map((c) => ({ ...c, x: c.x, y: c.percent })),
             backgroundColor: "#ae9ef1",
+            borderColor: "#ca258a",
+          },
+          {
+            label: "Current Percent",
+            data: data.map((c) => ({ ...c, x: c.x, y: c.curPercent })),
+            backgroundColor: "#b5ca25",
           },
         ],
       }}

@@ -193,10 +193,8 @@ const start = async () => {
       };
     });
     fastify.get("/api/shooters/:division/:memberNumber/chart", (req, res) => {
-      console.log("proper route");
       const { division, memberNumber } = req.params;
-      const { y } = req.query;
-      return shooterChartData({ division, memberNumber, y });
+      return shooterChartData({ division, memberNumber });
     });
 
     await fastify.listen({ port: process.env.PORT || 3333, host: "0.0.0.0" });
