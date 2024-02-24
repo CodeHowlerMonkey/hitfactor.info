@@ -1,4 +1,6 @@
-import _ from "lodash";
+import uniqBy from "lodash.uniqby";
+import sortedUniqBy from "lodash.sorteduniqby";
+import transform from "lodash.transform";
 import memoize from "memoize";
 
 import {
@@ -78,7 +80,7 @@ export const chartData = ({ number, division, full: fullString }) => {
   const other = allPoints.slice(50, allPoints.length);
   return [
     ...first50,
-    ..._.uniqBy(
+    ...uniqBy(
       other,
       ({ x }) => Math.floor((200 * x) / hhf) // 0.5% grouping for graph points reduction
     ),
@@ -229,7 +231,7 @@ export const extendedInfoForClassifier = memoize(
       .filter((s) => s.hf >= 0)
       .sort((a, b) => b.hf - a.hf);
 
-    const runs = _.sortedUniqBy(runsSortedByPercent, (run) => run.memberNumber);
+    const runs = sortedUniqBy(runsSortedByPercent, (run) => run.memberNumber);
 
     const hhf = Number(curHHFInfo.hhf);
 
@@ -258,7 +260,7 @@ export const extendedInfoForClassifier = memoize(
     // historical high hit factors, N(x, 2) uniqueness, cause maf is hard on
     // computers and gets too much noise. If they changed HF <= 0.01 it doesn't
     // matter anyway, so toFixed(2)
-    const hhfs = _.sortedUniqBy(
+    const hhfs = sortedUniqBy(
       runsSortedByHF
         .filter((run) => run.percent !== 0 && run.percent !== 100)
         .map((run) => ({
@@ -270,7 +272,7 @@ export const extendedInfoForClassifier = memoize(
       (hhfData) => N(hhfData.hhf, 2)
     );
     const actualLastUpdate = hhfs[hhfs.length - 1].date;
-    const clubs = _.uniqBy(runsSortedByHF, "clubid")
+    const clubs = uniqBy(runsSortedByHF, "clubid")
       .map(({ clubid: id, club_name: name }) => ({
         id,
         name,
@@ -285,11 +287,11 @@ export const extendedInfoForClassifier = memoize(
       clubsCount: clubs.length,
       clubs,
       /* unused / not interesting data
-      ..._.transform(
+      ...transform(
         calcRunStats(runs),
         (r, v, k) => (r["runsUnique" + k] = v)
       ),
-      ..._.transform(
+      ...transform(
         calcRunStats(sussyRuns),
         (r, v, k) => (r["runsSussy" + k] = v)
       ),
@@ -314,11 +316,11 @@ export const extendedInfoForClassifier = memoize(
           .reduce((a, b) => a + b, 0) / 20
       ),
 */
-      ..._.transform(
+      ...transform(
         calcRunStats(runsSortedByPercent),
         (r, v, k) => (r["runsTotals" + k] = v)
       ),
-      ..._.transform(
+      ...transform(
         calcLegitRunStats(runs, hhf),
         (r, v, k) => (r["runsTotalsLegit" + k] = v)
       ),

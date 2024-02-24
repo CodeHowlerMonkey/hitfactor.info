@@ -1,4 +1,4 @@
-import _ from "lodash";
+import uniqBy from "lodash.uniqby";
 import qs from "query-string";
 import { useEffect, useState } from "react";
 import { DataTable } from "primereact/datatable";
@@ -212,7 +212,7 @@ const RunsTable = ({
         filter
         filterElement={(options) => (
           <DropdownFilter
-            filterOptions={_.uniqBy(hhfs, (c) => c.hhf)}
+            filterOptions={uniqBy(hhfs, (c) => c.hhf)}
             filterValueLabel="hhf"
             filterValue={options?.value}
             onFilter={(value) => {
