@@ -7,7 +7,7 @@ export const useApi = (endpoint) => {
   const [json, setJson] = useState(null);
   useEffect(() => {
     setJson(null);
-    if (endpoint) {
+    if (endpoint && !endpoint.includes("undefined")) {
       window
         .fetch(API_URL + endpoint)
         .then((r) => r.json())
