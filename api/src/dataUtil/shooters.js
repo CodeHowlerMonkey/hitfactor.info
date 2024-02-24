@@ -1,7 +1,7 @@
 import one from "../../../data/mergedArray.classifications.1.json" assert { type: "json" };
 import two from "../../../data/mergedArray.classifications.2.json" assert { type: "json" };
 export const all = [...one, ...two];
-import { Percent, PositiveOrMinus1 } from "./numbers.js";
+import { N, Percent, PositiveOrMinus1 } from "./numbers.js";
 
 import { divIdToShort } from "./divisions.js";
 import { divShortToShooterToRuns } from "./classifiers.js";
@@ -175,8 +175,10 @@ const shootersFullForDivision = (division) =>
           division,
         });
         const curPercent = PositiveOrMinus1(Percent(run.hf, hhf));
+        const percentMinusCurPercent =
+          curPercent >= 0 ? N(run.percent - curPercent) : -1;
 
-        return { ...run, curPercent, index };
+        return { ...run, curPercent, percentMinusCurPercent, index };
       }),
     }));
 
@@ -207,7 +209,6 @@ export const shootersTableByMemberNumber = {
 export const shooterChartData = ({ memberNumber, division, y }) => {
   // monke done fucked up, monke doesn't know why it has to use [0], monke dum
   let runs = shootersTableByMemberNumber[division][memberNumber][0].classifiers;
-
   return runs
     .map((run) => ({
       x: run.sd,

@@ -1,7 +1,10 @@
 import _ from "lodash";
 import memoize from "memoize";
 
-import { divShortToRuns } from "./dataUtil/classifiers.js";
+import {
+  divShortToRuns,
+  basicInfoForClassifier,
+} from "./dataUtil/classifiers.js";
 import { divIdToShort } from "./dataUtil/divisions.js";
 import { HF, N, Percent, PositiveOrMinus1 } from "./dataUtil/numbers.js";
 import { shooterShortInfo } from "./dataUtil/shooters.js";
@@ -338,13 +341,8 @@ export const extendedInfoForClassifier = memoize(
   { cacheKey: ([c, division]) => c.classifier + ":" + division }
 );
 
-export const basicInfoForClassifier = (c) => ({
-  id: c.id,
-  code: c.classifier,
-  name: c.name,
-  scoring: c.scoring,
-});
-
 export const classifiers = classifiersData.classifiers;
 /** whitelist for wsb downloads */
 export const classifierNumbers = classifiers.map((cur) => cur.classifier);
+
+export { basicInfoForClassifier };

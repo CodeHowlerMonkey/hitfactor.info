@@ -20,9 +20,13 @@ import {
 } from "./dataUtil/shooters.js";
 
 import {
+  basicInfoForClassifierCode,
+  basicInfoForClassifier,
+} from "./dataUtil/classifiers.js";
+
+import {
   classifiers,
   classifierNumbers,
-  basicInfoForClassifier,
   extendedInfoForClassifier,
   runsForDivisionClassifier,
   chartData,
@@ -177,19 +181,24 @@ const start = async () => {
       const { sort, order, page: pageString } = req.query;
       const page = Number(pageString) || 1;
 
+      console.log("WTF");
       const { classifiers, ...info } =
         shootersTableByMemberNumber[division][memberNumber][0];
       const data = multisort(
         classifiers,
         sort?.split?.(","),
         order?.split?.(",")
-      );
+      ).map((c) => ({
+        ...c,
+        classifierInfo: basicInfoForClassifierCode(c?.classifier),
+      }));
 
       return {
         info,
-        classifiers: data.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
-        classifiersTotal: data.length,
-        classifiersPage: page,
+        classifiers: data,
+        // TODO: classifiers: data.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
+        // classifiersTotal: data.length,
+        // classifiersPage: page,
       };
     });
     fastify.get("/api/shooters/:division/:memberNumber/chart", (req, res) => {
