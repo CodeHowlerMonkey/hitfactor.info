@@ -4,8 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "start": "NODE_ENV=development nodemon --inspect src/index.js --watch src/ --watch ../data/",
-    "prod": "NODE_ENV=production node --max-old-space-size=4096 src/index.js"
+    "start": " nodemon --inspect --exec npm run fastify-dev --watch src/ --watch ../data/",
+    "fastify-dev": "NODE_OPTIONS='--max-old-space-size=4096' NODE_ENV=development fastify start -l info -p 3333 src/app.js",
+    "prod": "NODE_OPTIONS='--max-old-space-size=4096' NODE_ENV=production fastify start -l info src/app.js"
   },
   "exports": {
     "./data": "./../data"
@@ -14,8 +15,10 @@
     "@fastify/compress": "^6.5.0",
     "@fastify/cors": "^9.0.0",
     "@fastify/static": "^6.12.0",
-    "fastify": "^4.25.2",
-    "lodash": "^4.17.21",
+    "fastify-cli": "^6.1.1",
+    "lodash.sorteduniqby": "^4.7.0",
+    "lodash.transform": "^4.6.0",
+    "lodash.uniqby": "^4.7.0",
     "memoize": "^10.0.0"
   },
   "devDependencies": {

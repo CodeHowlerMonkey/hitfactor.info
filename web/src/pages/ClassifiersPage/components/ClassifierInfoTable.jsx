@@ -1,4 +1,3 @@
-import _ from "lodash";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import ScoresChart from "../../../components/chart/ScoresChart";

@@ -1,4 +1,3 @@
-import _ from "lodash";
 import qs from "query-string";
 import { useEffect, useState } from "react";
 import { DataTable } from "primereact/datatable";
