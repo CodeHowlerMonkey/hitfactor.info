@@ -7,6 +7,7 @@ import ShootersTable from "./components/ShootersTable";
 import ShooterInfoTable from "./components/ShooterInfoTable";
 import { useApi } from "../../utils/client";
 import { divShortToLong } from "../../../../api/src/dataUtil/divisions";
+import ShooterRunsTable from "./components/ShooterRunsTable";
 
 // TODO: shooters table for single classifier? # attempts, low HF, high HF, same for percent, same for curPercent
 // TODO: all classifiers total number of reshoots (non-uniqueness)
@@ -59,7 +60,8 @@ export const ShooterRunsAndInfo = ({
   memberNumber,
   onBackToShooters,
 }) => {
-  const { info } = useShooterTableData({
+  const navigate = useNavigate();
+  const { info, ...tableShit } = useShooterTableData({
     division,
     memberNumber,
   });
@@ -89,15 +91,13 @@ export const ShooterRunsAndInfo = ({
         </div>
       </div>
 
-      {/*
-      <RunsTable
-        {...useRunsTableDataResults}
+      <ShooterRunsTable
+        {...tableShit}
         onClassifierSelection={(number) =>
           navigate(`/classifiers/${division}/${number}`)
         }
         onClubSelection={(club) => navigate("/clubs/" + club)}
       />
-      */}
     </>
   );
 };
