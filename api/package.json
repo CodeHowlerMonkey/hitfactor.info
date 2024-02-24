@@ -6,7 +6,7 @@
   "scripts": {
     "start": " nodemon --inspect --exec npm run fastify-dev --watch src/ --watch ../data/",
     "fastify-dev": "NODE_OPTIONS='--max-old-space-size=4096' NODE_ENV=development fastify start -l info -p 3333 src/app.js",
-    "prod": "NODE_OPTIONS='--max-old-space-size=4096' NODE_ENV=production fastify start -l info src/app.js"
+    "prod": "NODE_OPTIONS='--max-old-space-size=4096' NODE_ENV=production fastify start -l info -a 0.0.0.0 src/app.js"
   },
   "exports": {
     "./data": "./../data"
