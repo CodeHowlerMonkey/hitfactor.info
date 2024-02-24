@@ -168,7 +168,7 @@ const start = async () => {
         shootersTable[division],
         sort?.split?.(","),
         order?.split?.(",")
-      ).map((run, index) => ({ ...run, index }));
+      ).map(({ classifiers, ...run }, index) => ({ ...run, index }));
 
       return {
         shooters: data.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
@@ -181,7 +181,6 @@ const start = async () => {
       const { sort, order, page: pageString } = req.query;
       const page = Number(pageString) || 1;
 
-      console.log("WTF");
       const { classifiers, ...info } =
         shootersTableByMemberNumber[division][memberNumber][0];
       const data = multisort(

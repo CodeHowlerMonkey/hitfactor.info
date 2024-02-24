@@ -2,7 +2,6 @@ import { useState } from "react";
 import { DataTable } from "primereact/datatable";
 import { InputText } from "primereact/inputtext";
 import { Column } from "primereact/column";
-import { Textfit } from "react-textfit";
 
 import { useApi } from "../../../utils/client";
 import useTableSort from "../../../components/Table/useTableSort";
@@ -14,15 +13,7 @@ import {
   classifierCodeSort,
 } from "../../../../../shared/utils/sort";
 import ClassifierCell from "../../../components/ClassifierCell";
-
-const renderPercent = (c, { field }) => {
-  const value = c[field];
-  if (value < 0) {
-    return "—";
-  }
-
-  return <>{value}%</>;
-};
+import { renderPercent } from "../../../components/Table";
 
 const compactPercentColumnStyle = {
   headerStyle: { width: "64px", padding: "16px 4px", fontSize: "0.8rem" },

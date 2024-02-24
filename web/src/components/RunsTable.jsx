@@ -13,6 +13,7 @@ import { Dropdown } from "primereact/dropdown";
 import { useDebounce } from "use-debounce";
 import { bgColorForClass, fgColorForClass } from "../utils/color";
 import { stringSort } from "../../../shared/utils/sort";
+import ShooterCell from "./ShooterCell";
 
 /*
 sd	"4/09/17"
@@ -70,11 +71,7 @@ const DropdownFilter = ({
   />
 );
 
-export const useRunsTableData = ({
-  division,
-  classifier,
-  onShooterSelection,
-}) => {
+export const useRunsTableData = ({ division, classifier }) => {
   const {
     query: pageQuery,
     reset: resetPage,
@@ -177,29 +174,12 @@ const RunsTable = ({
         header="Shooter"
         sortable
         body={(run) => (
-          <div
-            style={{ cursor: "pointer" }}
+          <ShooterCell
+            memberNumber={run.memberNumber}
+            name={run.name}
+            class={run.class}
             onClick={() => onShooterSelection?.(run.memberNumber)}
-          >
-            <div style={{ position: "relative" }}>
-              {run.memberNumber}
-              <Tag
-                rounded
-                severity="info"
-                value={run.class}
-                style={{
-                  backgroundColor: bgColorForClass[run.class],
-                  color: fgColorForClass[run.class],
-                  padding: "1px 4px",
-                  fontSize: "11px",
-                  margin: "auto",
-                  position: "absolute",
-                  transform: "translateX(4px)",
-                }}
-              />
-            </div>
-            <div style={{ fontSize: 14 }}>{run.name}</div>
-          </div>
+          />
         )}
       />
       <Column
