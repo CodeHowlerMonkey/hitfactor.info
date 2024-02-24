@@ -161,14 +161,22 @@ const start = async () => {
     });
     fastify.get("/api/shooters/:division", (req, res) => {
       const { division } = req.params;
-      const { sort, order, page: pageString } = req.query;
+      const { sort, order, page: pageString, filter: filterString } = req.query;
       const page = Number(pageString) || 1;
 
-      const data = multisort(
+      let data = multisort(
         shootersTable[division],
         sort?.split?.(","),
         order?.split?.(",")
       ).map(({ classifiers, ...run }, index) => ({ ...run, index }));
+      if (filterString) {
+        data = data.filter((shooter) =>
+          [shooter.name, shooter.memberNumber]
+            .join("###")
+            .toLowerCase()
+            .includes(filterString.toLowerCase())
+        );
+      }
 
       return {
         shooters: data.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
