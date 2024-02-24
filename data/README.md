@@ -1,5 +1,6 @@
 - `classifiers/`
   - pdfs - official WSBs and stage diagrams for all classifiers
+  - jpgs - previews of pdfs for classifer pages
   - index.json - list of classifiers, as-is again from USPSA.org mobile api
 - merged.active.[DIVISION].[NUMBER].json -- much more reasonable split into divisions
   - NUMBER is optional, used when json file needed to be split
