@@ -48,7 +48,9 @@ const useShooterTableData = ({ division, memberNumber }) => {
     : `/shooters/${division}/${memberNumber}`;
   const apiData = useApi(apiEndpoint);
   const info = apiData?.info || {};
-  return { ...apiData, info };
+  const classifiers = apiData?.classifiers || [];
+
+  return { ...apiData, info, classifiers };
 };
 
 export const ShooterRunsAndInfo = ({
@@ -60,6 +62,7 @@ export const ShooterRunsAndInfo = ({
     division,
     memberNumber,
   });
+
   const { code, name, hhf } = info;
 
   return (
@@ -79,9 +82,9 @@ export const ShooterRunsAndInfo = ({
           {memberNumber} {name}
         </h1>
       </div>
-      <div className="flex h-30rem">
+      <div className="flex" style={{ height: "29rem", overflowY: "none" }}>
         <div className="w-full h-full bg-primary-reverse">
-          <ShooterInfoTable {...{ division, memberNumber }} {...info} />
+          <ShooterInfoTable info={info} />
         </div>
       </div>
 
