@@ -3,6 +3,9 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "engines": {
+    "node": "20.11.0"
+  },
   "scripts": {
     "======================== Development Scripts ====================": "",
     "start": "concurrently -c \"auto\" --names \"API,WEB\" \"npm run start-api\" \"npm run start-web\"",
