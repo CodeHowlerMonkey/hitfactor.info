@@ -4,8 +4,8 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "start": "nodemon --inspect src/index.js --watch src/ --watch ../data/",
-    "prod": "node --max-old-space-size=4096 src/index.js"
+    "start": "NODE_ENV=development nodemon --inspect src/index.js --watch src/ --watch ../data/",
+    "prod": "NODE_ENV=production node --max-old-space-size=4096 src/index.js"
   },
   "exports": {
     "./data": "./../data"
