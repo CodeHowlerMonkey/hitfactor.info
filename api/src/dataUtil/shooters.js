@@ -1,6 +1,4 @@
-import one from "../../../data/mergedArray.classifications.1.json" assert { type: "json" };
-import two from "../../../data/mergedArray.classifications.2.json" assert { type: "json" };
-export const all = [...one, ...two];
+import { all } from "./classifications.js";
 import { N, Percent, PositiveOrMinus1 } from "./numbers.js";
 
 import { divIdToShort } from "./divisions.js";
