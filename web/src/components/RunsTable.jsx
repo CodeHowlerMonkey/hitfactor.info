@@ -70,7 +70,11 @@ const DropdownFilter = ({
   />
 );
 
-export const useRunsTableData = ({ division, classifier }) => {
+export const useRunsTableData = ({
+  division,
+  classifier,
+  onShooterSelection,
+}) => {
   const {
     query: pageQuery,
     reset: resetPage,
@@ -132,6 +136,7 @@ const RunsTable = ({
   setFilter,
   setFilterHHF,
   setFilterClub,
+  onShooterSelection,
 }) => {
   return (
     <DataTable
@@ -172,7 +177,10 @@ const RunsTable = ({
         header="Shooter"
         sortable
         body={(run) => (
-          <>
+          <div
+            style={{ cursor: "pointer" }}
+            onClick={() => onShooterSelection?.(run.memberNumber)}
+          >
             <div style={{ position: "relative" }}>
               {run.memberNumber}
               <Tag
@@ -191,7 +199,7 @@ const RunsTable = ({
               />
             </div>
             <div style={{ fontSize: 14 }}>{run.name}</div>
-          </>
+          </div>
         )}
       />
       <Column
