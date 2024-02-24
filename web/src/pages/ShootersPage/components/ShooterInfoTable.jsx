@@ -3,41 +3,116 @@ import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import ShooterChart from "../../../components/chart/ShooterChart";
 
-export const ShooterInfoTable = ({ division, memberNumber, ...info }) => (
-  <DataTable
-    scrollable={false}
-    style={{ height: "100%" }}
-    tableStyle={{ height: "100%" }}
-    value={[{ test: 1, test2: 2, test3: 3 }]}
-  >
-    <Column
-      field="test"
-      header="Scores Distribution"
-      bodyStyle={{ position: "relative", padding: 0, width: "46%" }}
-      body={() => (
-        <ShooterChart division={division} memberNumber={memberNumber} />
-      )}
-    />
-    <Column
-      field="test2"
-      header="Shooter Info"
-      bodyStyle={{ padding: 0, maxHeight: "26rem" }}
-      body={() => (
-        <div
-          className="h-26 w-full"
-          style={{ overflowY: "scroll", maxHeight: "26rem" }}
-        >
-          <DataTable showHeaders={false} stripedRows value={[]}>
-            <Column field="hhf" />
-            <Column
-              field="date"
-              body={(c) => new Date(c.date).toLocaleDateString()}
-            />
-          </DataTable>
-        </div>
-      )}
-    />
-  </DataTable>
-);
+const tableNameForDiv = {
+  opn: "Open",
+  ltd: "Lim",
+  l10: "L10",
+  prod: "Prod",
+  rev: "Revo",
+  ss: "SS",
+  co: "CO",
+  pcc: "PCC",
+  lo: "LO",
+};
+const cardRow = ({ classes, highs, currents }, div) => ({
+  k: tableNameForDiv[div],
+  v1: classes[div],
+  v2: highs[div].toFixed(2) + "%",
+  v3: currents[div].toFixed(2) + "%",
+});
 
+export const ShooterInfoTable = ({ info }) => {
+  const loading = !info?.data?.member_id;
+
+  return (
+    <DataTable
+      loading={loading}
+      scrollable={false}
+      style={{ height: "100%" }}
+      tableStyle={{ height: "100%" }}
+      value={[{ noop: 1 }]}
+    >
+      <Column
+        field="test"
+        header="Scores Distribution"
+        bodyStyle={{ position: "relative", padding: 0, width: "46%" }}
+        body={() => (
+          <ShooterChart
+            division={info.division}
+            memberNumber={info.memberNumber}
+          />
+        )}
+      />
+      <Column
+        field="test2"
+        header="Shooter Info"
+        bodyStyle={{ padding: 0 }}
+        body={() => (
+          <div className="h-full w-full" style={{ overflowY: "scroll" }}>
+            <DataTable
+              size="small"
+              showHeaders={false}
+              value={
+                loading
+                  ? []
+                  : [
+                      { k: "ID", v: info?.data?.member_id },
+                      { k: "Number", v: info?.memberNumber },
+                      { k: "First Name", v: info?.data?.first_name },
+                      { k: "Middle Name", v: info?.data?.middle_name },
+                      { k: "Last Name", v: info?.data?.last_name },
+                      { k: "Division", v: tableNameForDiv[info?.division] },
+                      { k: "Class", v: info?.class },
+                      {
+                        k: "High Rank / Perc",
+                        v: `${info?.highRank} / ${info?.highPercentile}%`,
+                      },
+                      {
+                        k: "Cur Rank / Perc",
+                        v: `${info?.currentRank} / ${info?.currentPercentile}%`,
+                      },
+                    ]
+              }
+            >
+              <Column field="k" />
+              <Column field="v" />
+            </DataTable>
+          </div>
+        )}
+      />
+      <Column
+        field="test2"
+        header="Card"
+        body={() => (
+          <div className="h-full w-full" style={{ overflowY: "scroll" }}>
+            <DataTable
+              size="small"
+              stripedRows
+              value={
+                loading
+                  ? []
+                  : [
+                      cardRow(info, "opn"),
+                      cardRow(info, "ltd"),
+                      cardRow(info, "l10"),
+                      cardRow(info, "prod"),
+                      cardRow(info, "rev"),
+                      cardRow(info, "ss"),
+                      cardRow(info, "co"),
+                      cardRow(info, "pcc"),
+                      cardRow(info, "lo"),
+                    ]
+              }
+            >
+              <Column field="k" header="Div" />
+              <Column field="v1" header="Class" />
+              <Column field="v2" header="High %" />
+              <Column field="v3" header="Cur %" />
+            </DataTable>
+          </div>
+        )}
+      />
+    </DataTable>
+  );
+};
 export default ShooterInfoTable;

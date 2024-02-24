@@ -99,9 +99,12 @@ export const shooterFullInfo = ({ memberNumber, division }) => {
       byMemberNumberFull[memberNumber];
     return {
       class: classifications[division],
+      classes: classifications,
+      division,
       high: high[division],
       current: current[division],
-      division,
+      highs: high,
+      currents: current,
       ...info,
     };
   } catch (err) {
@@ -130,8 +133,11 @@ const shootersFullForDivision = (division) =>
         return {
           ...etc,
           class: classifications?.[division],
+          classes: classifications,
           high: high?.[division],
           current: current?.[division],
+          highs: high,
+          currents: current,
           division,
         };
       } catch (err) {
@@ -153,11 +159,13 @@ const shootersFullForDivision = (division) =>
     .sort((a, b) => b.high - a.high)
     .map((c, index, all) => ({
       ...c,
+      highRank: index,
       highPercentile: Percent(index, all.length),
     }))
     .sort((a, b) => b.current - a.current)
     .map((c, index, all) => ({
       ...c,
+      currentRank: index,
       currentPercentile: Percent(index, all.length),
       classifiers: (
         divShortToShooterToRuns[division][c.memberNumber] ?? []
