@@ -1,6 +1,8 @@
-import classifiersData from "../../../data/classifiers/classifiers.json" assert { type: "json" };
+import { loadJSON } from "../utils.js";
 
-export const classifiers = classifiersData.classifiers;
+export const classifiers = loadJSON(
+  "../../data/classifiers/classifiers.json"
+).classifiers;
 
 export const basicInfoForClassifier = (c) => ({
   id: c.id,
@@ -13,9 +15,7 @@ export const basicInfoForClassifierCode = (number) => {
   if (!number) {
     return {};
   }
-  const c = classifiersData.classifiers.find(
-    (cur) => cur.classifier === number
-  );
+  const c = classifiers.find((cur) => cur.classifier === number);
   if (!c) {
     return {};
   }
