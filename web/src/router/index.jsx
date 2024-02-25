@@ -36,14 +36,17 @@ const config = [
   },
 ];
 
+const activeIndexForPathname = (pathname) =>
+  config
+    .map((c) => c.path)
+    .findIndex((curPath) => pathname?.startsWith(curPath));
+
 const Menu = () => {
   const navigate = useNavigate();
   const { pathname } = useLocation();
-  const [activeIndex, setActiveIndex] = useState(
-    config
-      .map((c) => c.path)
-      .findIndex((curPath) => pathname.startsWith(curPath))
-  );
+  const [activeIndex, setActiveIndex] = useState(activeIndexForPathname);
+
+  useEffect(() => setActiveIndex(activeIndexForPathname(pathname)), [pathname]);
 
   return (
     <TabMenu

@@ -12,6 +12,7 @@
     "./data": "./../data"
   },
   "dependencies": {
+    "@fastify/autoload": "^5.8.0",
     "@fastify/compress": "^6.5.0",
     "@fastify/cors": "^9.0.0",
     "@fastify/static": "^6.12.0",

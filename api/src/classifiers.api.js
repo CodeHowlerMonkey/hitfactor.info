@@ -3,39 +3,13 @@ import sortedUniqBy from "lodash.sorteduniqby";
 import transform from "lodash.transform";
 import memoize from "memoize";
 
-import {
-  divShortToRuns,
-  basicInfoForClassifier,
-} from "./dataUtil/classifiers.js";
-import { divIdToShort } from "./dataUtil/divisions.js";
+import { divShortToRuns } from "./dataUtil/classifiers.js";
 import { HF, N, Percent, PositiveOrMinus1 } from "./dataUtil/numbers.js";
-import { shooterShortInfo } from "./dataUtil/shooters.js";
+import { shooterFullInfo } from "./dataUtil/shooters.js";
 
-import classifiersData from "../../data/classifiers/classifiers.json" assert { type: "json" };
-import allHHFs from "../../data/hhf.json" assert { type: "json" };
-import { clubSort, stringSort } from "../../shared/utils/sort.js";
+import { stringSort } from "../../shared/utils/sort.js";
 
-export const curHHFForDivisionClassifier = memoize(
-  ({ division, number }) => {
-    if (!number) {
-      return NaN;
-    }
-
-    const divisionHHFs = divShortToHHFs[division];
-    const c = classifiersData.classifiers.find(
-      (cur) => cur.classifier === number
-    );
-
-    // major match or classifier not found for some reason
-    if (!c) {
-      return NaN;
-    }
-
-    const curHHFInfo = divisionHHFs.find((dHHF) => dHHF.classifier === c.id);
-    return HF(curHHFInfo.hhf);
-  },
-  { cacheKey: (ehFuckit) => JSON.stringify(ehFuckit) }
-);
+import { curHHFForDivisionClassifier, divShortToHHFs } from "./dataUtil/hhf.js";
 
 export const selectClassifierDivisionScores = ({
   number,
@@ -115,7 +89,7 @@ export const runsForDivisionClassifier = memoize(
 
         return {
           ...run,
-          ...shooterShortInfo({ memberNumber, division }),
+          ...shooterFullInfo({ memberNumber, division }),
           historicalHHF: findHistoricalHHF ?? recalcHistoricalHHF,
           percent,
           curPercent,
@@ -128,23 +102,6 @@ export const runsForDivisionClassifier = memoize(
   },
   { cacheKey: (ehFuckit) => JSON.stringify(ehFuckit) }
 );
-
-const divShortToHHFs = allHHFs.hhfs.reduce((acc, cur) => {
-  const divShortName = divIdToShort[cur.division];
-  const curArray = acc[divShortName] || [];
-
-  // TODO: merge HHF in a smart way
-  let extra = {};
-  if (divShortName === "lo") {
-    extra = { loco: [...curArray, cur] };
-  }
-
-  return {
-    ...acc,
-    [divShortName]: [...curArray, cur],
-    ...extra,
-  };
-}, {});
 
 const calcRunStats = (runs) =>
   runs.reduce(
@@ -342,9 +299,3 @@ export const extendedInfoForClassifier = memoize(
   },
   { cacheKey: ([c, division]) => c.classifier + ":" + division }
 );
-
-export const classifiers = classifiersData.classifiers;
-/** whitelist for wsb downloads */
-export const classifierNumbers = classifiers.map((cur) => cur.classifier);
-
-export { basicInfoForClassifier };

@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import qs from "query-string";
+import { PAGE_SIZE } from "../../../../shared/constants/pagination";
 
 export const useTablePagination = () => {
   const [page, setPage] = useState(1);
@@ -9,8 +10,8 @@ export const useTablePagination = () => {
     () => ({
       first,
       paginator: true,
-      rows: 100,
-      rowsPerPageOptions: [100],
+      rows: PAGE_SIZE,
+      rowsPerPageOptions: [PAGE_SIZE],
       paginatorPosition: "both",
       onPage: (e) => {
         setFirst(e.first);

@@ -1,62 +1,37 @@
-import opn from "../../../data/merged.active.open.json" assert { type: "json" };
-import limited1 from "../../../data/merged.active.limited.1.json" assert { type: "json" };
-import limited2 from "../../../data/merged.active.limited.2.json" assert { type: "json" };
-import l10 from "../../../data/merged.active.limited10.json" assert { type: "json" };
-import prod from "../../../data/merged.active.production.json" assert { type: "json" };
-import ss from "../../../data/merged.active.singlestack.json" assert { type: "json" };
-import rev from "../../../data/merged.active.revolver.json" assert { type: "json" };
-import co from "../../../data/merged.active.co.json" assert { type: "json" };
-import lo from "../../../data/merged.active.limitedoptics.json" assert { type: "json" };
-import pcc from "../../../data/merged.active.pcc.json" assert { type: "json" };
+// TODO: rename to scores
+import { loadJSON } from "../utils.js";
 import { byMemberNumber } from "./byMemberNumber.js";
 
-import classifiersData from "../../../data/classifiers/classifiers.json" assert { type: "json" };
-
-export const basicInfoForClassifier = (c) => ({
-  id: c.id,
-  code: c.classifier,
-  name: c.name,
-  scoring: c.scoring,
-});
-
-export const basicInfoForClassifierCode = (number) => {
-  if (!number) {
-    return {};
-  }
-  const c = classifiersData.classifiers.find(
-    (cur) => cur.classifier === number
-  );
-  if (!c) {
-    return {};
-  }
-  return basicInfoForClassifier(c);
-};
-
-// fucking github and its fucking 50Mb file limitation
-const ltd = [...limited1, ...limited2];
-
 export const divShortToRuns = {
-  opn,
-  ltd,
-  l10,
-  prod,
-  ss,
-  rev,
-  co,
-  lo,
-  pcc,
-  loco: [...co, ...lo],
+  opn: loadJSON("../../data/merged.active.open.json"),
+  ltd: [
+    // split into 2 files to pass github's 50mb file limit
+    ...loadJSON("../../data/merged.active.limited.1.json"),
+    ...loadJSON("../../data/merged.active.limited.2.json"),
+  ],
+  l10: loadJSON("../../data/merged.active.limited10.json"),
+  prod: loadJSON("../../data/merged.active.production.json"),
+  ss: loadJSON("../../data/merged.active.singlestack.json"),
+  rev: loadJSON("../../data/merged.active.revolver.json"),
+  co: loadJSON("../../data/merged.active.co.json"),
+  lo: loadJSON("../../data/merged.active.limitedoptics.json"),
+  pcc: loadJSON("../../data/merged.active.pcc.json"),
+  loco: [
+    // synthetic division
+    ...loadJSON("../../data/merged.active.co.json"),
+    ...loadJSON("../../data/merged.active.limitedoptics.json"),
+  ],
 };
 
 export const divShortToShooterToRuns = {
-  opn: byMemberNumber(opn),
-  ltd: byMemberNumber(ltd),
-  l10: byMemberNumber(l10),
-  prod: byMemberNumber(prod),
-  ss: byMemberNumber(ss),
-  rev: byMemberNumber(rev),
-  co: byMemberNumber(co),
-  lo: byMemberNumber(lo),
-  pcc: byMemberNumber(pcc),
-  loco: byMemberNumber([...co, ...lo]),
+  opn: byMemberNumber(divShortToRuns.opn),
+  ltd: byMemberNumber(divShortToRuns.ltd),
+  l10: byMemberNumber(divShortToRuns.l10),
+  prod: byMemberNumber(divShortToRuns.prod),
+  ss: byMemberNumber(divShortToRuns.ss),
+  rev: byMemberNumber(divShortToRuns.rev),
+  co: byMemberNumber(divShortToRuns.co),
+  lo: byMemberNumber(divShortToRuns.lo),
+  pcc: byMemberNumber(divShortToRuns.pcc),
+  loco: byMemberNumber(divShortToRuns.loco),
 };
