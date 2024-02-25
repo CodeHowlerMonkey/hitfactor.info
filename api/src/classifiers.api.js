@@ -5,7 +5,7 @@ import memoize from "memoize";
 
 import { divShortToRuns } from "./dataUtil/classifiers.js";
 import { HF, N, Percent, PositiveOrMinus1 } from "./dataUtil/numbers.js";
-import { shooterShortInfo } from "./dataUtil/shooters.js";
+import { shooterFullInfo } from "./dataUtil/shooters.js";
 
 import { stringSort } from "../../shared/utils/sort.js";
 
@@ -89,7 +89,7 @@ export const runsForDivisionClassifier = memoize(
 
         return {
           ...run,
-          ...shooterShortInfo({ memberNumber, division }),
+          ...shooterFullInfo({ memberNumber, division }),
           historicalHHF: findHistoricalHHF ?? recalcHistoricalHHF,
           percent,
           curPercent,

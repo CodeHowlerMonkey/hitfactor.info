@@ -1,4 +1,4 @@
-import { all } from "../../../dataUtil/classifications.js";
+import { extendedClassificationsInfo } from "../../../dataUtil/classifications.js";
 
 const classificationRank = (classification) =>
   ["X", "U", "D", "C", "B", "A", "M", "GM"].indexOf(classification);
@@ -18,26 +18,24 @@ const divisions = [
   // LO/CO 411
 ];
 
-const highestClassification = (classificationObj) =>
-  classificationObj
-    .map((curObj) => curObj.class)
-    .reduce((prev, curClass) => {
-      if (classificationRank(prev) >= classificationRank(curClass)) {
-        return prev;
-      } else {
-        return curClass;
-      }
-    }, undefined);
+const highestClassification = (classificationsObj) =>
+  Object.values(classificationsObj).reduce((prev, curClass) => {
+    if (classificationRank(prev) >= classificationRank(curClass)) {
+      return prev;
+    } else {
+      return curClass;
+    }
+  }, undefined);
 
-const selectDivision = (division, classifications) => {
-  if (division) {
-    return classifications.filter((curClass) => curClass.division === division);
-  }
-  return classifications;
-};
+const selectDivision = (division, classificationsObj) =>
+  division
+    ? {
+        [division]: classificationsObj[division],
+      }
+    : classificationsObj;
 
 export const highestClassificationCountsFor = (division) => {
-  const highestClassifications = all
+  const highestClassifications = extendedClassificationsInfo
     .map((cur) =>
       highestClassification(selectDivision(division, cur.classifications))
     )
@@ -69,93 +67,93 @@ const staticInefficientlyCalculatedDataButIDGAF = {
   },
   Open: {
     // 2
-    U: highestClassificationCountsFor("Open").get("U"),
-    D: highestClassificationCountsFor("Open").get("D"),
-    C: highestClassificationCountsFor("Open").get("C"),
-    B: highestClassificationCountsFor("Open").get("B"),
-    A: highestClassificationCountsFor("Open").get("A"),
-    M: highestClassificationCountsFor("Open").get("M"),
-    GM: highestClassificationCountsFor("Open").get("GM"),
+    U: highestClassificationCountsFor("opn").get("U"),
+    D: highestClassificationCountsFor("opn").get("D"),
+    C: highestClassificationCountsFor("opn").get("C"),
+    B: highestClassificationCountsFor("opn").get("B"),
+    A: highestClassificationCountsFor("opn").get("A"),
+    M: highestClassificationCountsFor("opn").get("M"),
+    GM: highestClassificationCountsFor("opn").get("GM"),
   },
   Limited: {
     // 3
-    U: highestClassificationCountsFor("Limited").get("U"),
-    D: highestClassificationCountsFor("Limited").get("D"),
-    C: highestClassificationCountsFor("Limited").get("C"),
-    B: highestClassificationCountsFor("Limited").get("B"),
-    A: highestClassificationCountsFor("Limited").get("A"),
-    M: highestClassificationCountsFor("Limited").get("M"),
-    GM: highestClassificationCountsFor("Limited").get("GM"),
+    U: highestClassificationCountsFor("ltd").get("U"),
+    D: highestClassificationCountsFor("ltd").get("D"),
+    C: highestClassificationCountsFor("ltd").get("C"),
+    B: highestClassificationCountsFor("ltd").get("B"),
+    A: highestClassificationCountsFor("ltd").get("A"),
+    M: highestClassificationCountsFor("ltd").get("M"),
+    GM: highestClassificationCountsFor("ltd").get("GM"),
   },
   "Limited 10": {
     // 4
-    U: highestClassificationCountsFor("Limited 10").get("U"),
-    D: highestClassificationCountsFor("Limited 10").get("D"),
-    C: highestClassificationCountsFor("Limited 10").get("C"),
-    B: highestClassificationCountsFor("Limited 10").get("B"),
-    A: highestClassificationCountsFor("Limited 10").get("A"),
-    M: highestClassificationCountsFor("Limited 10").get("M"),
-    GM: highestClassificationCountsFor("Limited 10").get("GM"),
+    U: highestClassificationCountsFor("l10").get("U"),
+    D: highestClassificationCountsFor("l10").get("D"),
+    C: highestClassificationCountsFor("l10").get("C"),
+    B: highestClassificationCountsFor("l10").get("B"),
+    A: highestClassificationCountsFor("l10").get("A"),
+    M: highestClassificationCountsFor("l10").get("M"),
+    GM: highestClassificationCountsFor("l10").get("GM"),
   },
   Production: {
     // 5
-    U: highestClassificationCountsFor("Production").get("U"),
-    D: highestClassificationCountsFor("Production").get("D"),
-    C: highestClassificationCountsFor("Production").get("C"),
-    B: highestClassificationCountsFor("Production").get("B"),
-    A: highestClassificationCountsFor("Production").get("A"),
-    M: highestClassificationCountsFor("Production").get("M"),
-    GM: highestClassificationCountsFor("Production").get("GM"),
+    U: highestClassificationCountsFor("prod").get("U"),
+    D: highestClassificationCountsFor("prod").get("D"),
+    C: highestClassificationCountsFor("prod").get("C"),
+    B: highestClassificationCountsFor("prod").get("B"),
+    A: highestClassificationCountsFor("prod").get("A"),
+    M: highestClassificationCountsFor("prod").get("M"),
+    GM: highestClassificationCountsFor("prod").get("GM"),
   },
   Revolver: {
     // 6
-    U: highestClassificationCountsFor("Revolver").get("U"),
-    D: highestClassificationCountsFor("Revolver").get("D"),
-    C: highestClassificationCountsFor("Revolver").get("C"),
-    B: highestClassificationCountsFor("Revolver").get("B"),
-    A: highestClassificationCountsFor("Revolver").get("A"),
-    M: highestClassificationCountsFor("Revolver").get("M"),
-    GM: highestClassificationCountsFor("Revolver").get("GM"),
+    U: highestClassificationCountsFor("rev").get("U"),
+    D: highestClassificationCountsFor("rev").get("D"),
+    C: highestClassificationCountsFor("rev").get("C"),
+    B: highestClassificationCountsFor("rev").get("B"),
+    A: highestClassificationCountsFor("rev").get("A"),
+    M: highestClassificationCountsFor("rev").get("M"),
+    GM: highestClassificationCountsFor("rev").get("GM"),
   },
   "Single Stack": {
     // 7
-    U: highestClassificationCountsFor("Single Stack").get("U"),
-    D: highestClassificationCountsFor("Single Stack").get("D"),
-    C: highestClassificationCountsFor("Single Stack").get("C"),
-    B: highestClassificationCountsFor("Single Stack").get("B"),
-    A: highestClassificationCountsFor("Single Stack").get("A"),
-    M: highestClassificationCountsFor("Single Stack").get("M"),
-    GM: highestClassificationCountsFor("Single Stack").get("GM"),
+    U: highestClassificationCountsFor("ss").get("U"),
+    D: highestClassificationCountsFor("ss").get("D"),
+    C: highestClassificationCountsFor("ss").get("C"),
+    B: highestClassificationCountsFor("ss").get("B"),
+    A: highestClassificationCountsFor("ss").get("A"),
+    M: highestClassificationCountsFor("ss").get("M"),
+    GM: highestClassificationCountsFor("ss").get("GM"),
   },
   "Carry Optics": {
     // 35
-    U: highestClassificationCountsFor("Carry Optics").get("U"),
-    D: highestClassificationCountsFor("Carry Optics").get("D"),
-    C: highestClassificationCountsFor("Carry Optics").get("C"),
-    B: highestClassificationCountsFor("Carry Optics").get("B"),
-    A: highestClassificationCountsFor("Carry Optics").get("A"),
-    M: highestClassificationCountsFor("Carry Optics").get("M"),
-    GM: highestClassificationCountsFor("Carry Optics").get("GM"),
+    U: highestClassificationCountsFor("co").get("U"),
+    D: highestClassificationCountsFor("co").get("D"),
+    C: highestClassificationCountsFor("co").get("C"),
+    B: highestClassificationCountsFor("co").get("B"),
+    A: highestClassificationCountsFor("co").get("A"),
+    M: highestClassificationCountsFor("co").get("M"),
+    GM: highestClassificationCountsFor("co").get("GM"),
   },
   PCC: {
     // 38
-    U: highestClassificationCountsFor("PCC").get("U"),
-    D: highestClassificationCountsFor("PCC").get("D"),
-    C: highestClassificationCountsFor("PCC").get("C"),
-    B: highestClassificationCountsFor("PCC").get("B"),
-    A: highestClassificationCountsFor("PCC").get("A"),
-    M: highestClassificationCountsFor("PCC").get("M"),
-    GM: highestClassificationCountsFor("PCC").get("GM"),
+    U: highestClassificationCountsFor("pcc").get("U"),
+    D: highestClassificationCountsFor("pcc").get("D"),
+    C: highestClassificationCountsFor("pcc").get("C"),
+    B: highestClassificationCountsFor("pcc").get("B"),
+    A: highestClassificationCountsFor("pcc").get("A"),
+    M: highestClassificationCountsFor("pcc").get("M"),
+    GM: highestClassificationCountsFor("pcc").get("GM"),
   },
   "Limited Optics": {
     // 41
-    U: highestClassificationCountsFor("Limited Optics").get("U"),
-    D: highestClassificationCountsFor("Limited Optics").get("D"),
-    C: highestClassificationCountsFor("Limited Optics").get("C"),
-    B: highestClassificationCountsFor("Limited Optics").get("B"),
-    A: highestClassificationCountsFor("Limited Optics").get("A"),
-    M: highestClassificationCountsFor("Limited Optics").get("M"),
-    GM: highestClassificationCountsFor("Limited Optics").get("GM"),
+    U: highestClassificationCountsFor("lo").get("U"),
+    D: highestClassificationCountsFor("lo").get("D"),
+    C: highestClassificationCountsFor("lo").get("C"),
+    B: highestClassificationCountsFor("lo").get("B"),
+    A: highestClassificationCountsFor("lo").get("A"),
+    M: highestClassificationCountsFor("lo").get("M"),
+    GM: highestClassificationCountsFor("lo").get("GM"),
   },
   Approx: {
     U: 0,
