@@ -49,20 +49,20 @@ const shootersFullForDivision = (division) =>
       ...c,
       currentRank: index,
       currentPercentile: Percent(index, all.length),
-      classifiers: (
-        divShortToShooterToRuns[division][c.memberNumber] ?? []
-      ).map((run, index) => {
-        const hhf = curHHFForDivisionClassifier({
-          number: run.classifier,
-          division,
-        });
-        const curPercent = PositiveOrMinus1(Percent(run.hf, hhf));
-        const percentMinusCurPercent =
-          curPercent >= 0 ? N(run.percent - curPercent) : -1;
-
-        return { ...run, curPercent, percentMinusCurPercent, index };
-      }),
     }));
+
+export const classifiersForDivisionForShooter = ({ division, memberNumber }) =>
+  (divShortToShooterToRuns[division][memberNumber] ?? []).map((run, index) => {
+    const hhf = curHHFForDivisionClassifier({
+      number: run.classifier,
+      division,
+    });
+    const curPercent = PositiveOrMinus1(Percent(run.hf, hhf));
+    const percentMinusCurPercent =
+      curPercent >= 0 ? N(run.percent - curPercent) : -1;
+
+    return { ...run, curPercent, percentMinusCurPercent, index };
+  });
 
 export const shootersTable = {
   opn: shootersFullForDivision("opn"),
@@ -120,10 +120,8 @@ export const shooterFullInfo = ({ memberNumber, division }) => {
   };
 };
 
-export const shooterChartData = ({ memberNumber, division, y }) => {
-  // monke done fucked up, monke doesn't know why it has to use [0], monke dum
-  let runs = shootersTableByMemberNumber[division][memberNumber][0].classifiers;
-  return runs
+export const shooterChartData = ({ memberNumber, division }) =>
+  classifiersForDivisionForShooter({ memberNumber, division })
     .map((run) => ({
       x: run.sd,
       curPercent: run.curPercent,
@@ -131,4 +129,3 @@ export const shooterChartData = ({ memberNumber, division, y }) => {
       classifier: run.classifier,
     }))
     .filter((run) => !!run.classifier); // no majors for now in the graph
-};

@@ -2,6 +2,7 @@ import {
   shootersTable,
   shootersTableByMemberNumber,
   shooterChartData,
+  classifiersForDivisionForShooter,
 } from "../../../dataUtil/shooters.js";
 
 import { basicInfoForClassifierCode } from "../../../dataUtil/classifiersData.js";
@@ -39,10 +40,10 @@ const shootersRoutes = async (fastify, opts) => {
     const { sort, order, page: pageString } = req.query;
     const page = Number(pageString) || 1;
 
-    const { classifiers, ...info } =
+    const info =
       shootersTableByMemberNumber[division]?.[memberNumber]?.[0] || {};
     const data = multisort(
-      classifiers,
+      classifiersForDivisionForShooter({ division, memberNumber }),
       sort?.split?.(","),
       order?.split?.(",")
     ).map((c) => ({
