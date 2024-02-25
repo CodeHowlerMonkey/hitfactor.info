@@ -90,18 +90,7 @@ export const shootersTableByMemberNumber = {
 
 export const shooterFullInfo = ({ memberNumber, division }) => {
   try {
-    const { classifications, high, current, ...info } =
-      byMemberNumberFull[memberNumber];
-    return {
-      class: classifications[division],
-      classes: classifications,
-      division,
-      high: high[division],
-      current: current[division],
-      highs: high,
-      currents: current,
-      ...info,
-    };
+    return shootersTableByMemberNumber[division][memberNumber][0];
   } catch (err) {
     console.log(err);
     console.log(memberNumber);
