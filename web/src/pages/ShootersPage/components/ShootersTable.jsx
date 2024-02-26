@@ -11,7 +11,6 @@ import {
   headerTooltipOptions,
 } from "../../../components/Table";
 import { useDebounce } from "use-debounce";
-import { bgColorForClass, fgColorForClass } from "../../../utils/color";
 import ShooterCell from "../../../components/ShooterCell";
 
 // TODO: extract into common components, right now this is copypasted from RunsTable
@@ -64,7 +63,7 @@ export const useShootersTableData = ({ division }) => {
     pageProps,
     filter,
     setFilter,
-    downloadUrl: "/api/" + apiEndpoint,
+    downloadUrl: "/api/shooters/download/" + division,
   };
 };
 
