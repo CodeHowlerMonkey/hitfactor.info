@@ -64,6 +64,7 @@ export const useShootersTableData = ({ division }) => {
     pageProps,
     filter,
     setFilter,
+    downloadUrl: "/api/" + apiEndpoint,
   };
 };
 
@@ -76,6 +77,7 @@ const ShootersTable = ({ division, onShooterSelection }) => {
     pageProps,
     filter,
     setFilter,
+    downloadUrl,
   } = useShootersTableData({ division });
   return (
     <DataTable
@@ -89,10 +91,15 @@ const ShootersTable = ({ division, onShooterSelection }) => {
       paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink"
       paginatorLeft={<h2>Shooters</h2>}
       paginatorRight={
-        <TableFilter
-          placeholder="Filter by Club or Shooter"
-          onFilterChange={(f) => setFilter(f)}
-        />
+        <>
+          <TableFilter
+            placeholder="Filter by Club or Shooter"
+            onFilterChange={(f) => setFilter(f)}
+          />
+          <a href={downloadUrl} download className="px-5 py-2">
+            <i className="pi pi-download" />
+          </a>
+        </>
       }
       totalRecords={shootersTotal}
       filterDisplay="row"
