@@ -12,19 +12,26 @@ import {
 import { multisort } from "../../../../../shared/utils/sort.js";
 import { PAGE_SIZE } from "../../../../../shared/constants/pagination.js";
 
+const classifiersForDivision = (division) =>
+  classifiers.map((c) => ({
+    ...basicInfoForClassifier(c),
+    ...extendedInfoForClassifier(c, division),
+  }));
+
 const classifiersRoutes = async (fastify, opts) => {
-  console.log("should have classifiers");
   fastify.get("/", (req, res) => classifiers.map(basicInfoForClassifier));
 
-  fastify.get("/:division", (req, res) => {
-    //console.profile();
+  fastify.get("/:division", (req) =>
+    classifiersForDivision(req.params.division)
+  );
+
+  fastify.get("/download/:division", (req, res) => {
     const { division } = req.params;
-    const result = classifiers.map((c) => ({
-      ...basicInfoForClassifier(c),
-      ...extendedInfoForClassifier(c, division),
-    }));
-    //console.profileEnd();
-    return result;
+    res.header(
+      "Content-Disposition",
+      `attachment; filename=classifiers.${division}.json`
+    );
+    return classifiersForDivision(division);
   });
 
   fastify.get("/:division/:number", (req, res) => {
@@ -91,6 +98,39 @@ const classifiersRoutes = async (fastify, opts) => {
       runs: runs.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
       runsTotal: runs.length,
       runsPage: page,
+    };
+  });
+
+  fastify.get("/download/:division/:number", (req, res) => {
+    const { division, number } = req.params;
+    const c = classifiers.find((cur) => cur.classifier === number);
+
+    res.header(
+      "Content-Disposition",
+      `attachment; filename=classifiers.${division}.${number}.json`
+    );
+
+    if (!c) {
+      res.statusCode = 404;
+      return { info: null, runs: [] };
+    }
+
+    const basic = basicInfoForClassifier(c);
+    const extended = extendedInfoForClassifier(c, division);
+    const { hhf, hhfs } = extended;
+
+    return {
+      info: {
+        ...basic,
+        ...extended,
+      },
+      runs: runsForDivisionClassifier({
+        number,
+        division,
+        hhf,
+        includeNoHF: false,
+        hhfs,
+      }),
     };
   });
 

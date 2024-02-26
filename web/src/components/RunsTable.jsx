@@ -91,6 +91,7 @@ export const useRunsTableData = ({ division, classifier }) => {
     club: filterClub,
   });
 
+  const downloadUrl = `/api/classifiers/download/${division}/${classifier}`;
   const apiEndpoint = !(division && classifier)
     ? null
     : `/classifiers/${division}/${classifier}?${query}&${pageQuery}&${filtersQuery}`;
@@ -120,6 +121,7 @@ export const useRunsTableData = ({ division, classifier }) => {
     setFilterHHF,
     filterClub,
     setFilterClub,
+    downloadUrl,
   };
 };
 

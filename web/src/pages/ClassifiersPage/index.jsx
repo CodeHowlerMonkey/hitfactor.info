@@ -56,7 +56,7 @@ export const ClassifierRunsAndInfo = ({
   onShooterSelection,
   onClubSelection,
 }) => {
-  const { info, ...useRunsTableDataResults } = useRunsTableData({
+  const { info, downloadUrl, ...useRunsTableDataResults } = useRunsTableData({
     division,
     classifier,
   });
@@ -78,6 +78,14 @@ export const ClassifierRunsAndInfo = ({
         <h1 style={{ margin: "auto" }}>
           {code} {name}
         </h1>
+        <a
+          href={downloadUrl}
+          download
+          className="px-5 py-2"
+          style={{ fontSize: "1.625rem" }}
+        >
+          <i className="pi pi-download" />
+        </a>
       </div>
       <div className="flex h-30rem">
         <div className="w-full h-full bg-primary-reverse">
