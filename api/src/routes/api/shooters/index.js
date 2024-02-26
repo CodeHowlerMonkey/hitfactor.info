@@ -43,10 +43,33 @@ const shootersRoutes = async (fastify, opts) => {
       shootersPage: page,
     };
   });
+  fastify.get("/download/:division/:memberNumber", (req, res) => {
+    const { division, memberNumber } = req.params;
+
+    const info =
+      shootersTableByMemberNumber[division]?.[memberNumber]?.[0] || {};
+    const data = classifiersForDivisionForShooter({
+      division,
+      memberNumber,
+    }).map((c) => ({
+      ...c,
+      classifierInfo: basicInfoForClassifierCode(c?.classifier),
+    }));
+
+    res.header(
+      "Content-Disposition",
+      `attachment; filename=shooters.${division}.${memberNumber}.json`
+    );
+
+    return {
+      info,
+      classifiers: data,
+    };
+  });
   fastify.get("/:division/:memberNumber", (req, res) => {
     const { division, memberNumber } = req.params;
     const { sort, order, page: pageString } = req.query;
-    const page = Number(pageString) || 1;
+    //    const page = Number(pageString) || 1;
 
     const info =
       shootersTableByMemberNumber[division]?.[memberNumber]?.[0] || {};

@@ -51,8 +51,9 @@ const useShooterTableData = ({ division, memberNumber }) => {
   const apiData = useApi(apiEndpoint);
   const info = apiData?.info || {};
   const classifiers = apiData?.classifiers || [];
+  const downloadUrl = `/api/shooters/download/${division}/${memberNumber}`;
 
-  return { ...apiData, info, classifiers };
+  return { ...apiData, info, classifiers, downloadUrl };
 };
 
 export const ShooterRunsAndInfo = ({
@@ -61,7 +62,7 @@ export const ShooterRunsAndInfo = ({
   onBackToShooters,
 }) => {
   const navigate = useNavigate();
-  const { info, ...tableShit } = useShooterTableData({
+  const { info, downloadUrl, ...tableShit } = useShooterTableData({
     division,
     memberNumber,
   });
@@ -84,6 +85,14 @@ export const ShooterRunsAndInfo = ({
         <h1 style={{ margin: "auto" }}>
           {memberNumber} - {name} - {divShortToLong[division]}
         </h1>
+        <a
+          href={downloadUrl}
+          download
+          className="px-5 py-2"
+          style={{ fontSize: "1.625rem" }}
+        >
+          <i className="pi pi-download" />
+        </a>
       </div>
       <div className="flex" style={{ height: "29rem", overflowY: "none" }}>
         <div className="w-full h-full bg-primary-reverse">
