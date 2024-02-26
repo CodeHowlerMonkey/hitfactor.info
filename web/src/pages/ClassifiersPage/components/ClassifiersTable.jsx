@@ -39,6 +39,7 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
   const [filter, setFilter] = useState("");
   const sortState = sortProps;
 
+  const downloadUrl = "/api/classifiers/download/" + division;
   const data = (useApi("/classifiers/" + (division ?? "")) ?? [])
     .map((d) => ({
       ...d,
@@ -91,6 +92,9 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
               placeholder="Search"
             />
           </span>
+          <a href={downloadUrl} download className="px-5 py-2">
+            <i className="pi pi-download" />
+          </a>
         </div>
       }
       lazy

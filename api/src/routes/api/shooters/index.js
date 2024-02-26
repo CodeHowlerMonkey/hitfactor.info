@@ -10,6 +10,14 @@ import { multisort } from "../../../../../shared/utils/sort.js";
 import { PAGE_SIZE } from "../../../../../shared/constants/pagination.js";
 
 const shootersRoutes = async (fastify, opts) => {
+  fastify.get("/download/:division", { compress: false }, (req, res) => {
+    const { division } = req.params;
+    res.header(
+      "Content-Disposition",
+      `attachment; filename=shooters.${division}.json`
+    );
+    return shootersTable[division];
+  });
   fastify.get("/:division", (req, res) => {
     const { division } = req.params;
     const { sort, order, page: pageString, filter: filterString } = req.query;
@@ -35,10 +43,37 @@ const shootersRoutes = async (fastify, opts) => {
       shootersPage: page,
     };
   });
+  fastify.get(
+    "/download/:division/:memberNumber",
+    { compress: false },
+    (req, res) => {
+      const { division, memberNumber } = req.params;
+
+      const info =
+        shootersTableByMemberNumber[division]?.[memberNumber]?.[0] || {};
+      const data = classifiersForDivisionForShooter({
+        division,
+        memberNumber,
+      }).map((c) => ({
+        ...c,
+        classifierInfo: basicInfoForClassifierCode(c?.classifier),
+      }));
+
+      res.header(
+        "Content-Disposition",
+        `attachment; filename=shooters.${division}.${memberNumber}.json`
+      );
+
+      return {
+        info,
+        classifiers: data,
+      };
+    }
+  );
   fastify.get("/:division/:memberNumber", (req, res) => {
     const { division, memberNumber } = req.params;
     const { sort, order, page: pageString } = req.query;
-    const page = Number(pageString) || 1;
+    //    const page = Number(pageString) || 1;
 
     const info =
       shootersTableByMemberNumber[division]?.[memberNumber]?.[0] || {};

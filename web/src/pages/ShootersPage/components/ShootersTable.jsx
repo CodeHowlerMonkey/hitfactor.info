@@ -11,7 +11,6 @@ import {
   headerTooltipOptions,
 } from "../../../components/Table";
 import { useDebounce } from "use-debounce";
-import { bgColorForClass, fgColorForClass } from "../../../utils/color";
 import ShooterCell from "../../../components/ShooterCell";
 
 // TODO: extract into common components, right now this is copypasted from RunsTable
@@ -64,6 +63,7 @@ export const useShootersTableData = ({ division }) => {
     pageProps,
     filter,
     setFilter,
+    downloadUrl: "/api/shooters/download/" + division,
   };
 };
 
@@ -76,6 +76,7 @@ const ShootersTable = ({ division, onShooterSelection }) => {
     pageProps,
     filter,
     setFilter,
+    downloadUrl,
   } = useShootersTableData({ division });
   return (
     <DataTable
@@ -89,10 +90,15 @@ const ShootersTable = ({ division, onShooterSelection }) => {
       paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink"
       paginatorLeft={<h2>Shooters</h2>}
       paginatorRight={
-        <TableFilter
-          placeholder="Filter by Club or Shooter"
-          onFilterChange={(f) => setFilter(f)}
-        />
+        <>
+          <TableFilter
+            placeholder="Filter by Club or Shooter"
+            onFilterChange={(f) => setFilter(f)}
+          />
+          <a href={downloadUrl} download className="px-5 py-2">
+            <i className="pi pi-download" />
+          </a>
+        </>
       }
       totalRecords={shootersTotal}
       filterDisplay="row"
