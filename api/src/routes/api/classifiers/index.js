@@ -25,7 +25,7 @@ const classifiersRoutes = async (fastify, opts) => {
     classifiersForDivision(req.params.division)
   );
 
-  fastify.get("/download/:division", (req, res) => {
+  fastify.get("/download/:division", { compress: false }, (req, res) => {
     const { division } = req.params;
     res.header(
       "Content-Disposition",
@@ -101,38 +101,42 @@ const classifiersRoutes = async (fastify, opts) => {
     };
   });
 
-  fastify.get("/download/:division/:number", (req, res) => {
-    const { division, number } = req.params;
-    const c = classifiers.find((cur) => cur.classifier === number);
+  fastify.get(
+    "/download/:division/:number",
+    { compress: false },
+    (req, res) => {
+      const { division, number } = req.params;
+      const c = classifiers.find((cur) => cur.classifier === number);
 
-    res.header(
-      "Content-Disposition",
-      `attachment; filename=classifiers.${division}.${number}.json`
-    );
+      res.header(
+        "Content-Disposition",
+        `attachment; filename=classifiers.${division}.${number}.json`
+      );
 
-    if (!c) {
-      res.statusCode = 404;
-      return { info: null, runs: [] };
+      if (!c) {
+        res.statusCode = 404;
+        return { info: null, runs: [] };
+      }
+
+      const basic = basicInfoForClassifier(c);
+      const extended = extendedInfoForClassifier(c, division);
+      const { hhf, hhfs } = extended;
+
+      return {
+        info: {
+          ...basic,
+          ...extended,
+        },
+        runs: runsForDivisionClassifier({
+          number,
+          division,
+          hhf,
+          includeNoHF: false,
+          hhfs,
+        }),
+      };
     }
-
-    const basic = basicInfoForClassifier(c);
-    const extended = extendedInfoForClassifier(c, division);
-    const { hhf, hhfs } = extended;
-
-    return {
-      info: {
-        ...basic,
-        ...extended,
-      },
-      runs: runsForDivisionClassifier({
-        number,
-        division,
-        hhf,
-        includeNoHF: false,
-        hhfs,
-      }),
-    };
-  });
+  );
 
   fastify.get("/:division/:number/chart", (req, res) => {
     const { division, number } = req.params;
