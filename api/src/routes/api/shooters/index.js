@@ -10,6 +10,14 @@ import { multisort } from "../../../../../shared/utils/sort.js";
 import { PAGE_SIZE } from "../../../../../shared/constants/pagination.js";
 
 const shootersRoutes = async (fastify, opts) => {
+  fastify.get("/download/:division", { compress: false }, (req, res) => {
+    const { division } = req.params;
+    res.header(
+      "Content-Disposition",
+      `attachment; filename=shooters.${division}.json`
+    );
+    return shootersTable[division];
+  });
   fastify.get("/:division", (req, res) => {
     const { division } = req.params;
     const { sort, order, page: pageString, filter: filterString } = req.query;
