@@ -96,7 +96,14 @@ const ShootersTable = ({ division, onShooterSelection }) => {
             onFilterChange={(f) => setFilter(f)}
           />
           <a href={downloadUrl} download className="px-5 py-2">
-            <i className="pi pi-download" />
+            <i
+              className="pi pi-download"
+              style={{
+                fontSize: "1.2rem",
+                fontWeight: "bold",
+                color: "#ae9ef1",
+              }}
+            />
           </a>
         </>
       }

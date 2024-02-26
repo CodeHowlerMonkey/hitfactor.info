@@ -84,7 +84,10 @@ export const ClassifierRunsAndInfo = ({
           className="px-5 py-2"
           style={{ fontSize: "1.625rem" }}
         >
-          <i className="pi pi-download" />
+          <i
+            className="pi pi-download"
+            style={{ fontSize: "1.2rem", fontWeight: "bold", color: "#ae9ef1" }}
+          />
         </a>
       </div>
       <div className="flex h-30rem">
