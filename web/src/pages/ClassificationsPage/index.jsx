@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { PieChart } from "react-minimal-pie-chart";
 import { Row, Column } from "../../components";
 import { useApi } from "../../utils/client";
@@ -78,13 +78,15 @@ export const ClassificationsChart = ({
             .reduce((a, b) => a + b, 0);
 
     const shortName = {
-      Limited: "Lim",
-      "Limited 10": "L10",
-      Production: "Prod",
-      Revolver: "Rev",
-      "Single Stack": "SS",
-      "Carry Optics": "CO",
-      "Limited Optics": "LO",
+      ltd: "Lim",
+      l10: "L10",
+      prod: "Prod",
+      rev: "Rev",
+      ss: "SS",
+      co: "CO",
+      lo: "LO",
+      opn: "Open",
+      pcc: "PCC",
     };
 
     return (
@@ -131,7 +133,7 @@ export const ClassificationsChart = ({
         }}
         lineWidth={60}
         label={({ dataEntry: { title, percentage, value } }) =>
-          !value ? "" : `${title} ${value} (${Math.round(percentage)}%)`
+          !value ? "" : `${title} ${value} (${percentage.toFixed(2)}%)`
         }
         labelPosition={72}
         labelStyle={(dataIndex) => ({
@@ -144,8 +146,20 @@ export const ClassificationsChart = ({
   );
 };
 
+const ModeSwitch = ({ mode, setMode, modes }) => (
+  <SelectButton
+    options={modes}
+    value={mode}
+    onChange={(e) => setMode(e.value)}
+  />
+);
+
 // main "page" of this file
 export const ClassificationStats = () => {
+  const modes = ["By Class", "By Percent"];
+  const [mode, setMode] = useState(modes[0]);
+  const modeSwitchProps = { modes, mode, setMode };
+  const modeBucket = mode === "By Percent" ? "byPercent" : "byClass";
   const [includeU, setChecked] = useState(false);
   const apiData = useApi("/classifications");
   const [alignBy, setAlignBy] = useState(-1);
@@ -161,18 +175,24 @@ export const ClassificationStats = () => {
   return (
     <TabView>
       <TabPanel header="Pie Charts">
-        <div>
+        <div className="card flex justify-content-center m-4">
+          <ModeSwitch {...modeSwitchProps} />
+        </div>
+        <div className="card flex justify-content-center m-4">
           Include Unclassified
           <Checkbox
             onChange={(e) => setChecked(e.checked)}
             checked={includeU}
           />
+        </div>
+        <div>
           <Row height={400}>
             <div style={{ width: "50%", margin: "0 80px" }}>
               <ClassificationsChart
                 includeU={includeU}
-                division="All"
-                apiData={apiData}
+                division="all"
+                label="All"
+                apiData={apiData?.[modeBucket]}
               />
             </div>
           </Row>
@@ -182,25 +202,25 @@ export const ClassificationStats = () => {
           <Row>
             <Column>
               <ClassificationsChart
-                division="Open"
+                division="opn"
                 includeU={includeU}
-                apiData={apiData}
+                apiData={apiData?.[modeBucket]}
               />
               Open
             </Column>
             <Column>
               <ClassificationsChart
-                division="Carry Optics"
+                division="co"
                 includeU={includeU}
-                apiData={apiData}
+                apiData={apiData?.[modeBucket]}
               />
               Carry Optics
             </Column>
             <Column>
               <ClassificationsChart
-                division="Limited Optics"
+                division="lo"
                 includeU={includeU}
-                apiData={apiData}
+                apiData={apiData?.[modeBucket]}
               />
               Limited Optics
             </Column>
@@ -208,25 +228,25 @@ export const ClassificationStats = () => {
           <Row>
             <Column>
               <ClassificationsChart
-                division="PCC"
+                division="pcc"
                 includeU={includeU}
-                apiData={apiData}
+                apiData={apiData?.[modeBucket]}
               />
               PCC
             </Column>
             <Column>
               <ClassificationsChart
-                division="Limited"
+                division="ltd"
                 includeU={includeU}
-                apiData={apiData}
+                apiData={apiData?.[modeBucket]}
               />
               Limited
             </Column>
             <Column>
               <ClassificationsChart
-                division="Limited 10"
+                division="l10"
                 includeU={includeU}
-                apiData={apiData}
+                apiData={apiData?.[modeBucket]}
               />
               Limited 10
             </Column>
@@ -234,25 +254,25 @@ export const ClassificationStats = () => {
           <Row>
             <Column>
               <ClassificationsChart
-                division="Production"
+                division="prod"
                 includeU={includeU}
-                apiData={apiData}
+                apiData={apiData?.[modeBucket]}
               />
               Production
             </Column>
             <Column>
               <ClassificationsChart
-                division="Single Stack"
+                division="ss"
                 includeU={includeU}
-                apiData={apiData}
+                apiData={apiData?.[modeBucket]}
               />
               Single Stack
             </Column>
             <Column>
               <ClassificationsChart
-                division="Revolver"
+                division="rev"
                 includeU={includeU}
-                apiData={apiData}
+                apiData={apiData?.[modeBucket]}
               />
               Revolver
             </Column>
@@ -261,7 +281,10 @@ export const ClassificationStats = () => {
       </TabPanel>
 
       <TabPanel header="Alignment">
-        <div className="card flex justify-content-center">
+        <div className="card flex justify-content-center m-4">
+          <ModeSwitch {...modeSwitchProps} />
+        </div>
+        <div className="card flex justify-content-center m-4">
           <SelectButton
             value={alignBy}
             onChange={(e) => setAlignBy(e.value)}
@@ -272,80 +295,80 @@ export const ClassificationStats = () => {
         <div>
           <Row>
             <ClassificationsChart
-              division="All"
-              apiData={apiData}
+              division="all"
+              apiData={apiData?.[modeBucket]}
               bar
               alignBy={alignBy}
             />
           </Row>
           <Row>
             <ClassificationsChart
-              division="Limited Optics"
-              apiData={apiData}
+              division="lo"
+              apiData={apiData?.[modeBucket]}
               bar
               alignBy={alignBy}
             />
           </Row>
           <Row>
             <ClassificationsChart
-              division="Limited 10"
-              apiData={apiData}
+              division="l10"
+              apiData={apiData?.[modeBucket]}
               bar
               alignBy={alignBy}
             />
           </Row>
           <Row>
             <ClassificationsChart
-              division="Single Stack"
-              apiData={apiData}
+              division="ss"
+              apiData={apiData?.[modeBucket]}
               bar
               alignBy={alignBy}
             />
           </Row>
           <Row>
             <ClassificationsChart
-              division="Carry Optics"
-              apiData={apiData}
+              division="co"
+              apiData={apiData?.[modeBucket]}
               bar
               alignBy={alignBy}
             />
           </Row>
           <Row>
             <ClassificationsChart
-              division="Limited"
-              apiData={apiData}
+              division="ltd"
+              apiData={apiData?.[modeBucket]}
               bar
               alignBy={alignBy}
             />
           </Row>
           <Row>
             <ClassificationsChart
-              division="Production"
-              apiData={apiData}
+              division="prod"
+              apiData={apiData?.[modeBucket]}
               bar
               alignBy={alignBy}
             />
           </Row>
           <Row>
             <ClassificationsChart
-              division="Revolver"
-              apiData={apiData}
+              division="rev"
+              apiData={apiData?.[modeBucket]}
               bar
               alignBy={alignBy}
             />
           </Row>
           <Row>
             <ClassificationsChart
-              division="PCC"
-              apiData={apiData}
+              division="pcc"
+              apiData={apiData?.[modeBucket]}
               bar
               alignBy={alignBy}
             />
           </Row>
           <Row>
             <ClassificationsChart
-              division="Open"
-              apiData={apiData}
+              division="opn"
+              apiData={apiData?.[modeBucket]}
               bar
               alignBy={alignBy}
             />{" "}
@@ -353,7 +376,11 @@ export const ClassificationStats = () => {
         </div>
         <div style={{ height: 24 }} />
         <Row>
-          <ClassificationsChart division="Approx" apiData={apiData} bar />{" "}
+          <ClassificationsChart
+            division="Approx"
+            apiData={apiData?.[modeBucket]}
+            bar
+          />{" "}
         </Row>
       </TabPanel>
     </TabView>
