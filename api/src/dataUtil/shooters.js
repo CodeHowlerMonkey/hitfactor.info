@@ -64,9 +64,9 @@ const shootersFullForDivision = (division) =>
 
 // TODO: we can use all shooters, and all classifiers with HF if we recalculate everything
 // against current HHFs... ://
-const freshShootersForDivisionCalibration = (division) =>
+const freshShootersForDivisionCalibration = (division, maxAge = 48) =>
   shootersFullForDivision(division) // sorted by current already
-    .filter((c) => c.age > 0 && c.age <= 48) // 4 years?
+    .filter((c) => c.age > 0 && c.age <= maxAge)
     .map((c, index, all) => ({
       current: c.current,
       percentile: Percent(index, all.length),
@@ -74,37 +74,32 @@ const freshShootersForDivisionCalibration = (division) =>
       index,
     }));
 
-export const calibrationShootersPercentileTable = {
-  opn:
-    freshShootersForDivisionCalibration("opn").find((c) => c.current <= 75)
-      .percentile || 0.15,
-  ltd:
-    freshShootersForDivisionCalibration("ltd").find((c) => c.current <= 75)
-      .percentile || 0.15,
-  l10:
-    freshShootersForDivisionCalibration("l10").find((c) => c.current <= 75)
-      .percentile || 0.15,
-  prod:
-    freshShootersForDivisionCalibration("prod").find((c) => c.current <= 75)
-      .percentile || 0.15,
-  ss:
-    freshShootersForDivisionCalibration("ss").find((c) => c.current <= 75)
-      .percentile || 0.15,
-  rev:
-    freshShootersForDivisionCalibration("rev").find((c) => c.current <= 75)
-      .percentile || 0.15,
-  co:
-    freshShootersForDivisionCalibration("co").find((c) => c.current <= 75)
-      .percentile || 0.15,
-  pcc:
-    freshShootersForDivisionCalibration("pcc").find((c) => c.current <= 75)
-      .percentile || 0.15,
-  lo:
-    freshShootersForDivisionCalibration("lo").find((c) => c.current <= 75)
-      .percentile || 0.15,
-};
-
-console.log(calibrationShootersPercentileTable);
+export const calibrationShootersPercentileTable = mapDivisions(
+  (div) =>
+    freshShootersForDivisionCalibration(div).find((c) => c.current <= 75)
+      ?.percentile || 0.15
+);
+export const extendedCalibrationShootersPercentileTable = mapDivisions(
+  (div) => ({
+    pGM:
+      freshShootersForDivisionCalibration(div).find((c) => c.current <= 95)
+        ?.percentile || 1,
+    pM:
+      freshShootersForDivisionCalibration(div).find((c) => c.current <= 85)
+        ?.percentile || 5,
+    pA:
+      freshShootersForDivisionCalibration(div).find((c) => c.current <= 75)
+        ?.percentile || 15,
+    // not gonna calculate these for now (slows down server start, not used in analysis)
+    //    pB:
+    //  freshShootersForDivisionCalibration(div).find((c) => c.current <= 60)
+    //    ?.percentile || 40,
+    //pC:
+    //  freshShootersForDivisionCalibration(div).find((c) => c.current <= 40)
+    //    ?.percentile || 90,
+  })
+);
+console.log(extendedCalibrationShootersPercentileTable);
 
 export const classifiersForDivisionForShooter = ({ division, memberNumber }) =>
   (divShortToShooterToRuns[division][memberNumber] ?? []).map((run, index) => {

@@ -12,6 +12,10 @@ import {
 import { multisort } from "../../../../../shared/utils/sort.js";
 import { PAGE_SIZE } from "../../../../../shared/constants/pagination.js";
 import { HF } from "../../../dataUtil/numbers.js";
+import {
+  calibrationShootersPercentileTable,
+  extendedCalibrationShootersPercentileTable,
+} from "../../../dataUtil/shooters.js";
 
 const classifiersForDivision = (division) =>
   classifiers.map((c) => ({
@@ -123,17 +127,17 @@ const classifiersRoutes = async (fastify, opts) => {
         ...extended,
         recommendedHHF1: recommendedHHFByPercentileAndPercent(
           runsUnsorted,
-          1.114233117, // curPercentile for 95%+ shooters in CO
+          extendedCalibrationShootersPercentileTable[division].pGM,
           95
         ),
         recommendedHHF5: recommendedHHFByPercentileAndPercent(
           runsUnsorted,
-          6.045925782, // curPercentile for 85%+ shooters in CO
+          extendedCalibrationShootersPercentileTable[division].pM,
           85
         ),
         recommendedHHF15: recommendedHHFByPercentileAndPercent(
           runsUnsorted,
-          20.24221453, //14.70787714, // curPercentile for 75%+ shooters in CO
+          extendedCalibrationShootersPercentileTable[division].pA,
           75
         ),
       },
