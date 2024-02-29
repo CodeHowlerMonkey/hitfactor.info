@@ -8,11 +8,11 @@ import { byMemberNumber } from "./byMemberNumber.js";
 import { curHHFForDivisionClassifier } from "./hhf.js";
 import { dateSort } from "../../../shared/utils/sort.js";
 
-const scoresAge = (division, memberNumber) =>
+const scoresAge = (division, memberNumber, maxScores = 4) =>
   (divShortToShooterToRuns[division][memberNumber] ?? [])
     .filter((c) => c.code === "Y")
     .sort((a, b) => dateSort(a, b, "sd", -1))
-    .slice(0, 4) // use 4 to decrease age, by allowing minimum number of classifiers that can result in classification
+    .slice(0, maxScores) // use 4 to decrease age, by allowing minimum number of classifiers that can result in classification
     .map((c) => (new Date() - new Date(c.sd)) / (28 * 24 * 60 * 60 * 1000)) // millisecconds to 28-day "months"
     .reduce((acc, curV, unusedIndex, arr) => acc + curV / arr.length, 0);
 
@@ -59,6 +59,7 @@ const shootersFullForDivision = (division) =>
       currentRank: index,
       currentPercentile: Percent(index, all.length),
       age: scoresAge(division, c.memberNumber),
+      age1: scoresAge(division, c.memberNumber, 1),
       ages: mapDivisions((div) => scoresAge(div, c.memberNumber)),
     }));
 
