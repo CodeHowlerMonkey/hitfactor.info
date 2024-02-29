@@ -190,19 +190,6 @@ export const ScoresChart = ({
               ...yLine("40th", 40, annotationColor(0.3)),
               ...yLine("75th", 75, annotationColor(0.2)),
 
-              /*
-              ...xLine(prefix + "HHF", hhf, 1),
-              ...xLine(prefix + "GM", 0.95 * hhf, 0.7),
-              ...xLine(prefix + "M", 0.85 * hhf, 0.5),
-              ...xLine(prefix + "A", 0.75 * hhf, 0.4),
-              ...xLine(prefix + "B", 0.6 * hhf, 0.3),
-              ...xLine(prefix + "C", 0.4 * hhf, 0.2),
-              ...point(prefix + "GM/1", 0.95 * hhf, 1, 0.7),
-              ...point(prefix + "M/5", 0.85 * hhf, 5, 0.5),
-              ...point(prefix + "A/15", 0.75 * hhf, 15, 0.4),
-              ...point(prefix + "B/40", 0.6 * hhf, 40, 0.3),
-              ...point(prefix + "C/75", 0.4 * hhf, 75, 0.2),
-              */
               ...xLinesForHHF("", hhf),
               ...xLinesForHHF("r1", recommendedHHF1),
               ...xLinesForHHF("r5", recommendedHHF5),

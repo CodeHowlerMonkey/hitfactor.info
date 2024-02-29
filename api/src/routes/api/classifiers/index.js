@@ -11,12 +11,39 @@ import {
 
 import { multisort } from "../../../../../shared/utils/sort.js";
 import { PAGE_SIZE } from "../../../../../shared/constants/pagination.js";
+import { HF } from "../../../dataUtil/numbers.js";
 
 const classifiersForDivision = (division) =>
   classifiers.map((c) => ({
     ...basicInfoForClassifier(c),
     ...extendedInfoForClassifier(c, division),
   }));
+
+/**
+ * Calculated recommended HHF by matching lower percent of the score to percentile of shooters
+ * who should be able to get that score.
+ *
+ * Used with 1Percentile for GM (95%) and 5Percentile for M(85%)
+ * @param runs classifier scores, sorted by HF or curPercent. MUST BE SORTED for percentile math.
+ * @param percentile what percentile to search for 0 to 100
+ * @param percent what percent score to assign to it 0 to 100
+ */
+const recommendedHHFByPercentileAndPercent = (
+  runs,
+  targetPercentile,
+  percent
+) => {
+  const closestPercentileRun = runs.sort(
+    (a, b) =>
+      Math.abs(a.percentile - targetPercentile) -
+      Math.abs(b.percentile - targetPercentile)
+  )[0];
+  return HF(
+    (closestPercentileRun.hf * closestPercentileRun.percentile) /
+      targetPercentile /
+      (percent / 100.0)
+  );
+};
 
 const classifiersRoutes = async (fastify, opts) => {
   fastify.get("/", (req, res) => classifiers.map(basicInfoForClassifier));
@@ -94,6 +121,21 @@ const classifiersRoutes = async (fastify, opts) => {
       info: {
         ...basic,
         ...extended,
+        recommendedHHF1: recommendedHHFByPercentileAndPercent(
+          runsUnsorted,
+          1.114233117, // curPercentile for 95%+ shooters in CO
+          95
+        ),
+        recommendedHHF5: recommendedHHFByPercentileAndPercent(
+          runsUnsorted,
+          6.045925782, // curPercentile for 85%+ shooters in CO
+          85
+        ),
+        recommendedHHF15: recommendedHHFByPercentileAndPercent(
+          runsUnsorted,
+          20.24221453, //14.70787714, // curPercentile for 75%+ shooters in CO
+          75
+        ),
       },
       runs: runs.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
       runsTotal: runs.length,

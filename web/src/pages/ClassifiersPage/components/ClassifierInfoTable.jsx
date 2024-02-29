@@ -2,7 +2,15 @@ import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import ScoresChart from "../../../components/chart/ScoresChart";
 
-export const ClassifierInfoTable = ({ division, classifier, hhf, ...info }) => (
+export const ClassifierInfoTable = ({
+  division,
+  classifier,
+  hhf,
+  recommendedHHF1,
+  recommendedHHF5,
+  recommendedHHF15,
+  ...info
+}) => (
   <DataTable
     scrollable={false}
     style={{ height: "100%" }}
@@ -14,7 +22,14 @@ export const ClassifierInfoTable = ({ division, classifier, hhf, ...info }) => (
       header="Scores Distribution"
       bodyStyle={{ position: "relative", padding: 0, width: "46%" }}
       body={() => (
-        <ScoresChart division={division} classifier={classifier} hhf={hhf} />
+        <ScoresChart
+          division={division}
+          classifier={classifier}
+          hhf={hhf}
+          recommendedHHF1={recommendedHHF1}
+          recommendedHHF5={recommendedHHF5}
+          recommendedHHF15={recommendedHHF15}
+        />
       )}
     />
     <Column
@@ -47,11 +62,20 @@ export const ClassifierInfoTable = ({ division, classifier, hhf, ...info }) => (
           className="h-26 w-full"
           style={{ overflowY: "scroll", maxHeight: "26rem" }}
         >
-          <DataTable showHeaders={false} stripedRows value={info.hhfs}>
+          <DataTable
+            showHeaders={false}
+            stripedRows
+            value={[
+              ...(info?.hhfs || []),
+              { label: "Recommended(1)", hhf: recommendedHHF1 },
+              { label: "Recommended(5)", hhf: recommendedHHF5 },
+              { label: "Recommended(15)", hhf: recommendedHHF15 },
+            ]}
+          >
             <Column field="hhf" />
             <Column
               field="date"
-              body={(c) => new Date(c.date).toLocaleDateString()}
+              body={(c) => c.label ?? new Date(c.date).toLocaleDateString()}
             />
           </DataTable>
         </div>
