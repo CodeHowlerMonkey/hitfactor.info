@@ -1,4 +1,5 @@
 import { extendedClassificationsInfo } from "../../../dataUtil/classifications.js";
+import { mapDivisions } from "../../../dataUtil/divisions.js";
 
 const classificationRank = (classification) =>
   ["X", "U", "D", "C", "B", "A", "M", "GM"].indexOf(classification);
@@ -26,14 +27,6 @@ const highestClassification = (classificationsObj) =>
       return curClass;
     }
   }, undefined);
-
-const mapDivisions = (mapper) =>
-  Object.fromEntries(
-    ["opn", "ltd", "l10", "prod", "rev", "ss", "co", "lo", "pcc"].map((div) => [
-      div,
-      mapper(div),
-    ])
-  );
 
 const calculateCurrentClassifications = (memberCurPercentObj) =>
   mapDivisions((div) => {

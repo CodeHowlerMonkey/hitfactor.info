@@ -1,11 +1,20 @@
 import { extendedClassificationsInfo } from "./classifications.js";
 import { N, Percent, PositiveOrMinus1 } from "./numbers.js";
 
-import { divIdToShort } from "./divisions.js";
+import { divIdToShort, mapDivisions } from "./divisions.js";
 import { divShortToShooterToRuns } from "./classifiers.js";
 
 import { byMemberNumber } from "./byMemberNumber.js";
 import { curHHFForDivisionClassifier } from "./hhf.js";
+import { dateSort } from "../../../shared/utils/sort.js";
+
+const scoresAge = (division, memberNumber) =>
+  (divShortToShooterToRuns[division][memberNumber] ?? [])
+    .filter((c) => c.code === "Y")
+    .sort((a, b) => dateSort(a, b, "sd", -1))
+    .slice(0, 4) // use 4 to decrease age, by allowing minimum number of classifiers that can result in classification
+    .map((c) => (new Date() - new Date(c.sd)) / (28 * 24 * 60 * 60 * 1000)) // millisecconds to 28-day "months"
+    .reduce((acc, curV, unusedIndex, arr) => acc + curV / arr.length, 0);
 
 const shootersFullForDivision = (division) =>
   extendedClassificationsInfo
@@ -38,18 +47,64 @@ const shootersFullForDivision = (division) =>
       };
     })
     .filter((c) => c.class !== "U")
-    .sort((a, b) => b.high - a.high)
+    .sort((a, b) => b.high - a.high) // sort by high to calculate highRank
     .map((c, index, all) => ({
       ...c,
       highRank: index,
       highPercentile: Percent(index, all.length),
     }))
-    .sort((a, b) => b.current - a.current)
+    .sort((a, b) => b.current - a.current) // sort by current to calculate currentRank
     .map((c, index, all) => ({
       ...c,
       currentRank: index,
       currentPercentile: Percent(index, all.length),
+      age: scoresAge(division, c.memberNumber),
+      ages: mapDivisions((div) => scoresAge(div, c.memberNumber)),
     }));
+
+// TODO: we can use all shooters, and all classifiers with HF if we recalculate everything
+// against current HHFs... ://
+const freshShootersForDivisionCalibration = (division) =>
+  shootersFullForDivision(division) // sorted by current already
+    .filter((c) => c.age > 0 && c.age <= 48) // 4 years?
+    .map((c, index, all) => ({
+      current: c.current,
+      percentile: Percent(index, all.length),
+      age: c.age,
+      index,
+    }));
+
+export const calibrationShootersPercentileTable = {
+  opn:
+    freshShootersForDivisionCalibration("opn").find((c) => c.current <= 75)
+      .percentile || 0.15,
+  ltd:
+    freshShootersForDivisionCalibration("ltd").find((c) => c.current <= 75)
+      .percentile || 0.15,
+  l10:
+    freshShootersForDivisionCalibration("l10").find((c) => c.current <= 75)
+      .percentile || 0.15,
+  prod:
+    freshShootersForDivisionCalibration("prod").find((c) => c.current <= 75)
+      .percentile || 0.15,
+  ss:
+    freshShootersForDivisionCalibration("ss").find((c) => c.current <= 75)
+      .percentile || 0.15,
+  rev:
+    freshShootersForDivisionCalibration("rev").find((c) => c.current <= 75)
+      .percentile || 0.15,
+  co:
+    freshShootersForDivisionCalibration("co").find((c) => c.current <= 75)
+      .percentile || 0.15,
+  pcc:
+    freshShootersForDivisionCalibration("pcc").find((c) => c.current <= 75)
+      .percentile || 0.15,
+  lo:
+    freshShootersForDivisionCalibration("lo").find((c) => c.current <= 75)
+      .percentile || 0.15,
+};
+
+console.log(calibrationShootersPercentileTable);
 
 export const classifiersForDivisionForShooter = ({ division, memberNumber }) =>
   (divShortToShooterToRuns[division][memberNumber] ?? []).map((run, index) => {
