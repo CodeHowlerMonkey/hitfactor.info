@@ -12,10 +12,7 @@ import {
 import { multisort } from "../../../../../shared/utils/sort.js";
 import { PAGE_SIZE } from "../../../../../shared/constants/pagination.js";
 import { HF } from "../../../dataUtil/numbers.js";
-import {
-  calibrationShootersPercentileTable,
-  extendedCalibrationShootersPercentileTable,
-} from "../../../dataUtil/shooters.js";
+import { extendedCalibrationShootersPercentileTable } from "../../../dataUtil/shooters.js";
 
 const classifiersForDivision = (division) =>
   classifiers.map((c) => ({

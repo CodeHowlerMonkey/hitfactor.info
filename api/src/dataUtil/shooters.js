@@ -74,13 +74,27 @@ const freshShootersForDivisionCalibration = (division, maxAge = 48) =>
       index,
     }));
 
-export const calibrationShootersPercentileTable = mapDivisions(
-  (div) =>
-    freshShootersForDivisionCalibration(div).find((c) => c.current <= 75)
-      ?.percentile || 0.15
-);
-export const extendedCalibrationShootersPercentileTable = mapDivisions(
-  (div) => ({
+export const classifiersForDivisionForShooter = ({ division, memberNumber }) =>
+  (divShortToShooterToRuns[division][memberNumber] ?? []).map((run, index) => {
+    const hhf = curHHFForDivisionClassifier({
+      number: run.classifier,
+      division,
+    });
+    const curPercent = PositiveOrMinus1(Percent(run.hf, hhf));
+    const percentMinusCurPercent =
+      curPercent >= 0 ? N(run.percent - curPercent) : -1;
+
+    return { ...run, curPercent, percentMinusCurPercent, index };
+  });
+
+// TODO: just refactor the interface into a function and memoize it
+// then just start cache warmup after port bind
+export let extendedCalibrationShootersPercentileTable = {};
+export let shootersTable = {};
+export let shootersTableByMemberNumber = {};
+setTimeout(() => {
+  console.log("calculating shooters tables");
+  extendedCalibrationShootersPercentileTable = mapDivisions((div) => ({
     pGM:
       freshShootersForDivisionCalibration(div).find((c) => c.current <= 95)
         ?.percentile || 1,
@@ -97,46 +111,32 @@ export const extendedCalibrationShootersPercentileTable = mapDivisions(
     //pC:
     //  freshShootersForDivisionCalibration(div).find((c) => c.current <= 40)
     //    ?.percentile || 90,
-  })
-);
-console.log(extendedCalibrationShootersPercentileTable);
+  }));
 
-export const classifiersForDivisionForShooter = ({ division, memberNumber }) =>
-  (divShortToShooterToRuns[division][memberNumber] ?? []).map((run, index) => {
-    const hhf = curHHFForDivisionClassifier({
-      number: run.classifier,
-      division,
-    });
-    const curPercent = PositiveOrMinus1(Percent(run.hf, hhf));
-    const percentMinusCurPercent =
-      curPercent >= 0 ? N(run.percent - curPercent) : -1;
-
-    return { ...run, curPercent, percentMinusCurPercent, index };
-  });
-
-export const shootersTable = {
-  opn: shootersFullForDivision("opn"),
-  ltd: shootersFullForDivision("ltd"),
-  l10: shootersFullForDivision("l10"),
-  prod: shootersFullForDivision("prod"),
-  ss: shootersFullForDivision("ss"),
-  rev: shootersFullForDivision("rev"),
-  co: shootersFullForDivision("co"),
-  pcc: shootersFullForDivision("pcc"),
-  lo: shootersFullForDivision("lo"),
-};
-
-export const shootersTableByMemberNumber = {
-  opn: byMemberNumber(shootersTable.opn),
-  ltd: byMemberNumber(shootersTable.ltd),
-  l10: byMemberNumber(shootersTable.l10),
-  prod: byMemberNumber(shootersTable.prod),
-  ss: byMemberNumber(shootersTable.ss),
-  rev: byMemberNumber(shootersTable.rev),
-  co: byMemberNumber(shootersTable.co),
-  lo: byMemberNumber(shootersTable.lo),
-  pcc: byMemberNumber(shootersTable.pcc),
-};
+  shootersTable = {
+    opn: shootersFullForDivision("opn"),
+    ltd: shootersFullForDivision("ltd"),
+    l10: shootersFullForDivision("l10"),
+    prod: shootersFullForDivision("prod"),
+    ss: shootersFullForDivision("ss"),
+    rev: shootersFullForDivision("rev"),
+    co: shootersFullForDivision("co"),
+    pcc: shootersFullForDivision("pcc"),
+    lo: shootersFullForDivision("lo"),
+  };
+  shootersTableByMemberNumber = {
+    opn: byMemberNumber(shootersTable.opn),
+    ltd: byMemberNumber(shootersTable.ltd),
+    l10: byMemberNumber(shootersTable.l10),
+    prod: byMemberNumber(shootersTable.prod),
+    ss: byMemberNumber(shootersTable.ss),
+    rev: byMemberNumber(shootersTable.rev),
+    co: byMemberNumber(shootersTable.co),
+    lo: byMemberNumber(shootersTable.lo),
+    pcc: byMemberNumber(shootersTable.pcc),
+  };
+  console.log("DONE calculating shooters tables");
+}, 1000);
 
 export const shooterFullInfo = ({ memberNumber, division }) => {
   try {
