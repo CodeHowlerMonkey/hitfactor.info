@@ -151,6 +151,7 @@ const ShootersTable = ({ division, onShooterSelection }) => {
       <Column
         field="age"
         header="Age"
+        body={(c) => (c.age ? (c.age || 0).toFixed(1) + "mo" : "—")}
         sortable
         headerTooltip="Average age in months of Y-flagged scores (classifiers & majors) of this shooter"
         headerTooltipOptions={headerTooltipOptions}
