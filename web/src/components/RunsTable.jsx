@@ -2,7 +2,7 @@ import uniqBy from "lodash.uniqby";
 import qs from "query-string";
 import { useEffect, useState } from "react";
 import { DataTable } from "primereact/datatable";
-import { Tag } from "primereact/tag";
+import { Checkbox } from "primereact/checkbox";
 import { InputText } from "primereact/inputtext";
 import { Column } from "primereact/column";
 import { useApi } from "../utils/client";
@@ -14,25 +14,6 @@ import { useDebounce } from "use-debounce";
 import { bgColorForClass, fgColorForClass } from "../utils/color";
 import { stringSort } from "../../../shared/utils/sort";
 import ShooterCell from "./ShooterCell";
-
-/*
-sd	"4/09/17"
-memberNumber	"A29646"
-clubid	"NW01"
-place	0
-percent	75.83
-curPercent	108.85
-percentile	0
-hf	91
-
-// TODO: fields for shooter's runs with different classifiers
-// classifier   "03-02"
-// club_name	"Paul Bunyan Rifle & Sportsmen's Club"
-// code	"E"
-// source	"Stage Score"
-
-// TODO: more fields?
-*/
 
 const TableFilter = ({ placeholder, onFilterChange }) => {
   const [filter, setFilter] = useState("");
@@ -71,6 +52,23 @@ const DropdownFilter = ({
   />
 );
 
+const LegacyCheckbox = ({ onChange }) => {
+  const [value, setValue] = useState(false);
+  useEffect(() => onChange?.(value), [value]);
+  return (
+    <>
+      <Checkbox
+        inputId="legacyCheck"
+        checked={value}
+        onChange={(e) => setValue(e.checked)}
+      />
+      <label htmlFor="legacyCheck" className="ml-2 mr-4">
+        Incl. Legacy
+      </label>
+    </>
+  );
+};
+
 export const useRunsTableData = ({ division, classifier }) => {
   const {
     query: pageQuery,
@@ -85,11 +83,16 @@ export const useRunsTableData = ({ division, classifier }) => {
   const [filter, setFilter] = useState("");
   const [filterHHF, setFilterHHF] = useState(undefined);
   const [filterClub, setFilterClub] = useState(undefined);
-  const filtersQuery = qs.stringify({
-    filter,
-    hhf: filterHHF,
-    club: filterClub,
-  });
+  const [legacy, setLegacy] = useState(undefined);
+  const filtersQuery = qs.stringify(
+    {
+      filter,
+      hhf: filterHHF,
+      club: filterClub,
+      legacy: legacy ? 1 : undefined,
+    },
+    {}
+  );
 
   const downloadUrl = `/api/classifiers/download/${division}/${classifier}`;
   const apiEndpoint = !(division && classifier)
@@ -119,6 +122,7 @@ export const useRunsTableData = ({ division, classifier }) => {
     setFilter,
     filterHHF,
     setFilterHHF,
+    setLegacy,
     filterClub,
     setFilterClub,
     downloadUrl,
@@ -135,6 +139,7 @@ const RunsTable = ({
   setFilter,
   setFilterHHF,
   setFilterClub,
+  setLegacy,
   onShooterSelection,
 }) => {
   return (
@@ -149,10 +154,13 @@ const RunsTable = ({
       paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink"
       paginatorLeft={<h2>Scores</h2>}
       paginatorRight={
-        <TableFilter
-          placeholder="Filter by Club or Shooter"
-          onFilterChange={(f) => setFilter(f)}
-        />
+        <div className="flex flex-row align-items-center">
+          <LegacyCheckbox onChange={(v) => setLegacy(!!v)} />
+          <TableFilter
+            placeholder="Filter by Club or Shooter"
+            onFilterChange={(f) => setFilter(f)}
+          />
+        </div>
       }
       totalRecords={runsTotal}
       filterDisplay="row"

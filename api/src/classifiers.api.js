@@ -160,56 +160,35 @@ export const extendedInfoForClassifier = memoize(
     if (!division) {
       return {};
     }
-
     const divisionHHFs = divShortToHHFs[division];
     const curHHFInfo = divisionHHFs.find((dHHF) => dHHF.classifier === c.id);
 
-    // sussy = include legacy scores without hfs
-    const sussyRuns = divShortToRuns[division]
-      .filter(Boolean)
-      .filter((run) => run.classifier === c.classifier)
-      .filter((run) => run.hf < 0) // NO HF = sussy baka
-      .sort((a, b) => b.percent - a.percent); // DESC for sortedUniqBy to pick highest first
-    const runsSortedByPercent = divShortToRuns[division]
-      .filter(Boolean)
-      .filter((run) => run.classifier === c.classifier)
-      // .filter(run => run.hf >= 0) // sussy baka filter
-      .sort((a, b) => {
-        // try to sort with hf if possible, otherwise sussy sort it
-        // Use DESC for sortedUniqBy to pick the highest unique (it picks first one, not last)
-        if (a.hf >= 0 && b.hf >= 0) {
-          return b.hf - a.hf;
-        }
-        return b.percent - a.percent;
-      });
+    const legacyScores = divShortToRuns[division]
+      .filter((run) => run?.classifier === c.classifier)
+      .filter((run) => run.hf < 0); // NO HF = Legacy
 
-    // non-uniq, but with hf
-    const runsSortedByHF = runsSortedByPercent
-      .filter((s) => s.hf >= 0)
+    const hitFactorScores = divShortToRuns[division]
+      .filter((run) => run?.classifier === c.classifier)
+      .filter((run) => run.hf >= 0) //  only classifer HF scores
       .sort((a, b) => b.hf - a.hf);
-
-    const runs = sortedUniqBy(runsSortedByPercent, (run) => run.memberNumber);
 
     const hhf = Number(curHHFInfo.hhf);
 
-    const top20HF = runsSortedByHF.slice(0, 20);
-    const top20CurPercent = top20HF.map((s) => Percent(s.hf, hhf));
-
     const topXPercentileStats = (x) => ({
       [`top${x}PercentilePercent`]:
-        runsSortedByHF[Math.floor(x * 0.01 * runsSortedByHF.length)].percent,
+        hitFactorScores[Math.floor(x * 0.01 * hitFactorScores.length)].percent,
       [`top${x}PercentileCurPercent`]: Percent(
-        runsSortedByHF[Math.floor(x * 0.01 * runsSortedByHF.length)].hf,
+        hitFactorScores[Math.floor(x * 0.01 * hitFactorScores.length)].hf,
         hhf
       ),
       [`top${x}PercentileHF`]:
-        runsSortedByHF[Math.floor(x * 0.01 * runsSortedByHF.length)].hf,
+        hitFactorScores[Math.floor(x * 0.01 * hitFactorScores.length)].hf,
     });
 
     const inversePercentileStats = (xPercent) => ({
       [`inverse${xPercent}CurPercentPercentile`]: Percent(
-        runsSortedByHF.findLastIndex((c) => (100 * c.hf) / hhf >= xPercent),
-        runsSortedByHF.length
+        hitFactorScores.findLastIndex((c) => (100 * c.hf) / hhf >= xPercent),
+        hitFactorScores.length
       ),
     });
 
@@ -218,7 +197,7 @@ export const extendedInfoForClassifier = memoize(
     // computers and gets too much noise. If they changed HF <= 0.01 it doesn't
     // matter anyway, so toFixed(2)
     const hhfs = sortedUniqBy(
-      runsSortedByHF
+      hitFactorScores
         .filter((run) => run.percent !== 0 && run.percent !== 100)
         .map((run) => ({
           date: new Date(run.sd).getTime(),
@@ -229,7 +208,7 @@ export const extendedInfoForClassifier = memoize(
       (hhfData) => N(hhfData.hhf, 2)
     );
     const actualLastUpdate = hhfs[hhfs.length - 1].date;
-    const clubs = uniqBy(runsSortedByHF, "clubid")
+    const clubs = uniqBy(hitFactorScores, "clubid")
       .map(({ clubid: id, club_name: name }) => ({
         id,
         name,
@@ -243,49 +222,21 @@ export const extendedInfoForClassifier = memoize(
       hhfs,
       clubsCount: clubs.length,
       clubs,
-      /* unused / not interesting data
       ...transform(
-        calcRunStats(runs),
-        (r, v, k) => (r["runsUnique" + k] = v)
-      ),
-      ...transform(
-        calcRunStats(sussyRuns),
-        (r, v, k) => (r["runsSussy" + k] = v)
-      ),
-      top20CurPercent,
-      top20SussyPercent: runs.slice(0, 20).map((s) => s.percent),
-      top20SussyHF: runs.slice(0, 20).map((s) => s.hf),
-      top20CurPercent,
-      top20CurPercentAvg: top20CurPercent.reduce((a, b) => a + b, 0) / 20,
-      top20HF: top20HF.map((run) => run.hf),
-      top10HFAvg: HF(
-        runs
-          .filter((s) => s.hf >= 0) // need to filter into non-sussy first for avg math
-          .slice(0, 10)
-          .map((s) => s.hf)
-          .reduce((a, b) => a + b, 0) / 10
-      ),
-      top20HFAvg: HF(
-        runs
-          .filter((s) => s.hf >= 0) // need to filter into non-sussy first for avg math
-          .slice(0, 20)
-          .map((s) => s.hf)
-          .reduce((a, b) => a + b, 0) / 20
-      ),
-*/
-      ...transform(
-        calcRunStats(runsSortedByPercent),
+        calcRunStats(legacyScores),
         (r, v, k) => (r["runsTotals" + k] = v)
       ),
       ...transform(
-        calcLegitRunStats(runs, hhf),
+        calcLegitRunStats(hitFactorScores, hhf),
         (r, v, k) => (r["runsTotalsLegit" + k] = v)
       ),
-      runs: runsSortedByPercent.length,
-      runsUniq: runs.length,
-      runsNotUniq: runsSortedByPercent.length - runs.length,
+      runs: hitFactorScores.length,
+      runsLegacy: legacyScores.length,
       top10CurPercentAvg:
-        top20CurPercent.slice(0, 10).reduce((a, b) => a + b, 0) / 10,
+        hitFactorScores
+          .slice(0, 10)
+          .map((s) => Percent(s.hf, hhf))
+          .reduce((a, b) => a + b, 0) / 10,
       ...topXPercentileStats(1),
       ...topXPercentileStats(2),
       ...topXPercentileStats(5),

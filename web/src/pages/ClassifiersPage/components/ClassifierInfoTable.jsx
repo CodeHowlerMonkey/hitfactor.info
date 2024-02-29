@@ -1,8 +1,17 @@
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import ScoresChart from "../../../components/chart/ScoresChart";
+import { Tooltip } from "primereact/tooltip";
 
-export const ClassifierInfoTable = ({ division, classifier, hhf, ...info }) => (
+export const ClassifierInfoTable = ({
+  division,
+  classifier,
+  hhf,
+  recommendedHHF1,
+  recommendedHHF5,
+  recommendedHHF15,
+  ...info
+}) => (
   <DataTable
     scrollable={false}
     style={{ height: "100%" }}
@@ -14,7 +23,14 @@ export const ClassifierInfoTable = ({ division, classifier, hhf, ...info }) => (
       header="Scores Distribution"
       bodyStyle={{ position: "relative", padding: 0, width: "46%" }}
       body={() => (
-        <ScoresChart division={division} classifier={classifier} hhf={hhf} />
+        <ScoresChart
+          division={division}
+          classifier={classifier}
+          hhf={hhf}
+          recommendedHHF1={recommendedHHF1}
+          recommendedHHF5={recommendedHHF5}
+          recommendedHHF15={recommendedHHF15}
+        />
       )}
     />
     <Column
@@ -47,13 +63,73 @@ export const ClassifierInfoTable = ({ division, classifier, hhf, ...info }) => (
           className="h-26 w-full"
           style={{ overflowY: "scroll", maxHeight: "26rem" }}
         >
-          <DataTable showHeaders={false} stripedRows value={info.hhfs}>
+          <DataTable
+            showHeaders={false}
+            stripedRows
+            value={[
+              ...(info?.hhfs || []),
+              ...(recommendedHHF1 <= 0
+                ? []
+                : [
+                    {
+                      label: "r1HHF",
+                      tooltip:
+                        "Recommended HHF based on calibration around distribution of GM-shooters in the division (should be around 1% of the shooters)",
+                      hhf: recommendedHHF1,
+                    },
+                  ]),
+              ...(recommendedHHF5 <= 0
+                ? []
+                : [
+                    {
+                      label: "r5HHF",
+                      tooltip:
+                        "Recommended HHF based on calibration around distribution of M-shooters in the division (should be around 5% of the shooters)",
+                      hhf: recommendedHHF5,
+                    },
+                  ]),
+              // TODO: #23 remove check after proper fix
+              ...(recommendedHHF15 <= 0
+                ? []
+                : [
+                    {
+                      label: "r15HHF",
+                      tooltip:
+                        "Recommended HHF based on calibration around distribution of A-shooters in the division (should be around 15% of the shooters)",
+                      hhf: recommendedHHF15,
+                    },
+                  ]),
+            ]}
+          >
             <Column field="hhf" />
             <Column
               field="date"
-              body={(c) => new Date(c.date).toLocaleDateString()}
+              tooltip={(c) => c.tooltip}
+              body={(c) =>
+                c.label ? (
+                  <div
+                    className="recommendedHHFExplanation"
+                    data-pr-tooltip={c.tooltip}
+                  >
+                    {c.label}
+                    <i
+                      style={{
+                        fontSize: "12px",
+                        margin: "6px",
+                        verticalAlign: "middle",
+                        position: "relative",
+                        bottom: "2px",
+                      }}
+                      className="pi pi-info-circle"
+                    />
+                  </div>
+                ) : (
+                  new Date(c.date).toLocaleDateString()
+                )
+              }
             />
           </DataTable>
+          <Tooltip target=".recommendedHHFExplanation" />
         </div>
       )}
     />

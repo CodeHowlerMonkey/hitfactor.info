@@ -1,4 +1,5 @@
 import { extendedClassificationsInfo } from "../../../dataUtil/classifications.js";
+import { mapDivisions } from "../../../dataUtil/divisions.js";
 
 const classificationRank = (classification) =>
   ["X", "U", "D", "C", "B", "A", "M", "GM"].indexOf(classification);
@@ -27,17 +28,50 @@ const highestClassification = (classificationsObj) =>
     }
   }, undefined);
 
-const selectDivision = (division, classificationsObj) =>
-  division
+const calculateCurrentClassifications = (memberCurPercentObj) =>
+  mapDivisions((div) => {
+    const curPercent = memberCurPercentObj[div];
+    if (curPercent <= 0) {
+      return "U";
+    } else if (curPercent < 40) {
+      return "D";
+    } else if (curPercent < 60) {
+      return "C";
+    } else if (curPercent < 75) {
+      return "B";
+    } else if (curPercent < 85) {
+      return "A";
+    } else if (curPercent < 95) {
+      return "M";
+    } else if (curPercent >= 95) {
+      return "GM";
+    }
+
+    return "U";
+  });
+
+const selectClassificationsForDivision = (
+  division,
+  extMemberInfoObject,
+  mode
+) => {
+  const classificationsObj =
+    mode !== "percent"
+      ? extMemberInfoObject.classifications
+      : calculateCurrentClassifications(extMemberInfoObject.current);
+  return division
     ? {
         [division]: classificationsObj[division],
       }
     : classificationsObj;
+};
 
-export const highestClassificationCountsFor = (division) => {
+export const highestClassificationCountsFor = (division, mode) => {
   const highestClassifications = extendedClassificationsInfo
     .map((cur) =>
-      highestClassification(selectDivision(division, cur.classifications))
+      highestClassification(
+        selectClassificationsForDivision(division, cur, mode)
+      )
     )
     .filter(Boolean);
   const highestClassificationCounts = new Map();
@@ -55,114 +89,42 @@ export const highestClassificationCountsFor = (division) => {
   return highestClassificationCounts;
 };
 
+const calcBuket = (div, mode) => ({
+  U: highestClassificationCountsFor(div, mode).get("U"),
+  D: highestClassificationCountsFor(div, mode).get("D"),
+  C: highestClassificationCountsFor(div, mode).get("C"),
+  B: highestClassificationCountsFor(div, mode).get("B"),
+  A: highestClassificationCountsFor(div, mode).get("A"),
+  M: highestClassificationCountsFor(div, mode).get("M"),
+  GM: highestClassificationCountsFor(div, mode).get("GM"),
+});
+
 const staticInefficientlyCalculatedDataButIDGAF = {
-  All: {
-    U: highestClassificationCountsFor().get("U"),
-    D: highestClassificationCountsFor().get("D"),
-    C: highestClassificationCountsFor().get("C"),
-    B: highestClassificationCountsFor().get("B"),
-    A: highestClassificationCountsFor().get("A"),
-    M: highestClassificationCountsFor().get("M"),
-    GM: highestClassificationCountsFor().get("GM"),
+  byClass: {
+    all: calcBuket(undefined, "class"),
+    ...mapDivisions((div) => calcBuket(div, "class")),
+    Approx: {
+      U: 0,
+      D: 15,
+      C: 40,
+      B: 25,
+      A: 12,
+      M: 6,
+      GM: 2,
+    },
   },
-  Open: {
-    // 2
-    U: highestClassificationCountsFor("opn").get("U"),
-    D: highestClassificationCountsFor("opn").get("D"),
-    C: highestClassificationCountsFor("opn").get("C"),
-    B: highestClassificationCountsFor("opn").get("B"),
-    A: highestClassificationCountsFor("opn").get("A"),
-    M: highestClassificationCountsFor("opn").get("M"),
-    GM: highestClassificationCountsFor("opn").get("GM"),
-  },
-  Limited: {
-    // 3
-    U: highestClassificationCountsFor("ltd").get("U"),
-    D: highestClassificationCountsFor("ltd").get("D"),
-    C: highestClassificationCountsFor("ltd").get("C"),
-    B: highestClassificationCountsFor("ltd").get("B"),
-    A: highestClassificationCountsFor("ltd").get("A"),
-    M: highestClassificationCountsFor("ltd").get("M"),
-    GM: highestClassificationCountsFor("ltd").get("GM"),
-  },
-  "Limited 10": {
-    // 4
-    U: highestClassificationCountsFor("l10").get("U"),
-    D: highestClassificationCountsFor("l10").get("D"),
-    C: highestClassificationCountsFor("l10").get("C"),
-    B: highestClassificationCountsFor("l10").get("B"),
-    A: highestClassificationCountsFor("l10").get("A"),
-    M: highestClassificationCountsFor("l10").get("M"),
-    GM: highestClassificationCountsFor("l10").get("GM"),
-  },
-  Production: {
-    // 5
-    U: highestClassificationCountsFor("prod").get("U"),
-    D: highestClassificationCountsFor("prod").get("D"),
-    C: highestClassificationCountsFor("prod").get("C"),
-    B: highestClassificationCountsFor("prod").get("B"),
-    A: highestClassificationCountsFor("prod").get("A"),
-    M: highestClassificationCountsFor("prod").get("M"),
-    GM: highestClassificationCountsFor("prod").get("GM"),
-  },
-  Revolver: {
-    // 6
-    U: highestClassificationCountsFor("rev").get("U"),
-    D: highestClassificationCountsFor("rev").get("D"),
-    C: highestClassificationCountsFor("rev").get("C"),
-    B: highestClassificationCountsFor("rev").get("B"),
-    A: highestClassificationCountsFor("rev").get("A"),
-    M: highestClassificationCountsFor("rev").get("M"),
-    GM: highestClassificationCountsFor("rev").get("GM"),
-  },
-  "Single Stack": {
-    // 7
-    U: highestClassificationCountsFor("ss").get("U"),
-    D: highestClassificationCountsFor("ss").get("D"),
-    C: highestClassificationCountsFor("ss").get("C"),
-    B: highestClassificationCountsFor("ss").get("B"),
-    A: highestClassificationCountsFor("ss").get("A"),
-    M: highestClassificationCountsFor("ss").get("M"),
-    GM: highestClassificationCountsFor("ss").get("GM"),
-  },
-  "Carry Optics": {
-    // 35
-    U: highestClassificationCountsFor("co").get("U"),
-    D: highestClassificationCountsFor("co").get("D"),
-    C: highestClassificationCountsFor("co").get("C"),
-    B: highestClassificationCountsFor("co").get("B"),
-    A: highestClassificationCountsFor("co").get("A"),
-    M: highestClassificationCountsFor("co").get("M"),
-    GM: highestClassificationCountsFor("co").get("GM"),
-  },
-  PCC: {
-    // 38
-    U: highestClassificationCountsFor("pcc").get("U"),
-    D: highestClassificationCountsFor("pcc").get("D"),
-    C: highestClassificationCountsFor("pcc").get("C"),
-    B: highestClassificationCountsFor("pcc").get("B"),
-    A: highestClassificationCountsFor("pcc").get("A"),
-    M: highestClassificationCountsFor("pcc").get("M"),
-    GM: highestClassificationCountsFor("pcc").get("GM"),
-  },
-  "Limited Optics": {
-    // 41
-    U: highestClassificationCountsFor("lo").get("U"),
-    D: highestClassificationCountsFor("lo").get("D"),
-    C: highestClassificationCountsFor("lo").get("C"),
-    B: highestClassificationCountsFor("lo").get("B"),
-    A: highestClassificationCountsFor("lo").get("A"),
-    M: highestClassificationCountsFor("lo").get("M"),
-    GM: highestClassificationCountsFor("lo").get("GM"),
-  },
-  Approx: {
-    U: 0,
-    D: 15,
-    C: 40,
-    B: 25,
-    A: 12,
-    M: 6,
-    GM: 2,
+  byPercent: {
+    all: calcBuket(undefined, "percent"),
+    ...mapDivisions((div) => calcBuket(div, "percent")),
+    Approx: {
+      U: 0,
+      D: 19,
+      C: 42,
+      B: 25,
+      A: 8,
+      M: 5,
+      GM: 1,
+    },
   },
 };
 

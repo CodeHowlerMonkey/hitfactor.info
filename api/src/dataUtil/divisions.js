@@ -1,5 +1,13 @@
 import divisions from "../../../data/division.json" assert { type: "json" };
 
+/** ["opn", "ltd", "l10", "prod", "rev", "ss", "co", "lo", "pcc"] */
+export const divShortNames = divisions.divisions.map((c) =>
+  c.short_name.toLowerCase()
+);
+
+export const mapDivisions = (mapper) =>
+  Object.fromEntries(divShortNames.map((div) => [div, mapper(div)]));
+
 export const divShortToId = divisions.divisions.reduce(
   (result, cur) => ({ ...result, [cur.short_name.toLowerCase()]: cur.id }),
   {}

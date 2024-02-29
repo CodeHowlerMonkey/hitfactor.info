@@ -1,7 +1,7 @@
 import { loadJSON } from "../utils.js";
 import { divIdToShort } from "./divisions.js";
 
-export const mapClassificationInfo = (c) => ({
+const mapClassificationInfo = (c) => ({
   data: c.member_data,
   memberNumber: c.member_data.member_number,
   name: [

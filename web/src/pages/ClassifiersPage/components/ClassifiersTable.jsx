@@ -120,6 +120,13 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
       <Column field="hhf" header="HHF" sortable />
       <Column field="updated" header="Updated" sortable />
       <Column field="runs" header="Scores" sortable />
+      <Column
+        field="runsLegacy"
+        header="Legacy Scores"
+        sortable
+        headerTooltip="Total number of scores without HF data, only historical percentage (sus ඞ)."
+        headerTooltipOptions={headerTooltipOptions}
+      />
 
       <Column
         field="inverse100CurPercentPercentile"

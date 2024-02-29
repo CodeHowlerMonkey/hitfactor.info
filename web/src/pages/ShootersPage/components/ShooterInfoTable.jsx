@@ -13,11 +13,12 @@ const tableNameForDiv = {
   pcc: "PCC",
   lo: "LO",
 };
-const cardRow = ({ classes, highs, currents }, div) => ({
+const cardRow = ({ classes, highs, currents, ages }, div) => ({
   k: tableNameForDiv[div],
   v1: classes[div],
   v2: highs[div].toFixed(2) + "%",
   v3: currents[div].toFixed(2) + "%",
+  v4: ages[div].toFixed(1) + "mo",
 });
 
 export const ShooterInfoTable = ({ info }) => {
@@ -107,6 +108,7 @@ export const ShooterInfoTable = ({ info }) => {
               <Column field="v1" header="Class" />
               <Column field="v2" header="High %" />
               <Column field="v3" header="Cur %" />
+              <Column field="v4" header="Age" />
             </DataTable>
           </div>
         )}
