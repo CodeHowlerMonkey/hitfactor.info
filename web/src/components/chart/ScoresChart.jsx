@@ -74,79 +74,84 @@ const extraLabelOffsets = {
   r5: 15,
   r15: 25,
 };
-const xLinesForHHF = (prefix, hhf) => ({
-  ...xLine(
-    prefix + "HHF",
-    hhf,
-    colorForPrefix(prefix, 1),
-    extraLabelOffsets[prefix]
-  ),
-  ...xLine(
-    prefix + "GM",
-    0.95 * hhf,
-    colorForPrefix(prefix, 0.7),
-    extraLabelOffsets[prefix]
-  ),
-  ...xLine(
-    prefix + "M",
-    0.85 * hhf,
-    colorForPrefix(prefix, 0.5),
-    extraLabelOffsets[prefix]
-  ),
-  ...xLine(
-    prefix + "A",
-    0.75 * hhf,
-    colorForPrefix(prefix, 0.4),
-    extraLabelOffsets[prefix]
-  ),
-  ...xLine(
-    prefix + "B",
-    0.6 * hhf,
-    colorForPrefix(prefix, 0.3),
-    extraLabelOffsets[prefix]
-  ),
-  ...xLine(
-    prefix + "C",
-    0.4 * hhf,
-    colorForPrefix(prefix, 0.2),
-    extraLabelOffsets[prefix]
-  ),
-  ...point(
-    prefix + "GM/1",
-    0.95 * hhf,
-    1,
-    colorForPrefix(prefix, 0.7),
-    extraLabelOffsets[prefix]
-  ),
-  ...point(
-    prefix + "M/5",
-    0.85 * hhf,
-    5,
-    colorForPrefix(prefix, 0.5),
-    extraLabelOffsets[prefix]
-  ),
-  ...point(
-    prefix + "A/15",
-    0.75 * hhf,
-    15,
-    colorForPrefix(prefix, 0.4),
-    extraLabelOffsets[prefix]
-  ),
-  ...point(
-    prefix + "B/40",
-    0.6 * hhf,
-    40,
-    colorForPrefix(prefix, 0.3),
-    extraLabelOffsets[prefix]
-  ),
-  ...point(
-    prefix + "C/75",
-    0.4 * hhf,
-    75,
-    colorForPrefix(prefix, 0.2),
-    extraLabelOffsets[prefix]
-  ),
-});
+
+// TODO: #23 Fix Negative Recommended HHFs Properly, so we don't need  hhf <= 0 check
+const xLinesForHHF = (prefix, hhf) =>
+  hhf <= 0
+    ? {}
+    : {
+        ...xLine(
+          prefix + "HHF",
+          hhf,
+          colorForPrefix(prefix, 1),
+          extraLabelOffsets[prefix]
+        ),
+        ...xLine(
+          prefix + "GM",
+          0.95 * hhf,
+          colorForPrefix(prefix, 0.7),
+          extraLabelOffsets[prefix]
+        ),
+        ...xLine(
+          prefix + "M",
+          0.85 * hhf,
+          colorForPrefix(prefix, 0.5),
+          extraLabelOffsets[prefix]
+        ),
+        ...xLine(
+          prefix + "A",
+          0.75 * hhf,
+          colorForPrefix(prefix, 0.4),
+          extraLabelOffsets[prefix]
+        ),
+        ...xLine(
+          prefix + "B",
+          0.6 * hhf,
+          colorForPrefix(prefix, 0.3),
+          extraLabelOffsets[prefix]
+        ),
+        ...xLine(
+          prefix + "C",
+          0.4 * hhf,
+          colorForPrefix(prefix, 0.2),
+          extraLabelOffsets[prefix]
+        ),
+        ...point(
+          prefix + "GM/1",
+          0.95 * hhf,
+          1,
+          colorForPrefix(prefix, 0.7),
+          extraLabelOffsets[prefix]
+        ),
+        ...point(
+          prefix + "M/5",
+          0.85 * hhf,
+          5,
+          colorForPrefix(prefix, 0.5),
+          extraLabelOffsets[prefix]
+        ),
+        ...point(
+          prefix + "A/15",
+          0.75 * hhf,
+          15,
+          colorForPrefix(prefix, 0.4),
+          extraLabelOffsets[prefix]
+        ),
+        ...point(
+          prefix + "B/40",
+          0.6 * hhf,
+          40,
+          colorForPrefix(prefix, 0.3),
+          extraLabelOffsets[prefix]
+        ),
+        ...point(
+          prefix + "C/75",
+          0.4 * hhf,
+          75,
+          colorForPrefix(prefix, 0.2),
+          extraLabelOffsets[prefix]
+        ),
+      };
 
 // TODO: different modes for class xLines (95/85/75-hhf, A-centric, 1/5/15/40/75-percentile, etc)
 // TODO: maybe for HHF mode allow choosing different HHFs from another dropdown
