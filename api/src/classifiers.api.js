@@ -11,11 +11,7 @@ import { stringSort } from "../../shared/utils/sort.js";
 
 import { curHHFForDivisionClassifier, divShortToHHFs } from "./dataUtil/hhf.js";
 
-export const selectClassifierDivisionScores = ({
-  number,
-  division,
-  includeNoHF,
-}) => {
+const selectClassifierDivisionScores = ({ number, division, includeNoHF }) => {
   return divShortToRuns[division].filter((run) => {
     if (!run) {
       return false;
