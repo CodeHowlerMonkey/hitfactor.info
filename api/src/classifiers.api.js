@@ -213,8 +213,9 @@ export const extendedInfoForClassifier = memoize(
       .sort((a, b) => stringSort(a, b, "id", 1));
 
     return {
-      updated: actualLastUpdate, // before was using curHHFInfo.updated, and it's bs
+      updated: curHHFInfo.updated, //actualLastUpdate, // before was using curHHFInfo.updated, and it's bs
       hhf,
+      prevHHF: hhfs.findLast((c) => c.hhf !== hhf)?.hhf ?? hhf,
       hhfs,
       clubsCount: clubs.length,
       clubs,
