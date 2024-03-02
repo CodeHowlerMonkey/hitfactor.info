@@ -46,7 +46,7 @@ const shootersFullForDivision = (division) =>
         name: "Expired / Not Found",
       };
     })
-    .filter((c) => c.class !== "U")
+    .filter((c) => c.class !== "U" && c.class !== "X")
     .sort((a, b) => b.high - a.high) // sort by high to calculate highRank
     .map((c, index, all) => ({
       ...c,
