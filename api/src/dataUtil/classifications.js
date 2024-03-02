@@ -1,9 +1,24 @@
-import { loadJSON } from "../utils.js";
+import { loadJSON, processImport } from "../utils.js";
 import { divIdToShort } from "./divisions.js";
+
+const memberIdToNumberMap = loadJSON("../../data/meta/memberIdToNumber.json");
+const memberNumberFromMemberData = (memberData) => {
+  try {
+    const easy = memberData.member_number;
+    if (!easy || easy.trim().toLowerCase() === "private") {
+      return memberIdToNumberMap[String(memberData.member_id)];
+    }
+    return easy;
+  } catch (err) {
+    console.log(err);
+  }
+
+  return "BAD DATA";
+};
 
 const mapClassificationInfo = (c) => ({
   data: c.member_data,
-  memberNumber: c.member_data.member_number,
+  memberNumber: memberNumberFromMemberData(c.member_data),
   name: [
     c.member_data.first_name,
     c.member_data.last_name,
