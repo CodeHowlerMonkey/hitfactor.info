@@ -4,8 +4,7 @@ import { byMemberNumber } from "./byMemberNumber.js";
 import fs from "fs";
 import { divIdToShort, mapDivisions } from "./divisions.js";
 
-export const divShortToRunsImported = mapDivisions(() => []);
-console.log(divShortToRunsImported);
+export const divShortToRuns = mapDivisions(() => []);
 
 fs.readdirSync(dirPath("../../data/imported"))
   .filter((file) => !!file.match(/classifiers\.\d+\.json/))
@@ -21,7 +20,7 @@ fs.readdirSync(dirPath("../../data/imported"))
           // just skip for now
           return;
         }
-        const target = divShortToRunsImported[divShort];
+        const target = divShortToRuns[divShort];
         const extra = divObj?.division_classifiers?.map(
           ({
             code,
@@ -53,42 +52,7 @@ fs.readdirSync(dirPath("../../data/imported"))
       });
     });
   });
-divShortToRunsImported.loco = [
-  ...divShortToRunsImported.co,
-  ...divShortToRunsImported.lo,
-];
-
-export const divShortToRunsLegacy = {
-  opn: loadJSON("../../data/merged.active.open.json"),
-  ltd: [
-    // split into 2 files to pass github's 50mb file limit
-    ...loadJSON("../../data/merged.active.limited.1.json"),
-    ...loadJSON("../../data/merged.active.limited.2.json"),
-  ],
-  l10: loadJSON("../../data/merged.active.limited10.json"),
-  prod: loadJSON("../../data/merged.active.production.json"),
-  ss: loadJSON("../../data/merged.active.singlestack.json"),
-  rev: loadJSON("../../data/merged.active.revolver.json"),
-  co: loadJSON("../../data/merged.active.co.json"),
-  lo: loadJSON("../../data/merged.active.limitedoptics.json"),
-  pcc: loadJSON("../../data/merged.active.pcc.json"),
-  loco: [
-    // synthetic division
-    ...loadJSON("../../data/merged.active.co.json"),
-    ...loadJSON("../../data/merged.active.limitedoptics.json"),
-  ],
-};
-export const divShortToRuns = divShortToRunsImported;
-
-console.log(mapDivisions((div) => divShortToRunsLegacy[div].length));
-console.log(mapDivisions((div) => divShortToRunsImported[div].length));
-console.log("difference:");
-console.log(
-  mapDivisions(
-    (div) =>
-      divShortToRunsImported[div].length - divShortToRunsLegacy[div].length
-  )
-);
+divShortToRuns.loco = [...divShortToRuns.co, ...divShortToRuns.lo];
 
 export const divShortToShooterToRuns = {
   opn: byMemberNumber(divShortToRuns.opn),
