@@ -49,7 +49,11 @@ const mapClassificationInfo = (c) => ({
   ),
 });
 
-export const extendedClassificationsInfo = [
-  ...loadJSON("../../data/mergedArray.classifications.1.json"),
-  ...loadJSON("../../data/mergedArray.classifications.2.json"),
-].map(mapClassificationInfo);
+export const extendedClassificationsInfo = [];
+processImport(
+  "../../data/imported",
+  /classification\.\d+\.json/,
+  ({ value }) => {
+    extendedClassificationsInfo.push(mapClassificationInfo(value));
+  }
+);
