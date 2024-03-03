@@ -205,10 +205,8 @@ const RunsTable = ({
             filterValueLabel="label"
             filterValue={options?.value}
             onFilter={(value) => {
-              console.log("on filter");
               setFilterClub(value?.id);
               options.filterApplyCallback(value);
-              console.log(value);
             }}
           />
         )}
