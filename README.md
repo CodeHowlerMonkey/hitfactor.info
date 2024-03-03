@@ -6,47 +6,15 @@ Currently, read-only, uploads planned (See issue #1)
 ### Preface
 
 For a full drama background, see practical.shooting.insights on Instagram.
-Long story short, the USPSA Board of Directors and employees (BOC from here forward) have been mismanaging the organization for years without any real oversight or even input from the members.
-When some prominent people spoke out about it, they were banned from the organization, including multi-time National and World Champion Ben Stoeger.
+For a quick-ish TLDR: see [DRAMA.md](DRAMA.md)
 
-Unfortunately for the BOC, the bans resulted in more, not less, exposure to their actions, which led to the elections of A3D Scott Arnburg and A7D Frank Rizzi, who weren't part of the cabal and tried to represent the members and serve the organization.
-Exposure to the internal affairs of the org also made one of the leaders of BOC Area 1 Director, Bruce Gary, resign, drastically shifting the power balance.
+#### Project Goals
 
-The remaining BOC members didn't like that and removed A3D from the board, which led to nationwide protests from the clubs to pause their payments to the org. BOC even tried to remove A7D but hasn't been successful yet. There's also an ongoing lawsuit against the org, which has just entered the discovery phase (January 2024).
-
-With all this going on, it's clear that the organization is in real jeopardy and might cease to exist soon.
-Additionally, with all the protests and non-payment of fees going on -- the classifications aren't being updated, effectively making the existing system non-functional.
-
-And that's why this project was started.
-
-#### Current (Minimum) Goal
-
-Analyze all available classifier data (scores, hhf, divisions, shooters, etc.) and come up with a list of recommended changes for USPSA to implement.
-
-#### Maximum Goal
-
-Integrate into USPSA.org and fix the classification system after membership/clubs demands are satisfied and the protest is over.
-
-#### Alternative Goal
-
-In case of non-cooperation from USPSA leadership and/or loss of the org, create an independent, free, open-source, and easy-to-use classification system that can be used instead of the old one.
-
-##### Technical Stack
-
-- Main language: JavaScript (ES13)
-- Monorepo, Node/Fastify Backend, React (vite-swc) Frontend.
-- Backend serves API and static files: (build of React Frontend, downloadables, etc)
-- All data is loaded on node process startup; no database
-
-##### Folder Structure
-
-- `data/` -- partially processed / split data, mostly used by backend
-- `shared/` -- source code imported by both front- and backend
-- `api/` -- backend
-- `web/` -- frontend
-- package.json -- monorepo wrapper scripts
-
-For more info, see READMEs in each root folder
+1. Analyze existing historical data and provide recommended HHF for all classifiers/divisions.
+2. Implement classification calculation and serve as an alternative shooter's classification source for expired members / shooters in protesting clubs.
+3. Implement alternative classification methods (percentiles, fluctuating, etc) for measuring shooter's skill
+4. Provide documentation and insight into classification system and present it to USPSA BOD after malicious actors are removed from the management.
+5. Integrate into USPSA.org website
 
 ### Running locally
 
@@ -54,3 +22,34 @@ For more info, see READMEs in each root folder
 npm i
 npm start
 ```
+
+##### Technical Stack
+
+- Main language: JavaScript (ES13), TypeScript when needed
+- Monorepo, Node/Fastify Backend, React (vite-swc) Frontend.
+- Backend serves API and static files: (build of React Frontend, downloadables, etc)
+- All data is loaded on node process startup; no database
+
+##### Folder Structure
+
+- `scripts/` -- standalone scripts
+- `data/` -- imported (partially processed / split) data, mostly used by backend
+- `shared/` -- source code imported by both front- and backend
+- `api/` -- backend
+- `web/` -- frontend
+- package.json -- monorepo wrapper scripts
+
+For more info, see READMEs in each root folder
+
+### Imprting Data from USPSA
+
+First you need to obtain and set ENV variables for API keys
+
+- ZenRows: use https://www.zenrows.com, set as ZENROWS_API_KEY
+- USPSA: you need Uspsa-Api header from mobile app, set as USPSA_API_KEY
+
+Then run `npm run import`
+Usually takes a couple of hours on a pretty mediocre connection.
+Classifications and classifiers each have 258+ slices of 256 requests, each successful request is marked with a dot in the stdout. ZenRows still have (although rare) failures, usually manually refetching the slice with the failure by manually editing import.js is good enough.
+
+Make sure to pay attention to git diff when comitting imports, ideally it should only have additions.
