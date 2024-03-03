@@ -14,11 +14,13 @@ import { PAGE_SIZE } from "../../../../../shared/constants/pagination.js";
 import { HF } from "../../../dataUtil/numbers.js";
 import { getExtendedCalibrationShootersPercentileTable } from "../../../dataUtil/shooters.js";
 
-const classifiersForDivision = (division) =>
-  classifiers.map((c) => ({
-    ...basicInfoForClassifier(c),
-    ...extendedInfoForClassifier(c, division),
-  }));
+const classifiersForDivision = async (division) =>
+  await Promise.all(
+    classifiers.map(async (c) => ({
+      ...basicInfoForClassifier(c),
+      ...(await extendedInfoForClassifier(c, division)),
+    }))
+  );
 
 /**
  * Calculated recommended HHF by matching lower percent of the score to percentile of shooters
@@ -49,8 +51,9 @@ const recommendedHHFByPercentileAndPercent = (
 const classifiersRoutes = async (fastify, opts) => {
   fastify.get("/", (req, res) => classifiers.map(basicInfoForClassifier));
 
-  fastify.get("/:division", (req) =>
-    classifiersForDivision(req.params.division)
+  fastify.get(
+    "/:division",
+    async (req) => await classifiersForDivision(req.params.division)
   );
 
   fastify.get("/download/:division", { compress: false }, (req, res) => {
@@ -84,7 +87,7 @@ const classifiersRoutes = async (fastify, opts) => {
     }
 
     const basic = basicInfoForClassifier(c);
-    const extended = extendedInfoForClassifier(c, division);
+    const extended = await extendedInfoForClassifier(c, division);
     const { hhf, hhfs } = extended;
 
     let runsUnsorted = await runsForDivisionClassifier({
@@ -118,23 +121,26 @@ const classifiersRoutes = async (fastify, opts) => {
       order?.split?.(",")
     ).map((run, index) => ({ ...run, index }));
 
+    const extendedCalibrationTable =
+      await getExtendedCalibrationShootersPercentileTable();
+
     return {
       info: {
         ...basic,
         ...extended,
         recommendedHHF1: recommendedHHFByPercentileAndPercent(
           runsUnsorted,
-          await getExtendedCalibrationShootersPercentileTable()[division].pGM,
+          extendedCalibrationTable[division].pGM,
           95
         ),
         recommendedHHF5: recommendedHHFByPercentileAndPercent(
           runsUnsorted,
-          await getExtendedCalibrationShootersPercentileTable()[division].pM,
+          extendedCalibrationTable[division].pM,
           85
         ),
         recommendedHHF15: recommendedHHFByPercentileAndPercent(
           runsUnsorted,
-          await getExtendedCalibrationShootersPercentileTable()[division].pA,
+          extendedCalibrationTable[division].pA,
           75
         ),
       },
@@ -162,7 +168,7 @@ const classifiersRoutes = async (fastify, opts) => {
       }
 
       const basic = basicInfoForClassifier(c);
-      const extended = extendedInfoForClassifier(c, division);
+      const extended = await extendedInfoForClassifier(c, division);
       const { hhf, hhfs } = extended;
 
       return {
@@ -181,10 +187,10 @@ const classifiersRoutes = async (fastify, opts) => {
     }
   );
 
-  fastify.get("/:division/:number/chart", (req, res) => {
+  fastify.get("/:division/:number/chart", async (req, res) => {
     const { division, number } = req.params;
     const { full } = req.query;
-    return chartData({ division, number, full });
+    return await chartData({ division, number, full });
   });
 };
 

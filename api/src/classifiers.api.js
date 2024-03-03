@@ -3,7 +3,7 @@ import sortedUniqBy from "lodash.sorteduniqby";
 import transform from "lodash.transform";
 import memoize from "memoize";
 
-import { divShortToRuns } from "./dataUtil/classifiers.js";
+import { getDivShortToRuns } from "./dataUtil/classifiers.js";
 import { HF, N, Percent, PositiveOrMinus1 } from "./dataUtil/numbers.js";
 import { getShooterFullInfo } from "./dataUtil/shooters.js";
 
@@ -11,8 +11,12 @@ import { stringSort } from "../../shared/utils/sort.js";
 
 import { curHHFForDivisionClassifier, divShortToHHFs } from "./dataUtil/hhf.js";
 
-const selectClassifierDivisionScores = ({ number, division, includeNoHF }) => {
-  return divShortToRuns[division].filter((run) => {
+const selectClassifierDivisionScores = async ({
+  number,
+  division,
+  includeNoHF,
+}) => {
+  return (await getDivShortToRuns())[division].filter((run) => {
     if (!run) {
       return false;
     }
@@ -25,12 +29,14 @@ const selectClassifierDivisionScores = ({ number, division, includeNoHF }) => {
   });
 };
 
-export const chartData = ({ number, division, full: fullString }) => {
+export const chartData = async ({ number, division, full: fullString }) => {
   const full = Number(fullString);
-  const runs = selectClassifierDivisionScores({
-    number,
-    division,
-  })
+  const runs = (
+    await selectClassifierDivisionScores({
+      number,
+      division,
+    })
+  )
     .sort((a, b) => b.hf - a.hf)
     .filter(({ hf }) => hf > 0);
 
@@ -59,16 +65,15 @@ export const chartData = ({ number, division, full: fullString }) => {
 
 export const runsForDivisionClassifier = memoize(
   async ({ number, division, hhf, includeNoHF = false, hhfs }) => {
-    const divisionClassifierRunsSortedByHFOrPercent =
-      selectClassifierDivisionScores({ number, division, includeNoHF }).sort(
-        (a, b) => {
-          if (includeNoHF) {
-            return b.percent - a.percent;
-          }
+    const divisionClassifierRunsSortedByHFOrPercent = (
+      await selectClassifierDivisionScores({ number, division, includeNoHF })
+    ).sort((a, b) => {
+      if (includeNoHF) {
+        return b.percent - a.percent;
+      }
 
-          return b.hf - a.hf;
-        }
-      );
+      return b.hf - a.hf;
+    });
 
     return await Promise.all(
       divisionClassifierRunsSortedByHFOrPercent.map(
@@ -154,18 +159,18 @@ const calcLegitRunStats = (runs, hhf) =>
   );
 
 export const extendedInfoForClassifier = memoize(
-  (c, division) => {
+  async (c, division) => {
     if (!division) {
       return {};
     }
     const divisionHHFs = divShortToHHFs[division];
     const curHHFInfo = divisionHHFs.find((dHHF) => dHHF.classifier === c.id);
 
-    const legacyScores = divShortToRuns[division]
+    const legacyScores = (await getDivShortToRuns())[division]
       .filter((run) => run?.classifier === c.classifier)
       .filter((run) => run.hf < 0); // NO HF = Legacy
 
-    const hitFactorScores = divShortToRuns[division]
+    const hitFactorScores = (await getDivShortToRuns())[division]
       .filter((run) => run?.classifier === c.classifier)
       .filter((run) => run.hf >= 0) //  only classifer HF scores
       .sort((a, b) => b.hf - a.hf);

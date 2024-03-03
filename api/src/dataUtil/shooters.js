@@ -1,68 +1,76 @@
+import memoize from "memoize";
+
 import { getExtendedClassificationsInfo } from "./classifications.js";
 import { N, Percent, PositiveOrMinus1 } from "./numbers.js";
-
 import { mapDivisions, mapDivisionsAsync } from "./divisions.js";
-import { divShortToShooterToRuns } from "./classifiers.js";
-
+import { getDivShortToShooterToRuns } from "./classifiers.js";
 import { byMemberNumber } from "./byMemberNumber.js";
 import { curHHFForDivisionClassifier } from "./hhf.js";
+
 import { dateSort } from "../../../shared/utils/sort.js";
 import { badLazy } from "../utils.js";
 
-const scoresAge = (division, memberNumber, maxScores = 4) =>
-  (divShortToShooterToRuns[division][memberNumber] ?? [])
+const scoresAge = async (division, memberNumber, maxScores = 4) =>
+  ((await getDivShortToShooterToRuns())[division][memberNumber] ?? [])
     .filter((c) => c.code === "Y")
     .sort((a, b) => dateSort(a, b, "sd", -1))
     .slice(0, maxScores) // use 4 to decrease age, by allowing minimum number of classifiers that can result in classification
     .map((c) => (new Date() - new Date(c.sd)) / (28 * 24 * 60 * 60 * 1000)) // millisecconds to 28-day "months"
     .reduce((acc, curV, unusedIndex, arr) => acc + curV / arr.length, 0);
 
-const getShootersFullForDivision = async (division) =>
-  (await getExtendedClassificationsInfo())
-    .map((c) => {
-      const { classifications, high, current, ...etc } = c;
-      try {
-        return {
-          ...etc,
-          class: classifications?.[division],
-          classes: classifications,
-          high: high?.[division],
-          current: current?.[division],
-          highs: high,
-          currents: current,
-          division,
-        };
-      } catch (err) {
-        console.log(err);
-        console.log(memberNumber);
-        console.log(division);
-      }
+const getShootersFullForDivision = memoize(
+  async (division) =>
+    Promise.all(
+      (await getExtendedClassificationsInfo())
+        .map((c) => {
+          const { classifications, high, current, ...etc } = c;
+          try {
+            return {
+              ...etc,
+              class: classifications?.[division],
+              classes: classifications,
+              high: high?.[division],
+              current: current?.[division],
+              highs: high,
+              currents: current,
+              division,
+            };
+          } catch (err) {
+            console.log(err);
+            console.log(memberNumber);
+            console.log(division);
+          }
 
-      return {
-        ...c,
-        class: "X",
-        high: 0,
-        current: 0,
-        division,
-        name: "Expired / Not Found",
-      };
-    })
-    .filter((c) => c.class !== "U" && c.class !== "X")
-    .sort((a, b) => b.high - a.high) // sort by high to calculate highRank
-    .map((c, index, all) => ({
-      ...c,
-      highRank: index,
-      highPercentile: Percent(index, all.length),
-    }))
-    .sort((a, b) => b.current - a.current) // sort by current to calculate currentRank
-    .map((c, index, all) => ({
-      ...c,
-      currentRank: index,
-      currentPercentile: Percent(index, all.length),
-      age: scoresAge(division, c.memberNumber),
-      age1: scoresAge(division, c.memberNumber, 1),
-      ages: mapDivisions((div) => scoresAge(div, c.memberNumber)),
-    }));
+          return {
+            ...c,
+            class: "X",
+            high: 0,
+            current: 0,
+            division,
+            name: "Expired / Not Found",
+          };
+        })
+        .filter((c) => c.class !== "U" && c.class !== "X")
+        .sort((a, b) => b.high - a.high) // sort by high to calculate highRank
+        .map((c, index, all) => ({
+          ...c,
+          highRank: index,
+          highPercentile: Percent(index, all.length),
+        }))
+        .sort((a, b) => b.current - a.current) // sort by current to calculate currentRank
+        .map(async (c, index, all) => ({
+          ...c,
+          currentRank: index,
+          currentPercentile: Percent(index, all.length),
+          age: await scoresAge(division, c.memberNumber),
+          age1: await scoresAge(division, c.memberNumber, 1),
+          ages: await mapDivisionsAsync(
+            async (div) => await scoresAge(div, c.memberNumber)
+          ),
+        }))
+    ),
+  { cacheKey: ([division]) => division }
+);
 
 // TODO: we can use all shooters, and all classifiers with HF if we recalculate everything
 // against current HHFs... ://
@@ -76,34 +84,42 @@ const getFreshShootersForDivisionCalibration = async (division, maxAge = 48) =>
       index,
     }));
 
-export const classifiersForDivisionForShooter = ({ division, memberNumber }) =>
-  (divShortToShooterToRuns[division][memberNumber] ?? []).map((run, index) => {
-    const hhf = curHHFForDivisionClassifier({
-      number: run.classifier,
-      division,
-    });
-    const curPercent = PositiveOrMinus1(Percent(run.hf, hhf));
-    const percentMinusCurPercent =
-      curPercent >= 0 ? N(run.percent - curPercent) : -1;
+export const classifiersForDivisionForShooter = async ({
+  division,
+  memberNumber,
+}) =>
+  ((await getDivShortToShooterToRuns())[division][memberNumber] ?? []).map(
+    (run, index) => {
+      const hhf = curHHFForDivisionClassifier({
+        number: run.classifier,
+        division,
+      });
+      const curPercent = PositiveOrMinus1(Percent(run.hf, hhf));
+      const percentMinusCurPercent =
+        curPercent >= 0 ? N(run.percent - curPercent) : -1;
 
-    return { ...run, curPercent, percentMinusCurPercent, index };
-  });
+      return { ...run, curPercent, percentMinusCurPercent, index };
+    }
+  );
 
-export const getExtendedCalibrationShootersPercentileTable = async () =>
-  await mapDivisionsAsync(async (div) => ({
-    pGM:
-      (
-        await getFreshShootersForDivisionCalibration(div)
-      ).find((c) => c.current <= 95)?.percentile || 1,
-    pM:
-      (
-        await getFreshShootersForDivisionCalibration(div)
-      ).find((c) => c.current <= 85)?.percentile || 5,
-    pA:
-      (
-        await getFreshShootersForDivisionCalibration(div)
-      ).find((c) => c.current <= 75)?.percentile || 15,
-  }));
+export const getExtendedCalibrationShootersPercentileTable = badLazy(
+  async () =>
+    await mapDivisionsAsync(async (div) => {
+      const freshShootersForCalibration =
+        await getFreshShootersForDivisionCalibration(div);
+      return {
+        pGM:
+          freshShootersForCalibration.find((c) => c.current <= 95)
+            ?.percentile || 1,
+        pM:
+          freshShootersForCalibration.find((c) => c.current <= 85)
+            ?.percentile || 5,
+        pA:
+          freshShootersForCalibration.find((c) => c.current <= 75)
+            ?.percentile || 15,
+      };
+    })
+);
 
 export const getShootersTable = badLazy(async () => ({
   opn: await getShootersFullForDivision("opn"),
@@ -139,11 +155,14 @@ export const getShootersTableByMemberNumber = badLazy(async () => {
 
 export const getShooterFullInfo = async ({ memberNumber, division }) => {
   try {
-    return await getShootersTableByMemberNumber()[division][memberNumber][0];
+    const shootersTableByMemberNumber = await getShootersTableByMemberNumber();
+    return shootersTableByMemberNumber[division][memberNumber][0];
   } catch (err) {
+    /*
     console.log(err);
     console.log(memberNumber);
     console.log(division);
+    */
   }
 
   // TODO: looks like the result of only fetching classifications for non-expired members
@@ -158,8 +177,8 @@ export const getShooterFullInfo = async ({ memberNumber, division }) => {
   };
 };
 
-export const shooterChartData = ({ memberNumber, division }) =>
-  classifiersForDivisionForShooter({ memberNumber, division })
+export const shooterChartData = async ({ memberNumber, division }) =>
+  (await classifiersForDivisionForShooter({ memberNumber, division }))
     .map((run) => ({
       x: run.sd,
       curPercent: run.curPercent,
