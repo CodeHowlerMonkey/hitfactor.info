@@ -809,6 +809,32 @@
             "wsb_file": "https://uspsa.org/resources/classifiers/large/22-07_wsb.jpg"
         },
         {
+            "id": "317",
+            "classifier": "23-01",
+            "name": "THS Short Course",
+            "version": "1.0.0.1",
+            "rounds": "12",
+            "scoring": "Comstock",
+            "page_count": "2",
+            "link": "https://uspsa.org/resources/classifiers/23-01.pdf",
+            "thumb": "https://uspsa.org/resources/classifiers/covers/23-01.png",
+            "image_file": "https://uspsa.org/resources/classifiers/large/23-01.jpg",
+            "wsb_file": "https://uspsa.org/resources/classifiers/large/23-01_wsb.jpg"
+        },
+        {
+            "id": "318",
+            "classifier": "23-02",
+            "name": "This could be the Greatest Night of Our Lives",
+            "version": "1.0.0.1",
+            "rounds": "12",
+            "scoring": "Comstock",
+            "page_count": "2",
+            "link": "https://uspsa.org/resources/classifiers/23-02.pdf",
+            "thumb": "https://uspsa.org/resources/classifiers/covers/23-02.png",
+            "image_file": "https://uspsa.org/resources/classifiers/large/23-02.jpg",
+            "wsb_file": "https://uspsa.org/resources/classifiers/large/23-02_wsb.jpg"
+        },
+        {
             "id": "19",
             "classifier": "99-02",
             "name": "Night Moves",

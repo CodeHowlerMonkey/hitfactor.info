@@ -29,26 +29,27 @@ const delay = (ms) => {
   return new Promise((resolve) => setTimeout(resolve, ms));
 };
 
-const fetchFullNumberPageApi = async (
-  memberNumberString,
-  what = "classifiers",
-  retryDelay = 1500
-) => {
+// TODO: bring back retries logic if needed
+const fetchApiEndpoint = async (endpoint) => {
   try {
     const { data: fetched } = await client.get(
-      `https://api.uspsa.org/api/app/${what}/${memberNumberString}`,
+      `https://api.uspsa.org/api/app/${endpoint}`,
       { custom_headers: true },
       { headers: { "uspsa-api": process.env.USPSA_API_KEY } }
     );
     process.stdout.write(".");
     return fetched;
   } catch (err) {
-    console.log("err: " + memberNumberString);
+    console.log("err: " + endpoint);
     console.log(err);
-    exit(1);
     return null;
   }
 };
+
+const fetchFullNumberPageApi = async (
+  memberNumberString,
+  what = "classifiers"
+) => fetchApiEndpoint(`${what}/${memberNumberString}`);
 
 const fetchAndSaveSlice = async (
   curSlice,
@@ -143,6 +144,16 @@ const importEverything = async () => {
       )
     );
   });
+  console.log("done");
+
+  console.log("fetching official hq hhfs & classifiers");
+  const officialHHF = await fetchApiEndpoint("hhf/10");
+  const classifiers = await fetchApiEndpoint("classifier");
+  fs.writeFileSync("./data/hhf.json", JSON.stringify(officialHHF, null, 4));
+  fs.writeFileSync(
+    "./data/classifiers/classifiers.json",
+    JSON.stringify(classifiers, null, 4)
+  );
   console.log("done");
 
   console.log("fetching all classifications");

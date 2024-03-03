@@ -8,6 +8,14 @@ export const divShortNames = divisions.divisions.map((c) =>
 export const mapDivisions = (mapper) =>
   Object.fromEntries(divShortNames.map((div) => [div, mapper(div)]));
 
+export const mapDivisionsAsync = async (mapper) =>
+  Object.fromEntries(
+    await Promise.all(
+      divShortNames.map(async (div) => [div, await mapper(div)])
+    )
+  );
+
+/** {opn: 2, ltd: 3, l10: 4, ... } */
 export const divShortToId = divisions.divisions.reduce(
   (result, cur) => ({ ...result, [cur.short_name.toLowerCase()]: cur.id }),
   {}
