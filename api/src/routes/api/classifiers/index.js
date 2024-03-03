@@ -18,7 +18,6 @@ import { mapDivisionsAsync } from "../../../dataUtil/divisions.js";
 
 const classifiersForDivision = memoize(
   async (division) => {
-    console.log("prepping classifiers for " + division);
     return await Promise.all(
       classifiers.map(async (c) => ({
         ...basicInfoForClassifier(c),
