@@ -1,3 +1,4 @@
+import memoize from "memoize";
 import {
   basicInfoForClassifier,
   classifiers,
@@ -13,14 +14,20 @@ import { multisort } from "../../../../../shared/utils/sort.js";
 import { PAGE_SIZE } from "../../../../../shared/constants/pagination.js";
 import { HF } from "../../../dataUtil/numbers.js";
 import { getExtendedCalibrationShootersPercentileTable } from "../../../dataUtil/shooters.js";
+import { mapDivisionsAsync } from "../../../dataUtil/divisions.js";
 
-const classifiersForDivision = async (division) =>
-  await Promise.all(
-    classifiers.map(async (c) => ({
-      ...basicInfoForClassifier(c),
-      ...(await extendedInfoForClassifier(c, division)),
-    }))
-  );
+const classifiersForDivision = memoize(
+  async (division) => {
+    console.log("prepping classifiers for " + division);
+    return await Promise.all(
+      classifiers.map(async (c) => ({
+        ...basicInfoForClassifier(c),
+        ...(await extendedInfoForClassifier(c, division)),
+      }))
+    );
+  },
+  { cacheKey: ([division]) => division }
+);
 
 /**
  * Calculated recommended HHF by matching lower percent of the score to percentile of shooters
@@ -53,16 +60,22 @@ const classifiersRoutes = async (fastify, opts) => {
 
   fastify.get(
     "/:division",
+    { compress: false },
     async (req) => await classifiersForDivision(req.params.division)
   );
+  fastify.addHook("onListen", async () => {
+    console.log("hydrating classifiers");
+    await mapDivisionsAsync(async (div) => await classifiersForDivision(div));
+    console.log("done hydrating classifiers ");
+  });
 
-  fastify.get("/download/:division", { compress: false }, (req, res) => {
+  fastify.get("/download/:division", { compress: false }, async (req, res) => {
     const { division } = req.params;
     res.header(
       "Content-Disposition",
       `attachment; filename=classifiers.${division}.json`
     );
-    return classifiersForDivision(division);
+    return await classifiersForDivision(division);
   });
 
   fastify.get("/:division/:number", async (req, res) => {

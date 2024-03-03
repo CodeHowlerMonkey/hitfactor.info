@@ -140,6 +140,11 @@ const classificationsRoutes = async (fastify, opts) => {
   fastify.get("/", async (req, res) => {
     return await getMemoizedClassificationStats();
   });
+  fastify.addHook("onListen", async () => {
+    console.log("hydrating classification stats");
+    await getMemoizedClassificationStats();
+    console.log("done hydrating classification stats");
+  });
 };
 
 export default classificationsRoutes;
