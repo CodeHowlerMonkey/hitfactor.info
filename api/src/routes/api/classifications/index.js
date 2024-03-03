@@ -1,5 +1,9 @@
-import { extendedClassificationsInfo } from "../../../dataUtil/classifications.js";
-import { mapDivisions } from "../../../dataUtil/divisions.js";
+import { getExtendedClassificationsInfo } from "../../../dataUtil/classifications.js";
+import {
+  mapDivisions,
+  mapDivisionsAsync,
+} from "../../../dataUtil/divisions.js";
+import { badLazy } from "../../../utils.js";
 
 const classificationRank = (classification) =>
   ["X", "U", "D", "C", "B", "A", "M", "GM"].indexOf(classification);
@@ -66,8 +70,8 @@ const selectClassificationsForDivision = (
     : classificationsObj;
 };
 
-export const highestClassificationCountsFor = (division, mode) => {
-  const highestClassifications = extendedClassificationsInfo
+const getHighestClassificationCountsFor = async (division, mode) => {
+  const highestClassifications = (await getExtendedClassificationsInfo())
     .map((cur) =>
       highestClassification(
         selectClassificationsForDivision(division, cur, mode)
@@ -89,20 +93,22 @@ export const highestClassificationCountsFor = (division, mode) => {
   return highestClassificationCounts;
 };
 
-const calcBuket = (div, mode) => ({
-  U: highestClassificationCountsFor(div, mode).get("U"),
-  D: highestClassificationCountsFor(div, mode).get("D"),
-  C: highestClassificationCountsFor(div, mode).get("C"),
-  B: highestClassificationCountsFor(div, mode).get("B"),
-  A: highestClassificationCountsFor(div, mode).get("A"),
-  M: highestClassificationCountsFor(div, mode).get("M"),
-  GM: highestClassificationCountsFor(div, mode).get("GM"),
+const getDivisionClassBucket = async (div, mode) => ({
+  U: (await getHighestClassificationCountsFor(div, mode)).get("U"),
+  D: (await getHighestClassificationCountsFor(div, mode)).get("D"),
+  C: (await getHighestClassificationCountsFor(div, mode)).get("C"),
+  B: (await getHighestClassificationCountsFor(div, mode)).get("B"),
+  A: (await getHighestClassificationCountsFor(div, mode)).get("A"),
+  M: (await getHighestClassificationCountsFor(div, mode)).get("M"),
+  GM: (await getHighestClassificationCountsFor(div, mode)).get("GM"),
 });
 
-const staticInefficientlyCalculatedDataButIDGAF = {
+const getMemoizedClassificationStats = badLazy(async () => ({
   byClass: {
-    all: calcBuket(undefined, "class"),
-    ...mapDivisions((div) => calcBuket(div, "class")),
+    all: await getDivisionClassBucket(undefined, "class"),
+    ...(await mapDivisionsAsync(
+      async (div) => await getDivisionClassBucket(div, "class")
+    )),
     Approx: {
       U: 0,
       D: 15,
@@ -114,8 +120,10 @@ const staticInefficientlyCalculatedDataButIDGAF = {
     },
   },
   byPercent: {
-    all: calcBuket(undefined, "percent"),
-    ...mapDivisions((div) => calcBuket(div, "percent")),
+    all: await getDivisionClassBucket(undefined, "percent"),
+    ...(await mapDivisionsAsync(
+      async (div) => await getDivisionClassBucket(div, "percent")
+    )),
     Approx: {
       U: 0,
       D: 19,
@@ -126,10 +134,12 @@ const staticInefficientlyCalculatedDataButIDGAF = {
       GM: 1,
     },
   },
-};
+}));
 
 const classificationsRoutes = async (fastify, opts) => {
-  fastify.get("/", (req, res) => staticInefficientlyCalculatedDataButIDGAF);
+  fastify.get("/", async (req, res) => {
+    return await getMemoizedClassificationStats();
+  });
 };
 
 export default classificationsRoutes;

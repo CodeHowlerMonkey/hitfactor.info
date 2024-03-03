@@ -1,6 +1,6 @@
 import {
-  shootersTable,
-  shootersTableByMemberNumber,
+  getShootersTable,
+  getShootersTableByMemberNumber,
   shooterChartData,
   classifiersForDivisionForShooter,
 } from "../../../dataUtil/shooters.js";
@@ -10,21 +10,21 @@ import { multisort } from "../../../../../shared/utils/sort.js";
 import { PAGE_SIZE } from "../../../../../shared/constants/pagination.js";
 
 const shootersRoutes = async (fastify, opts) => {
-  fastify.get("/download/:division", { compress: false }, (req, res) => {
+  fastify.get("/download/:division", { compress: false }, async (req, res) => {
     const { division } = req.params;
     res.header(
       "Content-Disposition",
       `attachment; filename=shooters.${division}.json`
     );
-    return shootersTable[division];
+    return (await getShootersTable())[division];
   });
-  fastify.get("/:division", (req, res) => {
+  fastify.get("/:division", async (req, res) => {
     const { division } = req.params;
     const { sort, order, page: pageString, filter: filterString } = req.query;
     const page = Number(pageString) || 1;
 
     let data = multisort(
-      shootersTable[division],
+      (await getShootersTable())[division],
       sort?.split?.(","),
       order?.split?.(",")
     ).map(({ classifiers, ...run }, index) => ({ ...run, index }));
@@ -46,11 +46,13 @@ const shootersRoutes = async (fastify, opts) => {
   fastify.get(
     "/download/:division/:memberNumber",
     { compress: false },
-    (req, res) => {
+    async (req, res) => {
       const { division, memberNumber } = req.params;
 
       const info =
-        shootersTableByMemberNumber[division]?.[memberNumber]?.[0] || {};
+        (await getShootersTableByMemberNumber())[division]?.[
+          memberNumber
+        ]?.[0] || {};
       const data = classifiersForDivisionForShooter({
         division,
         memberNumber,
@@ -70,13 +72,14 @@ const shootersRoutes = async (fastify, opts) => {
       };
     }
   );
-  fastify.get("/:division/:memberNumber", (req, res) => {
+  fastify.get("/:division/:memberNumber", async (req, res) => {
     const { division, memberNumber } = req.params;
     const { sort, order, page: pageString } = req.query;
     //    const page = Number(pageString) || 1;
 
     const info =
-      shootersTableByMemberNumber[division]?.[memberNumber]?.[0] || {};
+      (await getShootersTableByMemberNumber())[division]?.[memberNumber]?.[0] ||
+      {};
     const data = multisort(
       classifiersForDivisionForShooter({ division, memberNumber }),
       sort?.split?.(","),

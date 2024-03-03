@@ -5,7 +5,7 @@ import memoize from "memoize";
 
 import { divShortToRuns } from "./dataUtil/classifiers.js";
 import { HF, N, Percent, PositiveOrMinus1 } from "./dataUtil/numbers.js";
-import { shooterFullInfo } from "./dataUtil/shooters.js";
+import { getShooterFullInfo } from "./dataUtil/shooters.js";
 
 import { stringSort } from "../../shared/utils/sort.js";
 
@@ -58,7 +58,7 @@ export const chartData = ({ number, division, full: fullString }) => {
 };
 
 export const runsForDivisionClassifier = memoize(
-  ({ number, division, hhf, includeNoHF = false, hhfs }) => {
+  async ({ number, division, hhf, includeNoHF = false, hhfs }) => {
     const divisionClassifierRunsSortedByHFOrPercent =
       selectClassifierDivisionScores({ number, division, includeNoHF }).sort(
         (a, b) => {
@@ -70,30 +70,32 @@ export const runsForDivisionClassifier = memoize(
         }
       );
 
-    return divisionClassifierRunsSortedByHFOrPercent.map(
-      (run, index, allRuns) => {
-        const { memberNumber } = run;
-        const percent = N(run.percent);
-        const curPercent = PositiveOrMinus1(Percent(run.hf, hhf));
-        const percentMinusCurPercent = N(percent - curPercent);
+    return await Promise.all(
+      divisionClassifierRunsSortedByHFOrPercent.map(
+        async (run, index, allRuns) => {
+          const { memberNumber } = run;
+          const percent = N(run.percent);
+          const curPercent = PositiveOrMinus1(Percent(run.hf, hhf));
+          const percentMinusCurPercent = N(percent - curPercent);
 
-        const findHistoricalHHF = hhfs.findLast(
-          (hhf) => hhf.date <= new Date(run.sd).getTime()
-        )?.hhf;
+          const findHistoricalHHF = hhfs.findLast(
+            (hhf) => hhf.date <= new Date(run.sd).getTime()
+          )?.hhf;
 
-        const recalcHistoricalHHF = HF((100 * run.hf) / run.percent);
+          const recalcHistoricalHHF = HF((100 * run.hf) / run.percent);
 
-        return {
-          ...run,
-          ...shooterFullInfo({ memberNumber, division }),
-          historicalHHF: findHistoricalHHF ?? recalcHistoricalHHF,
-          percent,
-          curPercent,
-          percentMinusCurPercent: percent >= 100 ? 0 : percentMinusCurPercent,
-          place: index + 1,
-          percentile: PositiveOrMinus1(Percent(index, allRuns.length)),
-        };
-      }
+          return {
+            ...run,
+            ...(await getShooterFullInfo({ memberNumber, division })),
+            historicalHHF: findHistoricalHHF ?? recalcHistoricalHHF,
+            percent,
+            curPercent,
+            percentMinusCurPercent: percent >= 100 ? 0 : percentMinusCurPercent,
+            place: index + 1,
+            percentile: PositiveOrMinus1(Percent(index, allRuns.length)),
+          };
+        }
+      )
     );
   },
   { cacheKey: (ehFuckit) => JSON.stringify(ehFuckit) }

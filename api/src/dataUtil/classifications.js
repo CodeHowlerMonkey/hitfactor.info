@@ -1,4 +1,4 @@
-import { loadJSON, processImport } from "../utils.js";
+import { loadJSON, processImport, badLazy } from "../utils.js";
 import { divIdToShort } from "./divisions.js";
 
 const memberIdToNumberMap = loadJSON("../../data/meta/memberIdToNumber.json");
@@ -49,11 +49,14 @@ const mapClassificationInfo = (c) => ({
   ),
 });
 
-export const extendedClassificationsInfo = [];
-processImport(
-  "../../data/imported",
-  /classification\.\d+\.json/,
-  ({ value }) => {
-    extendedClassificationsInfo.push(mapClassificationInfo(value));
-  }
-);
+export const getExtendedClassificationsInfo = badLazy(() => {
+  const result = [];
+  processImport(
+    "../../data/imported",
+    /classification\.\d+\.json/,
+    ({ value }) => {
+      result.push(mapClassificationInfo(value));
+    }
+  );
+  return result;
+});

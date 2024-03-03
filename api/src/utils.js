@@ -25,3 +25,15 @@ export const processImport = (dir, fileRegexp, forEachFileJSONCb) => {
  */
 export const flatPush = (target, values) =>
   Array.prototype.push.apply(target, values);
+
+/**  not real async, just for deferring expensive calculations after binding the port */
+export const badLazy = (resolver) => {
+  let lazyPromise = null;
+  return async () => {
+    if (!lazyPromise) {
+      lazyPromise = new Promise(async (resolve) => resolve(await resolver()));
+    }
+
+    return lazyPromise;
+  };
+};

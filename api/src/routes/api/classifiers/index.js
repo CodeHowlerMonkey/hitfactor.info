@@ -12,7 +12,7 @@ import {
 import { multisort } from "../../../../../shared/utils/sort.js";
 import { PAGE_SIZE } from "../../../../../shared/constants/pagination.js";
 import { HF } from "../../../dataUtil/numbers.js";
-import { extendedCalibrationShootersPercentileTable } from "../../../dataUtil/shooters.js";
+import { getExtendedCalibrationShootersPercentileTable } from "../../../dataUtil/shooters.js";
 
 const classifiersForDivision = (division) =>
   classifiers.map((c) => ({
@@ -62,7 +62,7 @@ const classifiersRoutes = async (fastify, opts) => {
     return classifiersForDivision(division);
   });
 
-  fastify.get("/:division/:number", (req, res) => {
+  fastify.get("/:division/:number", async (req, res) => {
     const { division, number } = req.params;
     const {
       sort,
@@ -87,7 +87,7 @@ const classifiersRoutes = async (fastify, opts) => {
     const extended = extendedInfoForClassifier(c, division);
     const { hhf, hhfs } = extended;
 
-    let runsUnsorted = runsForDivisionClassifier({
+    let runsUnsorted = await runsForDivisionClassifier({
       number,
       division,
       hhf,
@@ -124,17 +124,17 @@ const classifiersRoutes = async (fastify, opts) => {
         ...extended,
         recommendedHHF1: recommendedHHFByPercentileAndPercent(
           runsUnsorted,
-          extendedCalibrationShootersPercentileTable[division].pGM,
+          await getExtendedCalibrationShootersPercentileTable()[division].pGM,
           95
         ),
         recommendedHHF5: recommendedHHFByPercentileAndPercent(
           runsUnsorted,
-          extendedCalibrationShootersPercentileTable[division].pM,
+          await getExtendedCalibrationShootersPercentileTable()[division].pM,
           85
         ),
         recommendedHHF15: recommendedHHFByPercentileAndPercent(
           runsUnsorted,
-          extendedCalibrationShootersPercentileTable[division].pA,
+          await getExtendedCalibrationShootersPercentileTable()[division].pA,
           75
         ),
       },
@@ -147,7 +147,7 @@ const classifiersRoutes = async (fastify, opts) => {
   fastify.get(
     "/download/:division/:number",
     { compress: false },
-    (req, res) => {
+    async (req, res) => {
       const { division, number } = req.params;
       const c = classifiers.find((cur) => cur.classifier === number);
 
@@ -170,7 +170,7 @@ const classifiersRoutes = async (fastify, opts) => {
           ...basic,
           ...extended,
         },
-        runs: runsForDivisionClassifier({
+        runs: await runsForDivisionClassifier({
           number,
           division,
           hhf,

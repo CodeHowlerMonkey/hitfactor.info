@@ -1,5 +1,6 @@
 // TODO: rename to scores
 import { flatPush, processImport } from "../utils.js";
+
 import { byMemberNumber } from "./byMemberNumber.js";
 import { divIdToShort, mapDivisions } from "./divisions.js";
 
@@ -15,6 +16,7 @@ processImport("../../data/imported", /classifiers\.\d+\.json/, (obj) => {
       // just skip for now
       return;
     }
+
     flatPush(
       divShortToRuns[divShort],
       divObj?.division_classifiers?.map(

@@ -1,12 +1,13 @@
-import { extendedClassificationsInfo } from "./classifications.js";
+import { getExtendedClassificationsInfo } from "./classifications.js";
 import { N, Percent, PositiveOrMinus1 } from "./numbers.js";
 
-import { divIdToShort, mapDivisions } from "./divisions.js";
+import { mapDivisions, mapDivisionsAsync } from "./divisions.js";
 import { divShortToShooterToRuns } from "./classifiers.js";
 
 import { byMemberNumber } from "./byMemberNumber.js";
 import { curHHFForDivisionClassifier } from "./hhf.js";
 import { dateSort } from "../../../shared/utils/sort.js";
+import { badLazy } from "../utils.js";
 
 const scoresAge = (division, memberNumber, maxScores = 4) =>
   (divShortToShooterToRuns[division][memberNumber] ?? [])
@@ -16,8 +17,8 @@ const scoresAge = (division, memberNumber, maxScores = 4) =>
     .map((c) => (new Date() - new Date(c.sd)) / (28 * 24 * 60 * 60 * 1000)) // millisecconds to 28-day "months"
     .reduce((acc, curV, unusedIndex, arr) => acc + curV / arr.length, 0);
 
-const shootersFullForDivision = (division) =>
-  extendedClassificationsInfo
+const getShootersFullForDivision = async (division) =>
+  (await getExtendedClassificationsInfo())
     .map((c) => {
       const { classifications, high, current, ...etc } = c;
       try {
@@ -65,8 +66,8 @@ const shootersFullForDivision = (division) =>
 
 // TODO: we can use all shooters, and all classifiers with HF if we recalculate everything
 // against current HHFs... ://
-const freshShootersForDivisionCalibration = (division, maxAge = 48) =>
-  shootersFullForDivision(division) // sorted by current already
+const getFreshShootersForDivisionCalibration = async (division, maxAge = 48) =>
+  (await getShootersFullForDivision(division)) // sorted by current already
     .filter((c) => c.age > 0 && c.age <= maxAge)
     .map((c, index, all) => ({
       current: c.current,
@@ -88,44 +89,41 @@ export const classifiersForDivisionForShooter = ({ division, memberNumber }) =>
     return { ...run, curPercent, percentMinusCurPercent, index };
   });
 
-// TODO: just refactor the interface into a function and memoize it
-// then just start cache warmup after port bind
-export let extendedCalibrationShootersPercentileTable = {};
-export let shootersTable = {};
-export let shootersTableByMemberNumber = {};
-setTimeout(() => {
-  console.log("calculating shooters tables");
-  extendedCalibrationShootersPercentileTable = mapDivisions((div) => ({
+export const getExtendedCalibrationShootersPercentileTable = async () =>
+  await mapDivisionsAsync(async (div) => ({
     pGM:
-      freshShootersForDivisionCalibration(div).find((c) => c.current <= 95)
-        ?.percentile || 1,
+      (
+        await getFreshShootersForDivisionCalibration(div)
+      ).find((c) => c.current <= 95)?.percentile || 1,
     pM:
-      freshShootersForDivisionCalibration(div).find((c) => c.current <= 85)
-        ?.percentile || 5,
+      (
+        await getFreshShootersForDivisionCalibration(div)
+      ).find((c) => c.current <= 85)?.percentile || 5,
     pA:
-      freshShootersForDivisionCalibration(div).find((c) => c.current <= 75)
-        ?.percentile || 15,
-    // not gonna calculate these for now (slows down server start, not used in analysis)
-    //    pB:
-    //  freshShootersForDivisionCalibration(div).find((c) => c.current <= 60)
-    //    ?.percentile || 40,
-    //pC:
-    //  freshShootersForDivisionCalibration(div).find((c) => c.current <= 40)
-    //    ?.percentile || 90,
+      (
+        await getFreshShootersForDivisionCalibration(div)
+      ).find((c) => c.current <= 75)?.percentile || 15,
   }));
 
-  shootersTable = {
-    opn: shootersFullForDivision("opn"),
-    ltd: shootersFullForDivision("ltd"),
-    l10: shootersFullForDivision("l10"),
-    prod: shootersFullForDivision("prod"),
-    ss: shootersFullForDivision("ss"),
-    rev: shootersFullForDivision("rev"),
-    co: shootersFullForDivision("co"),
-    pcc: shootersFullForDivision("pcc"),
-    lo: shootersFullForDivision("lo"),
-  };
-  shootersTableByMemberNumber = {
+export const getShootersTable = badLazy(async () => ({
+  opn: await getShootersFullForDivision("opn"),
+  ltd: await getShootersFullForDivision("ltd"),
+  l10: await getShootersFullForDivision("l10"),
+  prod: await getShootersFullForDivision("prod"),
+  ss: await getShootersFullForDivision("ss"),
+  rev: await getShootersFullForDivision("rev"),
+  co: await getShootersFullForDivision("co"),
+  pcc: await getShootersFullForDivision("pcc"),
+  lo: await getShootersFullForDivision("lo"),
+  loco: [
+    ...(await getShootersFullForDivision("lo")),
+    ...(await getShootersFullForDivision("co")),
+  ],
+}));
+
+export const getShootersTableByMemberNumber = badLazy(async () => {
+  const shootersTable = await getShootersTable();
+  return {
     opn: byMemberNumber(shootersTable.opn),
     ltd: byMemberNumber(shootersTable.ltd),
     l10: byMemberNumber(shootersTable.l10),
@@ -135,13 +133,13 @@ setTimeout(() => {
     co: byMemberNumber(shootersTable.co),
     lo: byMemberNumber(shootersTable.lo),
     pcc: byMemberNumber(shootersTable.pcc),
+    loco: byMemberNumber(shootersTable.loco),
   };
-  console.log("DONE calculating shooters tables");
-}, 1000);
+});
 
-export const shooterFullInfo = ({ memberNumber, division }) => {
+export const getShooterFullInfo = async ({ memberNumber, division }) => {
   try {
-    return shootersTableByMemberNumber[division][memberNumber][0];
+    return await getShootersTableByMemberNumber()[division][memberNumber][0];
   } catch (err) {
     console.log(err);
     console.log(memberNumber);
