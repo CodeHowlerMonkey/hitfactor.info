@@ -1,7 +1,6 @@
 import crypto, { randomUUID } from "crypto";
 import { mapDivisions } from "../../api/src/dataUtil/divisions.js";
 import uniqBy from "lodash.uniqby";
-import xor from "lodash.xor";
 import { dateSort, numSort } from "./sort.js";
 
 export const classificationRank = (classification) =>
