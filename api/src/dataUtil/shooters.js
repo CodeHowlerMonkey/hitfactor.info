@@ -98,7 +98,7 @@ export const classifiersForDivisionForShooter = async ({
       const percentMinusCurPercent =
         curPercent >= 0 ? N(run.percent - curPercent) : -1;
 
-      return { ...run, curPercent, percentMinusCurPercent, index };
+      return { ...run, curPercent, percentMinusCurPercent, index, division };
     }
   );
 
