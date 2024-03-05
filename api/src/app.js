@@ -22,6 +22,7 @@ const FastifyAppEntry = async (fastify, opts) => {
   // controllers
   fastify.register(AutoLoad, {
     dir: dirPath("routes"),
+    ignoreFilter: (path) => path.includes("/test/"),
     options: Object.assign({}, opts),
   });
 };

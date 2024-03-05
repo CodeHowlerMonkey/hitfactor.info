@@ -154,12 +154,18 @@ const ModeSwitch = ({ mode, setMode, modes }) => (
   />
 );
 
+// "By Cur. HHF Percent" => byCurHHFPercent
+const modeBucketForMode = (mode) => {
+  const oneWord = mode.replace(/(\.)|(\s)/g, "");
+  return oneWord.charAt(0).toLowerCase() + oneWord.slice(1);
+};
+
 // main "page" of this file
 export const ClassificationStats = () => {
-  const modes = ["By Class", "By Percent"];
+  const modes = ["By Class", "By Percent", "By Cur.HHF Percent"];
   const [mode, setMode] = useState(modes[0]);
   const modeSwitchProps = { modes, mode, setMode };
-  const modeBucket = mode === "By Percent" ? "byPercent" : "byClass";
+  const modeBucket = modeBucketForMode(mode);
   const [includeU, setChecked] = useState(false);
   const apiData = useApi("/classifications");
   const [alignBy, setAlignBy] = useState(-1);

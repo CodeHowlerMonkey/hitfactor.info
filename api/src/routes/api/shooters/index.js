@@ -3,12 +3,12 @@ import {
   getShootersTableByMemberNumber,
   shooterChartData,
   classifiersForDivisionForShooter,
-  getShooterFullInfo,
 } from "../../../dataUtil/shooters.js";
 
 import { basicInfoForClassifierCode } from "../../../dataUtil/classifiersData.js";
 import { multisort } from "../../../../../shared/utils/sort.js";
 import { PAGE_SIZE } from "../../../../../shared/constants/pagination.js";
+import { getShooterToCurPercentClassifications } from "../../../dataUtil/classifiers.js";
 
 const shootersRoutes = async (fastify, opts) => {
   fastify.get("/download/:division", { compress: false }, async (req, res) => {
@@ -24,8 +24,10 @@ const shootersRoutes = async (fastify, opts) => {
     const { sort, order, page: pageString, filter: filterString } = req.query;
     const page = Number(pageString) || 1;
 
+    const shootersTable = (await getShootersTable())[division];
+
     let data = multisort(
-      (await getShootersTable())[division],
+      shootersTable.filter((c) => c.class !== "U" && c.class !== "X"),
       sort?.split?.(","),
       order?.split?.(",")
     ).map(({ classifiers, ...run }, index) => ({ ...run, index }));
@@ -49,6 +51,7 @@ const shootersRoutes = async (fastify, opts) => {
     console.log("hydrating shooters");
     await getShootersTable();
     await getShootersTableByMemberNumber();
+    await getShooterToCurPercentClassifications();
     console.log("done hydrating shooters");
   });
 
@@ -86,8 +89,6 @@ const shootersRoutes = async (fastify, opts) => {
   fastify.get("/:division/:memberNumber", async (req, res) => {
     const { division, memberNumber } = req.params;
     const { sort, order, page: pageString } = req.query;
-    //    const page = Number(pageString) || 1;
-    await getShooterFullInfo({ division, memberNumber });
 
     const info =
       (await getShootersTableByMemberNumber())[division]?.[memberNumber]?.[0] ||
@@ -109,6 +110,7 @@ const shootersRoutes = async (fastify, opts) => {
       // classifiersPage: page,
     };
   });
+
   fastify.get("/:division/:memberNumber/chart", async (req, res) => {
     const { division, memberNumber } = req.params;
     return await shooterChartData({ division, memberNumber });

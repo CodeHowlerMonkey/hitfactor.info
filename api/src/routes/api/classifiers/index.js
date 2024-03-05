@@ -15,6 +15,7 @@ import { PAGE_SIZE } from "../../../../../shared/constants/pagination.js";
 import { HF } from "../../../dataUtil/numbers.js";
 import { getExtendedCalibrationShootersPercentileTable } from "../../../dataUtil/shooters.js";
 import { mapDivisionsAsync } from "../../../dataUtil/divisions.js";
+import { getShooterToRuns } from "../../../dataUtil/classifiers.js";
 
 const classifiersForDivision = memoize(
   async (division) => {
@@ -65,6 +66,7 @@ const classifiersRoutes = async (fastify, opts) => {
   fastify.addHook("onListen", async () => {
     console.log("hydrating classifiers");
     await mapDivisionsAsync(async (div) => await classifiersForDivision(div));
+    await getShooterToRuns();
     console.log("done hydrating classifiers ");
   });
 

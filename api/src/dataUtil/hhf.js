@@ -37,6 +37,12 @@ export const curHHFForDivisionClassifier = ({ division, number }) => {
     return NaN;
   }
 
-  const curHHFInfo = divisionHHFs.find((dHHF) => dHHF.classifier === c.id);
-  return HF(curHHFInfo.hhf);
+  try {
+    const curHHFInfo = divisionHHFs.find((dHHF) => dHHF.classifier === c.id);
+    return HF(curHHFInfo.hhf);
+  } catch (all) {
+    console.log("cant find HHF for division:");
+    console.log(division);
+    return -1;
+  }
 };

@@ -11,6 +11,7 @@
     "start": "concurrently -c \"auto\" --names \"API,WEB\" \"npm run start-api\" \"npm run start-web\"",
     "start-api": "cd api && npm start",
     "start-web": "cd web && npm start",
+    "test": "node --test",
     "====================== Production / Build Scripts ================": "",
     "prod": "cd api && npm run prod",
     "postinstall": "(cd api && npm install); (cd web && npm install && npm run build);",
@@ -20,5 +21,8 @@
   "devDependencies": {
     "concurrently": "^8.2.2",
     "zenrows": "^1.3.2"
+  },
+  "dependencies": {
+    "lodash.uniqby": "^4.7.0"
   }
 }

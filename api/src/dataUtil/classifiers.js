@@ -1,8 +1,11 @@
 // TODO: rename to scores
+import { calculateUSPSAClassification } from "../../../shared/utils/classification.js";
 import { badLazy, flatPush, processImport } from "../utils.js";
 
 import { byMemberNumber } from "./byMemberNumber.js";
 import { divIdToShort, mapDivisions } from "./divisions.js";
+import { curHHFForDivisionClassifier } from "./hhf.js";
+import { Percent, PositiveOrMinus1 } from "./numbers.js";
 
 export const getDivShortToRuns = badLazy(async () => {
   const result = mapDivisions(() => []);
@@ -39,6 +42,7 @@ export const getDivShortToRuns = badLazy(async () => {
             code,
             source,
             memberNumber,
+            division: divShort,
           })
         )
       );
@@ -63,3 +67,52 @@ export const getDivShortToShooterToRuns = badLazy(async () => {
     loco: byMemberNumber(divShortToRuns.loco),
   };
 });
+
+export const getShooterToRuns = badLazy(async () => {
+  const divShortToRuns = await getDivShortToRuns();
+  const result = byMemberNumber(
+    [
+      ...divShortToRuns.opn,
+      ...divShortToRuns.ltd,
+      ...divShortToRuns.l10,
+      ...divShortToRuns.prod,
+      ...divShortToRuns.ss,
+      ...divShortToRuns.rev,
+      ...divShortToRuns.co,
+      ...divShortToRuns.lo,
+      ...divShortToRuns.pcc,
+      ...divShortToRuns.loco,
+    ]
+      .filter((c) => !!c.division)
+      //.filter((c) => c.hf >= 0)
+      .map((c) => {
+        const { division, classifier: number } = c;
+        if (c.hf) {
+          const hhf = curHHFForDivisionClassifier({ division, number });
+          c.hhf = hhf;
+          c.curPercent = PositiveOrMinus1(Percent(c.hf, hhf));
+        } else {
+          c.hhf = -1;
+          c.curPercent = c.source === "Major Match" ? c.percent : -1;
+        }
+        // TODO: c.recPercent = ~ recHHF
+
+        return c;
+      })
+  );
+  return result;
+});
+
+/** @returns {A111: {opn: { percent: 73, highPercent: 75}, ltd: ... }...} */
+export const getShooterToCurPercentClassifications = badLazy(async () => {
+  const shooterToRuns = await getShooterToRuns();
+  const result = Object.fromEntries(
+    Object.entries(shooterToRuns).map(([memberId, c]) => {
+      const calcd = calculateUSPSAClassification(c, "curPercent");
+      return [memberId, calcd];
+    })
+  );
+  return result;
+});
+
+// TODO: getShooterToRecPercentClassifications

@@ -3,12 +3,13 @@ import memoize from "memoize";
 import { getExtendedClassificationsInfo } from "./classifications.js";
 import { N, Percent, PositiveOrMinus1 } from "./numbers.js";
 import { mapDivisions, mapDivisionsAsync } from "./divisions.js";
-import { getDivShortToShooterToRuns } from "./classifiers.js";
+import { getDivShortToShooterToRuns, getShooterToRuns } from "./classifiers.js";
 import { byMemberNumber } from "./byMemberNumber.js";
 import { curHHFForDivisionClassifier } from "./hhf.js";
 
 import { dateSort } from "../../../shared/utils/sort.js";
 import { badLazy } from "../utils.js";
+import { classForPercent } from "../../../shared/utils/classification.js";
 
 const scoresAge = async (division, memberNumber, maxScores = 4) =>
   ((await getDivShortToShooterToRuns())[division][memberNumber] ?? [])
@@ -18,46 +19,94 @@ const scoresAge = async (division, memberNumber, maxScores = 4) =>
     .map((c) => (new Date() - new Date(c.sd)) / (28 * 24 * 60 * 60 * 1000)) // millisecconds to 28-day "months"
     .reduce((acc, curV, unusedIndex, arr) => acc + curV / arr.length, 0);
 
+const reclassificationBreakdown = (reclassificationInfo, division) => {
+  const high = reclassificationInfo?.[division]?.highPercent;
+  const current = reclassificationInfo?.[division]?.percent;
+  return {
+    class: classForPercent(current),
+    classes: mapDivisions((div) =>
+      classForPercent(reclassificationInfo?.[div]?.percent)
+    ),
+    highClass: classForPercent(high),
+    highClasses: mapDivisions((div) =>
+      classForPercent(reclassificationInfo?.[div]?.highPercent)
+    ),
+    high,
+    current: reclassificationInfo?.[division]?.percent,
+    highs: mapDivisions((div) => reclassificationInfo?.[div]?.highPercent),
+    currents: mapDivisions((div) => reclassificationInfo?.[div]?.percent),
+  };
+};
+
+const classificationsBreakdownAdapter = (c, division) => {
+  const {
+    classifications,
+    reclassificationsByCurPercent,
+    high,
+    current,
+    ...etc
+  } = c;
+  try {
+    const reclassificationsCurPercent = reclassificationBreakdown(
+      reclassificationsByCurPercent,
+      division
+    );
+
+    return {
+      ...etc,
+      class: classifications?.[division],
+      classes: classifications,
+      high: high?.[division],
+      current: current?.[division],
+      highs: high,
+      currents: current,
+      // needs to be not-deep for sort
+      reclassificationsCurPercentCurrent: Number(
+        (reclassificationsCurPercent?.current ?? 0).toFixed(4)
+      ),
+      reclassifications: {
+        curPercent: reclassificationsCurPercent,
+        // TODO: recPercent
+      },
+      division,
+    };
+  } catch (err) {
+    console.log(err);
+    console.log(division);
+  }
+
+  return {
+    ...c,
+    class: "X",
+    high: 0,
+    current: 0,
+    division,
+    name: "Expired / Not Found",
+  };
+};
+
+const safeNumSort = (field) => (a, b) => {
+  // sort by current to calculate currentRank
+  // have to use Max and || 0 because U/X shooters need to be in the
+  // output here (used in shooter info head), but can't mess up the
+  // ranking due to null/-1/undefined values
+  // note: || is used instead of ?? to convert NaN to 0 as well
+  return Math.max(0, b[field] || 0) - Math.max(0, a[field] || 0);
+};
+
 const getShootersFullForDivision = memoize(
   async (division) =>
     Promise.all(
       (await getExtendedClassificationsInfo())
-        .map((c) => {
-          const { classifications, high, current, ...etc } = c;
-          try {
-            return {
-              ...etc,
-              class: classifications?.[division],
-              classes: classifications,
-              high: high?.[division],
-              current: current?.[division],
-              highs: high,
-              currents: current,
-              division,
-            };
-          } catch (err) {
-            console.log(err);
-            console.log(memberNumber);
-            console.log(division);
-          }
-
-          return {
-            ...c,
-            class: "X",
-            high: 0,
-            current: 0,
-            division,
-            name: "Expired / Not Found",
-          };
-        })
-        .filter((c) => c.class !== "U" && c.class !== "X")
-        .sort((a, b) => b.high - a.high) // sort by high to calculate highRank
+        .map((c) => classificationsBreakdownAdapter(c, division))
+        //        .filter((c) => c.class !== "U" && c.class !== "X")
+        .sort(safeNumSort("high")) // sort by high to calculate highRank
         .map((c, index, all) => ({
           ...c,
           highRank: index,
           highPercentile: Percent(index, all.length),
         }))
-        .sort((a, b) => b.current - a.current) // sort by current to calculate currentRank
+        .sort(safeNumSort("current"))
         .map(async (c, index, all) => ({
           ...c,
           currentRank: index,
@@ -98,7 +147,7 @@ export const classifiersForDivisionForShooter = async ({
       const percentMinusCurPercent =
         curPercent >= 0 ? N(run.percent - curPercent) : -1;
 
-      return { ...run, curPercent, percentMinusCurPercent, index };
+      return { ...run, curPercent, percentMinusCurPercent, index, division };
     }
   );
 

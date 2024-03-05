@@ -130,8 +130,26 @@ const ShootersTable = ({ division, onShooterSelection }) => {
           />
         )}
       />
-      <Column field="current" header="Cur. %" sortable />
-      <Column field="high" header="High %" sortable />
+      <Column
+        field="reclassificationsCurPercentCurrent"
+        header="Cur.HHFs %"
+        headerTooltip="Current classification percent of this shooter, if all their Y-flagged scores used the most recent HHFs for classifiers. Major Matches results stay the same."
+        headerTooltipOptions={headerTooltipOptions}
+        sortable
+        body={(c) => c.reclassificationsCurPercentCurrent.toFixed(2) + "%"}
+      />
+      <Column
+        field="current"
+        header="Cur. %"
+        sortable
+        body={(c) => c.current.toFixed(2) + "%"}
+      />
+      <Column
+        field="high"
+        header="High %"
+        sortable
+        body={(c) => c.high.toFixed(2) + "%"}
+      />
       <Column
         field="currentRank"
         header="Cur. Rank"
@@ -146,8 +164,18 @@ const ShootersTable = ({ division, onShooterSelection }) => {
         headerTooltip="TopXXX Rank of that Shooter baed on their(and others) High Division Percentage"
         headerTooltipOptions={headerTooltipOptions}
       />
-      <Column field="currentPercentile" header="Cur. Percentile" sortable />
-      <Column field="highPercentile" header="High Percentile" sortable />
+      <Column
+        field="currentPercentile"
+        header="Cur. Percentile"
+        sortable
+        body={(c) => "Top " + c.currentPercentile.toFixed(2) + "%"}
+      />
+      <Column
+        field="highPercentile"
+        header="High Percentile"
+        sortable
+        body={(c) => "Top " + c.highPercentile.toFixed(2) + "%"}
+      />
       <Column
         field="age"
         header="Age"

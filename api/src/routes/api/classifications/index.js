@@ -1,14 +1,13 @@
+import {
+  highestClassification,
+  classForPercent,
+} from "../../../../../shared/utils/classification.js";
 import { getExtendedClassificationsInfo } from "../../../dataUtil/classifications.js";
 import {
   mapDivisions,
   mapDivisionsAsync,
 } from "../../../dataUtil/divisions.js";
 import { badLazy } from "../../../utils.js";
-
-const classificationRank = (classification) =>
-  ["X", "U", "D", "C", "B", "A", "M", "GM"].indexOf(classification);
-/* const hasClassification = (classification) =>
-  ["D", "C", "B", "A", "M", "GM"].indexOf(classification) !== -1; */
 
 const divisions = [
   "Open", // 2
@@ -23,35 +22,10 @@ const divisions = [
   // LO/CO 411
 ];
 
-const highestClassification = (classificationsObj) =>
-  Object.values(classificationsObj).reduce((prev, curClass) => {
-    if (classificationRank(prev) >= classificationRank(curClass)) {
-      return prev;
-    } else {
-      return curClass;
-    }
-  }, undefined);
-
 const calculateCurrentClassifications = (memberCurPercentObj) =>
   mapDivisions((div) => {
     const curPercent = memberCurPercentObj[div];
-    if (curPercent <= 0) {
-      return "U";
-    } else if (curPercent < 40) {
-      return "D";
-    } else if (curPercent < 60) {
-      return "C";
-    } else if (curPercent < 75) {
-      return "B";
-    } else if (curPercent < 85) {
-      return "A";
-    } else if (curPercent < 95) {
-      return "M";
-    } else if (curPercent >= 95) {
-      return "GM";
-    }
-
-    return "U";
+    return classForPercent(curPercent);
   });
 
 const selectClassificationsForDivision = (
@@ -59,10 +33,20 @@ const selectClassificationsForDivision = (
   extMemberInfoObject,
   mode
 ) => {
-  const classificationsObj =
-    mode !== "percent"
-      ? extMemberInfoObject.classifications
-      : calculateCurrentClassifications(extMemberInfoObject.current);
+  let classificationsObj = extMemberInfoObject.classifications;
+  if (mode === "percent") {
+    classificationsObj = calculateCurrentClassifications(
+      extMemberInfoObject.current
+    );
+  } else if (mode === "curHHFPercent") {
+    classificationsObj = calculateCurrentClassifications(
+      mapDivisions(
+        (div) =>
+          extMemberInfoObject.reclassificationsByCurPercent?.[div]?.percent ?? 0
+      )
+    );
+  }
+
   return division
     ? {
         [division]: classificationsObj[division],
@@ -123,6 +107,21 @@ const getMemoizedClassificationStats = badLazy(async () => ({
     all: await getDivisionClassBucket(undefined, "percent"),
     ...(await mapDivisionsAsync(
       async (div) => await getDivisionClassBucket(div, "percent")
+    )),
+    Approx: {
+      U: 0,
+      D: 19,
+      C: 42,
+      B: 25,
+      A: 8,
+      M: 5,
+      GM: 1,
+    },
+  },
+  byCurHHFPercent: {
+    all: await getDivisionClassBucket(undefined, "curHHFPercent"),
+    ...(await mapDivisionsAsync(
+      async (div) => await getDivisionClassBucket(div, "curHHFPercent")
     )),
     Approx: {
       U: 0,
