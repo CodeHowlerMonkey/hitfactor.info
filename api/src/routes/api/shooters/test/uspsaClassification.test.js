@@ -16,7 +16,7 @@ import {
 } from "../../../../../../shared/utils/classification.js";
 import { mapDivisions } from "../../../../dataUtil/divisions.js";
 
-import testData from "./testData.js";
+import testData, { csClassifiers } from "./testData.js";
 
 test("lets make sure this works first", (t) => {
   assert.strictEqual(1, 1);
@@ -665,13 +665,18 @@ test("calculateUSPSAClassification + percentField", (t) => {
   assert.strictEqual(Number(result.ltd.percent.toFixed(2)), 93.76);
   assert.strictEqual(Number(result.ltd.highPercent.toFixed(2)), 93.76);
 
-  assert.strictEqual(Number(result.prod.percent.toFixed(2)), 91.63);
+  assert.strictEqual(Number(result.prod.percent.toFixed(2)), 90.78);
   assert.strictEqual(Number(result.prod.highPercent.toFixed(2)), 94.35);
 
-  assert.strictEqual(Number(result.co.percent.toFixed(2)), 102.77);
-  assert.strictEqual(Number(result.co.highPercent.toFixed(2)), 104.37);
+  assert.strictEqual(Number(result.co.percent.toFixed(2)), 102.08);
+  assert.strictEqual(Number(result.co.highPercent.toFixed(2)), 102.66);
 
   assert.strictEqual(Number(result.lo.percent.toFixed(2)), 97.23);
   assert.strictEqual(Number(result.lo.highPercent.toFixed(2)), 97.23);
   // TODO: add more testData real people, if edge cases are detected
+});
+
+test("calculateUSPSAClassification + percentField", (t) => {
+  const result = calculateUSPSAClassification(csClassifiers, "curPercent");
+  assert.strictEqual(Number(result.co.percent.toFixed(2)), 97.68);
 });

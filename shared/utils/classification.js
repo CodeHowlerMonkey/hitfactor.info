@@ -174,7 +174,6 @@ export const calculateUSPSAClassification = (
   }
 
   const classifiersReadyToScore = classifiers
-    .filter((c) => c[percentField] >= 0)
     .toSorted((a, b) => {
       const asDate = dateSort(a, b, "sd", 1);
       if (!asDate) {
@@ -184,9 +183,11 @@ export const calculateUSPSAClassification = (
     })
     .map((c) => ({
       ...c,
+      // Major Matches should always be eligible for reclassification
       classifier: c.source === "Major Match" ? randomUUID() : c.classifier,
       curPercent: c.source === "Major Match" ? c.percent : c.curPercent,
-    }));
+    }))
+    .filter((c) => c[percentField] >= 0);
 
   const scoringFunction = (c) => {
     if (!canBeInserted(c, state, percentField)) {
