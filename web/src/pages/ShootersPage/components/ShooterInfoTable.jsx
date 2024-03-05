@@ -16,9 +16,9 @@ const tableNameForDiv = {
 const cardRow = ({ classes, highs, currents, ages }, div) => ({
   k: tableNameForDiv[div],
   v1: classes[div],
-  v2: highs[div].toFixed(2) + "%",
-  v3: currents[div].toFixed(2) + "%",
-  v4: ages[div].toFixed(1) + "mo",
+  v2: (highs[div] ?? 0).toFixed(2) + "%",
+  v3: (currents[div] ?? 0).toFixed(2) + "%",
+  v4: (ages[div] ?? -1).toFixed(1) + "mo",
 });
 
 export const ShooterInfoTable = ({ info }) => {
