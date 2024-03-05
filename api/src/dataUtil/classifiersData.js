@@ -1,4 +1,5 @@
 import { loadJSON } from "../utils.js";
+import { mapDivisionsAsync } from "./divisions.js";
 
 export const classifiers = loadJSON(
   "../../data/classifiers/classifiers.json"

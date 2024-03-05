@@ -3,7 +3,7 @@ import memoize from "memoize";
 import { getExtendedClassificationsInfo } from "./classifications.js";
 import { N, Percent, PositiveOrMinus1 } from "./numbers.js";
 import { mapDivisions, mapDivisionsAsync } from "./divisions.js";
-import { getDivShortToShooterToRuns } from "./classifiers.js";
+import { getDivShortToShooterToRuns, getShooterToRuns } from "./classifiers.js";
 import { byMemberNumber } from "./byMemberNumber.js";
 import { curHHFForDivisionClassifier } from "./hhf.js";
 

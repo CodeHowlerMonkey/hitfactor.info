@@ -58,36 +58,44 @@ export const lowestAllowedPercentForOtherDivisionClass = (
     B: 40,
   }[highestClassification] || 0);
 
-export const canBeInserted = (c, state) => {
-  const { division, classifier } = c;
-  const { window } = state[division];
-  const percentField = "percent"; // TODO: curPercent, recommendedPercent
-  const percent = c[percentField];
+export const canBeInserted = (c, state, percentField = "percent") => {
+  try {
+    const { division, classifier } = c;
+    if (!division) {
+      return false;
+    }
+    const { window } = state[division];
+    const percent = c[percentField];
 
-  // zeros never count - instant B flag
-  if (!c[percentField]) {
-    return false;
-  }
+    // zeros never count - instant B flag
+    if (!c[percentField]) {
+      return false;
+    }
 
-  // Looks like A-flag is gone
-  const cFlagThreshold = lowestAllowedPercentForOtherDivisionClass(
-    highestClassification(getDivToClass(state))
-  );
-  const isBFlag =
-    percent <= lowestAllowedPercentForClass(getDivToClass(state)[division]);
-  const isCFlag = percent <= cFlagThreshold;
+    // Looks like A-flag is gone
+    const cFlagThreshold = lowestAllowedPercentForOtherDivisionClass(
+      highestClassification(getDivToClass(state))
+    );
+    const isBFlag =
+      percent <= lowestAllowedPercentForClass(getDivToClass(state)[division]);
+    const isCFlag = percent <= cFlagThreshold;
 
-  // First 4 always count
-  if (window.length <= 4) {
+    // First 4 always count
+    if (window.length <= 4) {
+      return true;
+    }
+
+    if (isCFlag || isBFlag) {
+      return false;
+    }
+
+    // D, F, E
     return true;
+  } catch (all) {
+    console.log("canBeInserted crash");
+    console.log(c.division);
   }
-
-  if (isCFlag || isBFlag) {
-    return false;
-  }
-
-  // D, F, E
-  return true;
+  return false;
 };
 
 // if true -- window doesn't have to shrink when inserting
@@ -156,24 +164,32 @@ export const addToCurWindow = (c, curWindow) => {
 };
 
 // TODO: minimal class as highest - 1
-export const calculateUSPSAClassification = (classifiers) => {
+export const calculateUSPSAClassification = (
+  classifiers,
+  percentField = "percent"
+) => {
   const state = newClassificationCalculationState();
+  if (!classifiers.length) {
+    return state;
+  }
 
   const classifiersReadyToScore = classifiers
+    .filter((c) => c[percentField] >= 0)
     .toSorted((a, b) => {
       const asDate = dateSort(a, b, "sd", 1);
       if (!asDate) {
-        return numSort(a, b, "percent", 1);
+        return numSort(a, b, percentField, 1);
       }
       return asDate;
     })
     .map((c) => ({
       ...c,
       classifier: c.source === "Major Match" ? randomUUID() : c.classifier,
+      curPercent: c.source === "Major Match" ? c.percent : c.curPercent,
     }));
 
   const scoringFunction = (c) => {
-    if (!canBeInserted(c, state)) {
+    if (!canBeInserted(c, state, percentField)) {
       return;
     }
     const { division } = c;
@@ -184,7 +200,7 @@ export const calculateUSPSAClassification = (classifiers) => {
     // Calculate if have enough classifiers
     if (curWindow.length >= 4) {
       const oldHighPercent = state[division].highPercent;
-      const newPercent = percentForDivWindow(division, state);
+      const newPercent = percentForDivWindow(division, state, percentField);
       if (newPercent > oldHighPercent) {
         state[division].highPercent = newPercent;
       }
@@ -194,7 +210,10 @@ export const calculateUSPSAClassification = (classifiers) => {
 
   classifiersReadyToScore.forEach(scoringFunction);
 
-  return state;
+  return mapDivisions((div) => {
+    delete state[div].window;
+    return state[div];
+  });
 };
 
 export const getDivToClass = (state) =>

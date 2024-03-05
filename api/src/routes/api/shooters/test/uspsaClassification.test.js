@@ -219,11 +219,18 @@ test("getDivToClass", (t) => {
   });
 });
 
-const makeClassifier = ({ classifier, percent, division, sd } = {}) => ({
+const makeClassifier = ({
+  classifier,
+  percent,
+  division,
+  sd,
+  curPercent,
+} = {}) => ({
   classifier: classifier ?? "99-11",
   sd: sd ?? "1/01/23",
   percent: percent ?? 74.999,
   division: division ?? "ss",
+  curPercent: curPercent ?? 0,
 });
 
 test("canBeInserted", (t) => {
@@ -267,6 +274,61 @@ test("canBeInserted", (t) => {
   );
   assert.strictEqual(
     canBeInserted(makeClassifier({ percent: 20.01 }), state),
+    true
+  );
+});
+
+test("canBeInserted + percentField", (t) => {
+  const state = newClassificationCalculationState();
+  assert.strictEqual(
+    canBeInserted(makeClassifier({ curPercent: 12 }), state, "curPercent"),
+    true
+  );
+
+  state.ss.window = [
+    makeClassifier({ curPercent: 12 }),
+    makeClassifier({ curPercent: 12 }),
+    makeClassifier({ curPercent: 12 }),
+    makeClassifier({ curPercent: 12 }),
+    makeClassifier({ curPercent: 12 }),
+    makeClassifier({ curPercent: 12 }),
+  ];
+  assert.strictEqual(
+    canBeInserted(makeClassifier({ curPercent: 12 }), state, "curPercent"),
+    true
+  );
+
+  // check B flag logic
+  state.ss.highPercent = 75.001;
+  assert.strictEqual(
+    canBeInserted(makeClassifier({ curPercent: 70 }), state, "curPercent"),
+    false
+  );
+  assert.strictEqual(
+    canBeInserted(makeClassifier({ curPercent: 76 }), state, "curPercent"),
+    true
+  );
+
+  // check C flag logic
+  state.ss.highPercent = 75.001;
+  assert.strictEqual(
+    canBeInserted(makeClassifier({ curPercent: 70.01 }), state, "curPercent"),
+    true
+  );
+  state.rev.highPercent = 86;
+  assert.strictEqual(
+    canBeInserted(makeClassifier({ curPercent: 70.01 }), state, "curPercent"),
+    false
+  );
+
+  // check that B and C checks don't count if window is smaller than 4
+  state.ss.window = [makeClassifier(), makeClassifier(), makeClassifier()];
+  assert.strictEqual(
+    canBeInserted(makeClassifier({ curPercent: 70.01 }), state, "curPercent"),
+    true
+  );
+  assert.strictEqual(
+    canBeInserted(makeClassifier({ curPercent: 20.01 }), state, "curPercent"),
     true
   );
 });
@@ -350,6 +412,55 @@ test("percentForDivWindow", (t) => {
   );
   assert.strictEqual(
     percentForDivWindow("ss", state),
+    (100 + 97 + 95 + 90 + 75 + 65) / 6
+  );
+});
+
+test("percentForDivWindow + percentField", (t) => {
+  // default to zero
+  const state = newClassificationCalculationState();
+  state.ss.window.push(makeClassifier({ curPercent: 75 }));
+  state.ss.window.push(makeClassifier({ curpercent: 85 }));
+  state.ss.window.push(makeClassifier({ curPercent: 95 }));
+  state.ss.window.push(makeClassifier({ curPercent: 97 }));
+  state.ss.window.push(makeClassifier({ curPercent: 97 }));
+  state.ss.window.push(makeClassifier({ classifier: "01-01", curPercent: 75 }));
+  state.ss.window.push(makeClassifier({ classifier: "01-02", curPercent: 65 }));
+  state.ss.window.push(makeClassifier({ classifier: "01-03", curPercent: 45 }));
+
+  // best 4 out of 5
+  state.ss.window.push(
+    makeClassifier({ classifier: "01-04", curPercent: 95, sd: "2/01/2023" })
+  );
+
+  state.ss.window.push(
+    makeClassifier({ classifier: "01-05", curPercent: 90, sd: "2/01/2023" })
+  );
+
+  // best 6 out of 7
+  state.ss.window.push(
+    makeClassifier({ classifier: "01-06", curPercent: 30, sd: "2/01/2023" })
+  );
+  state.ss.window.push(
+    makeClassifier({
+      classifier: "01-07",
+      curPercent: 100,
+      percent: 100,
+      sd: "2/01/2023",
+    })
+  );
+  state.ss.window.push(
+    makeClassifier({
+      classifier: "01-07",
+      curPercent: 99,
+      percent: 99,
+      sd: "2/01/2023",
+    })
+  );
+
+  assert.strictEqual(percentForDivWindow("ss", state).toFixed(4), "79.1658");
+  assert.strictEqual(
+    percentForDivWindow("ss", state, "curPercent"),
     (100 + 97 + 95 + 90 + 75 + 65) / 6
   );
 });
@@ -546,5 +657,21 @@ test("calculateUSPSAClassification", (t) => {
 
   assert.strictEqual(Number(result.lo.percent.toFixed(2)), 96.23);
   assert.strictEqual(Number(result.lo.highPercent.toFixed(2)), 96.23);
+  // TODO: add more testData real people, if edge cases are detected
+});
+
+test("calculateUSPSAClassification + percentField", (t) => {
+  const result = calculateUSPSAClassification(testData, "curPercent");
+  assert.strictEqual(Number(result.ltd.percent.toFixed(2)), 93.76);
+  assert.strictEqual(Number(result.ltd.highPercent.toFixed(2)), 93.76);
+
+  assert.strictEqual(Number(result.prod.percent.toFixed(2)), 91.63);
+  assert.strictEqual(Number(result.prod.highPercent.toFixed(2)), 94.35);
+
+  assert.strictEqual(Number(result.co.percent.toFixed(2)), 102.77);
+  assert.strictEqual(Number(result.co.highPercent.toFixed(2)), 104.37);
+
+  assert.strictEqual(Number(result.lo.percent.toFixed(2)), 97.23);
+  assert.strictEqual(Number(result.lo.highPercent.toFixed(2)), 97.23);
   // TODO: add more testData real people, if edge cases are detected
 });

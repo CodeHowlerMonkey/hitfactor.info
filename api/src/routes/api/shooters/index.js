@@ -7,24 +7,10 @@ import {
 } from "../../../dataUtil/shooters.js";
 
 import { basicInfoForClassifierCode } from "../../../dataUtil/classifiersData.js";
-import {
-  dateSort,
-  multisort,
-  numSort,
-} from "../../../../../shared/utils/sort.js";
+import { multisort } from "../../../../../shared/utils/sort.js";
 import { PAGE_SIZE } from "../../../../../shared/constants/pagination.js";
-import {
-  mapDivisions,
-  mapDivisionsAsync,
-} from "../../../dataUtil/divisions.js";
-import {
-  classForPercent,
-  highestClassification,
-  lowestAllowedPercentForClass,
-  lowestAllowedPercentForOtherDivisionClass,
-} from "../../../../../shared/utils/classification.js";
-import uniqBy from "lodash.uniqby";
-import sortedUniqBy from "lodash.sorteduniqby";
+import { mapDivisionsAsync } from "../../../dataUtil/divisions.js";
+import { getShooterToCurPercentClassifications } from "../../../dataUtil/classifiers.js";
 
 const shootersRoutes = async (fastify, opts) => {
   fastify.get("/download/:division", { compress: false }, async (req, res) => {
@@ -65,6 +51,7 @@ const shootersRoutes = async (fastify, opts) => {
     console.log("hydrating shooters");
     await getShootersTable();
     await getShootersTableByMemberNumber();
+    await getShooterToCurPercentClassifications();
     console.log("done hydrating shooters");
   });
 
@@ -102,8 +89,6 @@ const shootersRoutes = async (fastify, opts) => {
   fastify.get("/:division/:memberNumber", async (req, res) => {
     const { division, memberNumber } = req.params;
     const { sort, order, page: pageString } = req.query;
-    //    const page = Number(pageString) || 1;
-    await getShooterFullInfo({ division, memberNumber });
 
     const info =
       (await getShootersTableByMemberNumber())[division]?.[memberNumber]?.[0] ||
@@ -119,14 +104,10 @@ const shootersRoutes = async (fastify, opts) => {
 
     return {
       info,
+      curPercentClassifications: (
+        await getShooterToCurPercentClassifications()
+      )[memberNumber],
       classifiers: data,
-      divisionClassifiers: await mapDivisionsAsync(
-        async (div) =>
-          await classifiersForDivisionForShooter({
-            division: div,
-            memberNumber,
-          })
-      ),
       // TODO: classifiers: data.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
       // classifiersTotal: data.length,
       // classifiersPage: page,
