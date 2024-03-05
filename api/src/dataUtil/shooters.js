@@ -85,19 +85,28 @@ const classificationsBreakdownAdapter = (c, division) => {
   };
 };
 
+const safeNumSort = (field) => (a, b) => {
+  // sort by current to calculate currentRank
+  // have to use Max and || 0 because U/X shooters need to be in the
+  // output here (used in shooter info head), but can't mess up the
+  // ranking due to null/-1/undefined values
+  // note: || is used instead of ?? to convert NaN to 0 as well
+  return Math.max(0, b[field] || 0) - Math.max(0, a[field] || 0);
+};
+
 const getShootersFullForDivision = memoize(
   async (division) =>
     Promise.all(
       (await getExtendedClassificationsInfo())
         .map((c) => classificationsBreakdownAdapter(c, division))
         //        .filter((c) => c.class !== "U" && c.class !== "X")
-        .sort((a, b) => b.high - a.high) // sort by high to calculate highRank
+        .sort(safeNumSort("high")) // sort by high to calculate highRank
         .map((c, index, all) => ({
           ...c,
           highRank: index,
           highPercentile: Percent(index, all.length),
         }))
-        .sort((a, b) => b.current - a.current) // sort by current to calculate currentRank
+        .sort(safeNumSort("current"))
         .map(async (c, index, all) => ({
           ...c,
           currentRank: index,
