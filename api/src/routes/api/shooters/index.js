@@ -3,13 +3,11 @@ import {
   getShootersTableByMemberNumber,
   shooterChartData,
   classifiersForDivisionForShooter,
-  getShooterFullInfo,
 } from "../../../dataUtil/shooters.js";
 
 import { basicInfoForClassifierCode } from "../../../dataUtil/classifiersData.js";
 import { multisort } from "../../../../../shared/utils/sort.js";
 import { PAGE_SIZE } from "../../../../../shared/constants/pagination.js";
-import { mapDivisionsAsync } from "../../../dataUtil/divisions.js";
 import { getShooterToCurPercentClassifications } from "../../../dataUtil/classifiers.js";
 
 const shootersRoutes = async (fastify, opts) => {
@@ -104,38 +102,11 @@ const shootersRoutes = async (fastify, opts) => {
 
     return {
       info,
-      curPercentClassifications: (
-        await getShooterToCurPercentClassifications()
-      )[memberNumber],
       classifiers: data,
       // TODO: classifiers: data.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
       // classifiersTotal: data.length,
       // classifiersPage: page,
     };
-  });
-  fastify.get("/classify/:memberNumber", async (req, res) => {
-    const { memberNumber } = req.params;
-    const divisionClassifiers = await mapDivisionsAsync(
-      async (div) =>
-        await classifiersForDivisionForShooter({
-          division: div,
-          memberNumber,
-        })
-    );
-
-    // input for calculateUSPSAClassification()
-    const classifiersScrambled = [
-      ...divisionClassifiers.opn,
-      ...divisionClassifiers.ltd,
-      ...divisionClassifiers.l10,
-      ...divisionClassifiers.prod,
-      ...divisionClassifiers.rev,
-      ...divisionClassifiers.ss,
-      ...divisionClassifiers.co,
-      ...divisionClassifiers.lo,
-      ...divisionClassifiers.pcc,
-    ];
-    return classifiersScrambled;
   });
 
   fastify.get("/:division/:memberNumber/chart", async (req, res) => {
