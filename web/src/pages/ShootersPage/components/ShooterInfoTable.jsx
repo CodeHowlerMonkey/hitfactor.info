@@ -13,12 +13,16 @@ const tableNameForDiv = {
   pcc: "PCC",
   lo: "LO",
 };
-const cardRow = ({ classes, highs, currents, ages }, div) => ({
+const cardRow = (
+  { classes, highs, currents, ages, reclassifications },
+  div
+) => ({
   k: tableNameForDiv[div],
   v1: classes[div],
   v2: (highs[div] ?? 0).toFixed(2) + "%",
   v3: (currents[div] ?? 0).toFixed(2) + "%",
-  v4: (ages[div] ?? -1).toFixed(1) + "mo",
+  v4: (reclassifications?.curPercent?.currents?.[div] ?? 0).toFixed(2) + "%",
+  v5: (ages[div] ?? -1).toFixed(1) + "mo",
 });
 
 export const ShooterInfoTable = ({ info }) => {
@@ -57,11 +61,11 @@ export const ShooterInfoTable = ({ info }) => {
                   ? []
                   : [
                       { k: "ID", v: info?.data?.member_id },
-                      { k: "Number", v: info?.memberNumber },
+                      //{ k: "Number", v: info?.memberNumber },
                       { k: "First Name", v: info?.data?.first_name },
                       { k: "Middle Name", v: info?.data?.middle_name },
                       { k: "Last Name", v: info?.data?.last_name },
-                      { k: "Division", v: tableNameForDiv[info?.division] },
+                      //{ k: "Division", v: tableNameForDiv[info?.division] },
                       { k: "Class", v: info?.class },
                       {
                         k: "High Rank / Perc",
@@ -71,6 +75,14 @@ export const ShooterInfoTable = ({ info }) => {
                         k: "Cur Rank / Perc",
                         v: `${info?.currentRank} / ${info?.currentPercentile}%`,
                       },
+                      {
+                        k: "Cur.HHF Percent",
+                        v:
+                          (info?.reclassificationsCurPercentCurrent?.toFixed(
+                            2
+                          ) ?? 0) + "%",
+                      },
+                      // { k: "Rec. Percent", v: "Soon =)" },
                     ]
               }
             >
@@ -108,7 +120,8 @@ export const ShooterInfoTable = ({ info }) => {
               <Column field="v1" header="Class" />
               <Column field="v2" header="High %" />
               <Column field="v3" header="Cur %" />
-              <Column field="v4" header="Age" />
+              <Column field="v4" header="Cur.HHF %" />
+              <Column field="v5" header="Age" />
             </DataTable>
           </div>
         )}
