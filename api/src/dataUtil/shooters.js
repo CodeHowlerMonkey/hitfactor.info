@@ -38,51 +38,58 @@ const reclassificationBreakdown = (reclassificationInfo, division) => {
   };
 };
 
+const classificationsBreakdownAdapter = (c, division) => {
+  const {
+    classifications,
+    reclassificationsByCurPercent,
+    high,
+    current,
+    ...etc
+  } = c;
+  try {
+    const reclassificationsCurPercent = reclassificationBreakdown(
+      reclassificationsByCurPercent,
+      division
+    );
+
+    return {
+      ...etc,
+      class: classifications?.[division],
+      classes: classifications,
+      high: high?.[division],
+      current: current?.[division],
+      highs: high,
+      currents: current,
+      // needs to be not-deep for sort
+      reclassificationsCurPercentCurrent: Number(
+        (reclassificationsCurPercent?.current ?? 0).toFixed(4)
+      ),
+      reclassifications: {
+        curPercent: reclassificationsCurPercent,
+        // TODO: recPercent
+      },
+      division,
+    };
+  } catch (err) {
+    console.log(err);
+    console.log(division);
+  }
+
+  return {
+    ...c,
+    class: "X",
+    high: 0,
+    current: 0,
+    division,
+    name: "Expired / Not Found",
+  };
+};
+
 const getShootersFullForDivision = memoize(
   async (division) =>
     Promise.all(
       (await getExtendedClassificationsInfo())
-        .map((c) => {
-          const {
-            classifications,
-            reclassificationsByCurPercent,
-            high,
-            current,
-            ...etc
-          } = c;
-          try {
-            return {
-              ...etc,
-              class: classifications?.[division],
-              classes: classifications,
-              high: high?.[division],
-              current: current?.[division],
-              highs: high,
-              currents: current,
-              reclassifications: {
-                curPercent: reclassificationBreakdown(
-                  reclassificationsByCurPercent,
-                  division
-                ),
-                // TODO: recPercent
-              },
-              division,
-            };
-          } catch (err) {
-            console.log(err);
-            console.log(memberNumber);
-            console.log(division);
-          }
-
-          return {
-            ...c,
-            class: "X",
-            high: 0,
-            current: 0,
-            division,
-            name: "Expired / Not Found",
-          };
-        })
+        .map((c) => classificationsBreakdownAdapter(c, division))
         .filter((c) => c.class !== "U" && c.class !== "X")
         .sort((a, b) => b.high - a.high) // sort by high to calculate highRank
         .map((c, index, all) => ({

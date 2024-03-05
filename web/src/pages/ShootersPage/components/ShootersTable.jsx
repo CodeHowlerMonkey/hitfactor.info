@@ -130,6 +130,13 @@ const ShootersTable = ({ division, onShooterSelection }) => {
           />
         )}
       />
+      <Column
+        field="reclassificationsCurPercentCurrent"
+        header="Cur.HHFs %"
+        headerTooltip="Current classification percent of this shooter, if all their Y-flagged scores used the most recent HHFs for classifiers. Major Matches results stay the same."
+        headerTooltipOptions={headerTooltipOptions}
+        sortable
+      />
       <Column field="current" header="Cur. %" sortable />
       <Column field="high" header="High %" sortable />
       <Column
