@@ -143,7 +143,7 @@ const shootersRoutes = async (fastify, opts) => {
     );
 
     // input for calculateUSPSAClassification()
-    const classifiersScrambledSorted = [
+    const classifiersScrambled = [
       ...divisionClassifiers.opn,
       ...divisionClassifiers.ltd,
       ...divisionClassifiers.l10,
@@ -153,26 +153,8 @@ const shootersRoutes = async (fastify, opts) => {
       ...divisionClassifiers.co,
       ...divisionClassifiers.lo,
       ...divisionClassifiers.pcc,
-    ].sort((a, b) => {
-      const asDate = dateSort(a, b, "sd", 1);
-      if (!asDate) {
-        return numSort(a, b, "percent", -1);
-      }
-      return asDate;
-    });
-
-    return {
-      divToHighPercent,
-      divToPercent,
-      divToWindow,
-    };
-
-    // foreach
-    // canBeInserted? B or C flag prevents
-    // if not keep going
-    // if yes  insert, push one out, recalc division
-
-    return classifiersScrambledSorted;
+    ];
+    return classifiersScrambled;
   });
 
   fastify.get("/:division/:memberNumber/chart", async (req, res) => {

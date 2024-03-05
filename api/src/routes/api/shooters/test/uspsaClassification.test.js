@@ -14,6 +14,7 @@ import {
   numberOfDuplicates,
   percentForDivWindow,
 } from "../../../../../../shared/utils/classification.js";
+import { mapDivisions } from "../../../../dataUtil/divisions.js";
 
 import testData from "./testData.js";
 
@@ -21,8 +22,9 @@ test("lets make sure this works first", (t) => {
   assert.strictEqual(1, 1);
 });
 
-test("another quick check", (t) => {
-  assert.strictEqual(225, testData.length);
+test("cheap data integrity check", (t) => {
+  // if this is broken -- you updated testData, but not the tests
+  assert.strictEqual(252, testData.length);
 });
 
 test("newClassificationCalculationState", (t) => {
@@ -233,6 +235,8 @@ test("canBeInserted", (t) => {
     makeClassifier(),
     makeClassifier(),
     makeClassifier(),
+    makeClassifier(),
+    makeClassifier(),
   ];
   assert.strictEqual(canBeInserted(makeClassifier(), state), true);
 
@@ -291,16 +295,17 @@ test("percentForDivWindow", (t) => {
 
   // single classifier
   state.ss.window.push(makeClassifier({ percent: 50 }));
-  assert.strictEqual(percentForDivWindow("ss", state), 50);
+  assert.strictEqual(percentForDivWindow("ss", state), 0);
 
-  // best of duplicates
+  // best of same single classifier duplicates
   state.ss.window = [];
   state.ss.window.push(makeClassifier({ percent: 75 }));
-  assert.strictEqual(percentForDivWindow("ss", state), 75);
+  assert.strictEqual(percentForDivWindow("ss", state), 0);
   state.ss.window.push(makeClassifier({ percent: 85 }));
   state.ss.window.push(makeClassifier({ percent: 95 }));
   state.ss.window.push(makeClassifier({ percent: 97 }));
-  assert.strictEqual(percentForDivWindow("ss", state), 97);
+  state.ss.window.push(makeClassifier({ percent: 97 }));
+  assert.strictEqual(percentForDivWindow("ss", state), 0);
 
   // average of 4 unique
   state.ss.window.push(makeClassifier({ classifier: "01-01", percent: 75 }));
@@ -313,23 +318,21 @@ test("percentForDivWindow", (t) => {
   state.ss.window.push(
     makeClassifier({ classifier: "01-04", percent: 95, sd: "2/01/2023" })
   );
-  assert.strictEqual(percentForDivWindow("ss", state), (97 + 95 + 75 + 65) / 4);
-  assert.strictEqual(percentForDivWindow("ss", state), 83);
+  assert.strictEqual(percentForDivWindow("ss", state), 75.4);
 
   // best 4 out of 6
   state.ss.window.push(
     makeClassifier({ classifier: "01-05", percent: 90, sd: "2/01/2023" })
   );
-  assert.strictEqual(percentForDivWindow("ss", state), (97 + 95 + 90 + 75) / 4);
-  assert.strictEqual(percentForDivWindow("ss", state), 89.25);
+  assert.strictEqual(percentForDivWindow("ss", state).toFixed(2), "77.83");
 
-  // best 5 out of 7
+  // best 6 out of 7
   state.ss.window.push(
     makeClassifier({ classifier: "01-06", percent: 30, sd: "2/01/2023" })
   );
   assert.strictEqual(
     percentForDivWindow("ss", state),
-    (97 + 95 + 90 + 75 + 65) / 5
+    (97 + 95 + 90 + 75 + 65 + 45) / 6
   );
 
   // best 6 out of 8
@@ -497,10 +500,11 @@ test("addToCurWindow", (t) => {
   ]);
 
   addToCurWindow(makeClassifier({ classifier: "20-02" }), curWindow);
-  assert.strictEqual(curWindow.length, 8);
+  assert.strictEqual(curWindow.length, 9);
   addToCurWindow(makeClassifier({ classifier: "20-10" }), curWindow);
-  assert.strictEqual(curWindow.length, 8);
+  assert.strictEqual(curWindow.length, 9);
   assert.deepEqual(curWindow, [
+    makeClassifier({ classifier: "20-03" }),
     makeClassifier({ classifier: "20-04" }),
     makeClassifier({ classifier: "20-05" }),
     makeClassifier({ classifier: "20-06" }),
@@ -529,10 +533,18 @@ test("addToCurWindow", (t) => {
   ]);
 });
 
-test.only("calculateUSPSAClassification", (t) => {
+test("calculateUSPSAClassification", (t) => {
   const result = calculateUSPSAClassification(testData);
-  assert.strictEqual(true, true);
-  //assert.deepEqual(result, {});
-  console.log(JSON.stringify(result, null, 2));
-  // cs, that b87 cheater, few randoms from top people
+  assert.strictEqual(Number(result.ltd.percent.toFixed(2)), 93.54);
+  assert.strictEqual(Number(result.ltd.highPercent.toFixed(2)), 93.72);
+
+  assert.strictEqual(Number(result.prod.percent.toFixed(2)), 91.68);
+  assert.strictEqual(Number(result.prod.highPercent.toFixed(2)), 94.33);
+
+  assert.strictEqual(Number(result.co.percent.toFixed(2)), 100.0);
+  assert.strictEqual(Number(result.co.highPercent.toFixed(2)), 100.0);
+
+  assert.strictEqual(Number(result.lo.percent.toFixed(2)), 96.23);
+  assert.strictEqual(Number(result.lo.highPercent.toFixed(2)), 96.23);
+  // TODO: add more testData real people, if edge cases are detected
 });

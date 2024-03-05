@@ -1,4 +1,4 @@
-import crypto, { randomUUID } from "crypto";
+import { randomUUID } from "crypto";
 import { mapDivisions } from "../../api/src/dataUtil/divisions.js";
 import uniqBy from "lodash.uniqby";
 import { dateSort, numSort } from "./sort.js";
@@ -64,29 +64,29 @@ export const canBeInserted = (c, state) => {
   const percentField = "percent"; // TODO: curPercent, recommendedPercent
   const percent = c[percentField];
 
-  // First 6 always count
-  if (window.length < 6) {
-    return true;
+  // zeros never count - instant B flag
+  if (!c[percentField]) {
+    return false;
   }
 
   // Looks like A-flag is gone
+  const cFlagThreshold = lowestAllowedPercentForOtherDivisionClass(
+    highestClassification(getDivToClass(state))
+  );
+  const isBFlag =
+    percent <= lowestAllowedPercentForClass(getDivToClass(state)[division]);
+  const isCFlag = percent <= cFlagThreshold;
 
-  // B-flag check
-  if (percent <= lowestAllowedPercentForClass(getDivToClass(state)[division])) {
+  // First 4 always count
+  if (window.length <= 4) {
+    return true;
+  }
+
+  if (isCFlag || isBFlag) {
     return false;
   }
 
-  // C-flag check
-  if (
-    percent <=
-    lowestAllowedPercentForOtherDivisionClass(
-      highestClassification(getDivToClass(state))
-    )
-  ) {
-    return false;
-  }
-
-  // F & E
+  // D, F, E
   return true;
 };
 
@@ -108,18 +108,27 @@ export const numberOfDuplicates = (window) => {
     .reduce((acc, cur) => acc + cur, 0);
 };
 
+const windowSizeForScore = (windowSize) => {
+  if (windowSize < 4) {
+    return 0;
+  } else if (windowSize === 4) {
+    return 4;
+  }
+
+  return 6;
+};
+
 export const percentForDivWindow = (div, state, percentField = "percent") => {
-  //console.log("-----");
-  //console.log(state[div].window.map((c) => c.percent + " " + c.classifier));
   const window = state[div].window.toSorted((a, b) =>
     numSort(a, b, percentField, -1)
   );
+
+  //de-dupe needs to be done in reverse, because percent are sorted asc
   const dFlagsApplied = uniqBy(window, (c) => c.classifier);
-  const newLength = Math.max(dFlagsApplied.length - 2, 4);
+
+  // remove lowest 2
+  const newLength = windowSizeForScore(dFlagsApplied.length);
   const fFlagsApplied = dFlagsApplied.slice(0, newLength);
-  // console.log(window.map((c) => c.percent + " " + c.classifier));
-  //console.log(dFlagsApplied.map((c) => c.percent + " " + c.classifier));
-  //console.log(fFlagsApplied.map((c) => c.percent + " " + c.classifier));
   return fFlagsApplied.reduce(
     (acc, curValue, curIndex, allInWindow) =>
       acc + curValue[percentField] / allInWindow.length,
@@ -141,48 +150,49 @@ export const addToCurWindow = (c, curWindow) => {
   curWindow.reverse();
   const removed = curWindow.splice(8);
   curWindow.reverse();
-  const extraWindowLength = numberOfDuplicates(curWindow);
+  const extraWindowLength = numberOfDuplicates([...removed, ...curWindow]);
   const extraFromTail = removed.slice(0, extraWindowLength).reverse();
   curWindow.unshift(...extraFromTail);
 };
 
+// TODO: minimal class as highest - 1
 export const calculateUSPSAClassification = (classifiers) => {
-  // TODO: minimal class as highest - 1
-
   const state = newClassificationCalculationState();
 
-  classifiers
-    .sort((a, b) => {
+  const classifiersReadyToScore = classifiers
+    .toSorted((a, b) => {
       const asDate = dateSort(a, b, "sd", 1);
       if (!asDate) {
-        return numSort(a, b, "percent", -1);
+        return numSort(a, b, "percent", 1);
       }
       return asDate;
     })
     .map((c) => ({
       ...c,
       classifier: c.source === "Major Match" ? randomUUID() : c.classifier,
-    }))
-    .forEach((c) => {
-      if (!canBeInserted(c, state)) {
-        return;
-      }
-      const { division } = c;
-      const curWindow = state[c.division].window;
+    }));
 
-      addToCurWindow(c, curWindow);
+  const scoringFunction = (c) => {
+    if (!canBeInserted(c, state)) {
+      return;
+    }
+    const { division } = c;
+    const curWindow = state[c.division].window;
 
-      // Calculate if have enough classifiers
-      if (curWindow.length >= 4) {
-        const oldPercent = state[division].percent;
-        const newPercent = percentForDivWindow(division, state);
-        //console.log(newPercent);
-        if (newPercent > oldPercent) {
-          state[division].highPercent = newPercent;
-        }
-        state[division].percent = newPercent;
+    addToCurWindow(c, curWindow);
+
+    // Calculate if have enough classifiers
+    if (curWindow.length >= 4) {
+      const oldHighPercent = state[division].highPercent;
+      const newPercent = percentForDivWindow(division, state);
+      if (newPercent > oldHighPercent) {
+        state[division].highPercent = newPercent;
       }
-    });
+      state[division].percent = newPercent;
+    }
+  };
+
+  classifiersReadyToScore.forEach(scoringFunction);
 
   return state;
 };
