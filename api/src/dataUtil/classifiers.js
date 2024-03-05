@@ -72,6 +72,7 @@ export const getShooterToRuns = badLazy(async () => {
   const divShortToRuns = await getDivShortToRuns();
   const result = byMemberNumber(
     [
+      ...divShortToRuns.opn,
       ...divShortToRuns.ltd,
       ...divShortToRuns.l10,
       ...divShortToRuns.prod,

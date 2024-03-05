@@ -24,8 +24,10 @@ const shootersRoutes = async (fastify, opts) => {
     const { sort, order, page: pageString, filter: filterString } = req.query;
     const page = Number(pageString) || 1;
 
+    const shootersTable = (await getShootersTable())[division];
+
     let data = multisort(
-      (await getShootersTable())[division],
+      shootersTable.filter((c) => c.class !== "U" && c.class !== "X"),
       sort?.split?.(","),
       order?.split?.(",")
     ).map(({ classifiers, ...run }, index) => ({ ...run, index }));

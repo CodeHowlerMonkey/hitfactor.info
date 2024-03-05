@@ -90,7 +90,7 @@ const getShootersFullForDivision = memoize(
     Promise.all(
       (await getExtendedClassificationsInfo())
         .map((c) => classificationsBreakdownAdapter(c, division))
-        .filter((c) => c.class !== "U" && c.class !== "X")
+        //        .filter((c) => c.class !== "U" && c.class !== "X")
         .sort((a, b) => b.high - a.high) // sort by high to calculate highRank
         .map((c, index, all) => ({
           ...c,
