@@ -9,6 +9,7 @@ import { curHHFForDivisionClassifier } from "./hhf.js";
 
 import { dateSort } from "../../../shared/utils/sort.js";
 import { badLazy } from "../utils.js";
+import { classForPercent } from "../../../shared/utils/classification.js";
 
 const scoresAge = async (division, memberNumber, maxScores = 4) =>
   ((await getDivShortToShooterToRuns())[division][memberNumber] ?? [])
@@ -18,12 +19,37 @@ const scoresAge = async (division, memberNumber, maxScores = 4) =>
     .map((c) => (new Date() - new Date(c.sd)) / (28 * 24 * 60 * 60 * 1000)) // millisecconds to 28-day "months"
     .reduce((acc, curV, unusedIndex, arr) => acc + curV / arr.length, 0);
 
+const reclassificationBreakdown = (reclassificationInfo, division) => {
+  const high = reclassificationInfo?.[division]?.highPercent;
+  const current = reclassificationInfo?.[division]?.percent;
+  return {
+    class: classForPercent(current),
+    classes: mapDivisions((div) =>
+      classForPercent(reclassificationInfo?.[div]?.percent)
+    ),
+    highClass: classForPercent(high),
+    highClasses: mapDivisions((div) =>
+      classForPercent(reclassificationInfo?.[div]?.highPercent)
+    ),
+    high,
+    current: reclassificationInfo?.[division]?.percent,
+    highs: mapDivisions((div) => reclassificationInfo?.[div]?.highPercent),
+    currents: mapDivisions((div) => reclassificationInfo?.[div]?.percent),
+  };
+};
+
 const getShootersFullForDivision = memoize(
   async (division) =>
     Promise.all(
       (await getExtendedClassificationsInfo())
         .map((c) => {
-          const { classifications, high, current, ...etc } = c;
+          const {
+            classifications,
+            reclassificationsByCurPercent,
+            high,
+            current,
+            ...etc
+          } = c;
           try {
             return {
               ...etc,
@@ -33,6 +59,13 @@ const getShootersFullForDivision = memoize(
               current: current?.[division],
               highs: high,
               currents: current,
+              reclassifications: {
+                curPercent: reclassificationBreakdown(
+                  reclassificationsByCurPercent,
+                  division
+                ),
+                // TODO: recPercent
+              },
               division,
             };
           } catch (err) {

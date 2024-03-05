@@ -89,6 +89,7 @@ export const getShooterToRuns = badLazy(async () => {
         const hhf = curHHFForDivisionClassifier({ division, number });
         c.hhf = hhf;
         c.curPercent = PositiveOrMinus1(Percent(c.hf, hhf));
+        // TODO: c.recPercent = ~ recHHF
 
         return c;
       })
@@ -96,6 +97,7 @@ export const getShooterToRuns = badLazy(async () => {
   return result;
 });
 
+/** @returns {A111: {opn: { percent: 73, highPercent: 75}, ltd: ... }...} */
 export const getShooterToCurPercentClassifications = badLazy(async () => {
   const shooterToRuns = await getShooterToRuns();
   const result = Object.fromEntries(
@@ -106,3 +108,5 @@ export const getShooterToCurPercentClassifications = badLazy(async () => {
   );
   return result;
 });
+
+// TODO: getShooterToRecPercentClassifications
