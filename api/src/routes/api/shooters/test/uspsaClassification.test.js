@@ -16,7 +16,7 @@ import {
 } from "../../../../../../shared/utils/classification.js";
 import { mapDivisions } from "../../../../dataUtil/divisions.js";
 
-import testData, { csClassifiers } from "./testData.js";
+import testData, { csClassifiers, csOpenClassifiers } from "./testData.js";
 
 test("lets make sure this works first", (t) => {
   assert.strictEqual(1, 1);
@@ -676,7 +676,13 @@ test("calculateUSPSAClassification + percentField", (t) => {
   // TODO: add more testData real people, if edge cases are detected
 });
 
-test("calculateUSPSAClassification + percentField", (t) => {
+test("calculateUSPSAClassification CS should have curPercent", (t) => {
   const result = calculateUSPSAClassification(csClassifiers, "curPercent");
   assert.strictEqual(Number(result.co.percent.toFixed(2)), 97.68);
+});
+
+test.only("calculateUSPSAClassification CS should have curPercent in Open", (t) => {
+  const result = calculateUSPSAClassification(csOpenClassifiers, "curPercent");
+  console.log(JSON.stringify(result, null, 2));
+  assert.strictEqual(Number(result.opn.percent.toFixed(2)), 100.91);
 });

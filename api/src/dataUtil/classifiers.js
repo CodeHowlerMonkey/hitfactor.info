@@ -83,12 +83,17 @@ export const getShooterToRuns = badLazy(async () => {
       ...divShortToRuns.loco,
     ]
       .filter((c) => !!c.division)
-      .filter((c) => c.hf >= 0)
+      //.filter((c) => c.hf >= 0)
       .map((c) => {
         const { division, classifier: number } = c;
-        const hhf = curHHFForDivisionClassifier({ division, number });
-        c.hhf = hhf;
-        c.curPercent = PositiveOrMinus1(Percent(c.hf, hhf));
+        if (c.hf) {
+          const hhf = curHHFForDivisionClassifier({ division, number });
+          c.hhf = hhf;
+          c.curPercent = PositiveOrMinus1(Percent(c.hf, hhf));
+        } else {
+          c.hhf = -1;
+          c.curPercent = c.source === "Major Match" ? c.percent : -1;
+        }
         // TODO: c.recPercent = ~ recHHF
 
         return c;
