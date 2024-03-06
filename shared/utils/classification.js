@@ -1,4 +1,4 @@
-import { randomUUID } from "crypto";
+import { v4 as randomUUID } from "uuid";
 import { mapDivisions } from "../../api/src/dataUtil/divisions.js";
 import uniqBy from "lodash.uniqby";
 import { dateSort, numSort } from "./sort.js";

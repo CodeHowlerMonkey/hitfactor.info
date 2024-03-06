@@ -3,7 +3,10 @@ import sortedUniqBy from "lodash.sorteduniqby";
 import transform from "lodash.transform";
 import memoize from "memoize";
 
-import { getDivShortToRuns } from "./dataUtil/classifiers.js";
+import {
+  getDivShortToRuns,
+  getShooterToCurPercentClassifications,
+} from "./dataUtil/classifiers.js";
 import { HF, N, Percent, PositiveOrMinus1 } from "./dataUtil/numbers.js";
 import { getShooterFullInfo } from "./dataUtil/shooters.js";
 
@@ -40,10 +43,15 @@ export const chartData = async ({ number, division, full: fullString }) => {
     .sort((a, b) => b.hf - a.hf)
     .filter(({ hf }) => hf > 0);
 
+  const curPercentClassifications =
+    await getShooterToCurPercentClassifications();
   const hhf = curHHFForDivisionClassifier({ number, division });
   const allPoints = runs.map((run, index, allRuns) => ({
     x: HF(run.hf),
     y: PositiveOrMinus1(Percent(index, allRuns.length)),
+    memberNumber: run.memberNumber,
+    // curHHFPercent of the shooter for dot color
+    p: curPercentClassifications[run.memberNumber]?.[division]?.percent || 0,
   }));
 
   // for zoomed in mode return all points

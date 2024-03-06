@@ -5,6 +5,8 @@ import { Dialog } from "primereact/dialog";
 import { Scatter } from "./common";
 import { useApi } from "../../utils/client";
 import { useState } from "react";
+import { classForPercent } from "../../../../shared/utils/classification";
+import { bgColorForClass } from "../../utils/color";
 
 const yLine = (name, y, color) => ({
   [name]: {
@@ -209,6 +211,10 @@ export const ScoresChart = ({
             label: "HF / Percentile",
             data,
             backgroundColor: "#ae9ef1",
+            pointBackgroundColor: data.map((c) => {
+              return bgColorForClass[classForPercent(c.p)];
+              return `rgb(255,0,0)`;
+            }),
           },
         ],
       }}
