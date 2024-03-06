@@ -149,6 +149,7 @@ export const newClassificationCalculationState = () =>
     percent: 0,
     highPercent: 0,
     window: [],
+    percentWithDates: [],
   }));
 
 // adds in place, growing window if needed for duplicates
@@ -206,6 +207,7 @@ export const calculateUSPSAClassification = (
         state[division].highPercent = newPercent;
       }
       state[division].percent = newPercent;
+      state[division].percentWithDates.push({ p: newPercent, sd: c.sd });
     }
   };
 

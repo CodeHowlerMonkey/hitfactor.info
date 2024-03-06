@@ -29,16 +29,16 @@ test("cheap data integrity check", (t) => {
 
 test("newClassificationCalculationState", (t) => {
   assert.deepEqual(newClassificationCalculationState(), {
-    opn: { percent: 0, highPercent: 0, window: [] },
-    ltd: { percent: 0, highPercent: 0, window: [] },
-    l10: { percent: 0, highPercent: 0, window: [] },
-    prod: { percent: 0, highPercent: 0, window: [] },
-    rev: { percent: 0, highPercent: 0, window: [] },
-    ss: { percent: 0, highPercent: 0, window: [] },
-    co: { percent: 0, highPercent: 0, window: [] },
-    lo: { percent: 0, highPercent: 0, window: [] },
-    pcc: { percent: 0, highPercent: 0, window: [] },
-    loco: { percent: 0, highPercent: 0, window: [] },
+    opn: { percent: 0, highPercent: 0, window: [], percentWithDates: [] },
+    ltd: { percent: 0, highPercent: 0, window: [], percentWithDates: [] },
+    l10: { percent: 0, highPercent: 0, window: [], percentWithDates: [] },
+    prod: { percent: 0, highPercent: 0, window: [], percentWithDates: [] },
+    rev: { percent: 0, highPercent: 0, window: [], percentWithDates: [] },
+    ss: { percent: 0, highPercent: 0, window: [], percentWithDates: [] },
+    co: { percent: 0, highPercent: 0, window: [], percentWithDates: [] },
+    lo: { percent: 0, highPercent: 0, window: [], percentWithDates: [] },
+    pcc: { percent: 0, highPercent: 0, window: [], percentWithDates: [] },
+    loco: { percent: 0, highPercent: 0, window: [], percentWithDates: [] },
   });
 });
 
@@ -193,16 +193,16 @@ test("lowestAllowedPercentForOtherDivisionClass", (t) => {
 
 test("getDivToClass", (t) => {
   const state = {
-    opn: { percent: 0, highPercent: 12, window: [] },
-    ltd: { percent: 0, highPercent: 42, window: [] },
-    l10: { percent: 0, highPercent: 52, window: [] },
-    prod: { percent: 0, highPercent: 62, window: [] },
-    rev: { percent: 0, highPercent: 72, window: [] },
-    ss: { percent: 0, highPercent: 82, window: [] },
-    co: { percent: 0, highPercent: 92, window: [] },
-    lo: { percent: 0, highPercent: 112, window: [] },
-    pcc: { percent: 0, highPercent: 100, window: [] },
-    loco: { percent: 0, highPercent: 300, window: [] },
+    opn: { percent: 0, highPercent: 12, window: [], percentWithDates: [] },
+    ltd: { percent: 0, highPercent: 42, window: [], percentWithDates: [] },
+    l10: { percent: 0, highPercent: 52, window: [], percentWithDates: [] },
+    prod: { percent: 0, highPercent: 62, window: [], percentWithDates: [] },
+    rev: { percent: 0, highPercent: 72, window: [], percentWithDates: [] },
+    ss: { percent: 0, highPercent: 82, window: [], percentWithDates: [] },
+    co: { percent: 0, highPercent: 92, window: [], percentWithDates: [] },
+    lo: { percent: 0, highPercent: 112, window: [], percentWithDates: [] },
+    pcc: { percent: 0, highPercent: 100, window: [], percentWithDates: [] },
+    loco: { percent: 0, highPercent: 300, window: [], percentWithDates: [] },
   };
 
   assert.deepEqual(getDivToClass(state), {
@@ -676,13 +676,50 @@ test("calculateUSPSAClassification + percentField", (t) => {
   // TODO: add more testData real people, if edge cases are detected
 });
 
+test("calculateUSPSAClassification + percentField + dates", (t) => {
+  const result = calculateUSPSAClassification(testData, "curPercent");
+  assert.deepEqual(result.co.percentWithDates, [
+    { p: 0, sd: "3/26/22" },
+    { p: 58.93750000000001, sd: "3/26/22" },
+    { p: 64.37599999999999, sd: "3/26/22" },
+    { p: 64.37599999999999, sd: "3/26/22" },
+    { p: 68.70666666666666, sd: "3/26/22" },
+    { p: 80.42636666666667, sd: "4/07/22" },
+    { p: 83.66803333333334, sd: "5/17/22" },
+    { p: 86.83803333333333, sd: "5/21/22" },
+    { p: 88.1747, sd: "6/25/22" },
+    { p: 88.91499999999999, sd: "7/02/22" },
+    { p: 89.16333333333333, sd: "7/16/22" },
+    { p: 92.8, sd: "7/19/22" },
+    { p: 94.19666666666667, sd: "8/06/22" },
+    { p: 95.72833333333332, sd: "8/16/22" },
+    { p: 97.13579999999999, sd: "9/02/22" },
+    { p: 97.59413333333333, sd: "9/20/22" },
+    { p: 98.32246666666666, sd: "10/18/22" },
+    { p: 98.32246666666666, sd: "10/22/22" },
+    { p: 100.92246666666666, sd: "1/07/23" },
+    { p: 101.83500000000001, sd: "1/21/23" },
+    { p: 100.055, sd: "1/28/23" },
+    { p: 101.45333333333333, sd: "3/04/23" },
+    { p: 101.47333333333334, sd: "3/23/23" },
+    { p: 101.47333333333334, sd: "4/18/23" },
+    { p: 101.47333333333334, sd: "5/06/23" },
+    { p: 100.67840000000001, sd: "5/11/23" },
+    { p: 102.65500000000002, sd: "5/27/23" },
+    { p: 100.32006666666666, sd: "6/03/23" },
+    { p: 101.64173333333333, sd: "7/15/23" },
+    { p: 101.04006666666668, sd: "7/18/23" },
+    { p: 101.04006666666668, sd: "8/26/23" },
+    { p: 102.07666666666668, sd: "9/15/23" },
+  ]);
+});
+
 test("calculateUSPSAClassification CS should have curPercent", (t) => {
   const result = calculateUSPSAClassification(csClassifiers, "curPercent");
   assert.strictEqual(Number(result.co.percent.toFixed(2)), 97.68);
 });
 
-test.only("calculateUSPSAClassification CS should have curPercent in Open", (t) => {
+test("calculateUSPSAClassification CS should have curPercent in Open", (t) => {
   const result = calculateUSPSAClassification(csOpenClassifiers, "curPercent");
-  console.log(JSON.stringify(result, null, 2));
   assert.strictEqual(Number(result.opn.percent.toFixed(2)), 100.91);
 });
