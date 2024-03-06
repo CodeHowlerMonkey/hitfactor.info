@@ -185,10 +185,17 @@ export const ScoresChart = ({
         scales: { y: { reverse: true } },
         elements: {
           point: {
-            radius: 2,
+            radius: 3,
           },
         },
         plugins: {
+          tooltip: {
+            callbacks: {
+              label: ({ raw: { x, y, p, memberNumber } }) =>
+                `${memberNumber}: ${x}HF`,
+              //`HF ${x}, Top ${y}%: ${memberNumber}(${p.toFixed(2)}%)`,
+            },
+          },
           annotation: {
             annotations: {
               ...yLine("1th", 1, annotationColor(0.7)),
@@ -210,6 +217,8 @@ export const ScoresChart = ({
           {
             label: "HF / Percentile",
             data,
+            pointBorderColor: "white",
+            pointBorderWidth: 0,
             backgroundColor: "#ae9ef1",
             pointBackgroundColor: data.map((c) => {
               return bgColorForClass[classForPercent(c.p)];
