@@ -39,7 +39,7 @@ const xLine = (name, x, color, extraLabelOffset = 0) => ({
   [name + "Label"]: {
     type: "label",
     xValue: x,
-    yValue: 100 - x * 8 + extraLabelOffset,
+    yValue: 95 - 2 * extraLabelOffset,
     color,
     position: "start",
     content: [name],
@@ -191,8 +191,8 @@ export const ScoresChart = ({
         plugins: {
           tooltip: {
             callbacks: {
-              label: ({ raw: { x, y, p, memberNumber } }) =>
-                `${memberNumber}: ${x}HF`,
+              label: ({ raw: { x, y, p, pp, memberNumber } }) =>
+                `${memberNumber}: ${x}HF    (Top ${y}%)`,
               //`HF ${x}, Top ${y}%: ${memberNumber}(${p.toFixed(2)}%)`,
             },
           },
@@ -217,13 +217,14 @@ export const ScoresChart = ({
           {
             label: "HF / Percentile",
             data,
-            pointBorderColor: "white",
-            pointBorderWidth: 0,
+            pointBorderColor: data.map(
+              (c) => bgColorForClass[classForPercent(c.p)]
+            ),
+            pointBorderWidth: 1,
             backgroundColor: "#ae9ef1",
-            pointBackgroundColor: data.map((c) => {
-              return bgColorForClass[classForPercent(c.p)];
-              return `rgb(255,0,0)`;
-            }),
+            pointBackgroundColor: data.map(
+              (c) => bgColorForClass[classForPercent(c.pp)]
+            ),
           },
         ],
       }}
