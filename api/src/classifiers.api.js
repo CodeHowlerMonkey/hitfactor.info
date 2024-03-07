@@ -50,8 +50,19 @@ export const chartData = async ({ number, division, full: fullString }) => {
     x: HF(run.hf),
     y: PositiveOrMinus1(Percent(index, allRuns.length)),
     memberNumber: run.memberNumber,
-    // curHHFPercent of the shooter for dot color
-    p: curPercentClassifications[run.memberNumber]?.[division]?.percent || 0,
+    // historical (if possible) or current curHHFPercent of the shooter for dot color
+    p:
+      curPercentClassifications[run.memberNumber]?.[
+        division
+      ]?.percentWithDates?.findLast(({ sd }) => {
+        const runUnixTime = new Date(run.sd).getTime();
+        const sdUnixTime = new Date(sd).getTime();
+        return sdUnixTime < runUnixTime;
+      })?.p ||
+      curPercentClassifications[run.memberNumber]?.[division]?.percent ||
+      0,
+    // current curHHFPercent for secondary color
+    pp: curPercentClassifications[run.memberNumber]?.[division]?.percent || 0,
   }));
 
   // for zoomed in mode return all points
