@@ -14,44 +14,62 @@ export const ClassificationsChart = ({
   bar,
   alignBy,
 }) => {
+  const valueFor = (letter) => apiData?.[division]?.[letter] ?? 0;
+  const totalInDivision =
+    valueFor("GM") +
+    valueFor("M") +
+    valueFor("A") +
+    valueFor("B") +
+    valueFor("C") +
+    valueFor("D") +
+    (!includeU ? 0 : valueFor("U"));
+  const topA =
+    (100 * (valueFor("GM") + valueFor("M") + valueFor("A"))) / totalInDivision;
+  const topM = (100 * (valueFor("GM") + valueFor("M"))) / totalInDivision;
   const data = [
     ...(!includeU && !!apiData
       ? []
       : [
           {
             title: apiData ? "U" : "Loading",
-            value: apiData?.[division]?.["U"] ?? 0,
+            value: valueFor("U"),
             color: "#939697",
           },
         ]),
     {
       title: apiData ? "D" : "",
-      value: apiData?.[division]?.["D"] ?? 0,
+      letter: apiData ? "D" : "",
+      value: valueFor("D"),
       color: "#cc5e0d",
     },
     {
       title: apiData ? "C" : "",
-      value: apiData?.[division]?.["C"] ?? 0,
+      letter: apiData ? "C" : "",
+      value: valueFor("C"),
       color: "#008627",
     },
     {
       title: apiData ? "B" : "",
-      value: apiData?.[division]?.["B"] ?? 0,
+      letter: apiData ? "B" : "",
+      value: valueFor("B"),
       color: "#1a3bbd",
     },
     {
-      title: apiData ? "A" : "",
-      value: apiData?.[division]?.["A"] ?? 0,
+      title: apiData ? `A (Top ${topA.toFixed(3)}%)` : "",
+      letter: apiData ? "A" : "",
+      value: valueFor("A"),
       color: "#909",
     },
     {
-      title: apiData ? "M" : "",
-      value: apiData?.[division]?.["M"] ?? 0,
+      title: apiData ? `M (Top ${topM.toFixed(3)}%)` : "",
+      letter: apiData ? "M" : "",
+      value: valueFor("M"),
       color: "#994800",
     },
     {
       title: apiData ? "GM" : "",
-      value: apiData?.[division]?.["GM"] ?? 0,
+      letter: apiData ? "GM" : "",
+      value: valueFor("GM"),
       color: "#000000",
     },
   ];
@@ -132,8 +150,8 @@ export const ClassificationsChart = ({
           fontWeight: "bold",
         }}
         lineWidth={60}
-        label={({ dataEntry: { title, percentage, value } }) =>
-          !value ? "" : `${title} ${value} (${percentage.toFixed(2)}%)`
+        label={({ dataEntry: { title, percentage, value, letter } }) =>
+          !value ? "" : `${letter} ${value} (${percentage.toFixed(2)}%)`
         }
         labelPosition={72}
         labelStyle={(dataIndex) => ({
