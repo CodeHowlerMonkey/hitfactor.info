@@ -263,13 +263,44 @@ export const ScoresChart = ({
         style={{ width: "96vw", height: "96vh", margin: "16px" }}
         onHide={() => setFull(false)}
       >
+        <div
+          style={{
+            position: "absolute",
+            top: "24px",
+            display: "flex",
+            justifyContent: "space-between",
+            left: 0,
+            right: 0,
+            margin: "auto",
+            width: "50%",
+          }}
+        >
+          <SelectButton
+            options={modes}
+            value={mode}
+            onChange={(e) => setMode(e.value)}
+            style={{ margin: "auto", transform: "scale(0.65)" }}
+          />
+        </div>
         {graph}
       </Dialog>
     );
   }
 
   return (
-    <>
+    <div
+      style={{
+        maxHeight: "100%",
+      }}
+    >
+      <div className="flex justify-space-around">
+        <SelectButton
+          options={modes}
+          value={mode}
+          onChange={(e) => setMode(e.value)}
+          style={{ margin: "auto", transform: "scale(0.65)" }}
+        />
+      </div>
       {graph}
       <Button
         onClick={() => setFull(true)}
@@ -283,7 +314,7 @@ export const ScoresChart = ({
           transform: "rotate(45deg)",
         }}
       />
-    </>
+    </div>
   );
 };
 
