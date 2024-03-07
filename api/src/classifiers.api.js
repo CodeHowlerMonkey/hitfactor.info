@@ -8,7 +8,10 @@ import {
   getShooterToCurPercentClassifications,
 } from "./dataUtil/classifiers.js";
 import { HF, N, Percent, PositiveOrMinus1 } from "./dataUtil/numbers.js";
-import { getShooterFullInfo } from "./dataUtil/shooters.js";
+import {
+  getShooterFullInfo,
+  getShootersTableByMemberNumber,
+} from "./dataUtil/shooters.js";
 
 import { stringSort } from "../../shared/utils/sort.js";
 
@@ -43,7 +46,8 @@ export const chartData = async ({ number, division, full: fullString }) => {
     .sort((a, b) => b.hf - a.hf)
     .filter(({ hf }) => hf > 0);
 
-  const curPercentClassifications =
+  const curPercentClsasifications = await getShootersTableByMemberNumber();
+  const curHHFPercentClassifications =
     await getShooterToCurPercentClassifications();
   const hhf = curHHFForDivisionClassifier({ number, division });
   const allPoints = runs.map((run, index, allRuns) => ({
@@ -51,18 +55,20 @@ export const chartData = async ({ number, division, full: fullString }) => {
     y: PositiveOrMinus1(Percent(index, allRuns.length)),
     memberNumber: run.memberNumber,
     // historical (if possible) or current curHHFPercent of the shooter for dot color
-    p:
-      curPercentClassifications[run.memberNumber]?.[
+    historicalCurHHFPercent:
+      curHHFPercentClassifications[run.memberNumber]?.[
         division
       ]?.percentWithDates?.findLast(({ sd }) => {
         const runUnixTime = new Date(run.sd).getTime();
         const sdUnixTime = new Date(sd).getTime();
         return sdUnixTime < runUnixTime;
-      })?.p ||
-      curPercentClassifications[run.memberNumber]?.[division]?.percent ||
-      0,
+      })?.p || 0,
     // current curHHFPercent for secondary color
-    pp: curPercentClassifications[run.memberNumber]?.[division]?.percent || 0,
+    curHHFPercent:
+      curHHFPercentClassifications[run.memberNumber]?.[division]?.percent || 0,
+    // alternative color curPercent official from USPSA
+    curPercent:
+      curPercentClsasifications[division]?.[run.memberNumber]?.[0].current || 0,
   }));
 
   // for zoomed in mode return all points

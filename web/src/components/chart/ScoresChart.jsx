@@ -7,6 +7,7 @@ import { useApi } from "../../utils/client";
 import { useState } from "react";
 import { classForPercent } from "../../../../shared/utils/classification";
 import { bgColorForClass } from "../../utils/color";
+import { SelectButton } from "primereact/selectbutton";
 
 const yLine = (name, y, color) => ({
   [name]: {
@@ -155,8 +156,15 @@ const xLinesForHHF = (prefix, hhf) =>
         ),
       };
 
+// "Cur. HHF Percent" => curHHFPercent
+const modeBucketForMode = (mode) =>
+  ({
+    Official: "curPercent",
+    "Historical CHHF": "historicalCurHHFPercent",
+    "Current CHHF": "curHHFPercent",
+  }[mode]);
+
 // TODO: different modes for class xLines (95/85/75-hhf, A-centric, 1/5/15/40/75-percentile, etc)
-// TODO: maybe for HHF mode allow choosing different HHFs from another dropdown
 // TODO: maybe split the modes into 2 dropdowns, one of xLines, one for yLines to play with
 // TODO: maybe different options / scale depending on viewport size and desktop/tablet/mobile
 // TODO: all vs current search mode
@@ -169,9 +177,12 @@ export const ScoresChart = ({
   recommendedHHF15,
 }) => {
   const [full, setFull] = useState(false);
+  const modes = ["Official", "Historical CHHF", "Current CHHF"];
+  const [mode, setMode] = useState(modes[0]);
   const data = useApi(
     `/classifiers/${division}/${classifier}/chart?full=${full ? 1 : 0}`
   );
+
   if (!data?.length) {
     return <ProgressSpinner />;
   }
@@ -191,9 +202,10 @@ export const ScoresChart = ({
         plugins: {
           tooltip: {
             callbacks: {
-              label: ({ raw: { x, y, p, pp, memberNumber } }) =>
-                `${memberNumber}: ${x}HF    (Top ${y}%)`,
-              //`HF ${x}, Top ${y}%: ${memberNumber}(${p.toFixed(2)}%)`,
+              label: ({ raw, raw: { x, y, p, pp, memberNumber } }) =>
+                `HF ${x}, Top ${y}%: ${memberNumber}(${raw[
+                  modeBucketForMode(mode)
+                ].toFixed(2)}%)`,
             },
           },
           annotation: {
@@ -217,13 +229,12 @@ export const ScoresChart = ({
           {
             label: "HF / Percentile",
             data,
-            pointBorderColor: data.map(
-              (c) => bgColorForClass[classForPercent(c.p)]
-            ),
-            pointBorderWidth: 1,
+            pointBorderColor: "white",
+            pointBorderWidth: 0,
             backgroundColor: "#ae9ef1",
             pointBackgroundColor: data.map(
-              (c) => bgColorForClass[classForPercent(c.pp)]
+              (c) =>
+                bgColorForClass[classForPercent(c[modeBucketForMode(mode)])]
             ),
           },
         ],
