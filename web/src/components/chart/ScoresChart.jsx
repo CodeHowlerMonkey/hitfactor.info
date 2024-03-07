@@ -200,6 +200,19 @@ export const ScoresChart = ({
           },
         },
         plugins: {
+          zoom: {
+            pan: { enabled: true },
+            zoom: {
+              mode: "xy",
+              enabled: true,
+              wheel: {
+                enabled: true,
+              },
+              pinch: {
+                enabled: true,
+              },
+            },
+          },
           tooltip: {
             callbacks: {
               label: ({ raw, raw: { x, y, p, pp, memberNumber } }) =>
