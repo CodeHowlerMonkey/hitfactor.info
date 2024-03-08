@@ -12,10 +12,12 @@ import {
 
 import { multisort } from "../../../../../shared/utils/sort.js";
 import { PAGE_SIZE } from "../../../../../shared/constants/pagination.js";
-import { HF } from "../../../dataUtil/numbers.js";
-import { getExtendedCalibrationShootersPercentileTable } from "../../../dataUtil/shooters.js";
 import { mapDivisionsAsync } from "../../../dataUtil/divisions.js";
 import { getShooterToRuns } from "../../../dataUtil/classifiers.js";
+import {
+  recommendedHHFByPercentileAndPercent,
+  recommendedHHFFor,
+} from "../../../dataUtil/recommendedHHF.js";
 
 const classifiersForDivision = memoize(
   async (division) => {
@@ -28,32 +30,6 @@ const classifiersForDivision = memoize(
   },
   { cacheKey: ([division]) => division }
 );
-
-/**
- * Calculated recommended HHF by matching lower percent of the score to percentile of shooters
- * who should be able to get that score.
- *
- * Used with 1Percentile for GM (95%) and 5Percentile for M(85%)
- * @param runs classifier scores, sorted by HF or curPercent. MUST BE SORTED for percentile math.
- * @param percentile what percentile to search for 0 to 100
- * @param percent what percent score to assign to it 0 to 100
- */
-const recommendedHHFByPercentileAndPercent = (
-  runs,
-  targetPercentile,
-  percent
-) => {
-  const closestPercentileRun = runs.sort(
-    (a, b) =>
-      Math.abs(a.percentile - targetPercentile) -
-      Math.abs(b.percentile - targetPercentile)
-  )[0];
-  return HF(
-    (closestPercentileRun.hf * closestPercentileRun.percentile) /
-      targetPercentile /
-      (percent / 100.0)
-  );
-};
 
 const classifiersRoutes = async (fastify, opts) => {
   fastify.get("/", (req, res) => classifiers.map(basicInfoForClassifier));
@@ -104,13 +80,14 @@ const classifiersRoutes = async (fastify, opts) => {
     const extended = await extendedInfoForClassifier(c, division);
     const { hhf, hhfs } = extended;
 
-    let runsUnsorted = await runsForDivisionClassifier({
+    const allRuns = await runsForDivisionClassifier({
       number,
       division,
       hhf,
       includeNoHF,
       hhfs,
     });
+    let runsUnsorted = allRuns;
     if (filterHHF) {
       runsUnsorted = runsUnsorted.filter(
         (run) => Math.abs(filterHHF - run.historicalHHF) <= 0.00015
@@ -135,26 +112,39 @@ const classifiersRoutes = async (fastify, opts) => {
       order?.split?.(",")
     ).map((run, index) => ({ ...run, index }));
 
-    const extendedCalibrationTable =
-      await getExtendedCalibrationShootersPercentileTable();
+    // const extendedCalibrationTable = await getExtendedCalibrationShootersPercentileTable();
+
+    // Not using calculated percentiles, because it's all over the place in different divisions
+    // Closest to reality is curPercent in CO, and few good classifiers there, which show
+    // GM shooters start where they should. These classifiers are
+    // 99-07 Both Sides Now
+    // 03-03 Take em Down
+    // 06-01 Big Barricade
+    // 06-02 Big Barricade II
+    // 09-13 Table Stakes
+    // 19-02 Hi-Way Robbery
+    // So we're just gonna eye-ball percentiles for 3 recommendation algos based on these
+    // classifiers for now.
+    // It can always be adjusted later.
 
     return {
       info: {
         ...basic,
         ...extended,
+        recHHF: recommendedHHFFor({ division, number }),
         recommendedHHF1: recommendedHHFByPercentileAndPercent(
-          runsUnsorted,
-          extendedCalibrationTable[division].pGM,
+          allRuns,
+          0.9, // extendedCalibrationTable[division].pGM,
           95
         ),
         recommendedHHF5: recommendedHHFByPercentileAndPercent(
-          runsUnsorted,
-          extendedCalibrationTable[division].pM,
+          allRuns,
+          5.1, // extendedCalibrationTable[division].pM,
           85
         ),
         recommendedHHF15: recommendedHHFByPercentileAndPercent(
-          runsUnsorted,
-          extendedCalibrationTable[division].pA,
+          allRuns,
+          14.5, // extendedCalibrationTable[division].pA,
           75
         ),
       },

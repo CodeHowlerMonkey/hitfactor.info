@@ -118,4 +118,22 @@ export const getShooterToCurPercentClassifications = badLazy(async () => {
   return result;
 });
 
+export const selectClassifierDivisionScores = async ({
+  number,
+  division,
+  includeNoHF,
+}) => {
+  return (await getDivShortToRuns())[division].filter((run) => {
+    if (!run) {
+      return false;
+    }
+
+    if (!includeNoHF && run.hf < 0) {
+      return false;
+    }
+
+    return run.classifier === number;
+  });
+};
+
 // TODO: getShooterToRecPercentClassifications

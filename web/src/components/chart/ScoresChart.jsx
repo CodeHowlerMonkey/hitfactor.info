@@ -20,12 +20,12 @@ const yLine = (name, y, color) => ({
   [name + "Label"]: {
     type: "label",
     xValue: 0,
-    yValue: y,
+    yValue: y - 1.1,
     color,
     position: "start",
     content: [y + "th"],
     font: {
-      size: 12,
+      size: 11,
     },
   },
 });
@@ -122,35 +122,35 @@ const xLinesForHHF = (prefix, hhf) =>
         ...point(
           prefix + "GM/1",
           0.95 * hhf,
-          1,
+          0.9,
           colorForPrefix(prefix, 0.7),
           extraLabelOffsets[prefix]
         ),
         ...point(
           prefix + "M/5",
           0.85 * hhf,
-          5,
+          5.1,
           colorForPrefix(prefix, 0.5),
           extraLabelOffsets[prefix]
         ),
         ...point(
           prefix + "A/15",
           0.75 * hhf,
-          15,
+          14.5,
           colorForPrefix(prefix, 0.4),
           extraLabelOffsets[prefix]
         ),
         ...point(
           prefix + "B/40",
           0.6 * hhf,
-          40,
+          45,
           colorForPrefix(prefix, 0.3),
           extraLabelOffsets[prefix]
         ),
         ...point(
           prefix + "C/75",
           0.4 * hhf,
-          75,
+          85,
           colorForPrefix(prefix, 0.2),
           extraLabelOffsets[prefix]
         ),
@@ -223,11 +223,11 @@ export const ScoresChart = ({
           },
           annotation: {
             annotations: {
-              ...yLine("1th", 1, annotationColor(0.7)),
-              ...yLine("5th", 5, annotationColor(0.5)),
-              ...yLine("15th", 15, annotationColor(0.4)),
-              ...yLine("40th", 40, annotationColor(0.3)),
-              ...yLine("75th", 75, annotationColor(0.2)),
+              ...yLine("0.9th", 0.9, annotationColor(0.7)),
+              ...yLine("5.1th", 5.1, annotationColor(0.5)),
+              ...yLine("14.5th", 14.5, annotationColor(0.4)),
+              ...yLine("45th", 45, annotationColor(0.3)),
+              ...yLine("85th", 85, annotationColor(0.2)),
 
               ...xLinesForHHF("", hhf),
               ...xLinesForHHF("r1", recommendedHHF1),

@@ -6,6 +6,7 @@ import memoize from "memoize";
 import {
   getDivShortToRuns,
   getShooterToCurPercentClassifications,
+  selectClassifierDivisionScores,
 } from "./dataUtil/classifiers.js";
 import { HF, N, Percent, PositiveOrMinus1 } from "./dataUtil/numbers.js";
 import {
@@ -16,24 +17,6 @@ import {
 import { stringSort } from "../../shared/utils/sort.js";
 
 import { curHHFForDivisionClassifier, divShortToHHFs } from "./dataUtil/hhf.js";
-
-const selectClassifierDivisionScores = async ({
-  number,
-  division,
-  includeNoHF,
-}) => {
-  return (await getDivShortToRuns())[division].filter((run) => {
-    if (!run) {
-      return false;
-    }
-
-    if (!includeNoHF && run.hf < 0) {
-      return false;
-    }
-
-    return run.classifier === number;
-  });
-};
 
 export const chartData = async ({ number, division, full: fullString }) => {
   const full = Number(fullString);

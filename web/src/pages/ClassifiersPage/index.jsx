@@ -90,7 +90,7 @@ export const ClassifierRunsAndInfo = ({
           />
         </a>
       </div>
-      <div className="flex h-30rem">
+      <div className="flex" style={{ height: "35rem" }}>
         <div className="w-full h-full bg-primary-reverse">
           <ClassifierInfoTable {...{ division, classifier }} {...info} />
         </div>

@@ -127,11 +127,7 @@ const getShootersFullForDivision = memoize(
   { cacheKey: ([division]) => division }
 );
 
-// TODO: I think it still gonna be just deciding and setting a number
-// so far with a couple good classifiers in good division it looks like
-// 0.90% GM / 5.10% M / 12.5% A
-// TODO: we can use all shooters, and all classifiers with HF if we recalculate everything
-// against current HHFs... ://
+// Not used for now, but keeping in the codebase for later analysis
 const getFreshShootersForDivisionCalibration = async (
   division,
   maxAge = 48,
@@ -191,8 +187,6 @@ export const getExtendedCalibrationShootersPercentileTable = badLazy(
     });
   }
 );
-const temp = await getExtendedCalibrationShootersPercentileTable();
-console.log(JSON.stringify(temp, null, 2));
 
 export const getShootersTable = badLazy(async () => ({
   opn: await getShootersFullForDivision("opn"),
