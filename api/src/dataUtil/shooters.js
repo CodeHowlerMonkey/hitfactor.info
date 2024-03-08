@@ -3,7 +3,11 @@ import memoize from "memoize";
 import { getExtendedClassificationsInfo } from "./classifications.js";
 import { N, Percent, PositiveOrMinus1 } from "./numbers.js";
 import { mapDivisions, mapDivisionsAsync } from "./divisions.js";
-import { getDivShortToShooterToRuns, getShooterToRuns } from "./classifiers.js";
+import {
+  getDivShortToShooterToRuns,
+  getShooterToCurPercentClassifications,
+  getShooterToRuns,
+} from "./classifiers.js";
 import { byMemberNumber } from "./byMemberNumber.js";
 import { curHHFForDivisionClassifier } from "./hhf.js";
 
@@ -91,7 +95,9 @@ const safeNumSort = (field) => (a, b) => {
   // output here (used in shooter info head), but can't mess up the
   // ranking due to null/-1/undefined values
   // note: || is used instead of ?? to convert NaN to 0 as well
-  return Math.max(0, b[field] || 0) - Math.max(0, a[field] || 0);
+  const aValue = field ? a[field] : a;
+  const bValue = field ? b[field] : b;
+  return Math.max(0, bValue || 0) - Math.max(0, aValue || 0);
 };
 
 const getShootersFullForDivision = memoize(
@@ -121,11 +127,18 @@ const getShootersFullForDivision = memoize(
   { cacheKey: ([division]) => division }
 );
 
+// TODO: I think it still gonna be just deciding and setting a number
+// so far with a couple good classifiers in good division it looks like
+// 0.90% GM / 5.10% M / 12.5% A
 // TODO: we can use all shooters, and all classifiers with HF if we recalculate everything
 // against current HHFs... ://
-const getFreshShootersForDivisionCalibration = async (division, maxAge = 48) =>
+const getFreshShootersForDivisionCalibration = async (
+  division,
+  maxAge = 48,
+  maxAge1 = 24
+) =>
   (await getShootersFullForDivision(division)) // sorted by current already
-    .filter((c) => c.age > 0 && c.age <= maxAge)
+    .filter((c) => c.age > 0 && c.age <= maxAge && c.age1 <= maxAge1)
     .map((c, index, all) => ({
       current: c.current,
       percentile: Percent(index, all.length),
@@ -152,23 +165,34 @@ export const classifiersForDivisionForShooter = async ({
   );
 
 export const getExtendedCalibrationShootersPercentileTable = badLazy(
-  async () =>
-    await mapDivisionsAsync(async (div) => {
-      const freshShootersForCalibration =
-        await getFreshShootersForDivisionCalibration(div);
+  async () => {
+    const divToCurHHFPercentArray = mapDivisions((div) => []);
+    const curHHFCalibrationShooters = Object.values(
+      await getShooterToCurPercentClassifications()
+    );
+    curHHFCalibrationShooters.forEach((shooter) => {
+      mapDivisions((div) => {
+        divToCurHHFPercentArray[div].push(shooter[div].percent);
+        return 0;
+      });
+    });
+
+    const divToCurHHFPercentArraySorted = mapDivisions((div) =>
+      divToCurHHFPercentArray[div].filter((c) => c > 0).sort(safeNumSort())
+    );
+
+    return mapDivisions((div) => {
+      const divArray = divToCurHHFPercentArraySorted[div];
       return {
-        pGM:
-          freshShootersForCalibration.find((c) => c.current <= 95)
-            ?.percentile || 1,
-        pM:
-          freshShootersForCalibration.find((c) => c.current <= 85)
-            ?.percentile || 5,
-        pA:
-          freshShootersForCalibration.find((c) => c.current <= 75)
-            ?.percentile || 15,
+        pGM: (100 * divArray.findIndex((c) => c <= 95)) / divArray.length,
+        pM: (100 * divArray.findIndex((c) => c <= 85)) / divArray.length,
+        pA: (100 * divArray.findIndex((c) => c <= 75)) / divArray.length,
       };
-    })
+    });
+  }
 );
+const temp = await getExtendedCalibrationShootersPercentileTable();
+console.log(JSON.stringify(temp, null, 2));
 
 export const getShootersTable = badLazy(async () => ({
   opn: await getShootersFullForDivision("opn"),

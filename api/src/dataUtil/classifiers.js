@@ -103,7 +103,10 @@ export const getShooterToRuns = badLazy(async () => {
   return result;
 });
 
-/** @returns {A111: {opn: { percent: 73, highPercent: 75}, ltd: ... }...} */
+/**
+ * @returns shooter-to-div-to-curHHFPercent map
+ * e.g. {A111: {opn: { percent: 73, highPercent: 75}, ltd: ... }...}
+ */
 export const getShooterToCurPercentClassifications = badLazy(async () => {
   const shooterToRuns = await getShooterToRuns();
   const result = Object.fromEntries(
