@@ -179,7 +179,7 @@ export const ScoresChart = ({
   recommendedHHF5,
   recommendedHHF15,
 }) => {
-  const [full, setFull] = useState(true);
+  const [full, setFull] = useState(false);
   const modes = ["Official", "Historical CHHF", "Current CHHF"];
   const [mode, setMode] = useState(modes[0]);
   const data = useApi(
