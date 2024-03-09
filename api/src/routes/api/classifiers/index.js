@@ -131,7 +131,7 @@ const classifiersRoutes = async (fastify, opts) => {
       info: {
         ...basic,
         ...extended,
-        recHHF: recommendedHHFFor({ division, number }),
+        recHHF: await recommendedHHFFor({ division, number }),
         recommendedHHF1: recommendedHHFByPercentileAndPercent(
           allRuns,
           0.9, // extendedCalibrationTable[division].pGM,

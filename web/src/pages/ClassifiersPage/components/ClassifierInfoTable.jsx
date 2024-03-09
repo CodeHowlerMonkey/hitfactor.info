@@ -7,6 +7,7 @@ export const ClassifierInfoTable = ({
   division,
   classifier,
   hhf,
+  recHHF,
   recommendedHHF1,
   recommendedHHF5,
   recommendedHHF15,
@@ -27,6 +28,7 @@ export const ClassifierInfoTable = ({
           division={division}
           classifier={classifier}
           hhf={hhf}
+          recHHF={recHHF}
           recommendedHHF1={recommendedHHF1}
           recommendedHHF5={recommendedHHF5}
           recommendedHHF15={recommendedHHF15}
@@ -68,7 +70,16 @@ export const ClassifierInfoTable = ({
             stripedRows
             value={[
               ...(info?.hhfs || []),
-              ...(recommendedHHF1 <= 0
+              ...(!recHHF
+                ? []
+                : [
+                    {
+                      label: "Rec. HHF",
+                      tooltip: "Recommended HHF",
+                      hhf: recHHF,
+                    },
+                  ]),
+              ...(recHHF || recommendedHHF1 <= 0
                 ? []
                 : [
                     {
@@ -78,7 +89,7 @@ export const ClassifierInfoTable = ({
                       hhf: recommendedHHF1,
                     },
                   ]),
-              ...(recommendedHHF5 <= 0
+              ...(recHHF || recommendedHHF5 <= 0
                 ? []
                 : [
                     {
@@ -89,7 +100,7 @@ export const ClassifierInfoTable = ({
                     },
                   ]),
               // TODO: #23 remove check after proper fix
-              ...(recommendedHHF15 <= 0
+              ...(recHHF || recommendedHHF15 <= 0
                 ? []
                 : [
                     {

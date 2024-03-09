@@ -67,12 +67,14 @@ const r15annotationColor = (alpha) => `rgba(255, 255, 132, ${alpha})`;
 const colorForPrefix = (prefix, alpha) =>
   ({
     "": annotationColor,
+    r: r1annotationColor, // green for recommended
     r1: r1annotationColor,
     r5: r5annotationColor,
     r15: r15annotationColor,
   }[prefix](alpha));
 const extraLabelOffsets = {
   "": 0,
+  r: 5, // show close like r1
   r1: 5,
   r5: 15,
   r15: 25,
@@ -172,11 +174,12 @@ export const ScoresChart = ({
   division,
   classifier,
   hhf,
+  recHHF,
   recommendedHHF1,
   recommendedHHF5,
   recommendedHHF15,
 }) => {
-  const [full, setFull] = useState(false);
+  const [full, setFull] = useState(true);
   const modes = ["Official", "Historical CHHF", "Current CHHF"];
   const [mode, setMode] = useState(modes[0]);
   const data = useApi(
@@ -215,7 +218,7 @@ export const ScoresChart = ({
           },
           tooltip: {
             callbacks: {
-              label: ({ raw, raw: { x, y, p, pp, memberNumber } }) =>
+              label: ({ raw, raw: { x, y, memberNumber } }) =>
                 `HF ${x}, Top ${y}%: ${memberNumber}(${raw[
                   modeBucketForMode(mode)
                 ].toFixed(2)}%)`,
@@ -230,9 +233,13 @@ export const ScoresChart = ({
               ...yLine("85th", 85, annotationColor(0.2)),
 
               ...xLinesForHHF("", hhf),
-              ...xLinesForHHF("r1", recommendedHHF1),
-              ...xLinesForHHF("r5", recommendedHHF5),
-              ...xLinesForHHF("r15", recommendedHHF15),
+              ...(recHHF
+                ? xLinesForHHF("r", recHHF)
+                : {
+                    ...xLinesForHHF("r1", recommendedHHF1),
+                    ...xLinesForHHF("r5", recommendedHHF5),
+                    ...xLinesForHHF("r15", recommendedHHF15),
+                  }),
             },
           },
         },

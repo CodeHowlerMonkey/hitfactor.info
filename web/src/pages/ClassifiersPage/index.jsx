@@ -60,7 +60,7 @@ export const ClassifierRunsAndInfo = ({
     division,
     classifier,
   });
-  const { code, name, hhf } = info;
+  const { code, name } = info;
 
   return (
     <>
