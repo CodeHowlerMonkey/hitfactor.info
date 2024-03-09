@@ -13,7 +13,7 @@ import {
   classifierCodeSort,
 } from "../../../../../shared/utils/sort";
 import ClassifierCell from "../../../components/ClassifierCell";
-import { renderPercent } from "../../../components/Table";
+import { renderHFOrNA, renderPercent } from "../../../components/Table";
 
 const compactPercentColumnStyle = {
   headerStyle: { width: "64px", padding: "16px 4px", fontSize: "0.8rem" },
@@ -44,6 +44,7 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
     .map((d) => ({
       ...d,
       updated: new Date(d.updated).toLocaleDateString(),
+      recHHFChange: d.recHHF - d.hhf,
     }))
     .sort((a, b) => {
       switch (sortState.sortField) {
@@ -117,8 +118,26 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
         sortable
         body={(c) => <ClassifierCell {...c} />}
       />
-      <Column field="recHHF" header="Rec. HHF" sortable />
       <Column field="hhf" header="HHF" sortable />
+      <Column field="recHHF" header="Rec. HHF" sortable body={renderHFOrNA} />
+      <Column
+        field="recHHFChange"
+        header="Rec. HHF Change"
+        sortable
+        body={(c) => {
+          if (!c.recHHF) {
+            return "—";
+          }
+          const sign = c.recHHF > c.hhf ? "+" : "";
+          const diff = c.recHHF - c.hhf;
+          const diffPercent = 100 * (c.recHHF / c.hhf - 1);
+
+          const hfDifference = sign + diff.toFixed(4);
+          const percentDifference = sign + diffPercent.toFixed(2);
+
+          return `${hfDifference} (${percentDifference}%)`;
+        }}
+      />
       <Column field="prevHHF" header="Prev. HHF" sortable />
       <Column field="updated" header="Updated" sortable />
       <Column field="runs" header="Scores" sortable />

@@ -10,3 +10,12 @@ export const renderPercent = (c, { field }) => {
 
   return value + "%";
 };
+
+export const renderHFOrNA = (c, { field }) => {
+  const value = c[field];
+  if (value <= 0) {
+    return "—";
+  }
+
+  return value.toFixed(4);
+};
