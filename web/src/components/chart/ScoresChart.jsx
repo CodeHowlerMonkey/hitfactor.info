@@ -67,7 +67,7 @@ const r15annotationColor = (alpha) => `rgba(255, 255, 132, ${alpha})`;
 const colorForPrefix = (prefix, alpha) =>
   ({
     "": annotationColor,
-    r: r1annotationColor, // green for recommended
+    r: r5annotationColor, // green for recommended
     r1: r1annotationColor,
     r5: r5annotationColor,
     r15: r15annotationColor,

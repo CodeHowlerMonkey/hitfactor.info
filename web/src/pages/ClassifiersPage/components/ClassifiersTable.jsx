@@ -117,6 +117,7 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
         sortable
         body={(c) => <ClassifierCell {...c} />}
       />
+      <Column field="recHHF" header="Rec. HHF" sortable />
       <Column field="hhf" header="HHF" sortable />
       <Column field="prevHHF" header="Prev. HHF" sortable />
       <Column field="updated" header="Updated" sortable />
@@ -165,7 +166,7 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
         headerTooltip="Total percentage of scores that are equal or higher to the 75% of the current HHF."
         headerTooltipOptions={headerTooltipOptions}
       />
-      <Column
+      {/*<Column
         field="inverse60CurPercentPercentile"
         {...compactPercentColumnStyle}
         header="B+ Scores%"
@@ -182,7 +183,7 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
         sortable
         headerTooltip="Total percentage of scores that are equal or higher to the 40% of the current HHF."
         headerTooltipOptions={headerTooltipOptions}
-      />
+      />*/}
 
       <Column
         align="right"

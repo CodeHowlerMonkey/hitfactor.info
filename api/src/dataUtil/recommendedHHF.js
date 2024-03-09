@@ -117,7 +117,7 @@ const decidedHHFFunctions = {
     "06-06": r5,
     "06-10": r5,
 
-    "08-01": r1, // linear graph, rec. deprecated
+    "08-01": r1, // linear graph, old classifier, deprecation recommended
     "08-02": r5,
     "08-03": r1,
 
@@ -138,7 +138,7 @@ const decidedHHFFunctions = {
     "13-04": r5,
     "13-05": r1,
     "13-06": r1,
-    "13-07": r15, //TODO: review for cheaters
+    "13-07": r15, // TODO: review for cheaters
     "13-08": r5,
 
     "18-01": r5,
@@ -146,7 +146,7 @@ const decidedHHFFunctions = {
     "18-03": r1,
     "18-04": r1,
     "18-05": r1,
-    "18-06": r1, //TODO: review for cheaters
+    "18-06": r1, // TODO: review for cheaters
     "18-07": r1,
     "18-08": r5,
     "18-09": r1,
@@ -169,8 +169,8 @@ const decidedHHFFunctions = {
     "22-06": r5,
     "22-07": r1,
 
-    "23-01": r15, // TODO: needs adjustment, not enough data yet
-    "23-02": r1, // TODO: needs adjustment, not enough data yet
+    "23-01": r15, // TODO: revise when more data is available
+    "23-02": r15, // TODO: revise when more data is available
   },
   lo: {},
   pcc: {},
@@ -187,8 +187,8 @@ const recommendedHHFFunctionFor = ({ division, number }) => {
     return decided;
   }
 
-  // r1 (0.9th === 95%) is default
-  return r1;
+  // disable recHHF if not manually reviewed
+  return () => 0;
 };
 
 export const recommendedHHFFor = memoize(

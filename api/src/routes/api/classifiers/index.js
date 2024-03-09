@@ -25,6 +25,7 @@ const classifiersForDivision = memoize(
       classifiers.map(async (c) => ({
         ...basicInfoForClassifier(c),
         ...(await extendedInfoForClassifier(c, division)),
+        recHHF: await recommendedHHFFor({ division, number: c.classifier }),
       }))
     );
   },
