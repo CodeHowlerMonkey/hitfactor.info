@@ -1,5 +1,8 @@
 import { loadJSON, processImport, badLazy } from "../utils.js";
-import { getShooterToCurPercentClassifications } from "./classifiers.js";
+import {
+  getShooterToCurPercentClassifications,
+  getShooterToRecPercentClassifications,
+} from "./classifiers.js";
 import { divIdToShort } from "./divisions.js";
 
 const memberIdToNumberMap = loadJSON("../../data/meta/memberIdToNumber.json");
@@ -17,7 +20,11 @@ const memberNumberFromMemberData = (memberData) => {
   return "BAD DATA";
 };
 
-const mapClassificationInfo = (c, reclassificationsByCurPercent) => {
+const mapClassificationInfo = (
+  c,
+  reclassificationsByCurPercent,
+  reclassificationsByRecPercent
+) => {
   const memberNumber = memberNumberFromMemberData(c.member_data);
   return {
     data: c.member_data,
@@ -51,6 +58,7 @@ const mapClassificationInfo = (c, reclassificationsByCurPercent) => {
       {}
     ),
     reclassificationsByCurPercent: reclassificationsByCurPercent[memberNumber],
+    reclassificationsByRecPercent: reclassificationsByRecPercent[memberNumber],
   };
 };
 
@@ -59,12 +67,20 @@ export const getExtendedClassificationsInfo = badLazy(async () => {
 
   const reclassificationsByCurPercent =
     await getShooterToCurPercentClassifications();
-  // TODO: reclassificationsByRecPercent
+  const reclassificationsByRecPercent =
+    await getShooterToRecPercentClassifications();
+
   processImport(
     "../../data/imported",
     /classification\.\d+\.json/,
     ({ value }) => {
-      result.push(mapClassificationInfo(value, reclassificationsByCurPercent));
+      result.push(
+        mapClassificationInfo(
+          value,
+          reclassificationsByCurPercent,
+          reclassificationsByRecPercent
+        )
+      );
     }
   );
   return result;

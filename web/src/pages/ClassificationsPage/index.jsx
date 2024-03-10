@@ -31,6 +31,7 @@ export const ClassificationsChart = ({
       ? []
       : [
           {
+            letter: apiData ? "U" : "",
             title: apiData ? "U" : "Loading",
             value: valueFor("U"),
             color: "#939697",
@@ -180,7 +181,12 @@ const modeBucketForMode = (mode) => {
 
 // main "page" of this file
 export const ClassificationStats = () => {
-  const modes = ["By Class", "By Percent", "By Cur.HHF Percent"];
+  const modes = [
+    "By Class",
+    "By Percent",
+    "By Cur.HHF Percent",
+    "By Rec.HHF Percent",
+  ];
   const [mode, setMode] = useState(modes[0]);
   const modeSwitchProps = { modes, mode, setMode };
   const modeBucket = modeBucketForMode(mode);

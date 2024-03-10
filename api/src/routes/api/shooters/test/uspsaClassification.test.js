@@ -16,7 +16,11 @@ import {
 } from "../../../../../../shared/utils/classification.js";
 import { mapDivisions } from "../../../../dataUtil/divisions.js";
 
-import testData, { csClassifiers, csOpenClassifiers } from "./testData.js";
+import testData, {
+  csClassifiers,
+  csOpenClassifiers,
+  noCurPercentButExpected,
+} from "./testData.js";
 
 test("lets make sure this works first", (t) => {
   assert.strictEqual(1, 1);
@@ -238,12 +242,12 @@ test("canBeInserted", (t) => {
   assert.strictEqual(canBeInserted(makeClassifier(), state), true);
 
   state.ss.window = [
-    makeClassifier(),
-    makeClassifier(),
-    makeClassifier(),
-    makeClassifier(),
-    makeClassifier(),
-    makeClassifier(),
+    makeClassifier({ classifier: "13-01" }),
+    makeClassifier({ classifier: "13-02" }),
+    makeClassifier({ classifier: "13-03" }),
+    makeClassifier({ classifier: "13-04" }),
+    makeClassifier({ classifier: "13-05" }),
+    makeClassifier({ classifier: "13-06" }),
   ];
   assert.strictEqual(canBeInserted(makeClassifier(), state), true);
 
@@ -286,12 +290,12 @@ test("canBeInserted + percentField", (t) => {
   );
 
   state.ss.window = [
-    makeClassifier({ curPercent: 12 }),
-    makeClassifier({ curPercent: 12 }),
-    makeClassifier({ curPercent: 12 }),
-    makeClassifier({ curPercent: 12 }),
-    makeClassifier({ curPercent: 12 }),
-    makeClassifier({ curPercent: 12 }),
+    makeClassifier({ curPercent: 12, classifier: "13-01" }),
+    makeClassifier({ curPercent: 12, classifier: "13-02" }),
+    makeClassifier({ curPercent: 12, classifier: "13-06" }),
+    makeClassifier({ curPercent: 12, classifier: "13-07" }),
+    makeClassifier({ curPercent: 12, classifier: "13-08" }),
+    makeClassifier({ curPercent: 12, classifier: "13-09" }),
   ];
   assert.strictEqual(
     canBeInserted(makeClassifier({ curPercent: 12 }), state, "curPercent"),
@@ -662,17 +666,17 @@ test("calculateUSPSAClassification", (t) => {
 
 test("calculateUSPSAClassification + percentField", (t) => {
   const result = calculateUSPSAClassification(testData, "curPercent");
-  assert.strictEqual(Number(result.ltd.percent.toFixed(2)), 93.76);
-  assert.strictEqual(Number(result.ltd.highPercent.toFixed(2)), 93.76);
+  assert.strictEqual(Number(result.ltd.percent.toFixed(2)), 93.16);
+  assert.strictEqual(Number(result.ltd.highPercent.toFixed(2)), 93.33);
 
-  assert.strictEqual(Number(result.prod.percent.toFixed(2)), 90.78);
-  assert.strictEqual(Number(result.prod.highPercent.toFixed(2)), 94.35);
+  assert.strictEqual(Number(result.prod.percent.toFixed(2)), 90.7);
+  assert.strictEqual(Number(result.prod.highPercent.toFixed(2)), 93.32);
 
-  assert.strictEqual(Number(result.co.percent.toFixed(2)), 102.08);
-  assert.strictEqual(Number(result.co.highPercent.toFixed(2)), 102.66);
+  assert.strictEqual(Number(result.co.percent.toFixed(2)), 100);
+  assert.strictEqual(Number(result.co.highPercent.toFixed(2)), 100);
 
-  assert.strictEqual(Number(result.lo.percent.toFixed(2)), 97.23);
-  assert.strictEqual(Number(result.lo.highPercent.toFixed(2)), 97.23);
+  assert.strictEqual(Number(result.lo.percent.toFixed(2)), 96.23);
+  assert.strictEqual(Number(result.lo.highPercent.toFixed(2)), 96.23);
   // TODO: add more testData real people, if edge cases are detected
 });
 
@@ -690,36 +694,45 @@ test("calculateUSPSAClassification + percentField + dates", (t) => {
     { p: 88.1747, sd: "6/25/22" },
     { p: 88.91499999999999, sd: "7/02/22" },
     { p: 89.16333333333333, sd: "7/16/22" },
-    { p: 92.8, sd: "7/19/22" },
-    { p: 94.19666666666667, sd: "8/06/22" },
-    { p: 95.72833333333332, sd: "8/16/22" },
-    { p: 97.13579999999999, sd: "9/02/22" },
-    { p: 97.59413333333333, sd: "9/20/22" },
-    { p: 98.32246666666666, sd: "10/18/22" },
-    { p: 98.32246666666666, sd: "10/22/22" },
-    { p: 100.92246666666666, sd: "1/07/23" },
-    { p: 101.83500000000001, sd: "1/21/23" },
-    { p: 100.055, sd: "1/28/23" },
-    { p: 101.45333333333333, sd: "3/04/23" },
-    { p: 101.47333333333334, sd: "3/23/23" },
-    { p: 101.47333333333334, sd: "4/18/23" },
-    { p: 101.47333333333334, sd: "5/06/23" },
-    { p: 100.67840000000001, sd: "5/11/23" },
-    { p: 102.65500000000002, sd: "5/27/23" },
-    { p: 100.32006666666666, sd: "6/03/23" },
-    { p: 101.64173333333333, sd: "7/15/23" },
-    { p: 101.04006666666668, sd: "7/18/23" },
-    { p: 101.04006666666668, sd: "8/26/23" },
-    { p: 102.07666666666668, sd: "9/15/23" },
+    { p: 91.68666666666667, sd: "7/19/22" },
+    { p: 93.08333333333334, sd: "8/06/22" },
+    { p: 94.615, sd: "8/16/22" },
+    { p: 95.07666666666667, sd: "8/20/22" },
+    { p: 96.02246666666666, sd: "9/02/22" },
+    { p: 96.4808, sd: "9/20/22" },
+    { p: 97.20913333333333, sd: "10/18/22" },
+    { p: 97.1058, sd: "10/22/22" },
+    { p: 97.1058, sd: "1/07/23" },
+    { p: 98.02913333333333, sd: "1/21/23" },
+    { p: 98.32166666666667, sd: "1/28/23" },
+    { p: 98.34166666666667, sd: "3/04/23" },
+    { p: 99.045, sd: "3/23/23" },
+    { p: 99.045, sd: "4/18/23" },
+    { p: 99.045, sd: "5/06/23" },
+    { p: 98.25006666666667, sd: "5/11/23" },
+    { p: 99.28666666666668, sd: "5/27/23" },
+    { p: 98.29673333333334, sd: "6/03/23" },
+    { p: 98.96340000000001, sd: "7/15/23" },
+    { p: 98.96340000000001, sd: "7/18/23" },
+    { p: 98.96340000000001, sd: "8/26/23" },
+    { p: 100.00000000000001, sd: "9/15/23" },
   ]);
 });
 
 test("calculateUSPSAClassification CS should have curPercent", (t) => {
   const result = calculateUSPSAClassification(csClassifiers, "curPercent");
-  assert.strictEqual(Number(result.co.percent.toFixed(2)), 97.68);
+  assert.strictEqual(Number(result.co.percent.toFixed(2)), 97.55);
 });
 
 test("calculateUSPSAClassification CS should have curPercent in Open", (t) => {
   const result = calculateUSPSAClassification(csOpenClassifiers, "curPercent");
-  assert.strictEqual(Number(result.opn.percent.toFixed(2)), 100.91);
+  assert.strictEqual(Number(result.opn.percent.toFixed(2)), 100);
+});
+
+test("calculateUSPSAClassification A111317 should have co", (t) => {
+  const result = calculateUSPSAClassification(
+    noCurPercentButExpected,
+    "curPercent"
+  );
+  assert.strictEqual(Number(result.co.percent.toFixed(2)), 68.23);
 });

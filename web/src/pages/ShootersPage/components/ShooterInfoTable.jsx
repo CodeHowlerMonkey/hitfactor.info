@@ -1,6 +1,7 @@
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import ShooterChart from "../../../components/chart/ShooterChart";
+import { classForPercent } from "../../../../../shared/utils/classification";
 
 const tableNameForDiv = {
   opn: "Open",
@@ -22,7 +23,8 @@ const cardRow = (
   v2: (highs[div] ?? 0).toFixed(2) + "%",
   v3: (currents[div] ?? 0).toFixed(2) + "%",
   v4: (reclassifications?.curPercent?.currents?.[div] ?? 0).toFixed(2) + "%",
-  v5: (ages[div] ?? -1).toFixed(1) + "mo",
+  v5: (reclassifications?.recPercent?.currents?.[div] ?? 0).toFixed(2) + "%",
+  v6: (ages[div] ?? -1).toFixed(1) + "mo",
 });
 
 export const ShooterInfoTable = ({ info }) => {
@@ -68,6 +70,12 @@ export const ShooterInfoTable = ({ info }) => {
                       //{ k: "Division", v: tableNameForDiv[info?.division] },
                       { k: "Class", v: info?.class },
                       {
+                        k: "Rec. Class",
+                        v: classForPercent(
+                          info?.reclassificationsRecPercentCurrent ?? 0
+                        ),
+                      },
+                      {
                         k: "High Rank / Perc",
                         v: `${info?.highRank} / ${info?.highPercentile}%`,
                       },
@@ -82,7 +90,13 @@ export const ShooterInfoTable = ({ info }) => {
                             2
                           ) ?? 0) + "%",
                       },
-                      // { k: "Rec. Percent", v: "Soon =)" },
+                      {
+                        k: "Rec.HHF Percent",
+                        v:
+                          (info?.reclassificationsRecPercentCurrent?.toFixed(
+                            2
+                          ) ?? 0) + "%",
+                      },
                     ]
               }
             >
@@ -121,6 +135,7 @@ export const ShooterInfoTable = ({ info }) => {
               <Column field="v2" header="High %" />
               <Column field="v3" header="Cur %" />
               <Column field="v4" header="Cur.HHF %" />
+              <Column field="v5" header="Rec.HHF %" />
               <Column field="v5" header="Age" />
             </DataTable>
           </div>

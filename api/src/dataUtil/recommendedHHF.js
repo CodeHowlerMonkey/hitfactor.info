@@ -1,6 +1,6 @@
 import memoize from "memoize";
 import { HF, Percent, PositiveOrMinus1 } from "./numbers.js";
-import { selectClassifierDivisionScores } from "./classifiers.js";
+import { selectClassifierDivisionScores } from "./classifiersSource.js";
 
 /**
  * Calculated recommended HHF by matching lower percent of the score to percentile of shooters

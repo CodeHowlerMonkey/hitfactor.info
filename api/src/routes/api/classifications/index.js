@@ -1,4 +1,9 @@
 import {
+  getShooterToCurPercentClassifications,
+  getShooterToRuns,
+  precomputeRecHHFMap,
+} from "../../../dataUtil/classifiers.js";
+import {
   highestClassification,
   classForPercent,
 } from "../../../../../shared/utils/classification.js";
@@ -8,19 +13,11 @@ import {
   mapDivisionsAsync,
 } from "../../../dataUtil/divisions.js";
 import { badLazy } from "../../../utils.js";
-
-const divisions = [
-  "Open", // 2
-  "Limited", // 3
-  "Limited 10", // 4
-  "Production", // 5
-  "Revolver", // 6
-  "Single Stack", // 7
-  "Carry Optics", // 35
-  "PCC", // 38
-  "Limited Optics", // 41
-  // LO/CO 411
-];
+import { classifiersForDivision } from "../../../classifiers.api.js";
+import {
+  getShootersTable,
+  getShootersTableByMemberNumber,
+} from "../../../dataUtil/shooters.js";
 
 const calculateCurrentClassifications = (memberCurPercentObj) =>
   mapDivisions((div) => {
@@ -43,6 +40,13 @@ const selectClassificationsForDivision = (
       mapDivisions(
         (div) =>
           extMemberInfoObject.reclassificationsByCurPercent?.[div]?.percent ?? 0
+      )
+    );
+  } else if (mode === "recHHFPercent") {
+    classificationsObj = calculateCurrentClassifications(
+      mapDivisions(
+        (div) =>
+          extMemberInfoObject.reclassificationsByRecPercent?.[div]?.percent ?? 0
       )
     );
   }
@@ -87,52 +91,27 @@ const getDivisionClassBucket = async (div, mode) => ({
   GM: (await getHighestClassificationCountsFor(div, mode)).get("GM"),
 });
 
+const bucketBy = async (byWhat) => ({
+  all: await getDivisionClassBucket(undefined, byWhat),
+  ...(await mapDivisionsAsync(
+    async (div) => await getDivisionClassBucket(div, byWhat)
+  )),
+  Approx: {
+    U: 0,
+    D: 19,
+    C: 42,
+    B: 25,
+    A: 8,
+    M: 5,
+    GM: 1,
+  },
+});
+
 const getMemoizedClassificationStats = badLazy(async () => ({
-  byClass: {
-    all: await getDivisionClassBucket(undefined, "class"),
-    ...(await mapDivisionsAsync(
-      async (div) => await getDivisionClassBucket(div, "class")
-    )),
-    Approx: {
-      U: 0,
-      D: 15,
-      C: 40,
-      B: 25,
-      A: 12,
-      M: 6,
-      GM: 2,
-    },
-  },
-  byPercent: {
-    all: await getDivisionClassBucket(undefined, "percent"),
-    ...(await mapDivisionsAsync(
-      async (div) => await getDivisionClassBucket(div, "percent")
-    )),
-    Approx: {
-      U: 0,
-      D: 19,
-      C: 42,
-      B: 25,
-      A: 8,
-      M: 5,
-      GM: 1,
-    },
-  },
-  byCurHHFPercent: {
-    all: await getDivisionClassBucket(undefined, "curHHFPercent"),
-    ...(await mapDivisionsAsync(
-      async (div) => await getDivisionClassBucket(div, "curHHFPercent")
-    )),
-    Approx: {
-      U: 0,
-      D: 19,
-      C: 42,
-      B: 25,
-      A: 8,
-      M: 5,
-      GM: 1,
-    },
-  },
+  byClass: await bucketBy("class"),
+  byPercent: await bucketBy("percent"),
+  byCurHHFPercent: await bucketBy("curHHFPercent"),
+  byRecHHFPercent: await bucketBy("recHHFPercent"),
 }));
 
 const classificationsRoutes = async (fastify, opts) => {
@@ -140,6 +119,18 @@ const classificationsRoutes = async (fastify, opts) => {
     return await getMemoizedClassificationStats();
   });
   fastify.addHook("onListen", async () => {
+    console.log("hydrating classifiers");
+    await mapDivisionsAsync(async (div) => await classifiersForDivision(div));
+    await precomputeRecHHFMap();
+    console.log("done hydrating classifiers ");
+
+    console.log("hydrating shooters");
+    await getShooterToRuns();
+    await getShootersTable();
+    await getShootersTableByMemberNumber();
+    await getShooterToCurPercentClassifications();
+    console.log("done hydrating shooters");
+
     console.log("hydrating classification stats");
     await getMemoizedClassificationStats();
     console.log("done hydrating classification stats");

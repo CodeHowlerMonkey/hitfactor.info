@@ -2,6 +2,15 @@ import fs from "node:fs";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
 import path from "node:path";
+import { DynamicPool, StaticPool } from "node-worker-threads-pool";
+
+const dynamicPool = new DynamicPool(8);
+export const expensive = async (param, calcFn) => {
+  return await dynamicPool.exec({
+    task: calcFn,
+    param,
+  });
+};
 
 const __filename = fileURLToPath(import.meta.url);
 export const __dirname = dirname(__filename);

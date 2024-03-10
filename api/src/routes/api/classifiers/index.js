@@ -5,6 +5,7 @@ import {
 } from "../../../dataUtil/classifiersData.js";
 
 import {
+  classifiersForDivision,
   extendedInfoForClassifier,
   runsForDivisionClassifier,
   chartData,
@@ -19,19 +20,6 @@ import {
   recommendedHHFFor,
 } from "../../../dataUtil/recommendedHHF.js";
 
-const classifiersForDivision = memoize(
-  async (division) => {
-    return await Promise.all(
-      classifiers.map(async (c) => ({
-        ...basicInfoForClassifier(c),
-        ...(await extendedInfoForClassifier(c, division)),
-        recHHF: await recommendedHHFFor({ division, number: c.classifier }),
-      }))
-    );
-  },
-  { cacheKey: ([division]) => division }
-);
-
 const classifiersRoutes = async (fastify, opts) => {
   fastify.get("/", (req, res) => classifiers.map(basicInfoForClassifier));
 
@@ -40,12 +28,6 @@ const classifiersRoutes = async (fastify, opts) => {
     { compress: false },
     async (req) => await classifiersForDivision(req.params.division)
   );
-  fastify.addHook("onListen", async () => {
-    console.log("hydrating classifiers");
-    await mapDivisionsAsync(async (div) => await classifiersForDivision(div));
-    await getShooterToRuns();
-    console.log("done hydrating classifiers ");
-  });
 
   fastify.get("/download/:division", { compress: false }, async (req, res) => {
     const { division } = req.params;

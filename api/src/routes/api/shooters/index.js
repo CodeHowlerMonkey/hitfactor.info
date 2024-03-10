@@ -47,14 +47,6 @@ const shootersRoutes = async (fastify, opts) => {
     };
   });
 
-  fastify.addHook("onListen", async () => {
-    console.log("hydrating shooters");
-    await getShootersTable();
-    await getShootersTableByMemberNumber();
-    await getShooterToCurPercentClassifications();
-    console.log("done hydrating shooters");
-  });
-
   fastify.get(
     "/download/:division/:memberNumber",
     { compress: false },

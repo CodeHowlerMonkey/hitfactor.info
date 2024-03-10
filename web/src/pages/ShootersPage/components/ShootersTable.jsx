@@ -139,6 +139,20 @@ const ShootersTable = ({ division, onShooterSelection }) => {
         body={(c) => c.reclassificationsCurPercentCurrent.toFixed(2) + "%"}
       />
       <Column
+        field="reclassificationsRecPercentCurrent"
+        header="Rec.HHFs %"
+        headerTooltip="Recommended classification percent of this shooter, if all their Y-flagged scores used the recommended HHFs for classifiers. Major Matches results stay the same."
+        headerTooltipOptions={headerTooltipOptions}
+        sortable
+        body={(c) => c.reclassificationsRecPercentCurrent.toFixed(2) + "%"}
+      />
+      <Column
+        field="reclassificationChange"
+        header="Cur-to-Rec Change %"
+        sortable
+        body={(c) => c.reclassificationChange.toFixed(2) + "%"}
+      />
+      <Column
         field="current"
         header="Cur. %"
         sortable

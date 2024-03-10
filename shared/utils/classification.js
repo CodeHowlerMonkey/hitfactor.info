@@ -80,8 +80,9 @@ export const canBeInserted = (c, state, percentField = "percent") => {
       percent <= lowestAllowedPercentForClass(getDivToClass(state)[division]);
     const isCFlag = percent <= cFlagThreshold;
 
-    // First 4 always count
-    if (window.length <= 4) {
+    // First non-dupe 4 always count
+    const dFlagsApplied = uniqBy(window, (c) => c.classifier);
+    if (dFlagsApplied.length <= 4) {
       return true;
     }
 
@@ -139,7 +140,7 @@ export const percentForDivWindow = (div, state, percentField = "percent") => {
   const fFlagsApplied = dFlagsApplied.slice(0, newLength);
   return fFlagsApplied.reduce(
     (acc, curValue, curIndex, allInWindow) =>
-      acc + curValue[percentField] / allInWindow.length,
+      acc + Math.min(100, curValue[percentField]) / allInWindow.length,
     0
   );
 };
@@ -207,7 +208,7 @@ export const calculateUSPSAClassification = (
         state[division].highPercent = newPercent;
       }
       state[division].percent = newPercent;
-      state[division].percentWithDates.push({ p: newPercent, sd: c.sd });
+      state[c.division].percentWithDates.push({ p: newPercent, sd: c.sd });
     }
   };
 

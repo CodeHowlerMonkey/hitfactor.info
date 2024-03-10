@@ -1,13 +1,18 @@
 import uniqBy from "lodash.uniqby";
+import {
+  basicInfoForClassifier,
+  classifiers,
+} from "./dataUtil/classifiersData.js";
+import { recommendedHHFFor } from "./dataUtil/recommendedHHF.js";
 import sortedUniqBy from "lodash.sorteduniqby";
 import transform from "lodash.transform";
 import memoize from "memoize";
 
 import {
   getDivShortToRuns,
-  getShooterToCurPercentClassifications,
   selectClassifierDivisionScores,
-} from "./dataUtil/classifiers.js";
+} from "./dataUtil/classifiersSource.js";
+import { getShooterToCurPercentClassifications } from "./dataUtil/classifiers.js";
 import { HF, N, Percent, PositiveOrMinus1 } from "./dataUtil/numbers.js";
 import {
   getShooterFullInfo,
@@ -261,4 +266,18 @@ export const extendedInfoForClassifier = memoize(
     };
   },
   { cacheKey: ([c, division]) => c.classifier + ":" + division }
+);
+
+export const classifiersForDivision = memoize(
+  async (division) => {
+    const result = await Promise.all(
+      classifiers.map(async (c) => ({
+        ...basicInfoForClassifier(c),
+        ...(await extendedInfoForClassifier(c, division)),
+        recHHF: await recommendedHHFFor({ division, number: c.classifier }),
+      }))
+    );
+    return result;
+  },
+  { cacheKey: ([division]) => division }
 );

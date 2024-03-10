@@ -6,7 +6,7 @@ import { mapDivisions, mapDivisionsAsync } from "./divisions.js";
 import {
   getDivShortToShooterToRuns,
   getShooterToCurPercentClassifications,
-  getShooterToRuns,
+  precomputedRecHHFMap,
 } from "./classifiers.js";
 import { byMemberNumber } from "./byMemberNumber.js";
 import { curHHFForDivisionClassifier } from "./hhf.js";
@@ -46,6 +46,7 @@ const classificationsBreakdownAdapter = (c, division) => {
   const {
     classifications,
     reclassificationsByCurPercent,
+    reclassificationsByRecPercent,
     high,
     current,
     ...etc
@@ -54,6 +55,17 @@ const classificationsBreakdownAdapter = (c, division) => {
     const reclassificationsCurPercent = reclassificationBreakdown(
       reclassificationsByCurPercent,
       division
+    );
+    const reclassificationsRecPercent = reclassificationBreakdown(
+      reclassificationsByRecPercent,
+      division
+    );
+
+    const reclassificationsCurPercentCurrent = Number(
+      (reclassificationsCurPercent?.current ?? 0).toFixed(4)
+    );
+    const reclassificationsRecPercentCurrent = Number(
+      (reclassificationsRecPercent?.current ?? 0).toFixed(4)
     );
 
     return {
@@ -65,12 +77,13 @@ const classificationsBreakdownAdapter = (c, division) => {
       highs: high,
       currents: current,
       // needs to be not-deep for sort
-      reclassificationsCurPercentCurrent: Number(
-        (reclassificationsCurPercent?.current ?? 0).toFixed(4)
-      ),
+      reclassificationsCurPercentCurrent,
+      reclassificationsRecPercentCurrent,
+      reclassificationChange:
+        reclassificationsRecPercentCurrent - reclassificationsCurPercentCurrent,
       reclassifications: {
         curPercent: reclassificationsCurPercent,
-        // TODO: recPercent
+        recPercent: reclassificationsRecPercent,
       },
       division,
     };
@@ -156,7 +169,17 @@ export const classifiersForDivisionForShooter = async ({
       const percentMinusCurPercent =
         curPercent >= 0 ? N(run.percent - curPercent) : -1;
 
-      return { ...run, curPercent, percentMinusCurPercent, index, division };
+      const recHHF = precomputedRecHHFMap[division]?.[run.classifier];
+      const recPercent = PositiveOrMinus1(Percent(run.hf, recHHF));
+
+      return {
+        ...run,
+        recPercent,
+        curPercent,
+        percentMinusCurPercent,
+        index,
+        division,
+      };
     }
   );
 
@@ -206,7 +229,7 @@ export const getShootersTable = badLazy(async () => ({
 
 export const getShootersTableByMemberNumber = badLazy(async () => {
   const shootersTable = await getShootersTable();
-  return {
+  const result = {
     opn: byMemberNumber(shootersTable.opn),
     ltd: byMemberNumber(shootersTable.ltd),
     l10: byMemberNumber(shootersTable.l10),
@@ -218,6 +241,7 @@ export const getShootersTableByMemberNumber = badLazy(async () => {
     pcc: byMemberNumber(shootersTable.pcc),
     loco: byMemberNumber(shootersTable.loco),
   };
+  return result;
 });
 
 export const getShooterFullInfo = async ({ memberNumber, division }) => {
@@ -248,6 +272,7 @@ export const shooterChartData = async ({ memberNumber, division }) =>
   (await classifiersForDivisionForShooter({ memberNumber, division }))
     .map((run) => ({
       x: run.sd,
+      recPercent: run.recPercent,
       curPercent: run.curPercent,
       percent: run.percent,
       classifier: run.classifier,

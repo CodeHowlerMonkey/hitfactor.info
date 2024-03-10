@@ -8,6 +8,9 @@ export const divShortNames = divisions.divisions.map((c) =>
 export const mapDivisions = (mapper) =>
   Object.fromEntries(divShortNames.map((div) => [div, mapper(div)]));
 
+export const mapDivisionsFlat = (mapper) =>
+  divShortNames.map((div) => mapper(div));
+
 export const mapDivisionsAsync = async (mapper) =>
   Object.fromEntries(
     await Promise.all(

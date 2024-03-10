@@ -69,6 +69,13 @@ const ShooterRunsTable = ({
       headerTooltipOptions={headerTooltipOptions}
     />
     <Column
+      field="recPercent"
+      header="Rec. Percent"
+      sortable
+      headerTooltip="Recommended classifier percentage for this score. "
+      headerTooltipOptions={headerTooltipOptions}
+    />
+    <Column
       field="curPercent"
       header="Current Percent"
       sortable

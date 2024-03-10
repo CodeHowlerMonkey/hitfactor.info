@@ -106,6 +106,12 @@ export const ScoresChart = ({ division, memberNumber }) => {
             data: data.map((c) => ({ ...c, x: c.x, y: c.curPercent })),
             backgroundColor: "#b5ca25",
           },
+          {
+            label: "Rec. Percent",
+            data: data.map((c) => ({ ...c, x: c.x, y: c.recPercent })),
+            borderColor: "#40cf40",
+            backgroundColor: "#05ca25",
+          },
         ],
       }}
     />
