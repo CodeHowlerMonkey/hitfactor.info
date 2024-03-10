@@ -86,7 +86,7 @@ export const canBeInserted = (c, state, percentField = "percent") => {
       return true;
     }
 
-    if (isCFlag || isBFlag) {
+    if ((isCFlag || isBFlag) && percentField !== "recPercent") {
       return false;
     }
 
@@ -154,11 +154,11 @@ export const newClassificationCalculationState = () =>
   }));
 
 // adds in place, growing window if needed for duplicates
-export const addToCurWindow = (c, curWindow) => {
+export const addToCurWindow = (c, curWindow, targetWindowSize = 8) => {
   // push, truncate the tail, then re-add tail partially for each duplicate
   curWindow.push(c);
   curWindow.reverse();
-  const removed = curWindow.splice(8);
+  const removed = curWindow.splice(targetWindowSize);
   curWindow.reverse();
   const extraWindowLength = numberOfDuplicates([...removed, ...curWindow]);
   const extraFromTail = removed.slice(0, extraWindowLength).reverse();
@@ -198,7 +198,7 @@ export const calculateUSPSAClassification = (
     const { division } = c;
     const curWindow = state[c.division].window;
 
-    addToCurWindow(c, curWindow);
+    addToCurWindow(c, curWindow, percentField === "recPercent" ? 10 : 8);
 
     // Calculate if have enough classifiers
     if (curWindow.length >= 4) {
