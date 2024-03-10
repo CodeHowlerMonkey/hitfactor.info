@@ -271,11 +271,35 @@ export const extendedInfoForClassifier = memoize(
 export const classifiersForDivision = memoize(
   async (division) => {
     const result = await Promise.all(
-      classifiers.map(async (c) => ({
-        ...basicInfoForClassifier(c),
-        ...(await extendedInfoForClassifier(c, division)),
-        recHHF: await recommendedHHFFor({ division, number: c.classifier }),
-      }))
+      classifiers.map(async (c) => {
+        const hitFactorScores = (await getDivShortToRuns())[division]
+          .filter((run) => run?.classifier === c.classifier)
+          .filter((run) => run.hf >= 0) //  only classifer HF scores
+          .sort((a, b) => b.hf - a.hf);
+        const recHHF = await recommendedHHFFor({
+          division,
+          number: c.classifier,
+        });
+        const inverseRecPercentileStats = (xPercent) => ({
+          [`inverse${xPercent}RecPercentPercentile`]: Percent(
+            recHHF > 0
+              ? hitFactorScores.findLastIndex(
+                  (c) => (100 * c.hf) / recHHF >= xPercent
+                )
+              : -1,
+            hitFactorScores.length
+          ),
+        });
+        return {
+          ...basicInfoForClassifier(c),
+          ...(await extendedInfoForClassifier(c, division)),
+          recHHF,
+          ...inverseRecPercentileStats(100),
+          ...inverseRecPercentileStats(95),
+          ...inverseRecPercentileStats(85),
+          ...inverseRecPercentileStats(75),
+        };
+      })
     );
     return result;
   },

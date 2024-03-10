@@ -119,6 +119,7 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
         body={(c) => <ClassifierCell {...c} />}
       />
       <Column field="hhf" header="HHF" sortable />
+      <Column field="prevHHF" header="Prev. HHF" sortable />
       <Column field="recHHF" header="Rec. HHF" sortable body={renderHFOrNA} />
       <Column
         field="recHHFChange"
@@ -138,21 +139,20 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
           return `${hfDifference} (${percentDifference}%)`;
         }}
       />
-      <Column field="prevHHF" header="Prev. HHF" sortable />
       <Column field="updated" header="Updated" sortable />
       <Column field="runs" header="Scores" sortable />
-      <Column
+      {/*<Column
         field="runsLegacy"
         header="Legacy Scores"
         sortable
         headerTooltip="Total number of scores without HF data, only historical percentage (sus ඞ)."
         headerTooltipOptions={headerTooltipOptions}
-      />
+      />*/}
 
       <Column
         field="inverse100CurPercentPercentile"
         {...compactPercentColumnStyle}
-        header="100% Scores%"
+        header="100%"
         body={renderPercent}
         sortable
         headerTooltip="Total percentage of scores that are equal or higher to the current HHF."
@@ -161,7 +161,7 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
       <Column
         field="inverse95CurPercentPercentile"
         {...compactPercentColumnStyle}
-        header="GM Scores%"
+        header="GM+"
         body={renderPercent}
         sortable
         headerTooltip="Total percentage of scores that are equal or higher to the 95% of the current HHF."
@@ -170,7 +170,7 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
       <Column
         field="inverse85CurPercentPercentile"
         {...compactPercentColumnStyle}
-        header="M+ Scores%"
+        header="M+"
         body={renderPercent}
         sortable
         headerTooltip="Total percentage of scores that are equal or higher to the 85% of the current HHF."
@@ -179,10 +179,47 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
       <Column
         field="inverse75CurPercentPercentile"
         {...compactPercentColumnStyle}
-        header="A+ Scores%"
+        header="A+"
         body={renderPercent}
         sortable
         headerTooltip="Total percentage of scores that are equal or higher to the 75% of the current HHF."
+        headerTooltipOptions={headerTooltipOptions}
+      />
+
+      <Column
+        field="inverse100RecPercentPercentile"
+        {...compactPercentColumnStyle}
+        header="Rec. 100%"
+        body={renderPercent}
+        sortable
+        headerTooltip="Total percentage of scores that are equal or higher to the recommended HHF."
+        headerTooltipOptions={headerTooltipOptions}
+      />
+      <Column
+        field="inverse95RecPercentPercentile"
+        {...compactPercentColumnStyle}
+        header="Rec. GM+"
+        body={renderPercent}
+        sortable
+        headerTooltip="Total percentage of scores that are equal or higher to the 95% of the recommended HHF."
+        headerTooltipOptions={headerTooltipOptions}
+      />
+      <Column
+        field="inverse85RecPercentPercentile"
+        {...compactPercentColumnStyle}
+        header="Rec. M+"
+        body={renderPercent}
+        sortable
+        headerTooltip="Total percentage of scores that are equal or higher to the 85% of the recommended HHF."
+        headerTooltipOptions={headerTooltipOptions}
+      />
+      <Column
+        field="inverse75RecPercentPercentile"
+        {...compactPercentColumnStyle}
+        header="Rec A+"
+        body={renderPercent}
+        sortable
+        headerTooltip="Total percentage of scores that are equal or higher to the 75% of the recommended HHF."
         headerTooltipOptions={headerTooltipOptions}
       />
       {/*<Column
@@ -202,8 +239,7 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
         sortable
         headerTooltip="Total percentage of scores that are equal or higher to the 40% of the current HHF."
         headerTooltipOptions={headerTooltipOptions}
-      />*/}
-
+      />
       <Column
         align="right"
         {...compactNumberColumnStyle}
@@ -239,7 +275,7 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
         sortable
         headerTooltip="Number of runs that WERE scored as 100% or more, potentially using Older Historical HHF when the score was processed."
         headerTooltipOptions={headerTooltipOptions}
-      />
+      />*/}
     </DataTable>
   );
 };

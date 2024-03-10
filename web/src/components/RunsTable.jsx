@@ -247,12 +247,19 @@ const RunsTable = ({
         headerTooltipOptions={headerTooltipOptions}
       />
       <Column
+        field="recPercent"
+        header="Rec. Percent"
+        sortable
+        headerTooltip="What classifier percentage this score SHOULD earn if Recommended HHFs are used."
+        headerTooltipOptions={headerTooltipOptions}
+      />
+      {/*<Column
         field="percentMinusCurPercent"
         header="Percent Change"
         sortable
         headerTooltip="Difference between calculated percent when run was submitted and what it would've been with current High Hit-Factor. \n Positive values mean classifier became harder, negative - easier."
         headerTooltipOptions={headerTooltipOptions}
-      />
+       />*/}
       <Column field="percentile" header="Percentile" sortable />
       <Column field="sd" header="Date" sortable />
     </DataTable>
