@@ -18,29 +18,31 @@ export const getDivShortToRuns = badLazy(async () => {
 
       flatPush(
         result[divShort],
-        divObj?.division_classifiers?.map(
-          ({
-            code,
-            source,
-            hf,
-            percent,
-            sd,
-            clubid,
-            club_name,
-            classifier,
-          }) => ({
-            classifier,
-            sd,
-            clubid,
-            club_name,
-            percent: Number(percent),
-            hf: Number(hf),
-            code,
-            source,
-            memberNumber,
-            division: divShort,
-          })
-        )
+        divObj.division_classifiers
+          .filter(({ source }) => source !== "Legacy") // saves RAM, no point looking at old
+          .map(
+            ({
+              code,
+              source,
+              hf,
+              percent,
+              sd,
+              clubid,
+              club_name,
+              classifier,
+            }) => ({
+              classifier,
+              sd,
+              clubid,
+              club_name,
+              percent: Number(percent),
+              hf: Number(hf),
+              code,
+              source,
+              memberNumber,
+              division: divShort,
+            })
+          )
       );
     });
   });
