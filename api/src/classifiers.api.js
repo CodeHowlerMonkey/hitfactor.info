@@ -232,15 +232,10 @@ export const extendedInfoForClassifier = memoize(
       clubsCount: clubs.length,
       clubs,
       ...transform(
-        calcRunStats(legacyScores),
-        (r, v, k) => (r["runsTotals" + k] = v)
-      ),
-      ...transform(
         calcLegitRunStats(hitFactorScores, hhf),
         (r, v, k) => (r["runsTotalsLegit" + k] = v)
       ),
       runs: hitFactorScores.length,
-      runsLegacy: legacyScores.length,
       top10CurPercentAvg:
         hitFactorScores
           .slice(0, 10)
