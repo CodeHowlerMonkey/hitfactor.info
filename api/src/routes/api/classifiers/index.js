@@ -44,12 +44,12 @@ const classifiersRoutes = async (fastify, opts) => {
       sort,
       order,
       page: pageString,
-      legacy,
+      //legacy,
       hhf: filterHHFString,
       club: filterClubString,
       filter: filterString,
     } = req.query;
-    const includeNoHF = Number(legacy) === 1;
+    //const includeNoHF = Number(legacy) === 1;
     const page = Number(pageString) || 1;
     const filterHHF = parseFloat(filterHHFString);
     const c = classifiers.find((cur) => cur.classifier === number);
@@ -67,7 +67,7 @@ const classifiersRoutes = async (fastify, opts) => {
       number,
       division,
       hhf,
-      includeNoHF,
+      includeNoHF: false,
       hhfs,
     });
     let runsUnsorted = allRuns;
