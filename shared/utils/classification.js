@@ -86,6 +86,7 @@ export const canBeInserted = (c, state, percentField = "percent") => {
       return true;
     }
 
+    // recPercent == special recommended mode, no B/C flags, best 6 out of last 10
     if ((isCFlag || isBFlag) && percentField !== "recPercent") {
       return false;
     }
