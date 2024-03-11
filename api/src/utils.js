@@ -46,3 +46,16 @@ export const badLazy = (resolver) => {
     return lazyPromise;
   };
 };
+
+export const lazy = (resolver) => {
+  const _result = null;
+
+  return () => {
+    if (_result) {
+      return _result;
+    }
+
+    _result = resolver();
+    return _result;
+  };
+};

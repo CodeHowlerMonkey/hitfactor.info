@@ -1,10 +1,14 @@
 // TODO: rename to scores
-import memoize from "memoize";
-import { badLazy, flatPush, processImport } from "../utils.js";
+import { flatPush, processImport } from "../utils.js";
 import { divIdToShort, mapDivisions } from "./divisions.js";
 
-export const getDivShortToRuns = badLazy(async () => {
-  const result = mapDivisions(() => []);
+let _divShortToRuns = null;
+export const getDivShortToRuns = () => {
+  if (_divShortToRuns) {
+    return _divShortToRuns;
+  }
+
+  _divShortToRuns = mapDivisions(() => []);
   processImport("../../data/imported", /classifiers\.\d+\.json/, (obj) => {
     const memberNumber = obj?.value?.member_data?.member_number;
     const classifiers = obj?.value?.classifiers;
@@ -17,7 +21,7 @@ export const getDivShortToRuns = badLazy(async () => {
       }
 
       flatPush(
-        result[divShort],
+        _divShortToRuns[divShort],
         divObj.division_classifiers
           .filter(({ source }) => source !== "Legacy") // saves RAM, no point looking at old
           .map(
@@ -46,24 +50,24 @@ export const getDivShortToRuns = badLazy(async () => {
       );
     });
   });
-  result.loco = [...result.co, ...result.lo];
-  return result;
-});
+  _divShortToRuns.loco = [..._divShortToRuns.co, ..._divShortToRuns.lo];
+  return _divShortToRuns;
+};
 
-export const selectClassifierDivisionScores = memoize(
-  async ({ number, division, includeNoHF }) => {
-    return (await getDivShortToRuns())[division].filter((run) => {
-      if (!run) {
-        return false;
-      }
+// TODO: memoize?
+export const selectClassifierDivisionScores = ({
+  number,
+  division,
+  includeNoHF,
+}) =>
+  getDivShortToRuns()[division].filter((run) => {
+    if (!run) {
+      return false;
+    }
 
-      if (!includeNoHF && run.hf < 0) {
-        return false;
-      }
+    if (!includeNoHF && run.hf < 0) {
+      return false;
+    }
 
-      return run.classifier === number;
-    });
-  },
-  ([{ number, division, includeNoHF }]) =>
-    number + "/" + division + "/" + (includeNoHF ? "1" : "0")
-);
+    return run.classifier === number;
+  });

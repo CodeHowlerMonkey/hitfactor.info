@@ -23,20 +23,17 @@ import { stringSort } from "../../shared/utils/sort.js";
 
 import { curHHFForDivisionClassifier, divShortToHHFs } from "./dataUtil/hhf.js";
 
-export const chartData = async ({ number, division, full: fullString }) => {
+export const chartData = ({ number, division, full: fullString }) => {
   const full = Number(fullString);
-  const runs = (
-    await selectClassifierDivisionScores({
-      number,
-      division,
-    })
-  )
+  const runs = selectClassifierDivisionScores({
+    number,
+    division,
+  })
     .sort((a, b) => b.hf - a.hf)
     .filter(({ hf }) => hf > 0);
 
-  const curPercentClsasifications = await getShootersTableByMemberNumber();
-  const curHHFPercentClassifications =
-    await getShooterToCurPercentClassifications();
+  const curPercentClsasifications = getShootersTableByMemberNumber();
+  const curHHFPercentClassifications = getShooterToCurPercentClassifications();
   const hhf = curHHFForDivisionClassifier({ number, division });
   const allPoints = runs.map((run, index, allRuns) => ({
     x: HF(run.hf),
@@ -77,43 +74,42 @@ export const chartData = async ({ number, division, full: fullString }) => {
 };
 
 export const runsForDivisionClassifier = memoize(
-  async ({ number, division, hhf, includeNoHF = false, hhfs }) => {
-    const divisionClassifierRunsSortedByHFOrPercent = (
-      await selectClassifierDivisionScores({ number, division, includeNoHF })
-    ).sort((a, b) => {
-      if (includeNoHF) {
-        return b.percent - a.percent;
-      }
+  ({ number, division, hhf, includeNoHF = false, hhfs }) => {
+    const divisionClassifierRunsSortedByHFOrPercent =
+      selectClassifierDivisionScores({ number, division, includeNoHF }).sort(
+        (a, b) => {
+          if (includeNoHF) {
+            return b.percent - a.percent;
+          }
 
-      return b.hf - a.hf;
-    });
-
-    return await Promise.all(
-      divisionClassifierRunsSortedByHFOrPercent.map(
-        async (run, index, allRuns) => {
-          const { memberNumber } = run;
-          const percent = N(run.percent);
-          const curPercent = PositiveOrMinus1(Percent(run.hf, hhf));
-          const percentMinusCurPercent = N(percent - curPercent);
-
-          const findHistoricalHHF = hhfs.findLast(
-            (hhf) => hhf.date <= new Date(run.sd).getTime()
-          )?.hhf;
-
-          const recalcHistoricalHHF = HF((100 * run.hf) / run.percent);
-
-          return {
-            ...run,
-            ...(await getShooterFullInfo({ memberNumber, division })),
-            historicalHHF: findHistoricalHHF ?? recalcHistoricalHHF,
-            percent,
-            curPercent,
-            percentMinusCurPercent: percent >= 100 ? 0 : percentMinusCurPercent,
-            place: index + 1,
-            percentile: PositiveOrMinus1(Percent(index, allRuns.length)),
-          };
+          return b.hf - a.hf;
         }
-      )
+      );
+
+    return divisionClassifierRunsSortedByHFOrPercent.map(
+      (run, index, allRuns) => {
+        const { memberNumber } = run;
+        const percent = N(run.percent);
+        const curPercent = PositiveOrMinus1(Percent(run.hf, hhf));
+        const percentMinusCurPercent = N(percent - curPercent);
+
+        const findHistoricalHHF = hhfs.findLast(
+          (hhf) => hhf.date <= new Date(run.sd).getTime()
+        )?.hhf;
+
+        const recalcHistoricalHHF = HF((100 * run.hf) / run.percent);
+
+        return {
+          ...run,
+          ...getShooterFullInfo({ memberNumber, division }),
+          historicalHHF: findHistoricalHHF ?? recalcHistoricalHHF,
+          percent,
+          curPercent,
+          percentMinusCurPercent: percent >= 100 ? 0 : percentMinusCurPercent,
+          place: index + 1,
+          percentile: PositiveOrMinus1(Percent(index, allRuns.length)),
+        };
+      }
     );
   },
   { cacheKey: (ehFuckit) => JSON.stringify(ehFuckit) }
@@ -172,19 +168,15 @@ const calcLegitRunStats = (runs, hhf) =>
   );
 
 export const extendedInfoForClassifier = memoize(
-  async (c, division) => {
+  (c, division) => {
     if (!division) {
       return {};
     }
     const divisionHHFs = divShortToHHFs[division];
     const curHHFInfo = divisionHHFs.find((dHHF) => dHHF.classifier === c.id);
 
-    const legacyScores = (await getDivShortToRuns())[division]
-      .filter((run) => run?.classifier === c.classifier)
-      .filter((run) => run.hf < 0); // NO HF = Legacy
-
-    const hitFactorScores = (await getDivShortToRuns())[division]
-      .filter((run) => run?.classifier === c.classifier)
+    const hitFactorScores = getDivShortToRuns()
+      [division].filter((run) => run?.classifier === c.classifier)
       .filter((run) => run.hf >= 0) //  only classifer HF scores
       .sort((a, b) => b.hf - a.hf);
 
@@ -269,39 +261,37 @@ export const extendedInfoForClassifier = memoize(
 );
 
 export const classifiersForDivision = memoize(
-  async (division) => {
-    const result = await Promise.all(
-      classifiers.map(async (c) => {
-        const hitFactorScores = (await getDivShortToRuns())[division]
-          .filter((run) => run?.classifier === c.classifier)
-          .filter((run) => run.hf >= 0) //  only classifer HF scores
-          .sort((a, b) => b.hf - a.hf);
-        const recHHF = await recommendedHHFFor({
-          division,
-          number: c.classifier,
-        });
-        const inverseRecPercentileStats = (xPercent) => ({
-          [`inverse${xPercent}RecPercentPercentile`]: Percent(
-            recHHF > 0
-              ? hitFactorScores.findLastIndex(
-                  (c) => (100 * c.hf) / recHHF >= xPercent
-                )
-              : -1,
-            hitFactorScores.length
-          ),
-        });
-        return {
-          ...basicInfoForClassifier(c),
-          ...(await extendedInfoForClassifier(c, division)),
-          recHHF,
-          ...inverseRecPercentileStats(100),
-          ...inverseRecPercentileStats(95),
-          ...inverseRecPercentileStats(85),
-          ...inverseRecPercentileStats(75),
-        };
-      })
-    );
-    return result;
-  },
+  (division) =>
+    classifiers.map((c) => {
+      const scores = getDivShortToRuns();
+      const divScores = scores[division];
+      const hitFactorScores = divScores
+        .filter((run) => run?.classifier === c.classifier)
+        .filter((run) => run.hf >= 0) //  only classifer HF scores
+        .sort((a, b) => b.hf - a.hf);
+      const recHHF = recommendedHHFFor({
+        division,
+        number: c.classifier,
+      });
+      const inverseRecPercentileStats = (xPercent) => ({
+        [`inverse${xPercent}RecPercentPercentile`]: Percent(
+          recHHF > 0
+            ? hitFactorScores.findLastIndex(
+                (c) => (100 * c.hf) / recHHF >= xPercent
+              )
+            : -1,
+          hitFactorScores.length
+        ),
+      });
+      return {
+        ...basicInfoForClassifier(c),
+        ...extendedInfoForClassifier(c, division),
+        recHHF,
+        ...inverseRecPercentileStats(100),
+        ...inverseRecPercentileStats(95),
+        ...inverseRecPercentileStats(85),
+        ...inverseRecPercentileStats(75),
+      };
+    }),
   { cacheKey: ([division]) => division }
 );

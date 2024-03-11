@@ -2,21 +2,21 @@ import memoize from "memoize";
 
 import { getExtendedClassificationsInfo } from "./classifications.js";
 import { N, Percent, PositiveOrMinus1 } from "./numbers.js";
-import { mapDivisions, mapDivisionsAsync } from "./divisions.js";
+import { mapDivisions } from "./divisions.js";
 import {
   getDivShortToShooterToRuns,
+  getRecHHFMap,
   getShooterToCurPercentClassifications,
-  precomputedRecHHFMap,
 } from "./classifiers.js";
 import { byMemberNumber } from "./byMemberNumber.js";
 import { curHHFForDivisionClassifier } from "./hhf.js";
 
 import { dateSort } from "../../../shared/utils/sort.js";
-import { badLazy } from "../utils.js";
+import { lazy } from "../utils.js";
 import { classForPercent } from "../../../shared/utils/classification.js";
 
-const scoresAge = async (division, memberNumber, maxScores = 4) =>
-  ((await getDivShortToShooterToRuns())[division][memberNumber] ?? [])
+const scoresAge = (division, memberNumber, maxScores = 4) =>
+  (getDivShortToShooterToRuns()[division][memberNumber] ?? [])
     .filter((c) => c.code === "Y")
     .sort((a, b) => dateSort(a, b, "sd", -1))
     .slice(0, maxScores) // use 4 to decrease age, by allowing minimum number of classifiers that can result in classification
@@ -114,9 +114,9 @@ const safeNumSort = (field) => (a, b) => {
 };
 
 const getShootersFullForDivision = memoize(
-  async (division) =>
-    Promise.all(
-      (await getExtendedClassificationsInfo())
+  (division) => {
+    return (
+      getExtendedClassificationsInfo()
         .map((c) => classificationsBreakdownAdapter(c, division))
         //        .filter((c) => c.class !== "U" && c.class !== "X")
         .sort(safeNumSort("high")) // sort by high to calculate highRank
@@ -126,27 +126,26 @@ const getShootersFullForDivision = memoize(
           highPercentile: Percent(index, all.length),
         }))
         .sort(safeNumSort("current"))
-        .map(async (c, index, all) => ({
+        .map((c, index, all) => ({
           ...c,
           currentRank: index,
           currentPercentile: Percent(index, all.length),
-          age: await scoresAge(division, c.memberNumber),
-          age1: await scoresAge(division, c.memberNumber, 1),
-          ages: await mapDivisionsAsync(
-            async (div) => await scoresAge(div, c.memberNumber)
-          ),
+          age: scoresAge(division, c.memberNumber),
+          age1: scoresAge(division, c.memberNumber, 1),
+          ages: mapDivisions((div) => scoresAge(div, c.memberNumber)),
         }))
-    ),
+    );
+  },
   { cacheKey: ([division]) => division }
 );
 
 // Not used for now, but keeping in the codebase for later analysis
-const getFreshShootersForDivisionCalibration = async (
+const getFreshShootersForDivisionCalibration = (
   division,
   maxAge = 48,
   maxAge1 = 24
 ) =>
-  (await getShootersFullForDivision(division)) // sorted by current already
+  getShootersFullForDivision(division) // sorted by current already
     .filter((c) => c.age > 0 && c.age <= maxAge && c.age1 <= maxAge1)
     .map((c, index, all) => ({
       current: c.current,
@@ -155,11 +154,8 @@ const getFreshShootersForDivisionCalibration = async (
       index,
     }));
 
-export const classifiersForDivisionForShooter = async ({
-  division,
-  memberNumber,
-}) =>
-  ((await getDivShortToShooterToRuns())[division][memberNumber] ?? []).map(
+export const classifiersForDivisionForShooter = ({ division, memberNumber }) =>
+  (getDivShortToShooterToRuns()[division][memberNumber] ?? []).map(
     (run, index) => {
       const hhf = curHHFForDivisionClassifier({
         number: run.classifier,
@@ -169,7 +165,7 @@ export const classifiersForDivisionForShooter = async ({
       const percentMinusCurPercent =
         curPercent >= 0 ? N(run.percent - curPercent) : -1;
 
-      const recHHF = precomputedRecHHFMap[division]?.[run.classifier];
+      const recHHF = getRecHHFMap()[division]?.[run.classifier];
       const recPercent = PositiveOrMinus1(Percent(run.hf, recHHF));
 
       return {
@@ -183,53 +179,64 @@ export const classifiersForDivisionForShooter = async ({
     }
   );
 
-export const getExtendedCalibrationShootersPercentileTable = badLazy(
-  async () => {
-    const divToCurHHFPercentArray = mapDivisions((div) => []);
-    const curHHFCalibrationShooters = Object.values(
-      await getShooterToCurPercentClassifications()
-    );
-    curHHFCalibrationShooters.forEach((shooter) => {
-      mapDivisions((div) => {
-        divToCurHHFPercentArray[div].push(shooter[div].percent);
-        return 0;
-      });
+export const getExtendedCalibrationShootersPercentileTable = lazy(() => {
+  const divToCurHHFPercentArray = mapDivisions((div) => []);
+  const curHHFCalibrationShooters = Object.values(
+    getShooterToCurPercentClassifications()
+  );
+  curHHFCalibrationShooters.forEach((shooter) => {
+    mapDivisions((div) => {
+      divToCurHHFPercentArray[div].push(shooter[div].percent);
+      return 0;
     });
+  });
 
-    const divToCurHHFPercentArraySorted = mapDivisions((div) =>
-      divToCurHHFPercentArray[div].filter((c) => c > 0).sort(safeNumSort())
-    );
+  const divToCurHHFPercentArraySorted = mapDivisions((div) =>
+    divToCurHHFPercentArray[div].filter((c) => c > 0).sort(safeNumSort())
+  );
 
-    return mapDivisions((div) => {
-      const divArray = divToCurHHFPercentArraySorted[div];
-      return {
-        pGM: (100 * divArray.findIndex((c) => c <= 95)) / divArray.length,
-        pM: (100 * divArray.findIndex((c) => c <= 85)) / divArray.length,
-        pA: (100 * divArray.findIndex((c) => c <= 75)) / divArray.length,
-      };
-    });
+  return mapDivisions((div) => {
+    const divArray = divToCurHHFPercentArraySorted[div];
+    return {
+      pGM: (100 * divArray.findIndex((c) => c <= 95)) / divArray.length,
+      pM: (100 * divArray.findIndex((c) => c <= 85)) / divArray.length,
+      pA: (100 * divArray.findIndex((c) => c <= 75)) / divArray.length,
+    };
+  });
+});
+
+let _shootersTable = null;
+export const getShootersTable = () => {
+  if (_shootersTable) {
+    return _shootersTable;
   }
-);
 
-export const getShootersTable = badLazy(async () => ({
-  opn: await getShootersFullForDivision("opn"),
-  ltd: await getShootersFullForDivision("ltd"),
-  l10: await getShootersFullForDivision("l10"),
-  prod: await getShootersFullForDivision("prod"),
-  ss: await getShootersFullForDivision("ss"),
-  rev: await getShootersFullForDivision("rev"),
-  co: await getShootersFullForDivision("co"),
-  pcc: await getShootersFullForDivision("pcc"),
-  lo: await getShootersFullForDivision("lo"),
-  loco: [
-    ...(await getShootersFullForDivision("lo")),
-    ...(await getShootersFullForDivision("co")),
-  ],
-}));
+  _shootersTable = {
+    opn: getShootersFullForDivision("opn"),
+    ltd: getShootersFullForDivision("ltd"),
+    l10: getShootersFullForDivision("l10"),
+    prod: getShootersFullForDivision("prod"),
+    ss: getShootersFullForDivision("ss"),
+    rev: getShootersFullForDivision("rev"),
+    co: getShootersFullForDivision("co"),
+    pcc: getShootersFullForDivision("pcc"),
+    lo: getShootersFullForDivision("lo"),
+    loco: [
+      ...getShootersFullForDivision("lo"),
+      ...getShootersFullForDivision("co"),
+    ],
+  };
 
-export const getShootersTableByMemberNumber = badLazy(async () => {
-  const shootersTable = await getShootersTable();
-  const result = {
+  return _shootersTable;
+};
+
+let _shootersTableByMemberNumber = null;
+export const getShootersTableByMemberNumber = () => {
+  if (_shootersTableByMemberNumber) {
+    return _shootersTableByMemberNumber;
+  }
+  const shootersTable = getShootersTable();
+  _shootersTableByMemberNumber = {
     opn: byMemberNumber(shootersTable.opn),
     ltd: byMemberNumber(shootersTable.ltd),
     l10: byMemberNumber(shootersTable.l10),
@@ -241,12 +248,12 @@ export const getShootersTableByMemberNumber = badLazy(async () => {
     pcc: byMemberNumber(shootersTable.pcc),
     loco: byMemberNumber(shootersTable.loco),
   };
-  return result;
-});
+  return _shootersTableByMemberNumber;
+};
 
-export const getShooterFullInfo = async ({ memberNumber, division }) => {
+export const getShooterFullInfo = ({ memberNumber, division }) => {
   try {
-    const shootersTableByMemberNumber = await getShootersTableByMemberNumber();
+    const shootersTableByMemberNumber = getShootersTableByMemberNumber();
     return shootersTableByMemberNumber[division][memberNumber][0];
   } catch (err) {
     /*
@@ -268,8 +275,8 @@ export const getShooterFullInfo = async ({ memberNumber, division }) => {
   };
 };
 
-export const shooterChartData = async ({ memberNumber, division }) =>
-  (await classifiersForDivisionForShooter({ memberNumber, division }))
+export const shooterChartData = ({ memberNumber, division }) =>
+  classifiersForDivisionForShooter({ memberNumber, division })
     .map((run) => ({
       x: run.sd,
       recPercent: run.recPercent,

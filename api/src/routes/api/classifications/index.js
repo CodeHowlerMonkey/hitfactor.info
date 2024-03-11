@@ -1,18 +1,14 @@
 import {
+  getRecHHFMap,
   getShooterToCurPercentClassifications,
   getShooterToRuns,
-  precomputeRecHHFMap,
 } from "../../../dataUtil/classifiers.js";
 import {
   highestClassification,
   classForPercent,
 } from "../../../../../shared/utils/classification.js";
 import { getExtendedClassificationsInfo } from "../../../dataUtil/classifications.js";
-import {
-  mapDivisions,
-  mapDivisionsAsync,
-} from "../../../dataUtil/divisions.js";
-import { badLazy } from "../../../utils.js";
+import { mapDivisions } from "../../../dataUtil/divisions.js";
 import { classifiersForDivision } from "../../../classifiers.api.js";
 import {
   getShootersTable,
@@ -58,8 +54,8 @@ const selectClassificationsForDivision = (
     : classificationsObj;
 };
 
-const getHighestClassificationCountsFor = async (division, mode) => {
-  const highestClassifications = (await getExtendedClassificationsInfo())
+const getHighestClassificationCountsFor = (division, mode) => {
+  const highestClassifications = getExtendedClassificationsInfo()
     .map((cur) =>
       highestClassification(
         selectClassificationsForDivision(division, cur, mode)
@@ -81,21 +77,19 @@ const getHighestClassificationCountsFor = async (division, mode) => {
   return highestClassificationCounts;
 };
 
-const getDivisionClassBucket = async (div, mode) => ({
-  U: (await getHighestClassificationCountsFor(div, mode)).get("U"),
-  D: (await getHighestClassificationCountsFor(div, mode)).get("D"),
-  C: (await getHighestClassificationCountsFor(div, mode)).get("C"),
-  B: (await getHighestClassificationCountsFor(div, mode)).get("B"),
-  A: (await getHighestClassificationCountsFor(div, mode)).get("A"),
-  M: (await getHighestClassificationCountsFor(div, mode)).get("M"),
-  GM: (await getHighestClassificationCountsFor(div, mode)).get("GM"),
+const getDivisionClassBucket = (div, mode) => ({
+  U: getHighestClassificationCountsFor(div, mode).get("U"),
+  D: getHighestClassificationCountsFor(div, mode).get("D"),
+  C: getHighestClassificationCountsFor(div, mode).get("C"),
+  B: getHighestClassificationCountsFor(div, mode).get("B"),
+  A: getHighestClassificationCountsFor(div, mode).get("A"),
+  M: getHighestClassificationCountsFor(div, mode).get("M"),
+  GM: getHighestClassificationCountsFor(div, mode).get("GM"),
 });
 
-const bucketBy = async (byWhat) => ({
-  all: await getDivisionClassBucket(undefined, byWhat),
-  ...(await mapDivisionsAsync(
-    async (div) => await getDivisionClassBucket(div, byWhat)
-  )),
+const bucketBy = (byWhat) => ({
+  all: getDivisionClassBucket(undefined, byWhat),
+  ...mapDivisions((div) => getDivisionClassBucket(div, byWhat)),
   Approx: {
     U: 0,
     D: 19,
@@ -107,32 +101,40 @@ const bucketBy = async (byWhat) => ({
   },
 });
 
-const getMemoizedClassificationStats = badLazy(async () => ({
-  byClass: await bucketBy("class"),
-  byPercent: await bucketBy("percent"),
-  byCurHHFPercent: await bucketBy("curHHFPercent"),
-  byRecHHFPercent: await bucketBy("recHHFPercent"),
-}));
+let _stats = null;
+const getMemoizedClassificationStats = () => {
+  if (_stats) {
+    return _stats;
+  }
+
+  _stats = {
+    byClass: bucketBy("class"),
+    byPercent: bucketBy("percent"),
+    byCurHHFPercent: bucketBy("curHHFPercent"),
+    byRecHHFPercent: bucketBy("recHHFPercent"),
+  };
+  return _stats;
+};
 
 const classificationsRoutes = async (fastify, opts) => {
-  fastify.get("/", async (req, res) => {
-    return await getMemoizedClassificationStats();
+  fastify.get("/", (req, res) => {
+    return getMemoizedClassificationStats();
   });
-  fastify.addHook("onListen", async () => {
+  fastify.addHook("onListen", () => {
     console.log("hydrating classifiers");
-    await mapDivisionsAsync(async (div) => await classifiersForDivision(div));
-    await precomputeRecHHFMap();
+    mapDivisions((div) => classifiersForDivision(div));
+    getRecHHFMap();
     console.log("done hydrating classifiers ");
 
     console.log("hydrating shooters");
-    await getShooterToRuns();
-    await getShootersTable();
-    await getShootersTableByMemberNumber();
-    await getShooterToCurPercentClassifications();
+    getShooterToRuns();
+    getShootersTable();
+    getShootersTableByMemberNumber();
+    getShooterToCurPercentClassifications();
     console.log("done hydrating shooters");
 
     console.log("hydrating classification stats");
-    await getMemoizedClassificationStats();
+    getMemoizedClassificationStats();
     console.log("done hydrating classification stats");
   });
 };

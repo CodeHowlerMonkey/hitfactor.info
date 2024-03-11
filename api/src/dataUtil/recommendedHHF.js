@@ -194,14 +194,12 @@ const recommendedHHFFunctionFor = ({ division, number }) => {
 };
 
 export const recommendedHHFFor = memoize(
-  async ({ division, number }) => {
-    const runs = (
-      await selectClassifierDivisionScores({
-        number,
-        division,
-        includeNoHF: false,
-      })
-    )
+  ({ division, number }) => {
+    const runs = selectClassifierDivisionScores({
+      number,
+      division,
+      includeNoHF: false,
+    })
       .sort((a, b) => b.hf - a.hf)
       .map((run, index, allRuns) => ({
         ...run,

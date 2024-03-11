@@ -1,4 +1,4 @@
-import { loadJSON, processImport, badLazy } from "../utils.js";
+import { loadJSON, processImport } from "../utils.js";
 import {
   getShooterToCurPercentClassifications,
   getShooterToRecPercentClassifications,
@@ -62,19 +62,21 @@ const mapClassificationInfo = (
   };
 };
 
-export const getExtendedClassificationsInfo = badLazy(async () => {
-  const result = [];
+let _extendedClassificationsInfo = null;
+export const getExtendedClassificationsInfo = () => {
+  if (_extendedClassificationsInfo) {
+    return _extendedClassificationsInfo;
+  }
+  _extendedClassificationsInfo = [];
 
-  const reclassificationsByCurPercent =
-    await getShooterToCurPercentClassifications();
-  const reclassificationsByRecPercent =
-    await getShooterToRecPercentClassifications();
+  const reclassificationsByCurPercent = getShooterToCurPercentClassifications();
+  const reclassificationsByRecPercent = getShooterToRecPercentClassifications();
 
   processImport(
     "../../data/imported",
     /classification\.\d+\.json/,
     ({ value }) => {
-      result.push(
+      _extendedClassificationsInfo.push(
         mapClassificationInfo(
           value,
           reclassificationsByCurPercent,
@@ -83,5 +85,5 @@ export const getExtendedClassificationsInfo = badLazy(async () => {
       );
     }
   );
-  return result;
-});
+  return _extendedClassificationsInfo;
+};
