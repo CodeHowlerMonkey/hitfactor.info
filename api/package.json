@@ -21,7 +21,8 @@
     "lodash.transform": "^4.6.0",
     "lodash.uniqby": "^4.7.0",
     "memoize": "^10.0.0",
-    "node-worker-threads-pool": "^1.5.1"
+    "sequelize": "^6.37.1",
+    "sqlite3": "^5.1.7"
   },
   "devDependencies": {
     "nodemon": "^3.0.3"
