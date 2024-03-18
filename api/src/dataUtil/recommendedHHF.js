@@ -23,6 +23,10 @@ export const recommendedHHFByPercentileAndPercent = (
       Math.abs(a.percentile - targetPercentile) -
       Math.abs(b.percentile - targetPercentile)
   )[0];
+  if (!closestPercentileRun) {
+    return 0;
+  }
+
   return HF(
     (closestPercentileRun.hf * closestPercentileRun.percentile) /
       targetPercentile /

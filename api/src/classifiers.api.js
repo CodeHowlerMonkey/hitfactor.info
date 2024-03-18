@@ -184,13 +184,13 @@ export const extendedInfoForClassifier = memoize(
 
     const topXPercentileStats = (x) => ({
       [`top${x}PercentilePercent`]:
-        hitFactorScores[Math.floor(x * 0.01 * hitFactorScores.length)].percent,
+        hitFactorScores[Math.floor(x * 0.01 * hitFactorScores.length)]?.percent,
       [`top${x}PercentileCurPercent`]: Percent(
-        hitFactorScores[Math.floor(x * 0.01 * hitFactorScores.length)].hf,
+        hitFactorScores[Math.floor(x * 0.01 * hitFactorScores.length)]?.hf,
         hhf
       ),
       [`top${x}PercentileHF`]:
-        hitFactorScores[Math.floor(x * 0.01 * hitFactorScores.length)].hf,
+        hitFactorScores[Math.floor(x * 0.01 * hitFactorScores.length)]?.hf,
     });
 
     const inversePercentileStats = (xPercent) => ({
@@ -215,7 +215,6 @@ export const extendedInfoForClassifier = memoize(
         .sort((a, b) => a.date - b.date),
       (hhfData) => N(hhfData.hhf, 2)
     );
-    const actualLastUpdate = hhfs[hhfs.length - 1].date;
     const clubs = uniqBy(hitFactorScores, "clubid")
       .map(({ clubid: id, club_name: name }) => ({
         id,

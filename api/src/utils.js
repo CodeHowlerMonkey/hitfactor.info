@@ -12,12 +12,18 @@ export const loadJSON = (path) =>
   JSON.parse(fs.readFileSync(dirPath(path), "utf8"));
 
 export const processImport = (dir, fileRegexp, forEachFileJSONCb) => {
-  fs.readdirSync(dirPath(dir))
-    .filter((file) => !!file.match(fileRegexp))
-    .forEach((file) => {
-      const curJSON = loadJSON(dir + "/" + file);
-      curJSON.forEach(forEachFileJSONCb);
-    });
+  const files = fs
+    .readdirSync(dirPath(dir))
+    .filter((file) => !!file.match(fileRegexp));
+
+  const filesToProcess = !process.env.QUICK_DEV
+    ? files
+    : files.slice(files.length - 4, files.length);
+
+  filesToProcess.forEach((file) => {
+    const curJSON = loadJSON(dir + "/" + file);
+    curJSON.forEach(forEachFileJSONCb);
+  });
 };
 
 /** Mutates target array by pushing values array into it in a flat fashion
@@ -26,15 +32,36 @@ export const processImport = (dir, fileRegexp, forEachFileJSONCb) => {
 export const flatPush = (target, values) =>
   Array.prototype.push.apply(target, values);
 
-export const lazy = (resolver) => {
-  const _result = null;
+export const lazy = (resolver, cachePath) => {
+  let _result = null;
 
   return () => {
     if (_result) {
       return _result;
-    }
+    } /*else if (cachePath) {
+      try {
+        const cached = loadJSON(cachePath);
+        if (cached) {
+          console.log("using cached " + cachePath);
+          _result = cached;
+          return _result;
+        }
+      } catch (err) {
+        if (err.code !== "ENOENT") {
+          console.error(err);
+        }
+      }
+    }*/
 
+    /*
+    console.log("resolving new " + cachePath);
+    */
     _result = resolver();
+    /*
+    if (cachePath) {
+      console.log("saving cache " + cachePath);
+      saveJSON(cachePath, _result);
+    }*/
     return _result;
   };
 };

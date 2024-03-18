@@ -121,7 +121,10 @@ const classificationsRoutes = async (fastify, opts) => {
     return getMemoizedClassificationStats();
   });
   fastify.addHook("onListen", () => {
-    console.log("hydrating classifiers");
+    if (process.env.QUICK_DEV) {
+      console.log("USING FAST HYDRATION (you will only have partial data)");
+    }
+    console.log("hydrating classifiers", "color: green");
     mapDivisions((div) => classifiersForDivision(div));
     getRecHHFMap();
     console.log("done hydrating classifiers ");
@@ -136,6 +139,9 @@ const classificationsRoutes = async (fastify, opts) => {
     console.log("hydrating classification stats");
     getMemoizedClassificationStats();
     console.log("done hydrating classification stats");
+
+    // Keep this at the end of all hydration calls
+    console.log("HYDRATION DONE, API should be responsive now");
   });
 };
 
