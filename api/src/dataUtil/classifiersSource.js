@@ -1,14 +1,9 @@
 // TODO: rename to scores
-import { flatPush, processImport } from "../utils.js";
+import { flatPush, processImport, lazy } from "../utils.js";
 import { divIdToShort, mapDivisions } from "./divisions.js";
 
-let _divShortToRuns = null;
-export const getDivShortToRuns = () => {
-  if (_divShortToRuns) {
-    return _divShortToRuns;
-  }
-
-  _divShortToRuns = mapDivisions(() => []);
+export const getDivShortToRuns = lazy(() => {
+  const _divShortToRuns = mapDivisions(() => []);
   processImport("../../data/imported", /classifiers\.\d+\.json/, (obj) => {
     const memberNumber = obj?.value?.member_data?.member_number;
     const classifiers = obj?.value?.classifiers;
@@ -52,7 +47,7 @@ export const getDivShortToRuns = () => {
   });
   _divShortToRuns.loco = [..._divShortToRuns.co, ..._divShortToRuns.lo];
   return _divShortToRuns;
-};
+}, "../../cache/divShortToRuns.json");
 
 // TODO: memoize?
 export const selectClassifierDivisionScores = ({

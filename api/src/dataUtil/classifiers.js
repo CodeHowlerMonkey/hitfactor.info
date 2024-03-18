@@ -8,14 +8,11 @@ import { recommendedHHFFor } from "./recommendedHHF.js";
 import { classifierNumbers } from "./classifiersData.js";
 import { getDivShortToRuns } from "./classifiersSource.js";
 import { calculateUSPSAClassification } from "../../../shared/utils/classification.js";
+import { lazy } from "../utils.js";
 
-let _divShortToShooterToRuns = null;
-export const getDivShortToShooterToRuns = () => {
+export const getDivShortToShooterToRuns = lazy(() => {
   const divShortToRuns = getDivShortToRuns();
-  if (_divShortToShooterToRuns) {
-    return _divShortToShooterToRuns;
-  }
-  _divShortToShooterToRuns = {
+  return {
     opn: byMemberNumber(divShortToRuns.opn),
     ltd: byMemberNumber(divShortToRuns.ltd),
     l10: byMemberNumber(divShortToRuns.l10),
@@ -27,30 +24,22 @@ export const getDivShortToShooterToRuns = () => {
     pcc: byMemberNumber(divShortToRuns.pcc),
     loco: byMemberNumber(divShortToRuns.loco),
   };
-  return _divShortToShooterToRuns;
-};
+}, "../../cache/divShortToShooterToRuns.json");
 
-let _recHHFMap = null;
-export const getRecHHFMap = () => {
-  if (_recHHFMap) {
-    return _recHHFMap;
-  }
-  _recHHFMap = mapDivisions(() => ({}));
+export const getRecHHFMap = lazy(() => {
+  const result = mapDivisions(() => ({}));
   mapDivisionsFlat((division) =>
     classifierNumbers.map((number) => {
-      _recHHFMap[division][number] = recommendedHHFFor({
+      result[division][number] = recommendedHHFFor({
         division,
         number,
       });
     })
   );
-};
+  return result;
+}, "../../cache/recHHFMap.json");
 
-let _shooterToRuns = null;
-export const getShooterToRuns = () => {
-  if (_shooterToRuns) {
-    return _shooterToRuns;
-  }
+export const getShooterToRuns = lazy(() => {
   const divShortToRuns = getDivShortToRuns();
   const scrumbled = [].concat(
     divShortToRuns.opn,
@@ -86,25 +75,19 @@ export const getShooterToRuns = () => {
     return c;
   });
 
-  _shooterToRuns = byMemberNumber(final);
-  return _shooterToRuns;
-};
+  return byMemberNumber(final);
+}, "../../cache/shooterToRuns.json");
 
-const getShooterToXXXPercentClassificationsFactory = (field) => {
-  let _result = null;
-
-  return () => {
-    if (_result) {
-      return _result;
-    }
-    _result = Object.fromEntries(
-      Object.entries(getShooterToRuns()).map(([memberId, c]) => {
-        return [memberId, calculateUSPSAClassification(c, field)];
-      })
-    );
-    return _result;
-  };
-};
+const getShooterToXXXPercentClassificationsFactory = (field) =>
+  lazy(
+    () =>
+      Object.fromEntries(
+        Object.entries(getShooterToRuns()).map(([memberId, c]) => {
+          return [memberId, calculateUSPSAClassification(c, field)];
+        })
+      ),
+    `../../cache/shooterClassifications.by${field}.json`
+  );
 
 /**
  * @returns shooter-to-div-to-curHHFPercent map

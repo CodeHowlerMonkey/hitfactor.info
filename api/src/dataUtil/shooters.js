@@ -205,13 +205,8 @@ export const getExtendedCalibrationShootersPercentileTable = lazy(() => {
   });
 });
 
-let _shootersTable = null;
-export const getShootersTable = () => {
-  if (_shootersTable) {
-    return _shootersTable;
-  }
-
-  _shootersTable = {
+export const getShootersTable = lazy(() => {
+  return {
     opn: getShootersFullForDivision("opn"),
     ltd: getShootersFullForDivision("ltd"),
     l10: getShootersFullForDivision("l10"),
@@ -226,17 +221,11 @@ export const getShootersTable = () => {
       ...getShootersFullForDivision("co"),
     ],
   };
+}, "../../cache/shootersTable.json");
 
-  return _shootersTable;
-};
-
-let _shootersTableByMemberNumber = null;
-export const getShootersTableByMemberNumber = () => {
-  if (_shootersTableByMemberNumber) {
-    return _shootersTableByMemberNumber;
-  }
+export const getShootersTableByMemberNumber = lazy(() => {
   const shootersTable = getShootersTable();
-  _shootersTableByMemberNumber = {
+  return {
     opn: byMemberNumber(shootersTable.opn),
     ltd: byMemberNumber(shootersTable.ltd),
     l10: byMemberNumber(shootersTable.l10),
@@ -248,8 +237,7 @@ export const getShootersTableByMemberNumber = () => {
     pcc: byMemberNumber(shootersTable.pcc),
     loco: byMemberNumber(shootersTable.loco),
   };
-  return _shootersTableByMemberNumber;
-};
+}, "../../cache/shootersTableByMemberNumber.json");
 
 export const getShooterFullInfo = ({ memberNumber, division }) => {
   try {
