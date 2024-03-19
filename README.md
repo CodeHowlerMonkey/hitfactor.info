@@ -1,12 +1,9 @@
 ### Howler Monkey Classification System - HMCS
 
 Independent Frontend/Webapp to bring better analysis and transparency into the USPSA Classification System.
-Currently, read-only, uploads planned (See issue #1)
-
-### Preface
-
 For a full drama background, see practical.shooting.insights on Instagram.
 For a quick-ish TLDR: see [DRAMA.md](DRAMA.md)
+Currently read-only, uploads planned (See issue #1)
 
 #### Project Goals
 
@@ -16,22 +13,45 @@ For a quick-ish TLDR: see [DRAMA.md](DRAMA.md)
 4. Provide documentation and insight into classification system and present it to USPSA BOD after malicious actors are removed from the management.
 5. Integrate into USPSA.org website
 
-### Running locally
+#### Running
+
+##### Locally - All Data
 
 ```
 npm i
 npm start
 ```
 
-API will bind to the port immediately, but will be unresponsive for a few minutes,
-due to the syncrhonous hydration of data. Use `npm run quick` for smaller dataset during development.
+(Takes few minutes to hydrate the data and become responsive)
+
+##### Locally - Quick Mode
+
+For faster turn around when developing API, use:
+
+```
+npm i
+npm run quick
+```
+
+(Hydrates in less than 5 seconds)
+
+###### In Production
+
+Dockerfile is only used by Koyeb. To run in prod mode, use:
+
+```
+npm i
+npm run prod
+```
+
+Note: `npm` i is required, because it uses vite build as a post-install step and serves frontend files from the node itself, instead of running two processes concurrently.
 
 ##### Technical Stack
 
 - Main language: JavaScript (ES13), TypeScript when needed
 - Monorepo, Node/Fastify Backend, React (vite-swc) Frontend.
 - Backend serves API and static files: (build of React Frontend, downloadables, etc)
-- All data is loaded on node process startup; no database
+- All data is loaded on node process during startup; no database (yet)
 
 ##### Folder Structure
 
@@ -44,7 +64,7 @@ due to the syncrhonous hydration of data. Use `npm run quick` for smaller datase
 
 For more info, see READMEs in each root folder
 
-### Imprting Data from USPSA
+### Importing Data from USPSA
 
 First you need to obtain and set ENV variables for API keys
 
