@@ -206,6 +206,9 @@ export const getExtendedCalibrationShootersPercentileTable = lazy(() => {
 });
 
 export const getShootersTable = lazy(() => {
+  const co = getShootersFullForDivision("co");
+  const lo = getShootersFullForDivision("lo");
+
   return {
     opn: getShootersFullForDivision("opn"),
     ltd: getShootersFullForDivision("ltd"),
@@ -213,13 +216,10 @@ export const getShootersTable = lazy(() => {
     prod: getShootersFullForDivision("prod"),
     ss: getShootersFullForDivision("ss"),
     rev: getShootersFullForDivision("rev"),
-    co: getShootersFullForDivision("co"),
+    co,
     pcc: getShootersFullForDivision("pcc"),
-    lo: getShootersFullForDivision("lo"),
-    loco: [
-      ...getShootersFullForDivision("lo"),
-      ...getShootersFullForDivision("co"),
-    ],
+    lo,
+    loco: [].concat(lo, co),
   };
 }, "../../cache/shootersTable.json");
 
