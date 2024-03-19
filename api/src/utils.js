@@ -26,12 +26,6 @@ export const processImport = (dir, fileRegexp, forEachFileJSONCb) => {
   });
 };
 
-/** Mutates target array by pushing values array into it in a flat fashion
- * E.g. flatPush([0], [1,2]) ==> [0,1,2]
- */
-export const flatPush = (target, values) =>
-  Array.prototype.push.apply(target, values);
-
 export const lazy = (resolver, cachePath) => {
   let _result = null;
 

@@ -8,7 +8,7 @@ import { recommendedHHFFor } from "./recommendedHHF.js";
 import { classifierNumbers } from "./classifiersData.js";
 import { getDivShortToRuns } from "./classifiersSource.js";
 import { calculateUSPSAClassification } from "../../../shared/utils/classification.js";
-import { flatPush, lazy } from "../utils.js";
+import { lazy } from "../utils.js";
 
 export const getDivShortToShooterToRuns = lazy(() => {
   const divShortToRuns = getDivShortToRuns();
@@ -31,7 +31,7 @@ export const getRecHHFMap = lazy(() => {
 export const getShooterToRuns = lazy(() => {
   const divShortToRuns = getDivShortToRuns();
   const scrumbled = [];
-  mapDivisions((div) => flatPush(scrumbled, divShortToRuns[div]));
+  mapDivisions((div) => scrumbled.concat(divShortToRuns[div]));
 
   const final = scrumbled.map((c) => {
     const { division, classifier: number } = c;

@@ -1,5 +1,5 @@
 // TODO: rename to scores
-import { flatPush, processImport, lazy } from "../utils.js";
+import { processImport, lazy } from "../utils.js";
 import { divIdToShort, mapDivisions } from "./divisions.js";
 
 export const getDivShortToRuns = lazy(() => {
@@ -15,8 +15,7 @@ export const getDivShortToRuns = lazy(() => {
         return;
       }
 
-      flatPush(
-        _divShortToRuns[divShort],
+      _divShortToRuns[divShort].concat(
         divObj.division_classifiers
           .filter(({ source }) => source !== "Legacy") // saves RAM, no point looking at old
           .map(
