@@ -124,7 +124,7 @@ const classificationsRoutes = async (fastify, opts) => {
     if (process.env.QUICK_DEV) {
       console.log("USING FAST HYDRATION (you will only have partial data)");
     }
-    console.log("hydrating classifiers", "color: green");
+    console.log("hydrating classifiers");
     mapDivisions((div) => classifiersForDivision(div));
     getRecHHFMap();
     console.log("done hydrating classifiers ");
