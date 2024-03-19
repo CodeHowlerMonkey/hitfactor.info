@@ -1,4 +1,3 @@
-// TODO: rename to scores
 import { processImport, lazy } from "../utils.js";
 import { divIdToShort, mapDivisions } from "./divisions.js";
 

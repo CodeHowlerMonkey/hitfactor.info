@@ -22,7 +22,7 @@ npm i
 npm start
 ```
 
-(Takes few minutes to hydrate the data and become responsive)
+(Takes minute+ to hydrate the data and become responsive on M1Pro)
 
 ##### Locally - Quick Mode
 
