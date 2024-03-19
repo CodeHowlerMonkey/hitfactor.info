@@ -23,6 +23,9 @@ npm i
 npm start
 ```
 
+API will bind to the port immediately, but will be unresponsive for a few minutes,
+due to the syncrhonous hydration of data. Use `npm run quick` for smaller dataset during development.
+
 ##### Technical Stack
 
 - Main language: JavaScript (ES13), TypeScript when needed
