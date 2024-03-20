@@ -23,6 +23,10 @@ export const recommendedHHFByPercentileAndPercent = (
       Math.abs(a.percentile - targetPercentile) -
       Math.abs(b.percentile - targetPercentile)
   )[0];
+  if (!closestPercentileRun) {
+    return 0;
+  }
+
   return HF(
     (closestPercentileRun.hf * closestPercentileRun.percentile) /
       targetPercentile /
@@ -194,14 +198,12 @@ const recommendedHHFFunctionFor = ({ division, number }) => {
 };
 
 export const recommendedHHFFor = memoize(
-  async ({ division, number }) => {
-    const runs = (
-      await selectClassifierDivisionScores({
-        number,
-        division,
-        includeNoHF: false,
-      })
-    )
+  ({ division, number }) => {
+    const runs = selectClassifierDivisionScores({
+      number,
+      division,
+      includeNoHF: false,
+    })
       .sort((a, b) => b.hf - a.hf)
       .map((run, index, allRuns) => ({
         ...run,

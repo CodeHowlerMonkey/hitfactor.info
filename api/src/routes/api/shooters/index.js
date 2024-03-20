@@ -8,23 +8,23 @@ import {
 import { basicInfoForClassifierCode } from "../../../dataUtil/classifiersData.js";
 import { multisort } from "../../../../../shared/utils/sort.js";
 import { PAGE_SIZE } from "../../../../../shared/constants/pagination.js";
-import { getShooterToCurPercentClassifications } from "../../../dataUtil/classifiers.js";
 
 const shootersRoutes = async (fastify, opts) => {
-  fastify.get("/download/:division", { compress: false }, async (req, res) => {
+  fastify.get("/download/:division", async (req, res) => {
     const { division } = req.params;
+
     res.header(
       "Content-Disposition",
       `attachment; filename=shooters.${division}.json`
     );
-    return (await getShootersTable())[division];
+    return getShootersTable()[division];
   });
   fastify.get("/:division", async (req, res) => {
     const { division } = req.params;
     const { sort, order, page: pageString, filter: filterString } = req.query;
     const page = Number(pageString) || 1;
 
-    const shootersTable = (await getShootersTable())[division];
+    const shootersTable = getShootersTable()[division];
 
     let data = multisort(
       shootersTable.filter((c) => c.class !== "U" && c.class !== "X"),
@@ -47,46 +47,37 @@ const shootersRoutes = async (fastify, opts) => {
     };
   });
 
-  fastify.get(
-    "/download/:division/:memberNumber",
-    { compress: false },
-    async (req, res) => {
-      const { division, memberNumber } = req.params;
+  fastify.get("/download/:division/:memberNumber", async (req, res) => {
+    const { division, memberNumber } = req.params;
 
-      const info =
-        (await getShootersTableByMemberNumber())[division]?.[
-          memberNumber
-        ]?.[0] || {};
-      const data = (
-        await classifiersForDivisionForShooter({
-          division,
-          memberNumber,
-        })
-      ).map((c) => ({
-        ...c,
-        classifierInfo: basicInfoForClassifierCode(c?.classifier),
-      }));
+    const info =
+      getShootersTableByMemberNumber()[division]?.[memberNumber]?.[0] || {};
+    const data = classifiersForDivisionForShooter({
+      division,
+      memberNumber,
+    }).map((c) => ({
+      ...c,
+      classifierInfo: basicInfoForClassifierCode(c?.classifier),
+    }));
 
-      res.header(
-        "Content-Disposition",
-        `attachment; filename=shooters.${division}.${memberNumber}.json`
-      );
+    res.header(
+      "Content-Disposition",
+      `attachment; filename=shooters.${division}.${memberNumber}.json`
+    );
 
-      return {
-        info,
-        classifiers: data,
-      };
-    }
-  );
+    return {
+      info,
+      classifiers: data,
+    };
+  });
   fastify.get("/:division/:memberNumber", async (req, res) => {
     const { division, memberNumber } = req.params;
     const { sort, order, page: pageString } = req.query;
 
     const info =
-      (await getShootersTableByMemberNumber())[division]?.[memberNumber]?.[0] ||
-      {};
+      getShootersTableByMemberNumber()[division]?.[memberNumber]?.[0] || {};
     const data = multisort(
-      await classifiersForDivisionForShooter({ division, memberNumber }),
+      classifiersForDivisionForShooter({ division, memberNumber }),
       sort?.split?.(","),
       order?.split?.(",")
     ).map((c) => ({
@@ -105,7 +96,7 @@ const shootersRoutes = async (fastify, opts) => {
 
   fastify.get("/:division/:memberNumber/chart", async (req, res) => {
     const { division, memberNumber } = req.params;
-    return await shooterChartData({ division, memberNumber });
+    return shooterChartData({ division, memberNumber });
   });
 };
 

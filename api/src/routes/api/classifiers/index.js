@@ -1,4 +1,3 @@
-import memoize from "memoize";
 import {
   basicInfoForClassifier,
   classifiers,
@@ -13,8 +12,6 @@ import {
 
 import { multisort } from "../../../../../shared/utils/sort.js";
 import { PAGE_SIZE } from "../../../../../shared/constants/pagination.js";
-import { mapDivisionsAsync } from "../../../dataUtil/divisions.js";
-import { getShooterToRuns } from "../../../dataUtil/classifiers.js";
 import {
   recommendedHHFByPercentileAndPercent,
   recommendedHHFFor,
@@ -23,19 +20,17 @@ import {
 const classifiersRoutes = async (fastify, opts) => {
   fastify.get("/", (req, res) => classifiers.map(basicInfoForClassifier));
 
-  fastify.get(
-    "/:division",
-    { compress: false },
-    async (req) => await classifiersForDivision(req.params.division)
+  fastify.get("/:division", (req) =>
+    classifiersForDivision(req.params.division)
   );
 
-  fastify.get("/download/:division", { compress: false }, async (req, res) => {
+  fastify.get("/download/:division", async (req, res) => {
     const { division } = req.params;
     res.header(
       "Content-Disposition",
       `attachment; filename=classifiers.${division}.json`
     );
-    return await classifiersForDivision(division);
+    return classifiersForDivision(division);
   });
 
   fastify.get("/:division/:number", async (req, res) => {
@@ -44,12 +39,12 @@ const classifiersRoutes = async (fastify, opts) => {
       sort,
       order,
       page: pageString,
-      legacy,
+      //legacy,
       hhf: filterHHFString,
       club: filterClubString,
       filter: filterString,
     } = req.query;
-    const includeNoHF = Number(legacy) === 1;
+    //const includeNoHF = Number(legacy) === 1;
     const page = Number(pageString) || 1;
     const filterHHF = parseFloat(filterHHFString);
     const c = classifiers.find((cur) => cur.classifier === number);
@@ -60,14 +55,14 @@ const classifiersRoutes = async (fastify, opts) => {
     }
 
     const basic = basicInfoForClassifier(c);
-    const extended = await extendedInfoForClassifier(c, division);
+    const extended = extendedInfoForClassifier(c, division);
     const { hhf, hhfs } = extended;
 
-    const allRuns = await runsForDivisionClassifier({
+    const allRuns = runsForDivisionClassifier({
       number,
       division,
       hhf,
-      includeNoHF,
+      includeNoHF: false,
       hhfs,
     });
     let runsUnsorted = allRuns;
@@ -114,7 +109,7 @@ const classifiersRoutes = async (fastify, opts) => {
       info: {
         ...basic,
         ...extended,
-        recHHF: await recommendedHHFFor({ division, number }),
+        recHHF: recommendedHHFFor({ division, number }),
         recommendedHHF1: recommendedHHFByPercentileAndPercent(
           allRuns,
           0.9, // extendedCalibrationTable[division].pGM,
@@ -137,47 +132,43 @@ const classifiersRoutes = async (fastify, opts) => {
     };
   });
 
-  fastify.get(
-    "/download/:division/:number",
-    { compress: false },
-    async (req, res) => {
-      const { division, number } = req.params;
-      const c = classifiers.find((cur) => cur.classifier === number);
+  fastify.get("/download/:division/:number", async (req, res) => {
+    const { division, number } = req.params;
+    const c = classifiers.find((cur) => cur.classifier === number);
 
-      res.header(
-        "Content-Disposition",
-        `attachment; filename=classifiers.${division}.${number}.json`
-      );
+    res.header(
+      "Content-Disposition",
+      `attachment; filename=classifiers.${division}.${number}.json`
+    );
 
-      if (!c) {
-        res.statusCode = 404;
-        return { info: null, runs: [] };
-      }
-
-      const basic = basicInfoForClassifier(c);
-      const extended = await extendedInfoForClassifier(c, division);
-      const { hhf, hhfs } = extended;
-
-      return {
-        info: {
-          ...basic,
-          ...extended,
-        },
-        runs: await runsForDivisionClassifier({
-          number,
-          division,
-          hhf,
-          includeNoHF: false,
-          hhfs,
-        }),
-      };
+    if (!c) {
+      res.statusCode = 404;
+      return { info: null, runs: [] };
     }
-  );
+
+    const basic = basicInfoForClassifier(c);
+    const extended = extendedInfoForClassifier(c, division);
+    const { hhf, hhfs } = extended;
+
+    return {
+      info: {
+        ...basic,
+        ...extended,
+      },
+      runs: runsForDivisionClassifier({
+        number,
+        division,
+        hhf,
+        includeNoHF: false,
+        hhfs,
+      }),
+    };
+  });
 
   fastify.get("/:division/:number/chart", async (req, res) => {
     const { division, number } = req.params;
     const { full } = req.query;
-    return await chartData({ division, number, full });
+    return chartData({ division, number, full });
   });
 };
 
