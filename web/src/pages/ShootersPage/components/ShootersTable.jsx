@@ -156,13 +156,13 @@ const ShootersTable = ({ division, onShooterSelection }) => {
         field="current"
         header="Cur. %"
         sortable
-        body={(c) => c.current.toFixed(2) + "%"}
+        body={(c) => (c.current || 0).toFixed(2) + "%"}
       />
       <Column
         field="high"
         header="High %"
         sortable
-        body={(c) => c.high.toFixed(2) + "%"}
+        body={(c) => (c.high || 0).toFixed(2) + "%"}
       />
       <Column
         field="currentRank"

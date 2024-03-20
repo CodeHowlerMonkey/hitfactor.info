@@ -8,6 +8,7 @@ import {
 import { basicInfoForClassifierCode } from "../../../dataUtil/classifiersData.js";
 import { multisort } from "../../../../../shared/utils/sort.js";
 import { PAGE_SIZE } from "../../../../../shared/constants/pagination.js";
+import { classForPercent } from "../../../../../shared/utils/classification.js";
 
 const shootersRoutes = async (fastify, opts) => {
   fastify.get("/download/:division", async (req, res) => {
@@ -27,10 +28,19 @@ const shootersRoutes = async (fastify, opts) => {
     const shootersTable = getShootersTable()[division];
 
     let data = multisort(
-      shootersTable.filter((c) => c.class !== "U" && c.class !== "X"),
+      shootersTable.filter(
+        (c) =>
+          (c.class !== "U" && c.class !== "X") ||
+          c.reclassificationsCurPercentCurrent > 0
+      ),
       sort?.split?.(","),
       order?.split?.(",")
-    ).map(({ classifiers, ...run }, index) => ({ ...run, index }));
+    ).map(({ classifiers, ...run }, index) => ({
+      ...run,
+      index,
+      curHHFClass: run.reclassifications.curPercent.class,
+      recClass: run.reclassifications.recPercent.class,
+    }));
     if (filterString) {
       data = data.filter((shooter) =>
         [shooter.name, shooter.memberNumber]
