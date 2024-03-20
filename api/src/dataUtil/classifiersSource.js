@@ -14,7 +14,8 @@ export const getDivShortToRuns = lazy(() => {
         return;
       }
 
-      _divShortToRuns[divShort].concat(
+      const curDiv = _divShortToRuns[divShort];
+      _divShortToRuns[divShort] = curDiv.concat(
         divObj.division_classifiers
           .filter(({ source }) => source !== "Legacy") // saves RAM, no point looking at old
           .map(
@@ -43,7 +44,7 @@ export const getDivShortToRuns = lazy(() => {
       );
     });
   });
-  _divShortToRuns.loco = [..._divShortToRuns.co, ..._divShortToRuns.lo];
+  _divShortToRuns.loco = [].concat(_divShortToRuns.co, _divShortToRuns.lo);
   return _divShortToRuns;
 }, "../../cache/divShortToRuns.json");
 

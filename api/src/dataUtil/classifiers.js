@@ -28,10 +28,21 @@ export const getRecHHFMap = lazy(() => {
   return result;
 }, "../../cache/recHHFMap.json");
 
+// hwy
 export const getShooterToRuns = lazy(() => {
   const divShortToRuns = getDivShortToRuns();
-  const scrumbled = [];
-  mapDivisions((div) => scrumbled.concat(divShortToRuns[div]));
+  const scrumbled = [].concat(
+    divShortToRuns.opn,
+    divShortToRuns.ltd,
+    divShortToRuns.l10,
+    divShortToRuns.prod,
+    divShortToRuns.rev,
+    divShortToRuns.ss,
+    divShortToRuns.co,
+    divShortToRuns.lo,
+    divShortToRuns.pcc,
+    divShortToRuns.loco
+  );
 
   const final = scrumbled.map((c) => {
     const { division, classifier: number } = c;
@@ -62,9 +73,10 @@ const getShooterToXXXPercentClassificationsFactory = (field) =>
   lazy(
     () =>
       Object.fromEntries(
-        Object.entries(getShooterToRuns()).map(([memberId, c]) => {
-          return [memberId, calculateUSPSAClassification(c, field)];
-        })
+        Object.entries(getShooterToRuns()).map(([memberId, c]) => [
+          memberId,
+          calculateUSPSAClassification(c, field),
+        ])
       ),
     `../../cache/shooterClassifications.by${field}.json`
   );
