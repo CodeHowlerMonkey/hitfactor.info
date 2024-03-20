@@ -136,7 +136,7 @@ export const ShooterInfoTable = ({ info }) => {
               <Column field="v3" header="Cur %" />
               <Column field="v4" header="Cur.HHF %" />
               <Column field="v5" header="Rec.HHF %" />
-              <Column field="v5" header="Age" />
+              <Column field="v6" header="Age" />
             </DataTable>
           </div>
         )}
