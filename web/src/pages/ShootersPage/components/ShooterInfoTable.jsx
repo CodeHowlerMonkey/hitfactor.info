@@ -54,6 +54,9 @@ const cardRow = (
   age: toFixedWithSuffixValueOrPlaceholder(ages[div], 1, "mo"),
 });
 
+const dateValue = (value) =>
+  !value ? "" : new Date(value).toLocaleDateString();
+
 export const ShooterInfoTable = ({ info }) => {
   const loading = !info?.data?.member_id;
 
@@ -99,8 +102,22 @@ export const ShooterInfoTable = ({ info }) => {
                 loading
                   ? []
                   : [
-                      { k: "ID", v: info?.data?.member_id },
-                      { k: "Number", v: info?.memberNumber },
+                      {
+                        k: "ID",
+                        v: info?.data?.member_id,
+                      },
+                      {
+                        k: "Number",
+                        v: info?.memberNumber,
+                      },
+                      {
+                        k: "Joined",
+                        v: dateValue(info?.data?.joined_date),
+                      },
+                      {
+                        k: "Expires",
+                        v: dateValue(info?.data?.expiration_date),
+                      },
                     ]
               }
             >
