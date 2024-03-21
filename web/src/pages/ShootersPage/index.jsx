@@ -97,7 +97,7 @@ export const ShooterRunsAndInfo = ({
           />
         </a>
       </div>
-      <div className="flex" style={{ height: "29rem", overflowY: "none" }}>
+      <div className="flex h-32rem" style={{ overflowY: "none" }}>
         <div className="w-full h-full bg-primary-reverse">
           <ShooterInfoTable info={info} />
         </div>

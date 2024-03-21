@@ -14,17 +14,44 @@ const tableNameForDiv = {
   pcc: "PCC",
   lo: "LO",
 };
+
+const toFixedWithSuffixValueOrPlaceholder = (
+  value,
+  length,
+  suffix,
+  empty = "—"
+) => {
+  if (!value) {
+    return empty;
+  }
+
+  return value.toFixed(length) + suffix;
+};
+
+const percentValueOrEmpty = (value) =>
+  toFixedWithSuffixValueOrPlaceholder(value, 2, "%", "");
+
 const cardRow = (
   { classes, highs, currents, ages, reclassifications },
   div
 ) => ({
-  k: tableNameForDiv[div],
-  v1: classes[div],
-  v2: (highs[div] ?? 0).toFixed(2) + "%",
-  v3: (currents[div] ?? 0).toFixed(2) + "%",
-  v4: (reclassifications?.curPercent?.currents?.[div] ?? 0).toFixed(2) + "%",
-  v5: (reclassifications?.recPercent?.currents?.[div] ?? 0).toFixed(2) + "%",
-  v6: (ages[div] ?? -1).toFixed(1) + "mo",
+  division: tableNameForDiv[div],
+  hq: [classes[div], percentValueOrEmpty(currents[div])]
+    .filter(Boolean)
+    .join(" / "),
+  curHHF: [
+    reclassifications.curPercent.classes[div],
+    percentValueOrEmpty(reclassifications?.curPercent?.currents?.[div]),
+  ]
+    .filter(Boolean)
+    .join(" / "),
+  rec: [
+    reclassifications.recPercent.classes[div],
+    percentValueOrEmpty(reclassifications?.recPercent?.currents?.[div]),
+  ]
+    .filter(Boolean)
+    .join(" / "),
+  age: toFixedWithSuffixValueOrPlaceholder(ages[div], 1, "mo"),
 });
 
 export const ShooterInfoTable = ({ info }) => {
@@ -41,7 +68,12 @@ export const ShooterInfoTable = ({ info }) => {
       <Column
         field="test"
         header="Scores Distribution"
-        bodyStyle={{ position: "relative", padding: 0, width: "46%" }}
+        bodyStyle={{
+          position: "relative",
+          padding: 0,
+          minWidth: "36rem",
+          maxWidth: "58rem",
+        }}
         body={() => (
           <ShooterChart
             division={info.division}
@@ -50,12 +82,17 @@ export const ShooterInfoTable = ({ info }) => {
         )}
       />
       <Column
+        align="center"
+        maxWidth="24rem"
         field="test2"
-        header="Shooter Info"
-        bodyStyle={{ padding: 0 }}
+        header="Shooter Info / Card"
         body={() => (
-          <div className="h-full w-full" style={{ overflowY: "scroll" }}>
+          <div
+            className="h-full w-24rem"
+            style={{ marginLeft: "auto", overflowY: "scroll" }}
+          >
             <DataTable
+              tableStyle={{ maxWidth: "100%", margin: " 0 auto" }}
               size="small"
               showHeaders={false}
               value={
@@ -63,54 +100,13 @@ export const ShooterInfoTable = ({ info }) => {
                   ? []
                   : [
                       { k: "ID", v: info?.data?.member_id },
-                      //{ k: "Number", v: info?.memberNumber },
-                      { k: "First Name", v: info?.data?.first_name },
-                      { k: "Middle Name", v: info?.data?.middle_name },
-                      { k: "Last Name", v: info?.data?.last_name },
-                      //{ k: "Division", v: tableNameForDiv[info?.division] },
-                      { k: "Class", v: info?.class },
-                      {
-                        k: "Rec. Class",
-                        v: classForPercent(
-                          info?.reclassificationsRecPercentCurrent ?? 0
-                        ),
-                      },
-                      {
-                        k: "High Rank / Perc",
-                        v: `${info?.highRank} / ${info?.highPercentile}%`,
-                      },
-                      {
-                        k: "Cur Rank / Perc",
-                        v: `${info?.currentRank} / ${info?.currentPercentile}%`,
-                      },
-                      {
-                        k: "Cur.HHF Percent",
-                        v:
-                          (info?.reclassificationsCurPercentCurrent?.toFixed(
-                            2
-                          ) ?? 0) + "%",
-                      },
-                      {
-                        k: "Rec.HHF Percent",
-                        v:
-                          (info?.reclassificationsRecPercentCurrent?.toFixed(
-                            2
-                          ) ?? 0) + "%",
-                      },
+                      { k: "Number", v: info?.memberNumber },
                     ]
               }
             >
               <Column field="k" />
-              <Column field="v" />
+              <Column field="v" align="right" />
             </DataTable>
-          </div>
-        )}
-      />
-      <Column
-        field="test2"
-        header="Card"
-        body={() => (
-          <div className="h-full w-full" style={{ overflowY: "scroll" }}>
             <DataTable
               size="small"
               stripedRows
@@ -130,13 +126,11 @@ export const ShooterInfoTable = ({ info }) => {
                     ]
               }
             >
-              <Column field="k" header="Div" />
-              <Column field="v1" header="Class" />
-              <Column field="v2" header="High %" />
-              <Column field="v3" header="Cur %" />
-              <Column field="v4" header="Cur.HHF %" />
-              <Column field="v5" header="Rec.HHF %" />
-              <Column field="v6" header="Age" />
+              <Column field="division" header="Div" />
+              <Column field="rec" header="Rec." />
+              <Column field="curHHF" header="Cur.HHF" />
+              <Column field="hq" header="HQ" />
+              <Column field="age" header="Age" />
             </DataTable>
           </div>
         )}
