@@ -6,7 +6,7 @@ import { Checkbox } from "primereact/checkbox";
 import { TabView, TabPanel } from "primereact/tabview";
 import MultiProgress from "react-multi-progress";
 import { SelectButton } from "primereact/selectbutton";
-import Inconsistencies from "./Inconsistencies.js";
+import Inconsistencies from "./Inconsistencies";
 
 export const ClassificationsChart = ({
   division,
