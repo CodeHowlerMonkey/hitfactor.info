@@ -68,12 +68,17 @@ const classificationsBreakdownAdapter = (c, division) => {
       (reclassificationsRecPercent?.current ?? 0).toFixed(4)
     );
 
+    const hqClass = classifications?.[division];
+    const hqCurrent = current?.[division];
+    const hqToCurHHFPercent = hqCurrent - reclassificationsCurPercentCurrent;
+    const hqToRecPercent = hqCurrent - reclassificationsRecPercentCurrent;
+
     return {
       ...etc,
       class: classifications?.[division],
       classes: classifications,
       high: high?.[division],
-      current: current?.[division],
+      current: hqCurrent,
       highs: high,
       currents: current,
       // needs to be not-deep for sort
@@ -85,6 +90,11 @@ const classificationsBreakdownAdapter = (c, division) => {
         curPercent: reclassificationsCurPercent,
         recPercent: reclassificationsRecPercent,
       },
+      hqClass,
+      curHHFClass: reclassificationsCurPercent.class,
+      recClass: reclassificationsRecPercent.class,
+      hqToCurHHFPercent,
+      hqToRecPercent,
       division,
     };
   } catch (err) {

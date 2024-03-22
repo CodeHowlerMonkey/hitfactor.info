@@ -1,7 +1,6 @@
 import qs from "query-string";
 import { useEffect, useState } from "react";
 import { DataTable } from "primereact/datatable";
-import { Tag } from "primereact/tag";
 import { InputText } from "primereact/inputtext";
 import { Column } from "primereact/column";
 import { useApi } from "../../../utils/client";
@@ -9,6 +8,7 @@ import {
   useTableSort,
   useTablePagination,
   headerTooltipOptions,
+  renderPercent,
 } from "../../../components/Table";
 import { useDebounce } from "use-debounce";
 import ShooterCell from "../../../components/ShooterCell";
@@ -149,7 +149,7 @@ const ShootersTable = ({ division, onShooterSelection }) => {
       <Column
         field="reclassificationsCurPercentCurrent"
         header="Cur.HHFs %"
-        headerTooltip="Current classification percent of this shooter, if all their Y-flagged scores used the most recent HHFs for classifiers. Major Matches results stay the same."
+        headerTooltip="Current HHF classification percent of this shooter, if all their classifier scores would use the most recent HHFs. Major Matches results stay the same."
         headerTooltipOptions={headerTooltipOptions}
         sortable
         body={(c) => c.reclassificationsCurPercentCurrent.toFixed(2) + "%"}
@@ -161,12 +161,21 @@ const ShootersTable = ({ division, onShooterSelection }) => {
         body={(c) => (c.current || 0).toFixed(2) + "%"}
       />
       <Column
-        field="reclassificationChange"
-        header="Cur-to-Rec Change %"
+        field="hqToCurHHFPercent"
+        header="HQ vs Cur.HHF %"
+        headerTooltip="Difference between official classification and current HHF classification percent."
+        headerTooltipOptions={headerTooltipOptions}
         sortable
-        body={(c) => c.reclassificationChange.toFixed(2) + "%"}
+        body={renderPercent}
       />
-      {/* TODO: kill ^, replace with HQ-vs-CurHHF, HQ-vs-Rec*/}
+      <Column
+        field="hqToRecPercent"
+        header="HQ vs Rec.HHF %"
+        headerTooltip="Difference between official and recommended classifications"
+        headerTooltipOptions={headerTooltipOptions}
+        sortable
+        body={renderPercent}
+      />
       {/*
       <Column
         field="high"
