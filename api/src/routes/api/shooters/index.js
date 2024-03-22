@@ -6,7 +6,10 @@ import {
 } from "../../../dataUtil/shooters.js";
 
 import { basicInfoForClassifierCode } from "../../../dataUtil/classifiersData.js";
-import { multisort } from "../../../../../shared/utils/sort.js";
+import {
+  classLetterSort,
+  multisort,
+} from "../../../../../shared/utils/sort.js";
 import { PAGE_SIZE } from "../../../../../shared/constants/pagination.js";
 import { classForPercent } from "../../../../../shared/utils/classification.js";
 
@@ -22,7 +25,15 @@ const shootersRoutes = async (fastify, opts) => {
   });
   fastify.get("/:division", async (req, res) => {
     const { division } = req.params;
-    const { sort, order, page: pageString, filter: filterString } = req.query;
+    const {
+      sort,
+      order,
+      page: pageString,
+      filter: filterString,
+      inconsistencies: inconString,
+    } = req.query;
+    const [inconsistencies, inconsistenciesMode] = inconString.split("-");
+
     const page = Number(pageString) || 1;
 
     const shootersTable = getShootersTable()[division];
@@ -41,6 +52,26 @@ const shootersRoutes = async (fastify, opts) => {
       curHHFClass: run.reclassifications.curPercent.class,
       recClass: run.reclassifications.recPercent.class,
     }));
+
+    // Special filter and sort for inconsistencies table
+    if (inconsistencies) {
+      data = data.filter((shooter) => {
+        const order = classLetterSort(
+          shooter.hqClass,
+          shooter[inconsistencies],
+          undefined,
+          1
+        );
+        if (inconsistenciesMode === "paper") {
+          return order > 0;
+        } else {
+          return order < 0;
+        }
+      });
+      // uncomment to use autosort
+      // data = multisort(data, ["hqClass", inconsistencies], [-1, -1]);
+    }
+
     if (filterString) {
       data = data.filter((shooter) =>
         [shooter.name, shooter.memberNumber]

@@ -31,7 +31,7 @@ const TableFilter = ({ placeholder, onFilterChange }) => {
   );
 };
 
-export const useShootersTableData = ({ division }) => {
+export const useShootersTableData = ({ division, inconsistencies }) => {
   const {
     query: pageQuery,
     reset: resetPage,
@@ -45,6 +45,7 @@ export const useShootersTableData = ({ division }) => {
   const [filter, setFilter] = useState("");
   const filtersQuery = qs.stringify({
     filter,
+    inconsistencies,
   });
 
   const apiEndpoint = !division
@@ -67,7 +68,7 @@ export const useShootersTableData = ({ division }) => {
   };
 };
 
-const ShootersTable = ({ division, onShooterSelection }) => {
+const ShootersTable = ({ division, onShooterSelection, inconsistencies }) => {
   const {
     data,
     shootersTotal,
@@ -77,7 +78,7 @@ const ShootersTable = ({ division, onShooterSelection }) => {
     filter,
     setFilter,
     downloadUrl,
-  } = useShootersTableData({ division });
+  } = useShootersTableData({ division, inconsistencies });
   return (
     <DataTable
       loading={!data?.length}
