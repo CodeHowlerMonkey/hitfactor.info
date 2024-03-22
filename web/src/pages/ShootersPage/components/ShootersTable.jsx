@@ -40,7 +40,7 @@ export const useShootersTableData = ({ division }) => {
   const { query, ...sortProps } = useTableSort({
     mode: "multiple",
     onSortCallback: () => resetPage(),
-    initial: [{ field: "current", order: -1 }],
+    initial: [{ field: "reclassificationsRecPercentCurrent", order: -1 }],
   });
   const [filter, setFilter] = useState("");
   const filtersQuery = qs.stringify({
@@ -113,9 +113,19 @@ const ShootersTable = ({ division, onShooterSelection }) => {
       <Column
         field="index"
         header="#"
-        sortable
-        headerTooltip="Index for the dataRow with current filters and sorting options applied. Can be used for manual counting of things. "
+        align="center"
+        style={{ maxWidth: "2rem" }}
+        headerTooltip="Shooter's rank / index in the current sort mode."
         headerTooltipOptions={headerTooltipOptions}
+      />
+      <Column
+        field="percentile"
+        header="Perc."
+        style={{ maxWidth: "4rem" }}
+        align="center"
+        headerTooltip="Top percentile for this shooter in current sort mode."
+        headerTooltipOptions={headerTooltipOptions}
+        body={(c) => ((100 * c.index) / (shootersTotal - 1)).toFixed(2) + "%"}
       />
       <Column
         field="memberNumber"
@@ -123,20 +133,10 @@ const ShootersTable = ({ division, onShooterSelection }) => {
         sortable
         body={(shooter) => (
           <ShooterCell
-            memberNumber={shooter.memberNumber}
-            name={shooter.name}
-            class={shooter.class}
+            data={shooter}
             onClick={() => onShooterSelection?.(shooter.memberNumber)}
           />
         )}
-      />
-      <Column
-        field="reclassificationsCurPercentCurrent"
-        header="Cur.HHFs %"
-        headerTooltip="Current classification percent of this shooter, if all their Y-flagged scores used the most recent HHFs for classifiers. Major Matches results stay the same."
-        headerTooltipOptions={headerTooltipOptions}
-        sortable
-        body={(c) => c.reclassificationsCurPercentCurrent.toFixed(2) + "%"}
       />
       <Column
         field="reclassificationsRecPercentCurrent"
@@ -147,17 +147,27 @@ const ShootersTable = ({ division, onShooterSelection }) => {
         body={(c) => c.reclassificationsRecPercentCurrent.toFixed(2) + "%"}
       />
       <Column
+        field="reclassificationsCurPercentCurrent"
+        header="Cur.HHFs %"
+        headerTooltip="Current classification percent of this shooter, if all their Y-flagged scores used the most recent HHFs for classifiers. Major Matches results stay the same."
+        headerTooltipOptions={headerTooltipOptions}
+        sortable
+        body={(c) => c.reclassificationsCurPercentCurrent.toFixed(2) + "%"}
+      />
+      <Column
+        field="current"
+        header="HQ %"
+        sortable
+        body={(c) => (c.current || 0).toFixed(2) + "%"}
+      />
+      <Column
         field="reclassificationChange"
         header="Cur-to-Rec Change %"
         sortable
         body={(c) => c.reclassificationChange.toFixed(2) + "%"}
       />
-      <Column
-        field="current"
-        header="Cur. %"
-        sortable
-        body={(c) => (c.current || 0).toFixed(2) + "%"}
-      />
+      {/* TODO: kill ^, replace with HQ-vs-CurHHF, HQ-vs-Rec*/}
+      {/*
       <Column
         field="high"
         header="High %"
@@ -177,19 +187,16 @@ const ShootersTable = ({ division, onShooterSelection }) => {
         sortable
         headerTooltip="TopXXX Rank of that Shooter baed on their(and others) High Division Percentage"
         headerTooltipOptions={headerTooltipOptions}
-      />
-      <Column
-        field="currentPercentile"
-        header="Cur. Percentile"
-        sortable
-        body={(c) => "Top " + c.currentPercentile.toFixed(2) + "%"}
-      />
+        />*/}
+      {/* TODO: maybe merge # and percentile columns, move things aroung, Rec, Cur, HQ */}
+      {/*
       <Column
         field="highPercentile"
         header="High Percentile"
         sortable
         body={(c) => "Top " + c.highPercentile.toFixed(2) + "%"}
       />
+      */}
       <Column
         field="age"
         header="Age"

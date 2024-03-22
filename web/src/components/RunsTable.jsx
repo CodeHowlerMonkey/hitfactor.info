@@ -185,9 +185,7 @@ const RunsTable = ({
         sortable
         body={(run) => (
           <ShooterCell
-            memberNumber={run.memberNumber}
-            name={run.name}
-            class={run.class}
+            data={run}
             onClick={() => onShooterSelection?.(run.memberNumber)}
           />
         )}

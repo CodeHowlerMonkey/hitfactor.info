@@ -1,31 +1,52 @@
 import { Tag } from "primereact/tag";
 import { bgColorForClass, fgColorForClass } from "../utils/color";
 
-export const ShooterCell = ({
-  memberNumber,
-  name,
-  class: isthislikeawordorsomething, // breh
-  onClick,
-}) => (
-  <div style={{ cursor: "pointer" }} onClick={onClick}>
-    <div style={{ position: "relative" }}>
-      {memberNumber}
+const ClassTag = ({ value, alpha, tooltip }) =>
+  !value ? null : (
+    <span title={!value ? "Unknown Class" : tooltip || ""}>
       <Tag
+        data-pr-tooltip="No notifications"
+        className=".shooter-class-tag"
         rounded
         severity="info"
-        value={isthislikeawordorsomething}
+        value={value}
         style={{
-          backgroundColor: bgColorForClass[isthislikeawordorsomething],
-          color: fgColorForClass[isthislikeawordorsomething],
+          backgroundColor: bgColorForClass[value],
+          color: fgColorForClass[value],
           padding: "1px 4px",
           fontSize: "11px",
-          margin: "auto",
-          position: "absolute",
-          transform: "translateX(4px)",
+          margin: "0 1px",
+          minWidth: "18px",
+          opacity: alpha,
         }}
       />
+    </span>
+  );
+
+export const ShooterCell = ({ data, onClick }) => (
+  <div style={{ cursor: "pointer" }} onClick={onClick}>
+    <div style={{ position: "relative" }}>
+      <span style={{ marginRight: "4px" }}>{data.memberNumber}</span>
+      <ClassTag
+        value={data?.reclassifications?.recPercent?.class ?? "?"}
+        tooltip={`Rec. classification: ${data?.reclassifications?.recPercent?.current?.toFixed(
+          2
+        )}%`}
+      />
+      <ClassTag
+        value={data?.reclassifications?.curPercent?.class}
+        alpha={0.65}
+        tooltip={`Cur. HHF classification: ${data?.reclassifications?.curPercent?.current?.toFixed(
+          2
+        )}%`}
+      />
+      <ClassTag
+        value={data?.class}
+        alpha={0.45}
+        tooltip={`HQ Classification: ${data?.current?.toFixed(2) ?? 0}%`}
+      />
     </div>
-    <div style={{ fontSize: 14 }}>{name}</div>
+    <div style={{ fontSize: 14 }}>{data.name}</div>
   </div>
 );
 
