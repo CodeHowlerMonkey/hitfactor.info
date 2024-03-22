@@ -31,8 +31,8 @@ const shootersRoutes = async (fastify, opts) => {
       page: pageString,
       filter: filterString,
       inconsistencies: inconString,
+      classFilter,
     } = req.query;
-    const [inconsistencies, inconsistenciesMode] = inconString.split("-");
 
     const page = Number(pageString) || 1;
 
@@ -49,12 +49,19 @@ const shootersRoutes = async (fastify, opts) => {
     ).map(({ classifiers, ...run }, index) => ({
       ...run,
       index,
-      curHHFClass: run.reclassifications.curPercent.class,
-      recClass: run.reclassifications.recPercent.class,
     }));
+    const shootersTotalWithoutFilters = data.length;
+
+    if (classFilter) {
+      data = data.filter((shooter) => shooter.hqClass === classFilter);
+    }
 
     // Special filter and sort for inconsistencies table
-    if (inconsistencies) {
+    if (inconString) {
+      const [inconsistencies, inconsistenciesMode] = inconString?.split("-");
+      data = data.filter(
+        (shooter) => !!shooter.reclassificationsCurPercentCurrent
+      );
       data = data.filter((shooter) => {
         const order = classLetterSort(
           shooter.hqClass,
@@ -84,6 +91,7 @@ const shootersRoutes = async (fastify, opts) => {
     return {
       shooters: data.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
       shootersTotal: data.length,
+      shootersTotalWithoutFilters,
       shootersPage: page,
     };
   });

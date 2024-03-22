@@ -9,6 +9,7 @@ import {
   useTablePagination,
   headerTooltipOptions,
   renderPercent,
+  renderPercentDiff,
 } from "../../../components/Table";
 import { useDebounce } from "use-debounce";
 import ShooterCell from "../../../components/ShooterCell";
@@ -31,7 +32,11 @@ const TableFilter = ({ placeholder, onFilterChange }) => {
   );
 };
 
-export const useShootersTableData = ({ division, inconsistencies }) => {
+export const useShootersTableData = ({
+  division,
+  inconsistencies,
+  classFilter,
+}) => {
   const {
     query: pageQuery,
     reset: resetPage,
@@ -46,6 +51,7 @@ export const useShootersTableData = ({ division, inconsistencies }) => {
   const filtersQuery = qs.stringify({
     filter,
     inconsistencies,
+    classFilter,
   });
 
   const apiEndpoint = !division
@@ -53,12 +59,14 @@ export const useShootersTableData = ({ division, inconsistencies }) => {
     : `/shooters/${division}?${query}&${pageQuery}&${filtersQuery}`;
   const apiData = useApi(apiEndpoint);
   const shootersTotal = apiData?.shootersTotal ?? 0;
+  const shootersTotalWithoutFilters = apiData?.shootersTotalWithoutFilters ?? 0;
 
   const data = apiData?.shooters ?? [];
 
   return {
     data,
     shootersTotal,
+    shootersTotalWithoutFilters,
     query,
     sortProps,
     pageProps,
@@ -68,7 +76,12 @@ export const useShootersTableData = ({ division, inconsistencies }) => {
   };
 };
 
-const ShootersTable = ({ division, onShooterSelection, inconsistencies }) => {
+const ShootersTable = ({
+  division,
+  onShooterSelection,
+  inconsistencies,
+  classFilter,
+}) => {
   const {
     data,
     shootersTotal,
@@ -78,7 +91,8 @@ const ShootersTable = ({ division, onShooterSelection, inconsistencies }) => {
     filter,
     setFilter,
     downloadUrl,
-  } = useShootersTableData({ division, inconsistencies });
+    shootersTotalWithoutFilters,
+  } = useShootersTableData({ division, inconsistencies, classFilter });
   return (
     <DataTable
       loading={!data?.length}
@@ -115,7 +129,7 @@ const ShootersTable = ({ division, onShooterSelection, inconsistencies }) => {
         field="index"
         header="#"
         align="center"
-        style={{ maxWidth: "2rem" }}
+        style={{ maxWidth: "4rem" }}
         headerTooltip="Shooter's rank / index in the current sort mode."
         headerTooltipOptions={headerTooltipOptions}
       />
@@ -126,7 +140,9 @@ const ShootersTable = ({ division, onShooterSelection, inconsistencies }) => {
         align="center"
         headerTooltip="Top percentile for this shooter in current sort mode."
         headerTooltipOptions={headerTooltipOptions}
-        body={(c) => ((100 * c.index) / (shootersTotal - 1)).toFixed(2) + "%"}
+        body={(c) =>
+          ((100 * c.index) / (shootersTotalWithoutFilters - 1)).toFixed(2) + "%"
+        }
       />
       <Column
         field="memberNumber"
@@ -145,7 +161,7 @@ const ShootersTable = ({ division, onShooterSelection, inconsistencies }) => {
         headerTooltip="Recommended classification percent of this shooter, if all their Y-flagged scores used the recommended HHFs for classifiers. Major Matches results stay the same."
         headerTooltipOptions={headerTooltipOptions}
         sortable
-        body={(c) => c.reclassificationsRecPercentCurrent.toFixed(2) + "%"}
+        body={renderPercent}
       />
       <Column
         field="reclassificationsCurPercentCurrent"
@@ -153,21 +169,16 @@ const ShootersTable = ({ division, onShooterSelection, inconsistencies }) => {
         headerTooltip="Current HHF classification percent of this shooter, if all their classifier scores would use the most recent HHFs. Major Matches results stay the same."
         headerTooltipOptions={headerTooltipOptions}
         sortable
-        body={(c) => c.reclassificationsCurPercentCurrent.toFixed(2) + "%"}
+        body={renderPercent}
       />
-      <Column
-        field="current"
-        header="HQ %"
-        sortable
-        body={(c) => (c.current || 0).toFixed(2) + "%"}
-      />
+      <Column field="current" header="HQ %" sortable body={renderPercent} />
       <Column
         field="hqToCurHHFPercent"
         header="HQ vs Cur.HHF %"
         headerTooltip="Difference between official classification and current HHF classification percent."
         headerTooltipOptions={headerTooltipOptions}
         sortable
-        body={renderPercent}
+        body={renderPercentDiff}
       />
       <Column
         field="hqToRecPercent"
@@ -175,7 +186,7 @@ const ShootersTable = ({ division, onShooterSelection, inconsistencies }) => {
         headerTooltip="Difference between official and recommended classifications"
         headerTooltipOptions={headerTooltipOptions}
         sortable
-        body={renderPercent}
+        body={renderPercentDiff}
       />
       {/*
       <Column

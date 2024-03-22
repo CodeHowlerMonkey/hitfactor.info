@@ -31,7 +31,6 @@ const ShootersPage = () => {
         <ShootersTable
           division={division}
           onShooterSelection={(memberNumber) => navigate("./" + memberNumber)}
-          inconsistencies="recClass-sand"
         />
       )}
       {memberNumber && (
