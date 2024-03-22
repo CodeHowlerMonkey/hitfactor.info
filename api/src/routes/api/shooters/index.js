@@ -38,8 +38,6 @@ const shootersRoutes = async (fastify, opts) => {
     ).map(({ classifiers, ...run }, index) => ({
       ...run,
       index,
-      curHHFClass: run.reclassifications.curPercent.class,
-      recClass: run.reclassifications.recPercent.class,
     }));
     if (filterString) {
       data = data.filter((shooter) =>
