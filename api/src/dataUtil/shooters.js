@@ -290,9 +290,9 @@ export const shooterDistributionChartData = ({ division }) =>
   getShootersTable()
     [division].filter((c) => {
       if (
-        !c.current &&
-        !c.reclassificationsCurPercentCurrent &&
-        !c.reclassificationsRecPercentCurrent
+        !c.current ||
+        !c.reclassificationsCurPercentCurrent
+        // || !c.reclassificationsRecPercentCurrent
       ) {
         return false;
       }

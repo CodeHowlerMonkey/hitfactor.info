@@ -17,10 +17,10 @@ import { SelectButton } from "primereact/selectbutton";
 
 const lines = {
   ...yLine("0.9th", 0.9, annotationColor(0.7)),
-  ...yLine("5.1th", 5.1, annotationColor(0.5)),
+  ...yLine("4.75th", 4.75, annotationColor(0.5)),
   ...yLine("14.5th", 14.5, annotationColor(0.4)),
-  ...yLine("45th", 45, annotationColor(0.3)),
-  ...yLine("85th", 85, annotationColor(0.2)),
+  ...yLine("40th", 40, annotationColor(0.3)),
+  ...yLine("80th", 80, annotationColor(0.2)),
   ...xLine("95%", 95, r5annotationColor(0.5), 2.5),
   ...xLine("85%", 85, r5annotationColor(0.5), 2.5),
   ...xLine("75%", 75, r5annotationColor(0.5), 2.5),
@@ -47,7 +47,7 @@ export const ShootersDistributionChart = ({ division }) => {
 
   const graph = (
     <Scatter
-      style={{ position: "relative" }}
+      style={{ position: "relative", width: "100%", height: "100%" }}
       options={{
         maintainAspectRatio: true,
         scales: { y: { reverse: true } },
@@ -73,9 +73,11 @@ export const ShootersDistributionChart = ({ division }) => {
           tooltip: {
             callbacks: {
               label: ({
-                raw: { recPercent, curHHFPercent, curPercent, memberNumber },
+                raw: { recPercent, curHHFPercent, curPercent, memberNumber, y },
               }) =>
-                `${memberNumber}; Rec: ${recPercent}, curHHF: ${curHHFPercent}, HQ: ${curPercent}`,
+                `${memberNumber}; Perc: ${y.toFixed(
+                  2
+                )}%%, Rec: ${recPercent}, curHHF: ${curHHFPercent}, HQ: ${curPercent}`,
             },
           },
           annotation: { annotations: lines },
