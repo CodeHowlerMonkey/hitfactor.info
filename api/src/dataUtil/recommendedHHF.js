@@ -44,7 +44,7 @@ const r1 = (runs) =>
 const r5 = (runs) =>
   recommendedHHFByPercentileAndPercent(
     runs,
-    5.1, // extendedCalibrationTable[division].pM,
+    4.75, // extendedCalibrationTable[division].pM,
     85
   );
 
