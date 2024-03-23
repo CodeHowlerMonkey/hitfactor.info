@@ -75,9 +75,9 @@ export const ShootersDistributionChart = ({ division }) => {
               label: ({
                 raw: { recPercent, curHHFPercent, curPercent, memberNumber, y },
               }) =>
-                `${memberNumber}; Perc: ${y.toFixed(
+                `${memberNumber}; ${y.toFixed(
                   2
-                )}%%, Rec: ${recPercent}, curHHF: ${curHHFPercent}, HQ: ${curPercent}`,
+                )}th, Rec: ${recPercent}%, curHHF: ${curHHFPercent}%, HQ: ${curPercent}%`,
             },
           },
           annotation: { annotations: lines },
