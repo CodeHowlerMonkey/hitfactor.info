@@ -2,68 +2,22 @@ import { ProgressSpinner } from "primereact/progressspinner";
 import { Button } from "primereact/button";
 import { Dialog } from "primereact/dialog";
 
-import { Scatter } from "./common";
+import {
+  point,
+  Scatter,
+  yLine,
+  xLine,
+  annotationColor,
+  r5annotationColor,
+  r15annotationColor,
+  r1annotationColor,
+} from "./common";
 import { useApi } from "../../utils/client";
 import { useState } from "react";
 import { classForPercent } from "../../../../shared/utils/classification";
 import { bgColorForClass } from "../../utils/color";
 import { SelectButton } from "primereact/selectbutton";
 
-const yLine = (name, y, color) => ({
-  [name]: {
-    type: "line",
-    yMin: y,
-    yMax: y,
-    borderColor: color,
-    borderWidth: 1,
-  },
-  [name + "Label"]: {
-    type: "label",
-    xValue: 0,
-    yValue: y - 1.1,
-    color,
-    position: "start",
-    content: [y + "th"],
-    font: {
-      size: 11,
-    },
-  },
-});
-const xLine = (name, x, color, extraLabelOffset = 0) => ({
-  [name]: {
-    type: "line",
-    xMin: x,
-    xMax: x,
-    borderColor: color,
-    borderWidth: 1,
-  },
-  [name + "Label"]: {
-    type: "label",
-    xValue: x,
-    yValue: 95 - 2 * extraLabelOffset,
-    color,
-    position: "start",
-    content: [name],
-    font: {
-      size: 12,
-    },
-  },
-});
-const point = (name, x, y, color) => ({
-  [name]: {
-    type: "point",
-    xValue: x,
-    yValue: y,
-    radius: 3,
-    borderWidth: 0,
-    backgroundColor: color,
-  },
-});
-
-const annotationColor = (alpha) => `rgba(255, 99, 132, ${alpha * 0.5})`;
-const r1annotationColor = (alpha) => `rgba(132, 99, 255, ${alpha * 0.75})`;
-const r5annotationColor = (alpha) => `rgba(99, 255, 132, ${alpha})`;
-const r15annotationColor = (alpha) => `rgba(255, 255, 132, ${alpha})`;
 const colorForPrefix = (prefix, alpha) =>
   ({
     "": annotationColor,
