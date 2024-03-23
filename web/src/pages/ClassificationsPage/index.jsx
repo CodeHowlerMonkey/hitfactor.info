@@ -7,6 +7,7 @@ import { TabView, TabPanel } from "primereact/tabview";
 import MultiProgress from "react-multi-progress";
 import { SelectButton } from "primereact/selectbutton";
 import Inconsistencies from "./Inconsistencies";
+import Distribution from "./Distribution";
 
 export const ClassificationsChart = ({
   division,
@@ -416,6 +417,9 @@ export const ClassificationStats = () => {
       </TabPanel>
       <TabPanel header="Inconsistencies">
         <Inconsistencies />
+      </TabPanel>
+      <TabPanel header="Distribution">
+        <Distribution />
       </TabPanel>
     </TabView>
   );

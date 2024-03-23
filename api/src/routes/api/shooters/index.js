@@ -3,6 +3,7 @@ import {
   getShootersTableByMemberNumber,
   shooterChartData,
   classifiersForDivisionForShooter,
+  shooterDistributionChartData,
 } from "../../../dataUtil/shooters.js";
 
 import { basicInfoForClassifierCode } from "../../../dataUtil/classifiersData.js";
@@ -146,6 +147,11 @@ const shootersRoutes = async (fastify, opts) => {
   fastify.get("/:division/:memberNumber/chart", async (req, res) => {
     const { division, memberNumber } = req.params;
     return shooterChartData({ division, memberNumber });
+  });
+
+  fastify.get("/:division/chart", async (req, res) => {
+    const { division } = req.params;
+    return shooterDistributionChartData({ division });
   });
 };
 

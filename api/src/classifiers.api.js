@@ -12,7 +12,10 @@ import {
   getDivShortToRuns,
   selectClassifierDivisionScores,
 } from "./dataUtil/classifiersSource.js";
-import { getShooterToCurPercentClassifications } from "./dataUtil/classifiers.js";
+import {
+  getShooterToCurPercentClassifications,
+  getShooterToRecPercentClassifications,
+} from "./dataUtil/classifiers.js";
 import { HF, N, Percent, PositiveOrMinus1 } from "./dataUtil/numbers.js";
 import {
   getShooterFullInfo,
@@ -34,6 +37,7 @@ export const chartData = ({ number, division, full: fullString }) => {
 
   const curPercentClsasifications = getShootersTableByMemberNumber();
   const curHHFPercentClassifications = getShooterToCurPercentClassifications();
+  const recPercentClassifications = getShooterToRecPercentClassifications();
   const hhf = curHHFForDivisionClassifier({ number, division });
   const allPoints = runs.map((run, index, allRuns) => ({
     x: HF(run.hf),
@@ -54,6 +58,8 @@ export const chartData = ({ number, division, full: fullString }) => {
     // alternative color curPercent official from USPSA
     curPercent:
       curPercentClsasifications[division]?.[run.memberNumber]?.[0].current || 0,
+    recPercent:
+      recPercentClassifications[run.memberNumber]?.[division]?.percent || 0,
   }));
 
   // for zoomed in mode return all points
