@@ -285,3 +285,38 @@ export const shooterChartData = ({ memberNumber, division }) =>
       classifier: run.classifier,
     }))
     .filter((run) => !!run.classifier); // no majors for now in the graph
+
+export const shooterDistributionChartData = ({ division }) =>
+  getShootersTable()
+    [division].filter((c) => {
+      if (
+        !c.current &&
+        !c.reclassificationsCurPercentCurrent &&
+        !c.reclassificationsRecPercentCurrent
+      ) {
+        return false;
+      }
+      return true;
+    })
+    .map((c, i, all) => ({
+      //y: (100 * i) / (all.length - 1),
+      curPercent: c.current,
+      curHHFPercent: c.reclassificationsCurPercentCurrent,
+      recPercent: c.reclassificationsRecPercentCurrent,
+      memberNumber: c.memberNumber,
+    }))
+    .sort(safeNumSort("curPercent"))
+    .map((c, i, all) => ({
+      ...c,
+      curPercentPercentile: (100 * i) / (all.length - 1),
+    }))
+    .sort(safeNumSort("curHHFPercent"))
+    .map((c, i, all) => ({
+      ...c,
+      curHHFPercentPercentile: (100 * i) / (all.length - 1),
+    }))
+    .sort(safeNumSort("recPercent"))
+    .map((c, i, all) => ({
+      ...c,
+      recPercentPercentile: (100 * i) / (all.length - 1),
+    }));
