@@ -39,7 +39,7 @@ export const recommendedHHFByPercentileAndPercent = (
 const r1 = (runs) =>
   recommendedHHFByPercentileAndPercent(
     runs,
-    0.9, // extendedCalibrationTable[division].pGM,
+    1.0, // extendedCalibrationTable[division].pGM,
     95
   );
 
