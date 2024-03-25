@@ -28,8 +28,7 @@ export const recommendedHHFByPercentileAndPercent = (
   }
 
   // if found percentile is higher (more people can achieve this result) than we need
-  // then we need to slightly increase the recommendation. If it's lower (less people)
-  // slightly decrease it.
+  // to slightly increase the recommendation. If it's lower (less people) -- decrease it.
   const missCorrection =
     1 + (closestPercentileRun.percentile - targetPercentile) / 100;
   const percentScale = 1 / (percent / 100.0);
@@ -180,7 +179,8 @@ const decidedHHFFunctions = {
   prod: {},
   rev: {},
   ss: {},
-  co: {
+  co: {},
+  notco: {
     "99-02": r5,
     "99-07": r1,
     "99-08": r1,
