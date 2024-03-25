@@ -27,11 +27,11 @@ export const recommendedHHFByPercentileAndPercent = (
     return 0;
   }
 
-  return HF(
-    (closestPercentileRun.hf * closestPercentileRun.percentile) /
-      targetPercentile /
-      (percent / 100.0)
-  );
+  const missCorrection =
+    1 + (closestPercentileRun.percentile - targetPercentile) / 100;
+  const percentScale = 1 / (percent / 100.0);
+
+  return HF(closestPercentileRun.hf * missCorrection * percentScale);
 };
 
 const r1 = (runs) =>
