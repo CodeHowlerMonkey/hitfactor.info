@@ -27,6 +27,9 @@ export const recommendedHHFByPercentileAndPercent = (
     return 0;
   }
 
+  // if found percentile is higher (more people can achieve this result) than we need
+  // then we need to slightly increase the recommendation. If it's lower (less people)
+  // slightly decrease it.
   const missCorrection =
     1 + (closestPercentileRun.percentile - targetPercentile) / 100;
   const percentScale = 1 / (percent / 100.0);
@@ -298,6 +301,8 @@ const recommendedHHFFunctionFor = ({ division, number }) => {
   if (decided) {
     return decided;
   }
+
+  return r1;
 
   // disable recHHF if not manually reviewed
   return () => 0;
