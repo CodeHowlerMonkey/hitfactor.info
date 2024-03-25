@@ -1,16 +1,12 @@
-import { badLazy, processImport } from "../../../utils.js";
+import { lazy, processImport } from "../../../utils.js";
 
 const clubsRoutes = async (fastify) => {
-  fastify.get("/", async () => {
-    return await getMemoizedClubs();
+  fastify.get("/", () => {
+    return getMemoizedClubs();
   })
 }
 
-const getMemoizedClubs = badLazy(async () => {
-  return getClubs()
-})
-
-export const getClubs = async () => {
+const getClubs = () => {
   const result = [];
   const clubDict = {};
 
@@ -29,8 +25,9 @@ export const getClubs = async () => {
   Object.keys(clubDict).forEach(function(key) {
     result.push({ id: key, name: clubDict[key] })
   })
-  console.log(result)
   return result;
 }
+
+const getMemoizedClubs = lazy(getClubs)
 
 export default clubsRoutes;
