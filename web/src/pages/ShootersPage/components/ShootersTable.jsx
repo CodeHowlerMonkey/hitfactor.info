@@ -14,6 +14,13 @@ import {
 import { useDebounce } from "use-debounce";
 import ShooterCell from "../../../components/ShooterCell";
 
+const classColumnProps = {
+  sortable: true,
+  align: "center",
+  style: { maxWidth: "48px" },
+  headerStyle: { fontSize: "11px" },
+};
+
 // TODO: extract into common components, right now this is copypasted from RunsTable
 const TableFilter = ({ placeholder, onFilterChange }) => {
   const [filter, setFilter] = useState("");
@@ -155,6 +162,9 @@ const ShootersTable = ({
           />
         )}
       />
+      <Column field="recClass" header="Rec." {...classColumnProps} />
+      <Column field="curHHFClass" header="Cur.HHF" {...classColumnProps} />
+      <Column field="hqClass" header="HQ" {...classColumnProps} />
       <Column
         field="reclassificationsRecPercentCurrent"
         header="Rec.HHFs %"
