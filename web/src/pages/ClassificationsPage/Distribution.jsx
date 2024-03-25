@@ -14,7 +14,12 @@ const Distribution = () => {
   return (
     <>
       <DivisionNavigation onSelect={setDivision} />
-      {division && <ShootersDistributionChart division={division} />}
+      {division && (
+        <ShootersDistributionChart
+          division={division}
+          style={{ maxWidth: "100%", maxHeight: "calc(100vh - 320px)" }}
+        />
+      )}
     </>
   );
 };

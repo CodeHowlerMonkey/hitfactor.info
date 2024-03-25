@@ -36,7 +36,7 @@ const fieldForMode = (mode) =>
     Recommended: "recPercent",
   }[mode]);
 
-export const ShootersDistributionChart = ({ division }) => {
+export const ShootersDistributionChart = ({ division, style }) => {
   const [colorMode, setColorMode] = useState(modes[2]);
   const [xMode, setXMode] = useState(modes[2]);
   const data = useApi(`/shooters/${division}/chart`);
@@ -106,12 +106,7 @@ export const ShootersDistributionChart = ({ division }) => {
   );
 
   return (
-    <div
-      style={{
-        maxHeight: "100%",
-        maxWidth: "100%",
-      }}
-    >
+    <div style={style}>
       <div className="flex align-items-center mt-4 justify-content-between">
         <div
           className="flex flex-row align-items-center"
