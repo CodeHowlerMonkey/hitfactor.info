@@ -4,8 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "start": " nodemon --inspect --exec npm run fastify-dev --watch src/ --watch ../data/",
-    "fastify-dev": "NODE_OPTIONS='--max-old-space-size=8192' NODE_ENV=development fastify start -T 120000 -l info -p 3333 src/app.js",
+    "start": "nodemon --exec npm run fastify-dev --watch src/ --watch ../data/ --watch ../shared/",
+    "quick": "QUICK_DEV=1 npm start",
+    "fastify-dev": "NODE_OPTIONS='--inspect --max-old-space-size=8192' NODE_ENV=development fastify start -T 120000 -l info -p 3333 src/app.js",
     "prod": "NODE_OPTIONS='--max-old-space-size=8192' NODE_ENV=production fastify start -T 120000 -l info -a 0.0.0.0 src/app.js"
   },
   "exports": {
@@ -13,15 +14,13 @@
   },
   "dependencies": {
     "@fastify/autoload": "^5.8.0",
-    "@fastify/compress": "^7.0.0",
     "@fastify/cors": "^9.0.0",
     "@fastify/static": "^6.12.0",
     "fastify-cli": "^6.1.1",
     "lodash.sorteduniqby": "^4.7.0",
     "lodash.transform": "^4.6.0",
     "lodash.uniqby": "^4.7.0",
-    "memoize": "^10.0.0",
-    "node-worker-threads-pool": "^1.5.1"
+    "memoize": "^10.0.0"
   },
   "devDependencies": {
     "nodemon": "^3.0.3"

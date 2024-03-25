@@ -83,13 +83,13 @@ export const useRunsTableData = ({ division, classifier }) => {
   const [filter, setFilter] = useState("");
   const [filterHHF, setFilterHHF] = useState(undefined);
   const [filterClub, setFilterClub] = useState(undefined);
-  const [legacy, setLegacy] = useState(undefined);
+  //const [legacy, setLegacy] = useState(undefined);
   const filtersQuery = qs.stringify(
     {
       filter,
       hhf: filterHHF,
       club: filterClub,
-      legacy: legacy ? 1 : undefined,
+      //legacy: legacy ? 1 : undefined,
     },
     {}
   );
@@ -122,7 +122,7 @@ export const useRunsTableData = ({ division, classifier }) => {
     setFilter,
     filterHHF,
     setFilterHHF,
-    setLegacy,
+    //setLegacy,
     filterClub,
     setFilterClub,
     downloadUrl,
@@ -139,7 +139,7 @@ const RunsTable = ({
   setFilter,
   setFilterHHF,
   setFilterClub,
-  setLegacy,
+  //setLegacy,
   onShooterSelection,
 }) => {
   return (
@@ -155,7 +155,7 @@ const RunsTable = ({
       paginatorLeft={<h2>Scores</h2>}
       paginatorRight={
         <div className="flex flex-row align-items-center">
-          <LegacyCheckbox onChange={(v) => setLegacy(!!v)} />
+          {/*<LegacyCheckbox onChange={(v) => setLegacy(!!v)} />*/}
           <TableFilter
             placeholder="Filter by Club or Shooter"
             onFilterChange={(f) => setFilter(f)}
@@ -185,9 +185,7 @@ const RunsTable = ({
         sortable
         body={(run) => (
           <ShooterCell
-            memberNumber={run.memberNumber}
-            name={run.name}
-            class={run.class}
+            data={run}
             onClick={() => onShooterSelection?.(run.memberNumber)}
           />
         )}

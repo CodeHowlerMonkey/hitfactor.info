@@ -2,15 +2,6 @@ import fs from "node:fs";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
 import path from "node:path";
-import { DynamicPool, StaticPool } from "node-worker-threads-pool";
-
-const dynamicPool = new DynamicPool(8);
-export const expensive = async (param, calcFn) => {
-  return await dynamicPool.exec({
-    task: calcFn,
-    param,
-  });
-};
 
 const __filename = fileURLToPath(import.meta.url);
 export const __dirname = dirname(__filename);
@@ -21,28 +12,50 @@ export const loadJSON = (path) =>
   JSON.parse(fs.readFileSync(dirPath(path), "utf8"));
 
 export const processImport = (dir, fileRegexp, forEachFileJSONCb) => {
-  fs.readdirSync(dirPath(dir))
-    .filter((file) => !!file.match(fileRegexp))
-    .forEach((file) => {
-      const curJSON = loadJSON(dir + "/" + file);
-      curJSON.forEach(forEachFileJSONCb);
-    });
+  const files = fs
+    .readdirSync(dirPath(dir))
+    .filter((file) => !!file.match(fileRegexp));
+
+  const filesToProcess = !process.env.QUICK_DEV
+    ? files
+    : files.slice(files.length - 4, files.length);
+
+  filesToProcess.forEach((file) => {
+    const curJSON = loadJSON(dir + "/" + file);
+    curJSON.forEach(forEachFileJSONCb);
+  });
 };
 
-/** Mutates target array by pushing values array into it in a flat fashion
- * E.g. flatPush([0], [1,2]) ==> [0,1,2]
- */
-export const flatPush = (target, values) =>
-  Array.prototype.push.apply(target, values);
+export const lazy = (resolver, cachePath) => {
+  let _result = null;
 
-/**  not real async, just for deferring expensive calculations after binding the port */
-export const badLazy = (resolver) => {
-  let lazyPromise = null;
-  return async () => {
-    if (!lazyPromise) {
-      lazyPromise = new Promise(async (resolve) => resolve(await resolver()));
-    }
+  return () => {
+    if (_result) {
+      return _result;
+    } /*else if (cachePath) {
+      try {
+        const cached = loadJSON(cachePath);
+        if (cached) {
+          console.log("using cached " + cachePath);
+          _result = cached;
+          return _result;
+        }
+      } catch (err) {
+        if (err.code !== "ENOENT") {
+          console.error(err);
+        }
+      }
+    }*/
 
-    return lazyPromise;
+    /*
+    console.log("resolving new " + cachePath);
+    */
+    _result = resolver();
+    /*
+    if (cachePath) {
+      console.log("saving cache " + cachePath);
+      saveJSON(cachePath, _result);
+    }*/
+    return _result;
   };
 };

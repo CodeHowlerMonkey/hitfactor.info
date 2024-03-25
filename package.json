@@ -9,7 +9,9 @@
   "scripts": {
     "======================== Development Scripts ====================": "",
     "start": "concurrently -c \"auto\" --names \"API,WEB\" \"npm run start-api\" \"npm run start-web\"",
+    "quick": "concurrently -c \"auto\" --names \"API,WEB\" \"npm run quick-api\" \"npm run start-web\"",
     "start-api": "cd api && npm start",
+    "quick-api": "cd api && npm run quick",
     "start-web": "cd web && npm start",
     "test": "node --test",
     "====================== Production / Build Scripts ================": "",

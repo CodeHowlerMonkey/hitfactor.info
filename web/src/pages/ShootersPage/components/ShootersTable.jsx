@@ -1,7 +1,6 @@
 import qs from "query-string";
 import { useEffect, useState } from "react";
 import { DataTable } from "primereact/datatable";
-import { Tag } from "primereact/tag";
 import { InputText } from "primereact/inputtext";
 import { Column } from "primereact/column";
 import { useApi } from "../../../utils/client";
@@ -9,9 +8,18 @@ import {
   useTableSort,
   useTablePagination,
   headerTooltipOptions,
+  renderPercent,
+  renderPercentDiff,
 } from "../../../components/Table";
 import { useDebounce } from "use-debounce";
 import ShooterCell from "../../../components/ShooterCell";
+
+const classColumnProps = {
+  sortable: true,
+  align: "center",
+  style: { maxWidth: "48px" },
+  headerStyle: { fontSize: "11px" },
+};
 
 // TODO: extract into common components, right now this is copypasted from RunsTable
 const TableFilter = ({ placeholder, onFilterChange }) => {
@@ -31,7 +39,11 @@ const TableFilter = ({ placeholder, onFilterChange }) => {
   );
 };
 
-export const useShootersTableData = ({ division }) => {
+export const useShootersTableData = ({
+  division,
+  inconsistencies,
+  classFilter,
+}) => {
   const {
     query: pageQuery,
     reset: resetPage,
@@ -40,11 +52,13 @@ export const useShootersTableData = ({ division }) => {
   const { query, ...sortProps } = useTableSort({
     mode: "multiple",
     onSortCallback: () => resetPage(),
-    initial: [{ field: "current", order: -1 }],
+    initial: [{ field: "reclassificationsRecPercentCurrent", order: -1 }],
   });
   const [filter, setFilter] = useState("");
   const filtersQuery = qs.stringify({
     filter,
+    inconsistencies,
+    classFilter,
   });
 
   const apiEndpoint = !division
@@ -52,12 +66,14 @@ export const useShootersTableData = ({ division }) => {
     : `/shooters/${division}?${query}&${pageQuery}&${filtersQuery}`;
   const apiData = useApi(apiEndpoint);
   const shootersTotal = apiData?.shootersTotal ?? 0;
+  const shootersTotalWithoutFilters = apiData?.shootersTotalWithoutFilters ?? 0;
 
   const data = apiData?.shooters ?? [];
 
   return {
     data,
     shootersTotal,
+    shootersTotalWithoutFilters,
     query,
     sortProps,
     pageProps,
@@ -67,7 +83,12 @@ export const useShootersTableData = ({ division }) => {
   };
 };
 
-const ShootersTable = ({ division, onShooterSelection }) => {
+const ShootersTable = ({
+  division,
+  onShooterSelection,
+  inconsistencies,
+  classFilter,
+}) => {
   const {
     data,
     shootersTotal,
@@ -77,7 +98,8 @@ const ShootersTable = ({ division, onShooterSelection }) => {
     filter,
     setFilter,
     downloadUrl,
-  } = useShootersTableData({ division });
+    shootersTotalWithoutFilters,
+  } = useShootersTableData({ division, inconsistencies, classFilter });
   return (
     <DataTable
       loading={!data?.length}
@@ -113,9 +135,21 @@ const ShootersTable = ({ division, onShooterSelection }) => {
       <Column
         field="index"
         header="#"
-        sortable
-        headerTooltip="Index for the dataRow with current filters and sorting options applied. Can be used for manual counting of things. "
+        align="center"
+        style={{ maxWidth: "4rem" }}
+        headerTooltip="Shooter's rank / index in the current sort mode."
         headerTooltipOptions={headerTooltipOptions}
+      />
+      <Column
+        field="percentile"
+        header="Perc."
+        style={{ maxWidth: "4rem" }}
+        align="center"
+        headerTooltip="Top percentile for this shooter in current sort mode."
+        headerTooltipOptions={headerTooltipOptions}
+        body={(c) =>
+          ((100 * c.index) / (shootersTotalWithoutFilters - 1)).toFixed(2) + "%"
+        }
       />
       <Column
         field="memberNumber"
@@ -123,46 +157,53 @@ const ShootersTable = ({ division, onShooterSelection }) => {
         sortable
         body={(shooter) => (
           <ShooterCell
-            memberNumber={shooter.memberNumber}
-            name={shooter.name}
-            class={shooter.class}
+            data={shooter}
             onClick={() => onShooterSelection?.(shooter.memberNumber)}
           />
         )}
       />
-      <Column
-        field="reclassificationsCurPercentCurrent"
-        header="Cur.HHFs %"
-        headerTooltip="Current classification percent of this shooter, if all their Y-flagged scores used the most recent HHFs for classifiers. Major Matches results stay the same."
-        headerTooltipOptions={headerTooltipOptions}
-        sortable
-        body={(c) => c.reclassificationsCurPercentCurrent.toFixed(2) + "%"}
-      />
+      <Column field="recClass" header="Rec." {...classColumnProps} />
+      <Column field="curHHFClass" header="Cur.HHF" {...classColumnProps} />
+      <Column field="hqClass" header="HQ" {...classColumnProps} />
       <Column
         field="reclassificationsRecPercentCurrent"
         header="Rec.HHFs %"
         headerTooltip="Recommended classification percent of this shooter, if all their Y-flagged scores used the recommended HHFs for classifiers. Major Matches results stay the same."
         headerTooltipOptions={headerTooltipOptions}
         sortable
-        body={(c) => c.reclassificationsRecPercentCurrent.toFixed(2) + "%"}
+        body={renderPercent}
       />
       <Column
-        field="reclassificationChange"
-        header="Cur-to-Rec Change %"
+        field="reclassificationsCurPercentCurrent"
+        header="Cur.HHFs %"
+        headerTooltip="Current HHF classification percent of this shooter, if all their classifier scores would use the most recent HHFs. Major Matches results stay the same."
+        headerTooltipOptions={headerTooltipOptions}
         sortable
-        body={(c) => c.reclassificationChange.toFixed(2) + "%"}
+        body={renderPercent}
+      />
+      <Column field="current" header="HQ %" sortable body={renderPercent} />
+      <Column
+        field="hqToCurHHFPercent"
+        header="HQ vs Cur.HHF %"
+        headerTooltip="Difference between official classification and current HHF classification percent."
+        headerTooltipOptions={headerTooltipOptions}
+        sortable
+        body={renderPercentDiff}
       />
       <Column
-        field="current"
-        header="Cur. %"
+        field="hqToRecPercent"
+        header="HQ vs Rec.HHF %"
+        headerTooltip="Difference between official and recommended classifications"
+        headerTooltipOptions={headerTooltipOptions}
         sortable
-        body={(c) => c.current.toFixed(2) + "%"}
+        body={renderPercentDiff}
       />
+      {/*
       <Column
         field="high"
         header="High %"
         sortable
-        body={(c) => c.high.toFixed(2) + "%"}
+        body={(c) => (c.high || 0).toFixed(2) + "%"}
       />
       <Column
         field="currentRank"
@@ -177,19 +218,16 @@ const ShootersTable = ({ division, onShooterSelection }) => {
         sortable
         headerTooltip="TopXXX Rank of that Shooter baed on their(and others) High Division Percentage"
         headerTooltipOptions={headerTooltipOptions}
-      />
-      <Column
-        field="currentPercentile"
-        header="Cur. Percentile"
-        sortable
-        body={(c) => "Top " + c.currentPercentile.toFixed(2) + "%"}
-      />
+        />*/}
+      {/* TODO: maybe merge # and percentile columns, move things aroung, Rec, Cur, HQ */}
+      {/*
       <Column
         field="highPercentile"
         header="High Percentile"
         sortable
         body={(c) => "Top " + c.highPercentile.toFixed(2) + "%"}
       />
+      */}
       <Column
         field="age"
         header="Age"

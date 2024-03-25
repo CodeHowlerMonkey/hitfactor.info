@@ -32,6 +32,13 @@ export const dateSort = (a, b, field, order) => {
   return order * (new Date(a[field]).getTime() - new Date(b[field]).getTime());
 };
 
+const letterRanks = ["X", "U", "D", "C", "B", "A", "M", "GM"];
+export const classLetterSort = (a, b, field, order) => {
+  const aa = field ? a[field] : a;
+  const bb = field ? b[field] : b;
+  return order * (letterRanks.indexOf(aa) - letterRanks.indexOf(bb));
+};
+
 // converts classifier code to sortable number, taking thee actual meaning behind first two
 // digits (year) into account. For example 03-02 will be converted to 200302
 const fullCodeNum = (code) =>
@@ -44,6 +51,12 @@ const singleFieldSort = (a, b, field, order) => {
   switch (field) {
     case "sd":
       return dateSort(a, b, field, order);
+
+    case "hqClass":
+    case "recClass":
+    case "curHHFClass": {
+      return classLetterSort(a, b, field, order);
+    }
 
     default:
       if (typeof a[field] === "string") {

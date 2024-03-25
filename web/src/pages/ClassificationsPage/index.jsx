@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { PieChart } from "react-minimal-pie-chart";
 import { Row, Column } from "../../components";
 import { useApi } from "../../utils/client";
@@ -6,6 +6,8 @@ import { Checkbox } from "primereact/checkbox";
 import { TabView, TabPanel } from "primereact/tabview";
 import MultiProgress from "react-multi-progress";
 import { SelectButton } from "primereact/selectbutton";
+import Inconsistencies from "./Inconsistencies";
+import Distribution from "./Distribution";
 
 export const ClassificationsChart = ({
   division,
@@ -412,6 +414,12 @@ export const ClassificationStats = () => {
             bar
           />{" "}
         </Row>
+      </TabPanel>
+      <TabPanel header="Inconsistencies">
+        <Inconsistencies />
+      </TabPanel>
+      <TabPanel header="Distribution">
+        <Distribution />
       </TabPanel>
     </TabView>
   );

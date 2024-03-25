@@ -2,68 +2,22 @@ import { ProgressSpinner } from "primereact/progressspinner";
 import { Button } from "primereact/button";
 import { Dialog } from "primereact/dialog";
 
-import { Scatter } from "./common";
+import {
+  point,
+  Scatter,
+  yLine,
+  xLine,
+  annotationColor,
+  r5annotationColor,
+  r15annotationColor,
+  r1annotationColor,
+} from "./common";
 import { useApi } from "../../utils/client";
 import { useState } from "react";
 import { classForPercent } from "../../../../shared/utils/classification";
 import { bgColorForClass } from "../../utils/color";
 import { SelectButton } from "primereact/selectbutton";
 
-const yLine = (name, y, color) => ({
-  [name]: {
-    type: "line",
-    yMin: y,
-    yMax: y,
-    borderColor: color,
-    borderWidth: 1,
-  },
-  [name + "Label"]: {
-    type: "label",
-    xValue: 0,
-    yValue: y - 1.1,
-    color,
-    position: "start",
-    content: [y + "th"],
-    font: {
-      size: 11,
-    },
-  },
-});
-const xLine = (name, x, color, extraLabelOffset = 0) => ({
-  [name]: {
-    type: "line",
-    xMin: x,
-    xMax: x,
-    borderColor: color,
-    borderWidth: 1,
-  },
-  [name + "Label"]: {
-    type: "label",
-    xValue: x,
-    yValue: 95 - 2 * extraLabelOffset,
-    color,
-    position: "start",
-    content: [name],
-    font: {
-      size: 12,
-    },
-  },
-});
-const point = (name, x, y, color) => ({
-  [name]: {
-    type: "point",
-    xValue: x,
-    yValue: y,
-    radius: 3,
-    borderWidth: 0,
-    backgroundColor: color,
-  },
-});
-
-const annotationColor = (alpha) => `rgba(255, 99, 132, ${alpha * 0.5})`;
-const r1annotationColor = (alpha) => `rgba(132, 99, 255, ${alpha * 0.75})`;
-const r5annotationColor = (alpha) => `rgba(99, 255, 132, ${alpha})`;
-const r15annotationColor = (alpha) => `rgba(255, 255, 132, ${alpha})`;
 const colorForPrefix = (prefix, alpha) =>
   ({
     "": annotationColor,
@@ -122,21 +76,21 @@ const xLinesForHHF = (prefix, hhf) =>
           extraLabelOffsets[prefix]
         ),
         ...point(
-          prefix + "GM/1",
+          prefix + "GM/0.9",
           0.95 * hhf,
           0.9,
           colorForPrefix(prefix, 0.7),
           extraLabelOffsets[prefix]
         ),
         ...point(
-          prefix + "M/5",
+          prefix + "M/4.75",
           0.85 * hhf,
-          5.1,
+          4.75,
           colorForPrefix(prefix, 0.5),
           extraLabelOffsets[prefix]
         ),
         ...point(
-          prefix + "A/15",
+          prefix + "A/14.5",
           0.75 * hhf,
           14.5,
           colorForPrefix(prefix, 0.4),
@@ -145,14 +99,14 @@ const xLinesForHHF = (prefix, hhf) =>
         ...point(
           prefix + "B/40",
           0.6 * hhf,
-          45,
+          40,
           colorForPrefix(prefix, 0.3),
           extraLabelOffsets[prefix]
         ),
         ...point(
-          prefix + "C/75",
+          prefix + "C/80",
           0.4 * hhf,
-          85,
+          80,
           colorForPrefix(prefix, 0.2),
           extraLabelOffsets[prefix]
         ),
@@ -164,6 +118,7 @@ const modeBucketForMode = (mode) =>
     Official: "curPercent",
     "Historical CHHF": "historicalCurHHFPercent",
     "Current CHHF": "curHHFPercent",
+    Recommended: "recPercent",
   }[mode]);
 
 // TODO: different modes for class xLines (95/85/75-hhf, A-centric, 1/5/15/40/75-percentile, etc)
@@ -180,7 +135,7 @@ export const ScoresChart = ({
   recommendedHHF15,
 }) => {
   const [full, setFull] = useState(false);
-  const modes = ["Official", "Historical CHHF", "Current CHHF"];
+  const modes = ["Official", "Historical CHHF", "Current CHHF", "Recommended"];
   const [mode, setMode] = useState(modes[0]);
   const data = useApi(
     `/classifiers/${division}/${classifier}/chart?full=${full ? 1 : 0}`
@@ -227,10 +182,10 @@ export const ScoresChart = ({
           annotation: {
             annotations: {
               ...yLine("0.9th", 0.9, annotationColor(0.7)),
-              ...yLine("5.1th", 5.1, annotationColor(0.5)),
+              ...yLine("4.75th", 4.75, annotationColor(0.5)),
               ...yLine("14.5th", 14.5, annotationColor(0.4)),
-              ...yLine("45th", 45, annotationColor(0.3)),
-              ...yLine("85th", 85, annotationColor(0.2)),
+              ...yLine("40th", 40, annotationColor(0.3)),
+              ...yLine("80th", 80, annotationColor(0.2)),
 
               ...xLinesForHHF("", hhf),
               ...(recHHF
