@@ -76,9 +76,9 @@ const xLinesForHHF = (prefix, hhf) =>
           extraLabelOffsets[prefix]
         ),
         ...point(
-          prefix + "GM/0.9",
+          prefix + "GM/1",
           0.95 * hhf,
-          0.9,
+          1.0,
           colorForPrefix(prefix, 0.7),
           extraLabelOffsets[prefix]
         ),
@@ -181,7 +181,7 @@ export const ScoresChart = ({
           },
           annotation: {
             annotations: {
-              ...yLine("0.9th", 0.9, annotationColor(0.7)),
+              ...yLine("1th", 1.0, annotationColor(0.7)),
               ...yLine("4.75th", 4.75, annotationColor(0.5)),
               ...yLine("14.5th", 14.5, annotationColor(0.4)),
               ...yLine("40th", 40, annotationColor(0.3)),
