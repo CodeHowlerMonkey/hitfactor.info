@@ -27,17 +27,19 @@ export const recommendedHHFByPercentileAndPercent = (
     return 0;
   }
 
-  return HF(
-    (closestPercentileRun.hf * closestPercentileRun.percentile) /
-      targetPercentile /
-      (percent / 100.0)
-  );
+  // if found percentile is higher (more people can achieve this result) than we need
+  // to slightly increase the recommendation. If it's lower (less people) -- decrease it.
+  const missCorrection =
+    1 + (closestPercentileRun.percentile - targetPercentile) / 100;
+  const percentScale = 1 / (percent / 100.0);
+
+  return HF(closestPercentileRun.hf * missCorrection * percentScale);
 };
 
 const r1 = (runs) =>
   recommendedHHFByPercentileAndPercent(
     runs,
-    0.9, // extendedCalibrationTable[division].pGM,
+    1.0, // extendedCalibrationTable[division].pGM,
     95
   );
 
@@ -57,15 +59,17 @@ const r15 = (runs) =>
 
 // TODO: ignore these maybe in classification calculation?
 const recommendedDeprecatedClassifiers = [
-  "99-63", // chaos on graphs
+  "99-63",
   "03-09", // ON THE MOVE impossible to setup right, super easy to make much easier than designed
-  "99-51", // flat graph
   "08-01",
 ];
 
 // runs => recHHF function factory, this is where algos are chosen for classifiers/divisions
 const decidedHHFFunctions = {
-  opn: {},
+  opn: {
+    "23-01": r15, // TODO: revise when more data is available
+    "23-02": r15, // TODO: revise when more data is available
+  },
   ltd: {
     "99-02": r5,
     "99-07": r5,
@@ -93,10 +97,10 @@ const decidedHHFFunctions = {
     "99-53": r5,
     "99-56": r5,
     "99-57": r5,
-    "99-59": r1, // consider deprecation
+    "99-59": r1, // consider deprecation, hard for CBA
     "99-61": r5,
     "99-62": r1,
-    "99-63": r1, // should be thrown the fuck away, complete chaos on graphs
+    "99-63": r1, // consider deprecattion, very hard for CBA
 
     "03-02": r1,
     "03-03": r5,
@@ -118,7 +122,7 @@ const decidedHHFFunctions = {
     "06-06": r5,
     "06-10": r1,
 
-    "08-01": r1, // linear graph, old classifier, deprecation recommended
+    "08-01": r1, // consider deprecation, hard for CBA
     "08-02": r5,
     "08-03": r1,
 
@@ -173,10 +177,22 @@ const decidedHHFFunctions = {
     "23-01": r15, // TODO: revise when more data is available
     "23-02": r15, // TODO: revise when more data is available
   },
-  l10: {},
-  prod: {},
-  rev: {},
-  ss: {},
+  l10: {
+    "23-01": r15, // TODO: revise when more data is available
+    "23-02": r15, // TODO: revise when more data is available
+  },
+  prod: {
+    "23-01": r15, // TODO: revise when more data is available
+    "23-02": r15, // TODO: revise when more data is available
+  },
+  rev: {
+    "23-01": r15, // TODO: revise when more data is available
+    "23-02": r15, // TODO: revise when more data is available
+  },
+  ss: {
+    "23-01": r15, // TODO: revise when more data is available
+    "23-02": r15, // TODO: revise when more data is available
+  },
   co: {
     "99-02": r5,
     "99-07": r1,
@@ -200,14 +216,14 @@ const decidedHHFFunctions = {
     "99-46": r5,
     "99-47": r5,
     "99-48": r5,
-    "99-51": r15, // recommended deprecation
+    "99-51": r15,
     "99-53": r15,
     "99-56": r5,
     "99-57": r5,
     "99-59": r5,
     "99-61": r5,
     "99-62": r1,
-    "99-63": r1, // should be thrown the fuck away, complete chaos on graphs
+    "99-63": r1, // consider deprecattion, very hard for CB, hard for AM
 
     "03-02": r1,
     "03-03": r5,
@@ -229,7 +245,7 @@ const decidedHHFFunctions = {
     "06-06": r5,
     "06-10": r5,
 
-    "08-01": r1, // linear graph, old classifier, deprecation recommended
+    "08-01": r1, // consider deprecation, hard for CBA
     "08-02": r5,
     "08-03": r1,
 
@@ -239,7 +255,7 @@ const decidedHHFFunctions = {
     "09-04": r1,
     "09-07": r1,
     "09-08": r5,
-    "09-09": r1, // double checked, still closest is r1
+    "09-09": r5, // TODO: double checked, still closest is r1
     "09-10": r5,
     "09-13": r5,
     "09-14": r5,
@@ -250,7 +266,7 @@ const decidedHHFFunctions = {
     "13-04": r5,
     "13-05": r1,
     "13-06": r1,
-    "13-07": r15, // TODO: review for cheaters
+    "13-07": r1, // TODO: changed to r1 check
     "13-08": r5,
 
     "18-01": r5,
@@ -284,11 +300,27 @@ const decidedHHFFunctions = {
     "23-01": r15, // TODO: revise when more data is available
     "23-02": r15, // TODO: revise when more data is available
   },
-  lo: {},
-  pcc: {},
+  lo: {
+    "23-01": r15, // TODO: revise when more data is available
+    "23-02": r15, // TODO: revise when more data is available
+  },
+  pcc: {
+    "99-14": r5, // should be either deprecated, modified, or enjoy your 85% max with all the points
+    "09-09": r5,
+    "99-40": r5,
+    "03-14": r5,
+    "22-05": r5,
+    "09-01": r5,
+    "09-10": r15,
+    "99-51": r15,
+    "22-01": r5,
+    "23-01": r15, // TODO: revise when more data is available
+    "23-02": r15, // TODO: revise when more data is available
+  },
 };
 
 // First manual recHHF Function review notes:
+// TODO: re-review after the percentile miss bugfix
 //
 // The truth for CO is somewhere between 1%/GM and 5%/M for enough data and normal risk stages.
 // 15% and A is where graph usually goes linear and it skews things, so it has to be used only
@@ -299,8 +331,8 @@ const recommendedHHFFunctionFor = ({ division, number }) => {
     return decided;
   }
 
-  // disable recHHF if not manually reviewed
-  return () => 0;
+  // default to r1 for no special decision, it's often very close now after the fix
+  return r1;
 };
 
 export const recommendedHHFFor = memoize(
