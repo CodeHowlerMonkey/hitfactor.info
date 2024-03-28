@@ -16,11 +16,11 @@ import { bgColorForClass } from "../../utils/color";
 import { SelectButton } from "primereact/selectbutton";
 
 const lines = {
-  ...yLine("0.9th", 0.9, annotationColor(0.7)),
-  ...yLine("4.75th", 4.75, annotationColor(0.5)),
-  ...yLine("14.5th", 14.5, annotationColor(0.4)),
-  ...yLine("40th", 40, annotationColor(0.3)),
-  ...yLine("80th", 80, annotationColor(0.2)),
+  ...yLine("1th", 1.0, annotationColor(0.7)),
+  ...yLine("4.5th", 4.5, annotationColor(0.5)),
+  ...yLine("15th", 14.5, annotationColor(0.4)),
+  ...yLine("45th", 45, annotationColor(0.3)),
+  ...yLine("85th", 85, annotationColor(0.2)),
   ...xLine("95%", 95, r5annotationColor(0.5), 2.5),
   ...xLine("85%", 85, r5annotationColor(0.5), 2.5),
   ...xLine("75%", 75, r5annotationColor(0.5), 2.5),
