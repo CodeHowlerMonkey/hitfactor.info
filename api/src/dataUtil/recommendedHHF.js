@@ -64,11 +64,23 @@ const recommendedDeprecatedClassifiers = [
   "08-01",
 ];
 
+// force classifier back into "no recommendation" mode to see all functions on its graph
+// used for revising classifiers after r1-automatic-everything
+const revise = () => 0;
+
 // runs => recHHF function factory, this is where algos are chosen for classifiers/divisions
 const decidedHHFFunctions = {
   opn: {
     "23-01": r15, // TODO: revise when more data is available
     "23-02": r15, // TODO: revise when more data is available
+
+    "99-28": r5,
+    "99-53": r5,
+    "99-61": r5,
+    "99-63": r5,
+    "03-03": r15,
+    "08-02": r15,
+    "09-09": r5, // consider deprecation, too easy, probably doesn't scale right for open with same fixed time
   },
   ltd: {
     "99-02": r5,
@@ -180,10 +192,57 @@ const decidedHHFFunctions = {
   l10: {
     "23-01": r15, // TODO: revise when more data is available
     "23-02": r15, // TODO: revise when more data is available
+
+    "99-28": r1,
+    "09-08": r5,
+    "99-47": r5,
+    "20-03": r5,
+    "13-07": r5,
+    "03-14": r5,
+    "99-14": r5,
+    "99-41": r5,
+    "03-11": r1, // consider deprecation, too hard
+    "09-07": r1,
+    "06-01": r5,
+    "99-19": r1,
+    "18-09": r5,
+    "03-08": r5,
+    "09-13": r5,
+    "18-05": r5,
+    "99-21": r5,
+    "09-03": r5,
+    "09-04": r5,
+    "06-05": r5,
+    "03-04": r5,
+    "13-02": r5,
+    "18-06": r5,
+    "99-48": r5,
+    "06-10": r1,
+    "20-01": r5,
+    "99-23": r5,
+    "06-04": r5,
+    "03-18": r5,
+    "13-06": r5,
   },
   prod: {
     "23-01": r15, // TODO: revise when more data is available
     "23-02": r15, // TODO: revise when more data is available
+
+    "22-01": r5,
+    "03-12": r5,
+    "99-61": r5,
+    "99-14": r1,
+    "06-02": r5,
+    "99-63": r5,
+    "18-01": r5,
+    "18-02": r1,
+    "18-05": r5,
+    "03-09": r5,
+    "08-01": r5,
+    "09-07": r1,
+    "03-02": r1,
+    "13-02": r1,
+    "99-59": r5,
   },
   rev: {
     "23-01": r15, // TODO: revise when more data is available
@@ -192,6 +251,29 @@ const decidedHHFFunctions = {
   ss: {
     "23-01": r15, // TODO: revise when more data is available
     "23-02": r15, // TODO: revise when more data is available
+
+    "99-59": r5,
+    "03-05": r5,
+    "03-14": r5,
+    "06-02": r5,
+    "08-01": r5,
+    "03-09": r5,
+    "13-02": r5,
+    "09-02": r5,
+    "99-07": r5,
+    "09-14": r1,
+    "03-03": r5,
+    "13-07": r5,
+    "13-08": r5,
+    "99-14": r5,
+    "99-33": r15,
+    "03-11": r5,
+    "99-48": r5,
+    "03-12": r5,
+    "06-10": r5,
+    "18-01": r5,
+    "18-06": r1,
+    "99-47": r5,
   },
   co: {
     "99-02": r5,
@@ -303,9 +385,15 @@ const decidedHHFFunctions = {
   lo: {
     "23-01": r15, // TODO: revise when more data is available
     "23-02": r15, // TODO: revise when more data is available
+    "99-33": r5,
+    "09-09": r15,
+    "99-56": r15,
+    "03-14": r5,
   },
   pcc: {
     "99-14": r5, // should be either deprecated, modified, or enjoy your 85% max with all the points
+    "09-02": r5,
+    "18-04": r5,
     "09-09": r5,
     "99-40": r5,
     "03-14": r5,
@@ -329,6 +417,11 @@ const recommendedHHFFunctionFor = ({ division, number }) => {
   const decided = decidedHHFFunctions[division]?.[number];
   if (decided) {
     return decided;
+  }
+
+  // Not enough data for revolver in ANY of the classifiers, drop to r5 for defaults
+  if (division === "rev") {
+    return r5;
   }
 
   // default to r1 for no special decision, it's often very close now after the fix
