@@ -402,7 +402,7 @@ const decidedHHFFunctions = {
     "09-10": r15,
     "99-51": r15,
     "22-01": r5,
-    "23-01": r5, // bad score with CBB-class shooter doing 158% curHHF, sticking to r5 until r1 is clean
+    "23-01": r1,
     "23-02": r15,
   },
 };
