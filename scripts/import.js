@@ -30,7 +30,7 @@ const delay = (ms) => {
 };
 
 // TODO: bring back retries logic if needed
-const fetchApiEndpoint = async (endpoint) => {
+const fetchApiEndpoint = async (endpoint, tryNumber = 1, maxTries = 3) => {
   try {
     const { data: fetched } = await client.get(
       `https://api.uspsa.org/api/app/${endpoint}`,
@@ -40,6 +40,9 @@ const fetchApiEndpoint = async (endpoint) => {
     process.stdout.write(".");
     return fetched;
   } catch (err) {
+    if ( tryNumber <= maxRetry) {
+	    return await fetchApiEndpoint(endpoint, tryNumber +1, maxTries)
+    }
     console.log("err: " + endpoint);
     console.log(err);
     return null;
@@ -156,12 +159,12 @@ const importEverything = async () => {
   );
   console.log("done");
 
-  console.log("fetching all classifications");
-  await fetchAll("classification", classifiedNumbers);
-  console.log("done");
-
   console.log("fetching all classifier scores");
   await fetchAll("classifiers", classifiedNumbers);
+  console.log("done");
+
+  console.log("fetching all classifications");
+  await fetchAll("classification", classifiedNumbers);
   console.log("done");
 
   console.log("All Done!");
