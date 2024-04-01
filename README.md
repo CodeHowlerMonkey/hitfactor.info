@@ -5,7 +5,7 @@ For a full drama background, see practical.shooting.insights on Instagram.
 For a quick-ish TLDR: see [DRAMA.md](DRAMA.md)
 Currently read-only, uploads planned (See issue #1)
 
-#### Project Goals.
+#### Project Goals
 
 1. Analyze existing historical data and provide recommended HHF for all classifiers/divisions.
 2. Implement classification calculation and serve as an alternative shooter's classification source for expired members / shooters in protesting clubs.
