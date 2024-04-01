@@ -1,10 +1,19 @@
 import { processImport, lazy } from "../utils.js";
 import { divIdToShort, mapDivisions } from "./divisions.js";
 
+const classifierScoreId = (memberId, obj) => {
+  return [memberId, obj.classifier, obj.sd, obj.clubid, obj.hf].join("=");
+};
+
+const badScoresMap = {
+  "125282=23-01=2/18/24=CCS08=15.9574": "CCB-shooter-158-percent",
+};
+
 export const getDivShortToRuns = lazy(() => {
   const _divShortToRuns = mapDivisions(() => []);
   processImport("../../data/imported", /classifiers\.\d+\.json/, (obj) => {
     const memberNumber = obj?.value?.member_data?.member_number;
+    const memberId = obj?.value?.member_data?.member_id;
     const classifiers = obj?.value?.classifiers;
     classifiers.forEach((divObj) => {
       const divShort = divIdToShort[divObj?.division_id];
@@ -18,6 +27,7 @@ export const getDivShortToRuns = lazy(() => {
       _divShortToRuns[divShort] = curDiv.concat(
         divObj.division_classifiers
           .filter(({ source }) => source !== "Legacy") // saves RAM, no point looking at old
+          .filter((obj) => !badScoresMap[classifierScoreId(memberId, obj)]) // ignore banned scores
           .map(
             ({
               code,
