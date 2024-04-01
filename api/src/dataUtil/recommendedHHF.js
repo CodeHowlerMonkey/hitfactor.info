@@ -71,8 +71,8 @@ const revise = () => 0;
 // runs => recHHF function factory, this is where algos are chosen for classifiers/divisions
 const decidedHHFFunctions = {
   opn: {
-    "23-01": r15, // TODO: revise when more data is available
-    "23-02": r15, // TODO: revise when more data is available
+    "23-01": r1,
+    "23-02": r1,
 
     "99-28": r5,
     "99-53": r5,
@@ -186,12 +186,12 @@ const decidedHHFFunctions = {
     "22-06": r5,
     "22-07": r5,
 
-    "23-01": r15, // TODO: revise when more data is available
-    "23-02": r15, // TODO: revise when more data is available
+    "23-01": r1,
+    "23-02": r1,
   },
   l10: {
-    "23-01": r15, // TODO: revise when more data is available
-    "23-02": r15, // TODO: revise when more data is available
+    "23-01": r15, // barely any data, nobody shoots this div really
+    "23-02": r15,
 
     "99-28": r1,
     "09-08": r5,
@@ -225,8 +225,8 @@ const decidedHHFFunctions = {
     "13-06": r5,
   },
   prod: {
-    "23-01": r15, // TODO: revise when more data is available
-    "23-02": r15, // TODO: revise when more data is available
+    "23-01": r1,
+    "23-02": r5,
 
     "22-01": r5,
     "03-12": r5,
@@ -245,12 +245,12 @@ const decidedHHFFunctions = {
     "99-59": r5,
   },
   rev: {
-    "23-01": r15, // TODO: revise when more data is available
-    "23-02": r15, // TODO: revise when more data is available
+    "23-01": r5,
+    "23-02": r5,
   },
   ss: {
-    "23-01": r15, // TODO: revise when more data is available
-    "23-02": r15, // TODO: revise when more data is available
+    "23-01": r1,
+    "23-02": r5,
 
     "99-59": r5,
     "03-05": r5,
@@ -379,12 +379,12 @@ const decidedHHFFunctions = {
     "22-06": r5,
     "22-07": r1,
 
-    "23-01": r15, // TODO: revise when more data is available
-    "23-02": r15, // TODO: revise when more data is available
+    "23-01": r5,
+    "23-02": r5,
   },
   lo: {
-    "23-01": r15, // TODO: revise when more data is available
-    "23-02": r15, // TODO: revise when more data is available
+    "23-01": r1,
+    "23-02": r5,
     "99-33": r5,
     "09-09": r15,
     "99-56": r15,
@@ -402,8 +402,8 @@ const decidedHHFFunctions = {
     "09-10": r15,
     "99-51": r15,
     "22-01": r5,
-    "23-01": r15, // TODO: revise when more data is available
-    "23-02": r15, // TODO: revise when more data is available
+    "23-01": r5, // bad score with CBB-class shooter doing 158% curHHF, sticking to r5 until r1 is clean
+    "23-02": r15,
   },
 };
 
