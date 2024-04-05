@@ -82,4 +82,4 @@ export const getExtendedClassificationsInfo = lazy(() => {
     }
   );
   return result;
-});
+}, "extendedClassificationsInfo");

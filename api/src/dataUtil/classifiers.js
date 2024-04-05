@@ -67,7 +67,7 @@ export const getShooterToRuns = lazy(() => {
   });
 
   return byMemberNumber(final);
-}, "../../cache/shooterToRuns.json");
+}, "getShooterToRuns");
 
 const getShooterToXXXPercentClassificationsFactory = (field) =>
   lazy(
@@ -78,7 +78,7 @@ const getShooterToXXXPercentClassificationsFactory = (field) =>
           calculateUSPSAClassification(c, field),
         ])
       ),
-    `../../cache/shooterClassifications.by${field}.json`
+    `shooterClassifications.by${field}`
   );
 
 /**
