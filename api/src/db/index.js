@@ -3,13 +3,18 @@ import { Score, hydrateScores } from "./scores.js";
 import { hydrateRecHHF } from "./recHHF.js";
 import { recommendedHHFFor } from "../dataUtil/recommendedHHF.js";
 import { Shooter, hydrateShooters } from "./shooters.js";
+import { Classifier, hydrateClassifiersExtendedMeta } from "./classifiers.js";
 
 export const connect = async () => {
   await mongoose.connect(process.env.MONGO_URL);
 };
 
 export const hydrate = async () => {
-  const test = await Shooter.findOne({ memberNumber: "L1234" });
+  await hydrateClassifiersExtendedMeta();
+  const test = await Classifier.findOne({
+    classifier: "20-01",
+    division: "co",
+  });
   console.log(JSON.stringify(test.toObject({ virtuals: true }), null, 2));
   return;
 

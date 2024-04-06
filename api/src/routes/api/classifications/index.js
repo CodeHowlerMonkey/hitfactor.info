@@ -3,11 +3,6 @@ import {
   classForPercent,
 } from "../../../../../shared/utils/classification.js";
 import { mapDivisions } from "../../../dataUtil/divisions.js";
-import { classifiersForDivision } from "../../../classifiers.api.js";
-import {
-  getShootersTable,
-  getShootersTableByMemberNumber,
-} from "../../../dataUtil/shooters.js";
 
 const calculateCurrentClassifications = (memberCurPercentObj) =>
   mapDivisions((div) => {
@@ -118,10 +113,6 @@ const classificationsRoutes = async (fastify, opts) => {
     if (process.env.QUICK_DEV) {
       console.log("USING FAST HYDRATION (you will only have partial data)");
     }
-    console.log("hydrating classifiers");
-    mapDivisions((div) => classifiersForDivision(div));
-    console.log("done hydrating classifiers ");
-
     console.log("hydrating shooters");
     getShootersTable();
     getShootersTableByMemberNumber();

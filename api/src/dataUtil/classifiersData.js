@@ -7,6 +7,7 @@ export const classifiers = loadJSON(
 export const basicInfoForClassifier = (c) => ({
   id: c.id,
   code: c.classifier,
+  classifier: c.classifier,
   name: c.name,
   scoring: c.scoring,
 });

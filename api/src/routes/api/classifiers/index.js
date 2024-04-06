@@ -1,28 +1,79 @@
+import uniqBy from "lodash.uniqby";
+
 import {
   basicInfoForClassifier,
   classifiers,
 } from "../../../dataUtil/classifiersData.js";
-
-import {
-  classifiersForDivision,
-  extendedInfoForClassifier,
-  runsForDivisionClassifier,
-  chartData,
-} from "../../../classifiers.api.js";
-
-import { multisort } from "../../../../../shared/utils/sort.js";
-import { PAGE_SIZE } from "../../../../../shared/constants/pagination.js";
+import { HF, N, Percent, PositiveOrMinus1 } from "../../../dataUtil/numbers.js";
+import { curHHFForDivisionClassifier } from "../../../dataUtil/hhf.js";
 import {
   recommendedHHFByPercentileAndPercent,
   recommendedHHFFor,
 } from "../../../dataUtil/recommendedHHF.js";
+import { Score } from "../../../db/scores.js";
+import { Shooter } from "../../../db/shooters.js";
+import { Classifier } from "../../../db/classifiers.js";
+
+import { multisort } from "../../../../../shared/utils/sort.js";
+import { PAGE_SIZE } from "../../../../../shared/constants/pagination.js";
+
+const _runs = async ({ number, division, hhf, hhfs }) => {
+  const scores = () => Score.find({ classifier: number, division });
+  const divisionClassifierRunsSortedByHFOrPercent = (await scores().limit(0))
+    .map((doc) => doc.toObject())
+    .sort((a, b) => b.hf - a.hf);
+
+  const memberNumbers = await scores().distinct("memberNumber");
+  const shooterDocs = await Shooter.find({
+    memberNumber: { $in: memberNumbers },
+  })
+    .limit(0)
+    .select(["classifications", "high", "current", "memberNumber", "name"])
+    .lean();
+
+  const shooters = shooterDocs.map((doc) => ({
+    class: doc.classifications[division],
+    high: doc.high[division],
+    current: doc.current[division],
+    division,
+    memberNumber: doc.memberNumber,
+    name: doc.name,
+  }));
+
+  return divisionClassifierRunsSortedByHFOrPercent.map(
+    (run, index, allRuns) => {
+      const { memberNumber } = run;
+      const percent = N(run.percent);
+      const curPercent = PositiveOrMinus1(Percent(run.hf, hhf));
+      const percentMinusCurPercent = N(percent - curPercent);
+
+      const findHistoricalHHF = hhfs.findLast(
+        (hhf) => hhf.date <= new Date(run.sd).getTime()
+      )?.hhf;
+
+      const recalcHistoricalHHF = HF((100 * run.hf) / run.percent);
+
+      return {
+        ...run,
+        ...shooters.find((c) => c.memberNumber === memberNumber),
+        historicalHHF: findHistoricalHHF ?? recalcHistoricalHHF,
+        percent,
+        curPercent,
+        percentMinusCurPercent: percent >= 100 ? 0 : percentMinusCurPercent,
+        place: index + 1,
+        percentile: PositiveOrMinus1(Percent(index, allRuns.length)),
+      };
+    }
+  );
+};
 
 const classifiersRoutes = async (fastify, opts) => {
   fastify.get("/", (req, res) => classifiers.map(basicInfoForClassifier));
 
-  fastify.get("/:division", (req) =>
-    classifiersForDivision(req.params.division)
-  );
+  fastify.get("/:division", async (req) => {
+    const { division } = req.params;
+    return Classifier.find({ division });
+  });
 
   fastify.get("/download/:division", async (req, res) => {
     const { division } = req.params;
@@ -30,7 +81,7 @@ const classifiersRoutes = async (fastify, opts) => {
       "Content-Disposition",
       `attachment; filename=classifiers.${division}.json`
     );
-    return classifiersForDivision(division);
+    return Classifier.find({ division });
   });
 
   fastify.get("/:division/:number", async (req, res) => {
@@ -55,10 +106,13 @@ const classifiersRoutes = async (fastify, opts) => {
     }
 
     const basic = basicInfoForClassifier(c);
-    const extended = await extendedInfoForClassifier(c, division);
+    const extended = await Classifier.findOne({
+      division,
+      classifier: number,
+    }).lean();
     const { hhf, hhfs } = extended;
 
-    const allRuns = await runsForDivisionClassifier({
+    const allRuns = await _runs({
       number,
       division,
       hhf,
@@ -96,17 +150,17 @@ const classifiersRoutes = async (fastify, opts) => {
         recHHF: await recommendedHHFFor({ division, number }),
         recommendedHHF1: recommendedHHFByPercentileAndPercent(
           allRuns,
-          0.9, // extendedCalibrationTable[division].pGM,
+          1.0, // extendedCalibrationTable[division].pGM,
           95
         ),
         recommendedHHF5: recommendedHHFByPercentileAndPercent(
           allRuns,
-          5.1, // extendedCalibrationTable[division].pM,
+          5.0, // extendedCalibrationTable[division].pM,
           85
         ),
         recommendedHHF15: recommendedHHFByPercentileAndPercent(
           allRuns,
-          14.5, // extendedCalibrationTable[division].pA,
+          15.0, // extendedCalibrationTable[division].pA,
           75
         ),
       },
@@ -133,7 +187,10 @@ const classifiersRoutes = async (fastify, opts) => {
     }
 
     const basic = basicInfoForClassifier(c);
-    const extended = extendedInfoForClassifier(c, division);
+    const extended = await Classifier.findOne({
+      division,
+      classifier: number,
+    }).lean();
     const { hhf, hhfs } = extended;
 
     return {
@@ -141,7 +198,7 @@ const classifiersRoutes = async (fastify, opts) => {
         ...basic,
         ...extended,
       },
-      runs: await runsForDivisionClassifier({
+      runs: await _runs({
         number,
         division,
         hhf,
@@ -152,8 +209,66 @@ const classifiersRoutes = async (fastify, opts) => {
 
   fastify.get("/:division/:number/chart", async (req, res) => {
     const { division, number } = req.params;
-    const { full } = req.query;
-    return chartData({ division, number, full });
+    const { full: fullString } = req.query;
+    const full = Number(fullString);
+
+    const [scores, memberNumbers] = await Promise.all([
+      Score.find({ classifier: number, division }).limit(0),
+      Score.find({ classifier: number, division }).distinct("memberNumber"),
+    ]);
+
+    const runs = scores
+      .map((doc) => doc.toObject())
+      .sort((a, b) => b.hf - a.hf)
+      .filter(({ hf }) => hf > 0);
+
+    const shooters = await Shooter.find({
+      memberNumber: { $in: memberNumbers },
+    }).limit(0);
+
+    const hhf = curHHFForDivisionClassifier({ number, division });
+    const allPoints = runs.map((run, index, allRuns) => {
+      const shooter = shooters.find(
+        (doc) => doc.memberNumber === run.memberNumber
+      );
+
+      return {
+        x: HF(run.hf),
+        y: PositiveOrMinus1(Percent(index, allRuns.length)),
+        memberNumber: run.memberNumber,
+        // percentages in classifier chart are used for colors
+        // historical (if possible) or current curHHFPercent of the shooter for dot color
+        historicalCurHHFPercent:
+          shooter?.reclassificationsByCurPercent[
+            division
+          ].percentWithDates?.findLast(({ sd }) => {
+            const runUnixTime = new Date(run.sd).getTime();
+            const sdUnixTime = new Date(sd).getTime();
+            return sdUnixTime < runUnixTime;
+          })?.p || 0,
+        curPercent: shooter?.current[division] || 0,
+        curHHFPercent:
+          shooter?.reclassificationsByCurPercent[division]?.percent || 0,
+        recPercent:
+          shooter?.reclassificationsByRecPercent[division]?.percent || 0,
+      };
+    });
+
+    // for zoomed in mode return all points
+    if (full === 1) {
+      return allPoints;
+    }
+
+    // always return top 100 points, and reduce by 0.5% grouping for other to make render easier
+    const first50 = allPoints.slice(0, 50);
+    const other = allPoints.slice(50, allPoints.length);
+    return [
+      ...first50,
+      ...uniqBy(
+        other,
+        ({ x }) => Math.floor((200 * x) / hhf) // 0.5% grouping for graph points reduction
+      ),
+    ];
   });
 };
 
