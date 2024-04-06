@@ -55,14 +55,13 @@ const classifiersRoutes = async (fastify, opts) => {
     }
 
     const basic = basicInfoForClassifier(c);
-    const extended = extendedInfoForClassifier(c, division);
+    const extended = await extendedInfoForClassifier(c, division);
     const { hhf, hhfs } = extended;
 
-    const allRuns = runsForDivisionClassifier({
+    const allRuns = await runsForDivisionClassifier({
       number,
       division,
       hhf,
-      includeNoHF: false,
       hhfs,
     });
     let runsUnsorted = allRuns;
@@ -90,26 +89,11 @@ const classifiersRoutes = async (fastify, opts) => {
       order?.split?.(",")
     ).map((run, index) => ({ ...run, index }));
 
-    // const extendedCalibrationTable = await getExtendedCalibrationShootersPercentileTable();
-
-    // Not using calculated percentiles, because it's all over the place in different divisions
-    // Closest to reality is curPercent in CO, and few good classifiers there, which show
-    // GM shooters start where they should. These classifiers are
-    // 99-07 Both Sides Now
-    // 03-03 Take em Down
-    // 06-01 Big Barricade
-    // 06-02 Big Barricade II
-    // 09-13 Table Stakes
-    // 19-02 Hi-Way Robbery
-    // So we're just gonna eye-ball percentiles for 3 recommendation algos based on these
-    // classifiers for now.
-    // It can always be adjusted later.
-
-    return {
+    const result = {
       info: {
         ...basic,
         ...extended,
-        recHHF: recommendedHHFFor({ division, number }),
+        recHHF: await recommendedHHFFor({ division, number }),
         recommendedHHF1: recommendedHHFByPercentileAndPercent(
           allRuns,
           0.9, // extendedCalibrationTable[division].pGM,
@@ -130,6 +114,8 @@ const classifiersRoutes = async (fastify, opts) => {
       runsTotal: runs.length,
       runsPage: page,
     };
+
+    return result;
   });
 
   fastify.get("/download/:division/:number", async (req, res) => {
@@ -155,11 +141,10 @@ const classifiersRoutes = async (fastify, opts) => {
         ...basic,
         ...extended,
       },
-      runs: runsForDivisionClassifier({
+      runs: await runsForDivisionClassifier({
         number,
         division,
         hhf,
-        includeNoHF: false,
         hhfs,
       }),
     };

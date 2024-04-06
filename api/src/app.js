@@ -7,6 +7,8 @@ import { dirPath } from "./utils.js";
 import { connect, hydrate, testModels } from "./db/index.js";
 
 const FastifyAppEntry = async (fastify, opts) => {
+  await connect();
+
   // global settings
   await fastify.register(cors, { origin: "*" }); // IDGAF who uses this from where
   const pathReact = dirPath("./../../web/dist/");
@@ -26,10 +28,6 @@ const FastifyAppEntry = async (fastify, opts) => {
     ignoreFilter: (path) => path.includes("/test/"),
     options: Object.assign({}, opts),
   });
-
-  await connect();
-  await hydrate();
-  await testModels();
 };
 
 export default FastifyAppEntry;

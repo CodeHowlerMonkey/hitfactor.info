@@ -23,7 +23,6 @@ export const divShortToHHFs = loadJSON("../../data/hhf.json").hhfs.reduce(
   {}
 );
 
-// TODO: refactor to divShortToClassifierNumbertoHHF
 export const curHHFForDivisionClassifier = ({ division, number }) => {
   if (!number) {
     return NaN;

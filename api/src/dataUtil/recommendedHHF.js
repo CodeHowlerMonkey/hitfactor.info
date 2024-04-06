@@ -1,4 +1,3 @@
-import memoize from "memoize";
 import { HF, Percent, PositiveOrMinus1 } from "./numbers.js";
 import { selectClassifierDivisionScores } from "./classifiersSource.js";
 
@@ -428,20 +427,23 @@ const recommendedHHFFunctionFor = ({ division, number }) => {
   return r1;
 };
 
-export const recommendedHHFFor = memoize(
-  ({ division, number }) => {
-    const runs = selectClassifierDivisionScores({
+export const recommendedHHFFor = async ({ division, number }) => {
+  const runs = (
+    await selectClassifierDivisionScores({
       number,
       division,
-      includeNoHF: false,
     })
-      .sort((a, b) => b.hf - a.hf)
-      .map((run, index, allRuns) => ({
-        ...run,
-        percentile: PositiveOrMinus1(Percent(index, allRuns.length)),
-      }));
+  )
+    .map((doc) => doc.toObject())
+    .map((c) => {
+      c.hf = c.hf ?? 0;
+      return c;
+    })
+    .sort((a, b) => b.hf - a.hf)
+    .map((run, index, allRuns) => ({
+      ...run,
+      percentile: PositiveOrMinus1(Percent(index, allRuns.length)),
+    }));
 
-    return recommendedHHFFunctionFor({ division, number })(runs);
-  },
-  ([{ division, number }]) => division + "/" + number
-);
+  return recommendedHHFFunctionFor({ division, number })(runs);
+};

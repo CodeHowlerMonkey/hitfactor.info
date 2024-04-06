@@ -1,13 +1,7 @@
 import {
-  getRecHHFMap,
-  getShooterToCurPercentClassifications,
-  getShooterToRuns,
-} from "../../../dataUtil/classifiers.js";
-import {
   highestClassification,
   classForPercent,
 } from "../../../../../shared/utils/classification.js";
-import { getExtendedClassificationsInfo } from "../../../dataUtil/classifications.js";
 import { mapDivisions } from "../../../dataUtil/divisions.js";
 import { classifiersForDivision } from "../../../classifiers.api.js";
 import {
@@ -120,20 +114,17 @@ const classificationsRoutes = async (fastify, opts) => {
   fastify.get("/", (req, res) => {
     return getMemoizedClassificationStats();
   });
-  fastify.addHook("onListen", () => {
+  /*fastify.addHook("onListenzzzzzz", () => {
     if (process.env.QUICK_DEV) {
       console.log("USING FAST HYDRATION (you will only have partial data)");
     }
     console.log("hydrating classifiers");
     mapDivisions((div) => classifiersForDivision(div));
-    getRecHHFMap();
     console.log("done hydrating classifiers ");
 
     console.log("hydrating shooters");
-    getShooterToRuns();
     getShootersTable();
     getShootersTableByMemberNumber();
-    getShooterToCurPercentClassifications();
     console.log("done hydrating shooters");
 
     console.log("hydrating classification stats");
@@ -142,7 +133,7 @@ const classificationsRoutes = async (fastify, opts) => {
 
     // Keep this at the end of all hydration calls
     console.log("HYDRATION DONE, API should be responsive now");
-  });
+  });*/
 };
 
 export default classificationsRoutes;

@@ -1,19 +1,13 @@
 import memoize from "memoize";
 
-import { getExtendedClassificationsInfo } from "./classifications.js";
-import { N, Percent, PositiveOrMinus1 } from "./numbers.js";
+import { Percent } from "./numbers.js";
 import { mapDivisions } from "./divisions.js";
-import {
-  getDivShortToShooterToRuns,
-  getRecHHFMap,
-  getShooterToCurPercentClassifications,
-} from "./classifiers.js";
 import { byMemberNumber } from "./byMemberNumber.js";
-import { curHHFForDivisionClassifier } from "./hhf.js";
 
 import { dateSort } from "../../../shared/utils/sort.js";
 import { lazy } from "../utils.js";
 import { classForPercent } from "../../../shared/utils/classification.js";
+import { Score } from "../db/scores.js";
 
 const scoresAge = (division, memberNumber, maxScores = 4) =>
   (getDivShortToShooterToRuns()[division][memberNumber] ?? [])
@@ -151,72 +145,6 @@ const getShootersFullForDivision = memoize(
   { cacheKey: ([division]) => division }
 );
 
-// Not used for now, but keeping in the codebase for later analysis
-const getFreshShootersForDivisionCalibration = (
-  division,
-  maxAge = 48,
-  maxAge1 = 24
-) =>
-  getShootersFullForDivision(division) // sorted by current already
-    .filter((c) => c.age > 0 && c.age <= maxAge && c.age1 <= maxAge1)
-    .map((c, index, all) => ({
-      current: c.current,
-      percentile: Percent(index, all.length),
-      age: c.age,
-      index,
-    }));
-
-export const classifiersForDivisionForShooter = ({ division, memberNumber }) =>
-  (getDivShortToShooterToRuns()[division][memberNumber] ?? []).map(
-    (run, index) => {
-      const hhf = curHHFForDivisionClassifier({
-        number: run.classifier,
-        division,
-      });
-      const curPercent = PositiveOrMinus1(Percent(run.hf, hhf));
-      const percentMinusCurPercent =
-        curPercent >= 0 ? N(run.percent - curPercent) : -1;
-
-      const recHHF = getRecHHFMap()[division]?.[run.classifier];
-      const recPercent = PositiveOrMinus1(Percent(run.hf, recHHF));
-
-      return {
-        ...run,
-        recPercent,
-        curPercent,
-        percentMinusCurPercent,
-        index,
-        division,
-      };
-    }
-  );
-
-export const getExtendedCalibrationShootersPercentileTable = lazy(() => {
-  const divToCurHHFPercentArray = mapDivisions((div) => []);
-  const curHHFCalibrationShooters = Object.values(
-    getShooterToCurPercentClassifications()
-  );
-  curHHFCalibrationShooters.forEach((shooter) => {
-    mapDivisions((div) => {
-      divToCurHHFPercentArray[div].push(shooter[div].percent);
-      return 0;
-    });
-  });
-
-  const divToCurHHFPercentArraySorted = mapDivisions((div) =>
-    divToCurHHFPercentArray[div].filter((c) => c > 0).sort(safeNumSort())
-  );
-
-  return mapDivisions((div) => {
-    const divArray = divToCurHHFPercentArraySorted[div];
-    return {
-      pGM: (100 * divArray.findIndex((c) => c <= 95)) / divArray.length,
-      pM: (100 * divArray.findIndex((c) => c <= 85)) / divArray.length,
-      pA: (100 * divArray.findIndex((c) => c <= 75)) / divArray.length,
-    };
-  });
-});
-
 export const getShootersTable = lazy(() => {
   const co = getShootersFullForDivision("co");
   const lo = getShootersFullForDivision("lo");
@@ -275,8 +203,22 @@ export const getShooterFullInfo = ({ memberNumber, division }) => {
   };
 };
 
-export const shooterChartData = ({ memberNumber, division }) =>
-  classifiersForDivisionForShooter({ memberNumber, division })
+export const classifiersForDivisionForShooter = async ({
+  division,
+  memberNumber,
+}) => {
+  const scores = await Score.find({ division, memberNumber }).limit(0);
+  return scores.map((doc, index) => {
+    const obj = doc.toObject({ virtuals: true });
+    obj.index = index;
+    return obj;
+  });
+};
+
+export const shooterChartData = async ({ memberNumber, division }) => {
+  const scores = await Score.find({ memberNumber, division }).limit(0);
+  return scores
+    .map((doc) => doc.toObject({ virtuals: true }))
     .map((run) => ({
       x: run.sd,
       recPercent: run.recPercent,
@@ -285,6 +227,7 @@ export const shooterChartData = ({ memberNumber, division }) =>
       classifier: run.classifier,
     }))
     .filter((run) => !!run.classifier); // no majors for now in the graph
+};
 
 export const shooterDistributionChartData = ({ division }) =>
   getShootersTable()

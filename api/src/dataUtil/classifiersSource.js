@@ -1,3 +1,4 @@
+import { Score } from "../db/scores.js";
 import { processImport, lazy } from "../utils.js";
 import { divIdToShort, mapDivisions } from "./divisions.js";
 
@@ -56,22 +57,7 @@ export const getDivShortToRuns = lazy(() => {
   });
   _divShortToRuns.loco = [].concat(_divShortToRuns.co, _divShortToRuns.lo);
   return _divShortToRuns;
-}, "../../cache/divShortToRuns.json");
+});
 
-// TODO: memoize?
-export const selectClassifierDivisionScores = ({
-  number,
-  division,
-  includeNoHF,
-}) =>
-  getDivShortToRuns()[division].filter((run) => {
-    if (!run) {
-      return false;
-    }
-
-    if (!includeNoHF && run.hf < 0) {
-      return false;
-    }
-
-    return run.classifier === number;
-  });
+export const selectClassifierDivisionScores = async ({ number, division }) =>
+  Score.find({ classifier: number, division }).limit(0);

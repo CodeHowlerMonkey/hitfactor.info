@@ -1,12 +1,23 @@
 import mongoose from "mongoose";
-import { hydrateScores } from "./scores.js";
+import { Score, hydrateScores } from "./scores.js";
+import { hydrateRecHHF } from "./recHHF.js";
+import { recommendedHHFFor } from "../dataUtil/recommendedHHF.js";
+import { Shooter, hydrateShooters } from "./shooters.js";
 
 export const connect = async () => {
   await mongoose.connect(process.env.MONGO_URL);
 };
 
 export const hydrate = async () => {
+  const test = await Shooter.findOne({ memberNumber: "L1234" });
+  console.log(JSON.stringify(test.toObject({ virtuals: true }), null, 2));
+  return;
+
   await hydrateScores();
+  await hydrateRecHHF();
+  await hydrateShooters();
+
+  console.log("hydration done");
 };
 
 export const testModels = async () => {

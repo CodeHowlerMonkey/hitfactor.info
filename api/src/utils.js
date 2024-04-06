@@ -26,36 +26,34 @@ export const processImport = (dir, fileRegexp, forEachFileJSONCb) => {
   });
 };
 
-export const lazy = (resolver, cachePath) => {
+export const processImportAsync = async (
+  dir,
+  fileRegexp,
+  forEachFileJSONCb
+) => {
+  const files = fs
+    .readdirSync(dirPath(dir))
+    .filter((file) => !!file.match(fileRegexp));
+
+  const filesToProcess = !process.env.QUICK_DEV
+    ? files
+    : files.slice(files.length - 4, files.length);
+
+  for (const file of filesToProcess) {
+    const curJSON = loadJSON(dir + "/" + file);
+    await Promise.all(curJSON.map(forEachFileJSONCb));
+  }
+};
+
+export const lazy = (resolver) => {
   let _result = null;
 
   return () => {
     if (_result) {
       return _result;
-    } /*else if (cachePath) {
-      try {
-        const cached = loadJSON(cachePath);
-        if (cached) {
-          console.log("using cached " + cachePath);
-          _result = cached;
-          return _result;
-        }
-      } catch (err) {
-        if (err.code !== "ENOENT") {
-          console.error(err);
-        }
-      }
-    }*/
+    }
 
-    /*
-    console.log("resolving new " + cachePath);
-    */
     _result = resolver();
-    /*
-    if (cachePath) {
-      console.log("saving cache " + cachePath);
-      saveJSON(cachePath, _result);
-    }*/
     return _result;
   };
 };

@@ -3,7 +3,6 @@ import {
   basicInfoForClassifier,
   classifiers,
 } from "./dataUtil/classifiersData.js";
-import { recommendedHHFFor } from "./dataUtil/recommendedHHF.js";
 import sortedUniqBy from "lodash.sorteduniqby";
 import transform from "lodash.transform";
 import memoize from "memoize";
@@ -12,55 +11,59 @@ import {
   getDivShortToRuns,
   selectClassifierDivisionScores,
 } from "./dataUtil/classifiersSource.js";
-import {
-  getShooterToCurPercentClassifications,
-  getShooterToRecPercentClassifications,
-} from "./dataUtil/classifiers.js";
 import { HF, N, Percent, PositiveOrMinus1 } from "./dataUtil/numbers.js";
-import {
-  getShooterFullInfo,
-  getShootersTableByMemberNumber,
-} from "./dataUtil/shooters.js";
+import { getShooterFullInfo } from "./dataUtil/shooters.js";
 
 import { stringSort } from "../../shared/utils/sort.js";
 
 import { curHHFForDivisionClassifier, divShortToHHFs } from "./dataUtil/hhf.js";
+import { Score } from "./db/scores.js";
+import { Shooter } from "./db/shooters.js";
+import { RecHHF } from "./db/recHHF.js";
 
-export const chartData = ({ number, division, full: fullString }) => {
+export const chartData = async ({ number, division, full: fullString }) => {
   const full = Number(fullString);
-  const runs = selectClassifierDivisionScores({
-    number,
-    division,
-  })
+  const [scores, memberNumbers] = await Promise.all([
+    Score.find({ classifier: number, division }).limit(0),
+    Score.find({ classifier: number, division }).distinct("memberNumber"),
+  ]);
+
+  const runs = scores
+    .map((doc) => doc.toObject())
     .sort((a, b) => b.hf - a.hf)
     .filter(({ hf }) => hf > 0);
 
-  const curPercentClsasifications = getShootersTableByMemberNumber();
-  const curHHFPercentClassifications = getShooterToCurPercentClassifications();
-  const recPercentClassifications = getShooterToRecPercentClassifications();
+  const shooters = await Shooter.find({
+    memberNumber: { $in: memberNumbers },
+  }).limit(0);
+
   const hhf = curHHFForDivisionClassifier({ number, division });
-  const allPoints = runs.map((run, index, allRuns) => ({
-    x: HF(run.hf),
-    y: PositiveOrMinus1(Percent(index, allRuns.length)),
-    memberNumber: run.memberNumber,
-    // historical (if possible) or current curHHFPercent of the shooter for dot color
-    historicalCurHHFPercent:
-      curHHFPercentClassifications[run.memberNumber]?.[
-        division
-      ]?.percentWithDates?.findLast(({ sd }) => {
-        const runUnixTime = new Date(run.sd).getTime();
-        const sdUnixTime = new Date(sd).getTime();
-        return sdUnixTime < runUnixTime;
-      })?.p || 0,
-    // current curHHFPercent for secondary color
-    curHHFPercent:
-      curHHFPercentClassifications[run.memberNumber]?.[division]?.percent || 0,
-    // alternative color curPercent official from USPSA
-    curPercent:
-      curPercentClsasifications[division]?.[run.memberNumber]?.[0].current || 0,
-    recPercent:
-      recPercentClassifications[run.memberNumber]?.[division]?.percent || 0,
-  }));
+  const allPoints = runs.map((run, index, allRuns) => {
+    const shooter = shooters.find(
+      (doc) => doc.memberNumber === run.memberNumber
+    );
+
+    return {
+      x: HF(run.hf),
+      y: PositiveOrMinus1(Percent(index, allRuns.length)),
+      memberNumber: run.memberNumber,
+      // percentages in classifier chart are used for colors
+      // historical (if possible) or current curHHFPercent of the shooter for dot color
+      historicalCurHHFPercent:
+        shooter?.reclassificationsByCurPercent[
+          division
+        ].percentWithDates?.findLast(({ sd }) => {
+          const runUnixTime = new Date(run.sd).getTime();
+          const sdUnixTime = new Date(sd).getTime();
+          return sdUnixTime < runUnixTime;
+        })?.p || 0,
+      curPercent: shooter?.current[division] || 0,
+      curHHFPercent:
+        shooter?.reclassificationsByCurPercent[division]?.percent || 0,
+      recPercent:
+        shooter?.reclassificationsByRecPercent[division]?.percent || 0,
+    };
+  });
 
   // for zoomed in mode return all points
   if (full === 1) {
@@ -79,47 +82,60 @@ export const chartData = ({ number, division, full: fullString }) => {
   ];
 };
 
-export const runsForDivisionClassifier = memoize(
-  ({ number, division, hhf, includeNoHF = false, hhfs }) => {
-    const divisionClassifierRunsSortedByHFOrPercent =
-      selectClassifierDivisionScores({ number, division, includeNoHF }).sort(
-        (a, b) => {
-          if (includeNoHF) {
-            return b.percent - a.percent;
-          }
+export const runsForDivisionClassifier = async ({
+  number,
+  division,
+  hhf,
+  hhfs,
+}) => {
+  const scores = () => Score.find({ classifier: number, division });
+  const divisionClassifierRunsSortedByHFOrPercent = (await scores().limit(0))
+    .map((doc) => doc.toObject())
+    .sort((a, b) => b.hf - a.hf);
 
-          return b.hf - a.hf;
-        }
-      );
+  const memberNumbers = await scores().distinct("memberNumber");
+  const shooterDocs = await Shooter.find({
+    memberNumber: { $in: memberNumbers },
+  })
+    .limit(0)
+    .select(["classifications", "high", "current", "memberNumber", "name"])
+    .lean();
 
-    return divisionClassifierRunsSortedByHFOrPercent.map(
-      (run, index, allRuns) => {
-        const { memberNumber } = run;
-        const percent = N(run.percent);
-        const curPercent = PositiveOrMinus1(Percent(run.hf, hhf));
-        const percentMinusCurPercent = N(percent - curPercent);
+  const shooters = shooterDocs.map((doc) => ({
+    class: doc.classifications[division],
+    high: doc.high[division],
+    current: doc.current[division],
+    division,
+    memberNumber: doc.memberNumber,
+    name: doc.name,
+  }));
 
-        const findHistoricalHHF = hhfs.findLast(
-          (hhf) => hhf.date <= new Date(run.sd).getTime()
-        )?.hhf;
+  return divisionClassifierRunsSortedByHFOrPercent.map(
+    (run, index, allRuns) => {
+      const { memberNumber } = run;
+      const percent = N(run.percent);
+      const curPercent = PositiveOrMinus1(Percent(run.hf, hhf));
+      const percentMinusCurPercent = N(percent - curPercent);
 
-        const recalcHistoricalHHF = HF((100 * run.hf) / run.percent);
+      const findHistoricalHHF = hhfs.findLast(
+        (hhf) => hhf.date <= new Date(run.sd).getTime()
+      )?.hhf;
 
-        return {
-          ...run,
-          ...getShooterFullInfo({ memberNumber, division }),
-          historicalHHF: findHistoricalHHF ?? recalcHistoricalHHF,
-          percent,
-          curPercent,
-          percentMinusCurPercent: percent >= 100 ? 0 : percentMinusCurPercent,
-          place: index + 1,
-          percentile: PositiveOrMinus1(Percent(index, allRuns.length)),
-        };
-      }
-    );
-  },
-  { cacheKey: (ehFuckit) => JSON.stringify(ehFuckit) }
-);
+      const recalcHistoricalHHF = HF((100 * run.hf) / run.percent);
+
+      return {
+        ...run,
+        ...shooters.find((c) => c.memberNumber === memberNumber),
+        historicalHHF: findHistoricalHHF ?? recalcHistoricalHHF,
+        percent,
+        curPercent,
+        percentMinusCurPercent: percent >= 100 ? 0 : percentMinusCurPercent,
+        place: index + 1,
+        percentile: PositiveOrMinus1(Percent(index, allRuns.length)),
+      };
+    }
+  );
+};
 
 const calcRunStats = (runs) =>
   runs.reduce(
@@ -173,106 +189,125 @@ const calcLegitRunStats = (runs, hhf) =>
     { D: 0, C: 0, B: 0, A: 0, M: 0, GM: 0, Hundo: 0, Total: runs.length }
   );
 
-export const extendedInfoForClassifier = memoize(
-  (c, division) => {
-    if (!division) {
-      return {};
-    }
-    const divisionHHFs = divShortToHHFs[division];
-    const curHHFInfo = divisionHHFs.find((dHHF) => dHHF.classifier === c.id);
+export const extendedInfoForClassifier = async (c, division) => {
+  if (!division) {
+    return {};
+  }
+  const divisionHHFs = divShortToHHFs[division];
+  const curHHFInfo = divisionHHFs.find((dHHF) => dHHF.classifier === c.id);
 
-    const hitFactorScores = getDivShortToRuns()
-      [division].filter((run) => run?.classifier === c.classifier)
-      .filter((run) => run.hf >= 0) //  only classifer HF scores
-      .sort((a, b) => b.hf - a.hf);
+  const hitFactorScores = await Score.find({
+    classifier: c.classifier,
+    division,
+    hf: { $gte: 0 },
+  })
+    .sort({ hf: -1 })
+    .limit(0);
 
-    const hhf = Number(curHHFInfo.hhf);
+  const hhf = Number(curHHFInfo.hhf);
 
-    const topXPercentileStats = (x) => ({
-      [`top${x}PercentilePercent`]:
-        hitFactorScores[Math.floor(x * 0.01 * hitFactorScores.length)]?.percent,
-      [`top${x}PercentileCurPercent`]: Percent(
-        hitFactorScores[Math.floor(x * 0.01 * hitFactorScores.length)]?.hf,
-        hhf
-      ),
-      [`top${x}PercentileHF`]:
-        hitFactorScores[Math.floor(x * 0.01 * hitFactorScores.length)]?.hf,
-    });
+  const topXPercentileStats = (x) => ({
+    [`top${x}PercentilePercent`]:
+      hitFactorScores[Math.floor(x * 0.01 * hitFactorScores.length)]?.percent,
+    [`top${x}PercentileCurPercent`]: Percent(
+      hitFactorScores[Math.floor(x * 0.01 * hitFactorScores.length)]?.hf,
+      hhf
+    ),
+    [`top${x}PercentileHF`]:
+      hitFactorScores[Math.floor(x * 0.01 * hitFactorScores.length)]?.hf,
+  });
 
-    const inversePercentileStats = (xPercent) => ({
-      [`inverse${xPercent}CurPercentPercentile`]: Percent(
-        hitFactorScores.findLastIndex((c) => (100 * c.hf) / hhf >= xPercent),
-        hitFactorScores.length
-      ),
-    });
+  const inversePercentileStats = (xPercent) => ({
+    [`inverse${xPercent}CurPercentPercentile`]: Percent(
+      hitFactorScores.findLastIndex((c) => (100 * c.hf) / hhf >= xPercent),
+      hitFactorScores.length
+    ),
+  });
 
-    // sik maf bro
-    // historical high hit factors, N(x, 2) uniqueness, cause maf is hard on
-    // computers and gets too much noise. If they changed HF <= 0.01 it doesn't
-    // matter anyway, so toFixed(2)
-    const hhfs = sortedUniqBy(
-      hitFactorScores
-        .filter((run) => run.percent !== 0 && run.percent !== 100)
-        .map((run) => ({
-          date: new Date(run.sd).getTime(),
-          sd: run.sd,
-          hhf: HF((100 * run.hf) / run.percent),
-        }))
-        .sort((a, b) => a.date - b.date),
-      (hhfData) => N(hhfData.hhf, 2)
-    );
-    const clubs = uniqBy(hitFactorScores, "clubid")
-      .map(({ clubid: id, club_name: name }) => ({
-        id,
-        name,
-        label: id + " " + name,
+  // sik maf bro
+  // historical high hit factors, N(x, 2) uniqueness, cause maf is hard on
+  // computers and gets too much noise. If they changed HF <= 0.01 it doesn't
+  // matter anyway, so toFixed(2)
+  const hhfs = sortedUniqBy(
+    hitFactorScores
+      .filter((run) => run.percent !== 0 && run.percent !== 100)
+      .map((run) => ({
+        date: new Date(run.sd).getTime(),
+        sd: run.sd,
+        hhf: HF((100 * run.hf) / run.percent),
       }))
-      .sort((a, b) => stringSort(a, b, "id", 1));
+      .sort((a, b) => a.date - b.date),
+    (hhfData) => N(hhfData.hhf, 2)
+  );
+  const clubs = uniqBy(hitFactorScores, "clubid")
+    .map(({ clubid: id, club_name: name }) => ({
+      id,
+      name,
+      label: id + " " + name,
+    }))
+    .sort((a, b) => stringSort(a, b, "id", 1));
 
-    return {
-      updated: curHHFInfo.updated, //actualLastUpdate, // before was using curHHFInfo.updated, and it's bs
-      hhf,
-      prevHHF: hhfs.findLast((c) => c.hhf !== hhf)?.hhf ?? hhf,
-      hhfs,
-      clubsCount: clubs.length,
-      clubs,
-      ...transform(
-        calcLegitRunStats(hitFactorScores, hhf),
-        (r, v, k) => (r["runsTotalsLegit" + k] = v)
-      ),
-      runs: hitFactorScores.length,
-      top10CurPercentAvg:
-        hitFactorScores
-          .slice(0, 10)
-          .map((s) => Percent(s.hf, hhf))
-          .reduce((a, b) => a + b, 0) / 10,
-      ...topXPercentileStats(1),
-      ...topXPercentileStats(2),
-      ...topXPercentileStats(5),
-      ...inversePercentileStats(100),
-      ...inversePercentileStats(95),
-      ...inversePercentileStats(85),
-      ...inversePercentileStats(75),
-      ...inversePercentileStats(60),
-      ...inversePercentileStats(40),
-    };
-  },
-  { cacheKey: ([c, division]) => c.classifier + ":" + division }
-);
+  const result = {
+    updated: curHHFInfo.updated, //actualLastUpdate, // before was using curHHFInfo.updated, and it's bs
+    hhf,
+    prevHHF: hhfs.findLast((c) => c.hhf !== hhf)?.hhf ?? hhf,
+    hhfs,
+    clubsCount: clubs.length,
+    clubs,
+    ...transform(
+      calcLegitRunStats(hitFactorScores, hhf),
+      (r, v, k) => (r["runsTotalsLegit" + k] = v)
+    ),
+    runs: hitFactorScores.length,
+    top10CurPercentAvg:
+      hitFactorScores
+        .slice(0, 10)
+        .map((s) => Percent(s.hf, hhf))
+        .reduce((a, b) => a + b, 0) / 10,
+    ...topXPercentileStats(1),
+    ...topXPercentileStats(2),
+    ...topXPercentileStats(5),
+    ...inversePercentileStats(100),
+    ...inversePercentileStats(95),
+    ...inversePercentileStats(85),
+    ...inversePercentileStats(75),
+    ...inversePercentileStats(60),
+    ...inversePercentileStats(40),
+  };
+  return result;
+};
 
-export const classifiersForDivision = memoize(
-  (division) =>
-    classifiers.map((c) => {
-      const scores = getDivShortToRuns();
-      const divScores = scores[division];
-      const hitFactorScores = divScores
-        .filter((run) => run?.classifier === c.classifier)
-        .filter((run) => run.hf >= 0) //  only classifer HF scores
-        .sort((a, b) => b.hf - a.hf);
-      const recHHF = recommendedHHFFor({
-        division,
-        number: c.classifier,
-      });
+// TODO: refactor to another pre-hydrated mongo collection
+// TODO: first refactor extendedInfoForClassifier there
+export const classifiersForDivision = async (division) => {
+  /*
+  const [divRecHFFs, divScores] = await Promise.all([
+    RecHHF.find({ division })
+      .select(["division", "classifier", "recHHF"])
+      .lean()
+      .limit(0),
+    Score.find({ division, hf: { $gte: 0 } })
+      .allowDiskUse(true)
+      .sort({ hf: -1 })
+      .limit(0),
+  ]);*/
+  const divRecHFFs = await RecHHF.find({ division })
+    .select(["division", "classifier", "recHHF"])
+    .lean()
+    .limit(0);
+  const divScores = await Score.find({ division, hf: { $gte: 0 } })
+    .allowDiskUse(true)
+    .sort({ hf: -1 })
+    .limit(0);
+
+  return await Promise.all(
+    classifiers.map(async (c) => {
+      const hitFactorScores = divScores.filter(
+        (run) => run?.classifier === c.classifier
+      );
+      const recHHF = divRecHFFs.find(
+        (r) => r.classifier === c.classifier
+      )?.recHHF;
       const inverseRecPercentileStats = (xPercent) => ({
         [`inverse${xPercent}RecPercentPercentile`]: Percent(
           recHHF > 0
@@ -285,13 +320,13 @@ export const classifiersForDivision = memoize(
       });
       return {
         ...basicInfoForClassifier(c),
-        ...extendedInfoForClassifier(c, division),
+        ...(await extendedInfoForClassifier(c, division)),
         recHHF,
         ...inverseRecPercentileStats(100),
         ...inverseRecPercentileStats(95),
         ...inverseRecPercentileStats(85),
         ...inverseRecPercentileStats(75),
       };
-    }),
-  { cacheKey: ([division]) => division }
-);
+    })
+  );
+};
