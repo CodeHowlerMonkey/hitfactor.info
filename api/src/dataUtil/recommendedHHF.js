@@ -1,5 +1,4 @@
 import { HF, Percent, PositiveOrMinus1 } from "./numbers.js";
-import { selectClassifierDivisionScores } from "./classifiersSource.js";
 
 /**
  * Calculated recommended HHF by matching lower percent of the score to percentile of shooters
@@ -428,12 +427,7 @@ const recommendedHHFFunctionFor = ({ division, number }) => {
 };
 
 export const recommendedHHFFor = async ({ division, number }) => {
-  const runs = (
-    await selectClassifierDivisionScores({
-      number,
-      division,
-    })
-  )
+  const runs = (await Score.find({ classifier: number, division }).limit(0))
     .map((doc) => doc.toObject())
     .map((c) => {
       c.hf = c.hf ?? 0;
