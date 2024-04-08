@@ -1,14 +1,13 @@
 import {
   getShootersTable,
   getShootersTableByMemberNumber,
-  shooterChartData,
-  shooterDistributionChartData,
 } from "../../../dataUtil/shooters.js";
 
 import { basicInfoForClassifierCode } from "../../../dataUtil/classifiersData.js";
 import {
   classLetterSort,
   multisort,
+  safeNumSort,
 } from "../../../../../shared/utils/sort.js";
 import { PAGE_SIZE } from "../../../../../shared/constants/pagination.js";
 import { classForPercent } from "../../../../../shared/utils/classification.js";
@@ -16,6 +15,7 @@ import {
   scoresForDivisionForShooter,
   shooterScoresChartData,
 } from "../../../db/scores.js";
+import { Shooter } from "../../../db/shooters.js";
 
 const shootersRoutes = async (fastify, opts) => {
   fastify.get("/download/:division", async (req, res) => {
@@ -153,7 +153,41 @@ const shootersRoutes = async (fastify, opts) => {
 
   fastify.get("/:division/chart", async (req, res) => {
     const { division } = req.params;
-    return shooterDistributionChartData({ division });
+    const shootersTable = await Shooter.find({
+      [`current.${division}`]: { $gt: 0 },
+      [`reclassificationsByCurPercent.${division}.percent`]: { $gt: 0 },
+    })
+      .select([
+        `current.${division}`,
+        `reclassificationsByCurPercent.${division}.percent`,
+        `reclassificationsByRecPercent.${division}.percent`,
+        "memberNumber",
+      ])
+      .lean()
+      .limit(0);
+
+    return shootersTable
+      .map((c) => ({
+        curPercent: c.current[division],
+        curHHFPercent: c.reclassificationsByCurPercent[division].percent,
+        recPercent: c.reclassificationsByRecPercent[division].percent,
+        memberNumber: c.memberNumber,
+      }))
+      .sort(safeNumSort("curPercent"))
+      .map((c, i, all) => ({
+        ...c,
+        curPercentPercentile: (100 * i) / (all.length - 1),
+      }))
+      .sort(safeNumSort("curHHFPercent"))
+      .map((c, i, all) => ({
+        ...c,
+        curHHFPercentPercentile: (100 * i) / (all.length - 1),
+      }))
+      .sort(safeNumSort("recPercent"))
+      .map((c, i, all) => ({
+        ...c,
+        recPercentPercentile: (100 * i) / (all.length - 1),
+      }));
   });
 };
 

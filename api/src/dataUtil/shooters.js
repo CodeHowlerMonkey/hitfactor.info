@@ -4,7 +4,7 @@ import { Percent } from "./numbers.js";
 import { mapDivisions } from "./divisions.js";
 import { byMemberNumber } from "./byMemberNumber.js";
 
-import { dateSort } from "../../../shared/utils/sort.js";
+import { dateSort, safeNumSort } from "../../../shared/utils/sort.js";
 import { lazy } from "../utils.js";
 import { classForPercent } from "../../../shared/utils/classification.js";
 import { Score } from "../db/scores.js";
@@ -106,17 +106,6 @@ const classificationsBreakdownAdapter = (c, division) => {
   };
 };
 
-const safeNumSort = (field) => (a, b) => {
-  // sort by current to calculate currentRank
-  // have to use Max and || 0 because U/X shooters need to be in the
-  // output here (used in shooter info head), but can't mess up the
-  // ranking due to null/-1/undefined values
-  // note: || is used instead of ?? to convert NaN to 0 as well
-  const aValue = field ? a[field] : a;
-  const bValue = field ? b[field] : b;
-  return Math.max(0, bValue || 0) - Math.max(0, aValue || 0);
-};
-
 const getShootersFullForDivision = memoize(
   (division) => {
     return (
@@ -202,34 +191,3 @@ export const getShooterFullInfo = ({ memberNumber, division }) => {
     name: "Expired / Not Found",
   };
 };
-
-export const shooterDistributionChartData = ({ division }) =>
-  getShootersTable()
-    [division].filter((c) => {
-      if (!c.current || !c.reclassificationsCurPercentCurrent) {
-        return false;
-      }
-      return true;
-    })
-    .map((c, i, all) => ({
-      //y: (100 * i) / (all.length - 1),
-      curPercent: c.current,
-      curHHFPercent: c.reclassificationsCurPercentCurrent,
-      recPercent: c.reclassificationsRecPercentCurrent,
-      memberNumber: c.memberNumber,
-    }))
-    .sort(safeNumSort("curPercent"))
-    .map((c, i, all) => ({
-      ...c,
-      curPercentPercentile: (100 * i) / (all.length - 1),
-    }))
-    .sort(safeNumSort("curHHFPercent"))
-    .map((c, i, all) => ({
-      ...c,
-      curHHFPercentPercentile: (100 * i) / (all.length - 1),
-    }))
-    .sort(safeNumSort("recPercent"))
-    .map((c, i, all) => ({
-      ...c,
-      recPercentPercentile: (100 * i) / (all.length - 1),
-    }));
