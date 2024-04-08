@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import { Score, hydrateScores } from "./scores.js";
 import { hydrateRecHHF } from "./recHHF.js";
 import { recommendedHHFFor } from "../dataUtil/recommendedHHF.js";
-import { Shooter, hydrateShooters } from "./shooters.js";
+import { Shooter, scoresAge, hydrateShooters } from "./shooters.js";
 import { Classifier, hydrateClassifiersExtendedMeta } from "./classifiers.js";
 
 export const connect = async () => {
@@ -10,17 +10,21 @@ export const connect = async () => {
 };
 
 export const hydrate = async () => {
-  await hydrateClassifiersExtendedMeta();
+  console.time("age");
+  const shit = await Promise.all([scoresAge("co", "L5387")]);
+  console.timeEnd("age");
+  console.log(JSON.stringify(shit, null, 2));
+  return;
   const test = await Classifier.findOne({
     classifier: "20-01",
     division: "co",
   });
   console.log(JSON.stringify(test.toObject({ virtuals: true }), null, 2));
-  return;
 
   await hydrateScores();
   await hydrateRecHHF();
   await hydrateShooters();
+  await hydrateClassifiersExtendedMeta();
 
   console.log("hydration done");
 };

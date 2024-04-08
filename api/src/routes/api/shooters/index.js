@@ -2,7 +2,6 @@ import {
   getShootersTable,
   getShootersTableByMemberNumber,
   shooterChartData,
-  classifiersForDivisionForShooter,
   shooterDistributionChartData,
 } from "../../../dataUtil/shooters.js";
 
@@ -13,6 +12,10 @@ import {
 } from "../../../../../shared/utils/sort.js";
 import { PAGE_SIZE } from "../../../../../shared/constants/pagination.js";
 import { classForPercent } from "../../../../../shared/utils/classification.js";
+import {
+  scoresForDivisionForShooter,
+  shooterScoresChartData,
+} from "../../../db/scores.js";
 
 const shootersRoutes = async (fastify, opts) => {
   fastify.get("/download/:division", async (req, res) => {
@@ -103,7 +106,7 @@ const shootersRoutes = async (fastify, opts) => {
     const info =
       getShootersTableByMemberNumber()[division]?.[memberNumber]?.[0] || {};
     const data = (
-      await classifiersForDivisionForShooter({
+      await scoresForDivisionForShooter({
         division,
         memberNumber,
       })
@@ -129,7 +132,7 @@ const shootersRoutes = async (fastify, opts) => {
     const info =
       getShootersTableByMemberNumber()[division]?.[memberNumber]?.[0] || {};
     const data = multisort(
-      await classifiersForDivisionForShooter({ division, memberNumber }),
+      await scoresForDivisionForShooter({ division, memberNumber }),
       sort?.split?.(","),
       order?.split?.(",")
     ).map((c) => ({
@@ -145,7 +148,7 @@ const shootersRoutes = async (fastify, opts) => {
 
   fastify.get("/:division/:memberNumber/chart", async (req, res) => {
     const { division, memberNumber } = req.params;
-    return await shooterChartData({ division, memberNumber });
+    return await shooterScoresChartData({ division, memberNumber });
   });
 
   fastify.get("/:division/chart", async (req, res) => {
