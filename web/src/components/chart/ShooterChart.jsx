@@ -97,18 +97,30 @@ export const ScoresChart = ({ division, memberNumber }) => {
         datasets: [
           {
             label: "Percent",
-            data: data.map((c) => ({ ...c, x: c.x, y: c.percent })),
+            data: data.map((c) => ({
+              ...c,
+              x: new Date(c.x),
+              y: c.percent,
+            })),
             backgroundColor: "#ae9ef1",
             borderColor: "#ca258a",
           },
           {
             label: "Current Percent",
-            data: data.map((c) => ({ ...c, x: c.x, y: c.curPercent })),
+            data: data.map((c) => ({
+              ...c,
+              x: new Date(c.x),
+              y: c.curPercent,
+            })),
             backgroundColor: "#b5ca25",
           },
           {
             label: "Rec. Percent",
-            data: data.map((c) => ({ ...c, x: c.x, y: c.recPercent })),
+            data: data.map((c) => ({
+              ...c,
+              x: new Date(c.x),
+              y: c.recPercent,
+            })),
             borderColor: "#40cf40",
             backgroundColor: "#05ca25",
           },

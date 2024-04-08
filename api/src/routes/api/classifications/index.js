@@ -113,10 +113,6 @@ const classificationsRoutes = async (fastify, opts) => {
     if (process.env.QUICK_DEV) {
       console.log("USING FAST HYDRATION (you will only have partial data)");
     }
-    console.log("hydrating shooters");
-    getShootersTable();
-    getShootersTableByMemberNumber();
-    console.log("done hydrating shooters");
 
     console.log("hydrating classification stats");
     getMemoizedClassificationStats();

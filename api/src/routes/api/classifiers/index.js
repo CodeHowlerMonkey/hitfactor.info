@@ -6,16 +6,13 @@ import {
 } from "../../../dataUtil/classifiersData.js";
 import { HF, N, Percent, PositiveOrMinus1 } from "../../../dataUtil/numbers.js";
 import { curHHFForDivisionClassifier } from "../../../dataUtil/hhf.js";
-import {
-  recommendedHHFByPercentileAndPercent,
-  recommendedHHFFor,
-} from "../../../dataUtil/recommendedHHF.js";
 import { Score } from "../../../db/scores.js";
 import { Shooter } from "../../../db/shooters.js";
 import { Classifier } from "../../../db/classifiers.js";
 
 import { multisort } from "../../../../../shared/utils/sort.js";
 import { PAGE_SIZE } from "../../../../../shared/constants/pagination.js";
+import { RecHHF } from "../../../db/recHHF.js";
 
 const _runs = async ({ number, division, hhf, hhfs }) => {
   const scores = () => Score.find({ classifier: number, division });
@@ -143,26 +140,18 @@ const classifiersRoutes = async (fastify, opts) => {
       order?.split?.(",")
     ).map((run, index) => ({ ...run, index }));
 
+    const recHHFInfo = await RecHHF.findOne({ classifier: number, division })
+      .select(["recHHF", "rec1HHF", "rec5HHF", "rec15HHF"])
+      .lean();
+
     const result = {
       info: {
         ...basic,
         ...extended,
-        recHHF: await recommendedHHFFor({ division, number }),
-        recommendedHHF1: recommendedHHFByPercentileAndPercent(
-          allRuns,
-          1.0, // extendedCalibrationTable[division].pGM,
-          95
-        ),
-        recommendedHHF5: recommendedHHFByPercentileAndPercent(
-          allRuns,
-          5.0, // extendedCalibrationTable[division].pM,
-          85
-        ),
-        recommendedHHF15: recommendedHHFByPercentileAndPercent(
-          allRuns,
-          15.0, // extendedCalibrationTable[division].pA,
-          75
-        ),
+        recHHF: recHHFInfo?.recHHF || 0,
+        recommendedHHF1: recHHFInfo?.rec1HHF || 0,
+        recommendedHHF5: recHHFInfo?.rec5HHF || 0,
+        recommendedHHF15: recHHFInfo?.rec15HHF || 0,
       },
       runs: runs.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
       runsTotal: runs.length,
@@ -241,11 +230,11 @@ const classifiersRoutes = async (fastify, opts) => {
         historicalCurHHFPercent:
           shooter?.reclassificationsByCurPercent[
             division
-          ].percentWithDates?.findLast(({ sd }) => {
+          ]?.percentWithDates.findLast(({ sd }) => {
             const runUnixTime = new Date(run.sd).getTime();
             const sdUnixTime = new Date(sd).getTime();
             return sdUnixTime < runUnixTime;
-          })?.p || 0,
+          }).p || 0,
         curPercent: shooter?.current[division] || 0,
         curHHFPercent:
           shooter?.reclassificationsByCurPercent[division]?.percent || 0,

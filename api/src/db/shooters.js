@@ -1,10 +1,18 @@
 import mongoose, { Schema } from "mongoose";
 
 import { loadJSON, processImportAsync } from "../utils.js";
-import { divIdToShort, mapDivisionsAsync } from "../dataUtil/divisions.js";
-import { curHHFForDivisionClassifier } from "../dataUtil/hhf.js";
-import { Percent, PositiveOrMinus1 } from "../dataUtil/numbers.js";
-import { calculateUSPSAClassification } from "../../../shared/utils/classification.js";
+import {
+  divIdToShort,
+  mapDivisions,
+  mapDivisionsAsync,
+} from "../dataUtil/divisions.js";
+import { Percent } from "../dataUtil/numbers.js";
+import {
+  calculateUSPSAClassification,
+  classForPercent,
+} from "../../../shared/utils/classification.js";
+import { safeNumSort } from "../../../shared/utils/sort.js";
+
 import { Score } from "./scores.js";
 
 const memberIdToNumberMap = loadJSON("../../data/meta/memberIdToNumber.json");
@@ -131,8 +139,10 @@ export const hydrateShooters = async () => {
           ),
           "recPercent"
         ),
-        ages: mapDivisionsAsync((div) => scoresAge(div, memberNumber)),
-        age1s: mapDivisionsAsync((div) => scoresAge(div, memberNumber, 1)),
+        ages: await mapDivisionsAsync((div) => scoresAge(div, memberNumber)),
+        age1s: await mapDivisionsAsync((div) =>
+          scoresAge(div, memberNumber, 1)
+        ),
       };
 
       process.stdout.write(".");
@@ -140,4 +150,126 @@ export const hydrateShooters = async () => {
     }
   );
   console.timeEnd("shooters");
+};
+
+const reclassificationBreakdown = (reclassificationInfo, division) => {
+  const high = reclassificationInfo?.[division]?.highPercent;
+  const current = reclassificationInfo?.[division]?.percent;
+  return {
+    class: classForPercent(current),
+    classes: mapDivisions((div) =>
+      classForPercent(reclassificationInfo?.[div]?.percent)
+    ),
+    highClass: classForPercent(high),
+    highClasses: mapDivisions((div) =>
+      classForPercent(reclassificationInfo?.[div]?.highPercent)
+    ),
+    high,
+    current: reclassificationInfo?.[division]?.percent,
+    highs: mapDivisions((div) => reclassificationInfo?.[div]?.highPercent),
+    currents: mapDivisions((div) => reclassificationInfo?.[div]?.percent),
+  };
+};
+
+const classificationsBreakdownAdapter = (c, division) => {
+  const {
+    classifications,
+    reclassificationsByCurPercent,
+    reclassificationsByRecPercent,
+    high,
+    current,
+    ...etc
+  } = c;
+  try {
+    const reclassificationsCurPercent = reclassificationBreakdown(
+      reclassificationsByCurPercent,
+      division
+    );
+    const reclassificationsRecPercent = reclassificationBreakdown(
+      reclassificationsByRecPercent,
+      division
+    );
+
+    const reclassificationsCurPercentCurrent = Number(
+      (reclassificationsCurPercent?.current ?? 0).toFixed(4)
+    );
+    const reclassificationsRecPercentCurrent = Number(
+      (reclassificationsRecPercent?.current ?? 0).toFixed(4)
+    );
+
+    const hqClass = classifications?.[division];
+    const hqCurrent = current?.[division];
+    const hqToCurHHFPercent = hqCurrent - reclassificationsCurPercentCurrent;
+    const hqToRecPercent = hqCurrent - reclassificationsRecPercentCurrent;
+
+    return {
+      ...etc,
+      class: classifications?.[division],
+      classes: classifications,
+      high: high?.[division],
+      current: hqCurrent,
+      highs: high,
+      currents: current,
+      // needs to be not-deep for sort
+      reclassificationsCurPercentCurrent,
+      reclassificationsRecPercentCurrent,
+      reclassificationChange:
+        reclassificationsRecPercentCurrent - reclassificationsCurPercentCurrent,
+      reclassifications: {
+        curPercent: reclassificationsCurPercent,
+        recPercent: reclassificationsRecPercent,
+      },
+      hqClass,
+      curHHFClass: reclassificationsCurPercent.class,
+      recClass: reclassificationsRecPercent.class,
+      hqToCurHHFPercent,
+      hqToRecPercent,
+      division,
+    };
+  } catch (err) {
+    console.log(err);
+    console.log(division);
+  }
+
+  return {
+    ...c,
+    class: "X",
+    high: 0,
+    current: 0,
+    division,
+    name: "Expired / Not Found",
+  };
+};
+
+const addRankAndPercentile = (collection, field) =>
+  collection
+    .sort(safeNumSort(field)) // sort by high to calculate highRank
+    .map((c, index, all) => ({
+      ...c,
+      [`${field}Rank`]: index,
+      [`${field}Percentile`]: Percent(index, all.length),
+    }));
+
+export const shootersExtendedInfoForDivision = async ({
+  division,
+  memberNumber,
+}) => {
+  const shooters = await Shooter.find(memberNumber ? { memberNumber } : {})
+    .lean()
+    .limit(0);
+
+  const withBreakDown = shooters.map((c) =>
+    classificationsBreakdownAdapter(c, division)
+  );
+  const withHigh = addRankAndPercentile(withBreakDown, "high");
+  const withCurrent = addRankAndPercentile(withHigh, "current");
+
+  return withCurrent.map((c) => {
+    // TODO: move age calculation to calculateUSPSAClassification
+    // should be cheaper and more precise for curHHF/recHHF modes
+    c.age = c.ages[division];
+    c.age1 = c.age1s[division];
+    // c.ages = c.ages
+    return c;
+  });
 };
