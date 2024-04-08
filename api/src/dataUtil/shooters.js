@@ -136,9 +136,9 @@ const getShootersFullForDivision = memoize(
           currentPercentile: Percent(index, all.length),
           // TODO: move age calculation to calculateUSPSAClassification
           // should be cheaper and more precise for curHHF/recHHF modes
-          age: scoresAge(division, c.memberNumber),
-          age1: scoresAge(division, c.memberNumber, 1),
-          ages: mapDivisions((div) => scoresAge(div, c.memberNumber)),
+          age: c.ages[div],
+          age1: c.age1s[div],
+          ages: c.ages,
         }))
     );
   },

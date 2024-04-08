@@ -123,3 +123,29 @@ export const hydrateScores = async () => {
   );
   console.timeEnd("scores");
 };
+
+export const shooterScoresChartData = async ({ memberNumber, division }) => {
+  const scores = await Score.find({ memberNumber, division }).limit(0);
+  return scores
+    .map((doc) => doc.toObject({ virtuals: true }))
+    .map((run) => ({
+      x: run.sd,
+      recPercent: run.recPercent,
+      curPercent: run.curPercent,
+      percent: run.percent,
+      classifier: run.classifier,
+    }))
+    .filter((run) => !!run.classifier); // no majors for now in the graph
+};
+
+export const scoresForDivisionForShooter = async ({
+  division,
+  memberNumber,
+}) => {
+  const scores = await Score.find({ division, memberNumber }).limit(0);
+  return scores.map((doc, index) => {
+    const obj = doc.toObject({ virtuals: true });
+    obj.index = index;
+    return obj;
+  });
+};
