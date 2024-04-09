@@ -38,7 +38,6 @@ const shootersRoutes = async (fastify, opts) => {
     const page = Number(pageString) || 1;
 
     const shootersTable = await shootersExtendedInfoForDivision({ division });
-    console.log(shootersTable.length);
 
     let data = multisort(
       shootersTable.filter(

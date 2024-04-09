@@ -5,7 +5,6 @@
   "type": "module",
   "scripts": {
     "start": "nodemon --exec npm run fastify-dev --watch src/ --watch ../data/ --watch ../shared/",
-    "quick": "QUICK_DEV=1 npm start",
     "fastify-dev": "NODE_OPTIONS='--inspect --max-old-space-size=4096' NODE_ENV=development fastify start -T 120000 -l info -p 3333 src/app.js",
     "prod": "NODE_OPTIONS='--max-old-space-size=4096' NODE_ENV=production fastify start -T 120000 -l info -a 0.0.0.0 src/app.js"
   },
@@ -20,7 +19,6 @@
     "lodash.sorteduniqby": "^4.7.0",
     "lodash.transform": "^4.6.0",
     "lodash.uniqby": "^4.7.0",
-    "memoize": "^10.0.0",
     "mongoose": "^8.3.0"
   },
   "devDependencies": {
