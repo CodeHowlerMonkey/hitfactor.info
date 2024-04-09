@@ -1,8 +1,9 @@
 import mongoose from "mongoose";
-import { Score, hydrateScores } from "./scores.js";
+import { hydrateStats } from "./stats.js";
+import { hydrateScores } from "./scores.js";
 import { hydrateRecHHF } from "./recHHF.js";
-import { Shooter, scoresAge, hydrateShooters } from "./shooters.js";
-import { Classifier, hydrateClassifiersExtendedMeta } from "./classifiers.js";
+import { hydrateShooters } from "./shooters.js";
+import { hydrateClassifiersExtendedMeta } from "./classifiers.js";
 
 export const connect = async () => {
   await mongoose.connect(process.env.MONGO_URL);
@@ -12,10 +13,11 @@ export const hydrate = async () => {
   console.log("hydrating everything");
   console.time("full hydration");
 
-  //await hydrateScores();
-  //await hydrateRecHHF();
+  await hydrateScores();
+  await hydrateRecHHF();
   await hydrateShooters();
   await hydrateClassifiersExtendedMeta();
+  await hydrateStats();
 
   console.timeEnd("full hydration");
   console.log("hydration done");
