@@ -36,6 +36,17 @@ export const classForPercent = (curPercent) => {
 
   return "U";
 };
+export const rankForClass = (classification) =>
+  ({
+    GM: 90,
+    M: 80,
+    A: 70,
+    B: 55,
+    C: 35,
+    D: 10,
+    U: 0,
+    X: -1,
+  }[classification] || 0);
 
 // B-class check, NOT used for initial classification
 export const lowestAllowedPercentForClass = (classification) =>
@@ -216,6 +227,7 @@ export const calculateUSPSAClassification = (
   classifiersReadyToScore.forEach(scoringFunction);
 
   return mapDivisions((div) => {
+    state[div].class = classForPercent(state[div].percent);
     delete state[div].window;
     return state[div];
   });

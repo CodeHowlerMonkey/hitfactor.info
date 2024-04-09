@@ -2,6 +2,7 @@ import { basicInfoForClassifierCode } from "../../../dataUtil/classifiersData.js
 import {
   classLetterSort,
   multisort,
+  multisortObj,
   safeNumSort,
 } from "../../../../../shared/utils/sort.js";
 import { PAGE_SIZE } from "../../../../../shared/constants/pagination.js";
@@ -13,6 +14,48 @@ import {
   Shooter,
   shootersExtendedInfoForDivision,
 } from "../../../db/shooters.js";
+const buildShootersQuery = (params, query, initial) => {
+  const { division } = params;
+  const {
+    filter: filterString,
+    inconsistencies: inconString,
+    classFilter,
+  } = query;
+  const shootersQuery = (initial || Shooter).where({
+    division,
+    reclassificationsCurPercentCurrent: { $gt: 0 },
+  });
+  if (classFilter) {
+    shootersQuery.where({ class: classFilter });
+  }
+  if (filterString) {
+    shootersQuery.where({
+      $or: [
+        { name: { $text: { $search: filterString } } },
+        { memberNumber: { $text: { $search: filterString } } },
+      ],
+    });
+  }
+
+  // TODO: Special filter and sort for inconsistencies table
+  if (inconString) {
+    const [inconsistencies, inconsistenciesMode] = inconString?.split("-");
+    data = data.filter((shooter) => {
+      const order = classLetterSort(
+        shooter.hqClass,
+        shooter[inconsistencies],
+        undefined,
+        1
+      );
+      if (inconsistenciesMode === "paper") {
+        return order > 0;
+      } else {
+        return order < 0;
+      }
+    });
+  }
+  return shootersQuery;
+};
 
 const shootersRoutes = async (fastify, opts) => {
   fastify.get("/download/:division", async (req, res) => {
@@ -37,61 +80,32 @@ const shootersRoutes = async (fastify, opts) => {
 
     const page = Number(pageString) || 1;
 
-    const shootersTable = await shootersExtendedInfoForDivision({ division });
+    const shootersTotalWithoutFilters = await Shooter.countDocuments({
+      division,
+      reclassificationsCurPercentCurrent: { $gt: 0 },
+    });
 
-    let data = multisort(
-      shootersTable.filter(
-        (c) =>
-          (c.class !== "U" && c.class !== "X") ||
-          c.reclassificationsCurPercentCurrent > 0
-      ),
-      sort?.split?.(","),
-      order?.split?.(",")
-    ).map(({ classifiers, ...run }, index) => ({
-      ...run,
-      index,
+    const shootersQuery = buildShootersQuery(req.params, req.query);
+    const skip = (page - 1) * PAGE_SIZE;
+    shootersQuery
+      .sort(multisortObj(sort?.split(","), order?.split(",")))
+      .skip(skip);
+
+    const paginatedData = await shootersQuery.limit(PAGE_SIZE).lean().exec();
+    const withIndex = paginatedData.map((shooter, index) => ({
+      ...shooter,
+      index: skip + index,
     }));
-    const shootersTotalWithoutFilters = data.length;
 
-    if (classFilter) {
-      data = data.filter((shooter) => shooter.hqClass === classFilter);
-    }
-
-    // Special filter and sort for inconsistencies table
-    if (inconString) {
-      const [inconsistencies, inconsistenciesMode] = inconString?.split("-");
-      data = data.filter(
-        (shooter) => !!shooter.reclassificationsCurPercentCurrent
-      );
-      data = data.filter((shooter) => {
-        const order = classLetterSort(
-          shooter.hqClass,
-          shooter[inconsistencies],
-          undefined,
-          1
-        );
-        if (inconsistenciesMode === "paper") {
-          return order > 0;
-        } else {
-          return order < 0;
-        }
-      });
-      // uncomment to use autosort
-      // data = multisort(data, ["hqClass", inconsistencies], [-1, -1]);
-    }
-
-    if (filterString) {
-      data = data.filter((shooter) =>
-        [shooter.name, shooter.memberNumber]
-          .join("###")
-          .toLowerCase()
-          .includes(filterString.toLowerCase())
-      );
-    }
+    const count = await buildShootersQuery(
+      req.params,
+      req.query,
+      Shooter.countDocuments({})
+    ).exec();
 
     return {
-      shooters: data.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
-      shootersTotal: data.length,
+      shooters: withIndex,
+      shootersTotal: count,
       shootersTotalWithoutFilters,
       shootersPage: page,
     };

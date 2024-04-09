@@ -10,6 +10,7 @@ import { Percent } from "../dataUtil/numbers.js";
 import {
   calculateUSPSAClassification,
   classForPercent,
+  rankForClass,
 } from "../../../shared/utils/classification.js";
 import { safeNumSort } from "../../../shared/utils/sort.js";
 
@@ -45,15 +46,16 @@ export const scoresAge = async (division, memberNumber, maxScores = 4) => {
 };
 
 const DivReclassificationSchema = new Schema({
+  class: String,
   percent: Number,
   highPecent: Number,
   percentWithDates: [{ p: Number, sd: Date }],
 });
 
-const ShooterSchema = new Schema(
+const OldShooterSchema = new Schema(
   {
     memberId: String,
-    memberNumber: String, // TODO: try unique on that and Id
+    memberNumber: String, // TODO: try unique on that and Id + division
     name: String,
 
     classifications: { type: Map, of: String },
@@ -81,6 +83,8 @@ const ShooterSchema = new Schema(
   },
   { strict: false }
 );
+const ShooterSchema = new Schema({}, { strict: false });
+ShooterSchema.index({ memberNumber: 1, division: 1 });
 ShooterSchema.index({ memberNumber: 1 });
 ShooterSchema.index({ memberId: 1 });
 
@@ -146,7 +150,9 @@ export const hydrateShooters = async () => {
       };
 
       process.stdout.write(".");
-      return Shooter.create(shooterDoc);
+      return mapDivisionsAsync((div) =>
+        Shooter.create(divisionShooterAdapter(shooterDoc, div))
+      );
     }
   );
   console.timeEnd("shooters");
@@ -222,6 +228,9 @@ const classificationsBreakdownAdapter = (c, division) => {
       hqClass,
       curHHFClass: reclassificationsCurPercent.class,
       recClass: reclassificationsRecPercent.class,
+      hqClassRank: rankForClass(hqClass),
+      curHHFClassRank: rankForClass(reclassificationsCurPercent.class),
+      recClassRank: rankForClass(reclassificationsRecPercent.class),
       hqToCurHHFPercent,
       hqToRecPercent,
       division,
@@ -250,14 +259,7 @@ const addRankAndPercentile = (collection, field) =>
       [`${field}Percentile`]: Percent(index, all.length),
     }));
 
-export const shootersExtendedInfoForDivision = async ({
-  division,
-  memberNumber,
-}) => {
-  const shooters = await Shooter.find(memberNumber ? { memberNumber } : {})
-    .lean()
-    .limit(0);
-
+export const legacyShootersExtendedAdapter = (shooters, division) => {
   const withBreakDown = shooters.map((c) =>
     classificationsBreakdownAdapter(c, division)
   );
@@ -272,4 +274,32 @@ export const shootersExtendedInfoForDivision = async ({
     // c.ages = c.ages
     return c;
   });
+};
+
+export const divisionShooterAdapter = (shooter, division) => {
+  return {
+    ...shooter,
+    ...classificationsBreakdownAdapter(shooter, division),
+    age: shooter.ages[division],
+    age1: shooter.age1s[division],
+    division,
+  };
+};
+
+// TODO: unfuck this
+export const shootersExtendedInfoForDivision = async ({
+  division,
+  memberNumber,
+}) => {
+  const shooters = await Shooter.find(
+    memberNumber
+      ? { memberNumber }
+      : {
+          [`reclassificationsByCurPercent.${division}.percent`]: { $gt: 0 },
+        }
+  )
+    .lean()
+    .limit(0);
+
+  return legacyShootersExtendedAdapter(shooters, division);
 };
