@@ -125,7 +125,9 @@ export const hydrateScores = async () => {
 };
 
 export const shooterScoresChartData = async ({ memberNumber, division }) => {
-  const scores = await Score.find({ memberNumber, division }).limit(0);
+  const scores = await Score.find({ memberNumber, division })
+    .limit(0)
+    .sort({ sd: -1 });
   return scores
     .map((doc) => doc.toObject({ virtuals: true }))
     .map((run) => ({

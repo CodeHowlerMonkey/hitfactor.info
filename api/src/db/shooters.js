@@ -163,9 +163,9 @@ export const hydrateShooters = async () => {
           {}
         ),
         reclassificationsByCurPercent: calculateUSPSAClassification(
-          (await Score.find({ memberNumber }).limit(0)).map((doc) =>
-            doc.toObject({ virtuals: true })
-          ),
+          (await Score.find({ memberNumber }).limit(0))
+            .sort({ sd: -1 })
+            .map((doc) => doc.toObject({ virtuals: true })),
           "curPercent"
         ),
         reclassificationsByRecPercent: calculateUSPSAClassification(
