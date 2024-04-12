@@ -14,46 +14,44 @@ import {
   Shooter,
   shootersExtendedInfoForDivision,
 } from "../../../db/shooters.js";
-const buildShootersQuery = (params, query, initial) => {
+import { escapeRegExp } from "../../../utils.js";
+const buildShootersQuery = (params, query) => {
   const { division } = params;
   const {
     filter: filterString,
     inconsistencies: inconString,
     classFilter,
   } = query;
-  const shootersQuery = (initial || Shooter).where({
+  const shootersQuery = Shooter.where({
     division,
     reclassificationsCurPercentCurrent: { $gt: 0 },
   });
+
   if (classFilter) {
     shootersQuery.where({ class: classFilter });
   }
+
   if (filterString) {
     shootersQuery.where({
       $or: [
-        { name: { $text: { $search: filterString } } },
-        { memberNumber: { $text: { $search: filterString } } },
+        { name: new RegExp(".*" + escapeRegExp(filterString) + ".*", "i") },
+        {
+          memberNumber: new RegExp(
+            ".*" + escapeRegExp(filterString) + ".*",
+            "i"
+          ),
+        },
       ],
     });
   }
 
-  // TODO: Special filter and sort for inconsistencies table
   if (inconString) {
     const [inconsistencies, inconsistenciesMode] = inconString?.split("-");
-    data = data.filter((shooter) => {
-      const order = classLetterSort(
-        shooter.hqClass,
-        shooter[inconsistencies],
-        undefined,
-        1
-      );
-      if (inconsistenciesMode === "paper") {
-        return order > 0;
-      } else {
-        return order < 0;
-      }
-    });
+    const field = "$" + inconsistencies + "Rank";
+    const operator = inconsistenciesMode === "paper" ? "$lt" : "$gt";
+    shootersQuery.where({ $expr: { [operator]: [field, "$hqClassRank"] } });
   }
+
   return shootersQuery;
 };
 
@@ -69,21 +67,14 @@ const shootersRoutes = async (fastify, opts) => {
   });
   fastify.get("/:division", async (req, res) => {
     const { division } = req.params;
-    const {
-      sort,
-      order,
-      page: pageString,
-      filter: filterString,
-      inconsistencies: inconString,
-      classFilter,
-    } = req.query;
+    const { sort, order, page: pageString } = req.query;
 
     const page = Number(pageString) || 1;
 
-    const shootersTotalWithoutFilters = await Shooter.countDocuments({
+    const shootersTotalWithoutFilters = await Shooter.where({
       division,
       reclassificationsCurPercentCurrent: { $gt: 0 },
-    });
+    }).countDocuments();
 
     const shootersQuery = buildShootersQuery(req.params, req.query);
     const skip = (page - 1) * PAGE_SIZE;
@@ -97,11 +88,9 @@ const shootersRoutes = async (fastify, opts) => {
       index: skip + index,
     }));
 
-    const count = await buildShootersQuery(
-      req.params,
-      req.query,
-      Shooter.countDocuments({})
-    ).exec();
+    const count = await buildShootersQuery(req.params, req.query)
+      .countDocuments()
+      .exec();
 
     return {
       shooters: withIndex,
@@ -172,13 +161,14 @@ const shootersRoutes = async (fastify, opts) => {
   fastify.get("/:division/chart", async (req, res) => {
     const { division } = req.params;
     const shootersTable = await Shooter.find({
-      [`current.${division}`]: { $gt: 0 },
-      [`reclassificationsByCurPercent.${division}.percent`]: { $gt: 0 },
+      division,
+      current: { $gt: 0 },
+      reclassificationsCurPercentCurrent: { $gt: 0 },
     })
       .select([
-        `current.${division}`,
-        `reclassificationsByCurPercent.${division}.percent`,
-        `reclassificationsByRecPercent.${division}.percent`,
+        "current",
+        "reclassificationsCurPercentCurrent",
+        "reclassificationsRecPercentCurrent",
         "memberNumber",
       ])
       .lean()
@@ -186,9 +176,9 @@ const shootersRoutes = async (fastify, opts) => {
 
     return shootersTable
       .map((c) => ({
-        curPercent: c.current[division],
-        curHHFPercent: c.reclassificationsByCurPercent[division].percent,
-        recPercent: c.reclassificationsByRecPercent[division].percent,
+        curPercent: c.current,
+        curHHFPercent: c.reclassificationsCurPercentCurrent,
+        recPercent: c.reclassificationsRecPercentCurrent,
         memberNumber: c.memberNumber,
       }))
       .sort(safeNumSort("curPercent"))

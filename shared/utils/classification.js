@@ -38,11 +38,11 @@ export const classForPercent = (curPercent) => {
 };
 export const rankForClass = (classification) =>
   ({
-    GM: 90,
-    M: 80,
-    A: 70,
-    B: 55,
-    C: 35,
+    GM: 95,
+    M: 85,
+    A: 75,
+    B: 60,
+    C: 40,
     D: 10,
     U: 0,
     X: -1,

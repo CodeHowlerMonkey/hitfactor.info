@@ -57,3 +57,5 @@ export const lazy = (resolver) => {
     return _result;
   };
 };
+
+export const escapeRegExp = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
