@@ -31,6 +31,37 @@ const memberNumberFromMemberData = (memberData) => {
   return "BAD DATA";
 };
 
+const scoresAgeAggr = async (memberNumber, division, maxScores) => {
+  await Score.aggregate([
+    { $match: { memberNumber, division } },
+    {
+      $project: {
+        sd: true,
+        _id: false,
+      },
+    },
+    { $sort: { sd: -1 } },
+    { $limit: maxScores },
+    {
+      $addFields: {
+        diff: {
+          $dateDiff: {
+            startDate: "$$NOW",
+            endDate: "$sd",
+            unit: "day",
+          },
+        },
+      },
+    },
+    {
+      $group: {
+        _id: null,
+        averageTime: { $avg: "$diff" },
+      },
+    },
+  ]);
+};
+
 // TODO: move score calculation to reclassifications, so we don't rely on USPSA
 // flags
 export const scoresAge = async (division, memberNumber, maxScores = 4) => {
