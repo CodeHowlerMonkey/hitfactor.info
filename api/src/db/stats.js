@@ -95,6 +95,74 @@ const bucketBy = (byWhat, shootersTable) => ({
 const StatsSchema = new mongoose.Schema({}, { strict: false });
 export const Stats = mongoose.model("Stats", StatsSchema);
 
+export const statsByDivision = async (field) => {
+  const byDiv = mapDivisions(() => ({}));
+  const dbResults = await Shooter.aggregate([
+    {
+      $project: {
+        division: true,
+        [field]: true,
+        _id: false,
+      },
+    },
+    {
+      $group: {
+        _id: ["$" + field, "$division"],
+        count: {
+          $sum: 1,
+        },
+      },
+    },
+  ]);
+
+  dbResults.forEach(({ _id: [classLetter, division], count }) => {
+    byDiv[division][classLetter] = count;
+  });
+
+  return byDiv;
+};
+
+const classesRanked = ["X", "U", "D", "C", "B", "A", "M", "GM"];
+export const statsByAll = async (field) => {
+  return Shooter.aggregate([
+    {
+      $project: {
+        _id: false,
+        [field]: true,
+        memberNumber: true,
+      },
+    },
+    {
+      $addFields: {
+        classRank: {
+          $indexOfArray: [classesRanked, "$" + field],
+        },
+      },
+    },
+    {
+      $group: {
+        _id: "$memberNumber",
+        maxClassRank: {
+          $max: "$classRank",
+        },
+      },
+    },
+    {
+      $addFields: {
+        maxClass: {
+          $arrayElemAt: [classesRanked, "$maxClassRank"],
+        },
+      },
+    },
+    {
+      $group: {
+        _id: "$maxClass",
+        count: { $sum: 1 },
+      },
+    },
+  ]);
+};
+
 export const hydrateStats = async () => {
   console.log("hydrating stats");
   await Stats.collection.drop();
