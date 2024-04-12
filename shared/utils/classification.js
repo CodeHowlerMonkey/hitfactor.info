@@ -228,7 +228,7 @@ export const calculateUSPSAClassification = (
 
   return mapDivisions((div) => {
     state[div].class = classForPercent(state[div].percent);
-    delete state[div].window;
+    // delete state[div].window;
     return state[div];
   });
 };

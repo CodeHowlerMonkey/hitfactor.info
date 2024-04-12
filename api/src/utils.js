@@ -16,9 +16,7 @@ export const processImport = (dir, fileRegexp, forEachFileJSONCb) => {
     .readdirSync(dirPath(dir))
     .filter((file) => !!file.match(fileRegexp));
 
-  const filesToProcess = !process.env.QUICK_DEV
-    ? files
-    : files.slice(files.length - 4, files.length);
+  const filesToProcess = !process.env.QUICK_DEV ? files : files.slice(165, 170);
 
   filesToProcess.forEach((file) => {
     const curJSON = loadJSON(dir + "/" + file);
