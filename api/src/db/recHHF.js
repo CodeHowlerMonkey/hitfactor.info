@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import { HF, Percent, PositiveOrMinus1 } from "../dataUtil/numbers.js";
 
 import { Score } from "./scores.js";
+import { curHHFForDivisionClassifier } from "../dataUtil/hhf.js";
 
 /**
  * Calculated recommended HHF by matching lower percent of the score to percentile of shooters
@@ -462,7 +463,7 @@ RecHHFSchema.index({ classifier: 1, division: 1 }, { unique: true });
 export const RecHHF = mongoose.model("RecHHF", RecHHFSchema);
 
 export const hydrateRecHHF = async () => {
-  RecHHF.collection.drop();
+  await RecHHF.collection.drop();
   console.log("hydrating recommended HHFs");
   console.time("recHHFs");
   const divisions = (await Score.find().distinct("division")).filter(Boolean);
@@ -485,6 +486,10 @@ export const hydrateRecHHF = async () => {
       const rec1HHF = r1(allRuns);
       const rec5HHF = r5(allRuns);
       const rec15HHF = r15(allRuns);
+      const curHHF = curHHFForDivisionClassifier({
+        division,
+        number: classifier,
+      });
       await Promise.all([
         RecHHF.create({
           division,
@@ -494,10 +499,15 @@ export const hydrateRecHHF = async () => {
           rec5HHF,
           rec15HHF,
         }),
-        Score.updateMany(
-          { division, classifier },
-          { recHHF, rec1HHF, rec5HHF, rec15HHF }
-        ),
+        Score.updateMany({ division, classifier }, [
+          { $set: { recHHF, rec1HHF, rec5HHF, rec15HHF, curHHF } },
+          {
+            $set: {
+              recPercent: { $multiply: [100, { $divide: ["$hf", "$recHHF"] }] },
+              curPercent: { $multiply: [100, { $divide: ["$hf", "$curHHF"] }] },
+            },
+          },
+        ]),
       ]);
       process.stdout.write(`\r${i}/${total}`);
       ++i;
