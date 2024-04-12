@@ -1,10 +1,9 @@
 import FastifyStatic from "@fastify/static";
 import AutoLoad from "@fastify/autoload";
 import cors from "@fastify/cors";
-import mongoose from "mongoose";
 
 import { dirPath } from "./utils.js";
-import { connect, hydrate, testModels } from "./db/index.js";
+import { connect } from "./db/index.js";
 
 const FastifyAppEntry = async (fastify, opts) => {
   await connect();
