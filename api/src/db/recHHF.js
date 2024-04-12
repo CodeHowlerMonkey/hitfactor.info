@@ -499,15 +499,10 @@ export const hydrateRecHHF = async () => {
           rec5HHF,
           rec15HHF,
         }),
-        Score.updateMany({ division, classifier }, [
-          { $set: { recHHF, rec1HHF, rec5HHF, rec15HHF, curHHF } },
-          {
-            $set: {
-              recPercent: { $multiply: [100, { $divide: ["$hf", "$recHHF"] }] },
-              curPercent: { $multiply: [100, { $divide: ["$hf", "$curHHF"] }] },
-            },
-          },
-        ]),
+        Score.updateMany(
+          { division, classifier },
+          { recHHF, rec1HHF, rec5HHF, rec15HHF, curHHF }
+        ),
       ]);
       process.stdout.write(`\r${i}/${total}`);
       ++i;
