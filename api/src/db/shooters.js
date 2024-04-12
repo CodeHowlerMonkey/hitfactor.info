@@ -286,20 +286,18 @@ export const divisionShooterAdapter = (shooter, division) => {
   };
 };
 
-// TODO: unfuck this
 export const shootersExtendedInfoForDivision = async ({
   division,
   memberNumber,
 }) => {
-  const shooters = await Shooter.find(
-    memberNumber
-      ? { memberNumber }
-      : {
-          [`reclassificationsByCurPercent.${division}.percent`]: { $gt: 0 },
-        }
-  )
-    .lean()
-    .limit(0);
+  const query = Shooter.where({
+    division,
+    reclassificationsCurPercentCurrent: { $gt: 0 },
+  });
+  if (memberNumber) {
+    query.where({ memberNumber });
+  }
 
+  const shooters = await query.lean().limit(0).exec();
   return legacyShootersExtendedAdapter(shooters, division);
 };
