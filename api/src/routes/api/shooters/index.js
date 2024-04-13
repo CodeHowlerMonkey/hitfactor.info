@@ -10,10 +10,7 @@ import {
   scoresForDivisionForShooter,
   shooterScoresChartData,
 } from "../../../db/scores.js";
-import {
-  Shooter,
-  shootersExtendedInfoForDivision,
-} from "../../../db/shooters.js";
+import { Shooter } from "../../../db/shooters.js";
 import { escapeRegExp } from "../../../utils.js";
 const buildShootersQuery = (params, query) => {
   const { division } = params;
@@ -63,8 +60,10 @@ const shootersRoutes = async (fastify, opts) => {
       "Content-Disposition",
       `attachment; filename=shooters.${division}.json`
     );
-    return shootersExtendedInfoForDivision({ division });
+    // TODO: #47 fix downloads
+    return [];
   });
+
   fastify.get("/:division", async (req, res) => {
     const { division } = req.params;
     const { sort, order, page: pageString } = req.query;
@@ -104,7 +103,7 @@ const shootersRoutes = async (fastify, opts) => {
     const { division, memberNumber } = req.params;
 
     const [info, scoresData] = await Promise.all([
-      shootersExtendedInfoForDivision({ division, memberNumber }),
+      Shooter.find({ division, memberNumber }).lean().limit(1),
       scoresForDivisionForShooter({
         division,
         memberNumber,
@@ -131,7 +130,7 @@ const shootersRoutes = async (fastify, opts) => {
     const { sort, order, page: pageString } = req.query;
 
     const [info, scoresData] = await Promise.all([
-      shootersExtendedInfoForDivision({ division, memberNumber }),
+      Shooter.find({ division, memberNumber }).lean().limit(1),
       scoresForDivisionForShooter({
         division,
         memberNumber,

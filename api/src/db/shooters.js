@@ -163,9 +163,9 @@ export const hydrateShooters = async () => {
           {}
         ),
         reclassificationsByCurPercent: calculateUSPSAClassification(
-          (await Score.find({ memberNumber }).limit(0))
-            .sort({ sd: -1 })
-            .map((doc) => doc.toObject({ virtuals: true })),
+          (await Score.find({ memberNumber }).limit(0).sort({ sd: -1 })).map(
+            (doc) => doc.toObject({ virtuals: true })
+          ),
           "curPercent"
         ),
         reclassificationsByRecPercent: calculateUSPSAClassification(
@@ -215,6 +215,7 @@ const classificationsBreakdownAdapter = (c, division) => {
     reclassificationsByRecPercent,
     high,
     current,
+    currents,
     ...etc
   } = c;
   try {
@@ -273,6 +274,7 @@ const classificationsBreakdownAdapter = (c, division) => {
 
   return {
     ...c,
+    error: true,
     class: "X",
     high: 0,
     current: 0,
@@ -315,20 +317,4 @@ export const divisionShooterAdapter = (shooter, division) => {
     age1: shooter.age1s[division],
     division,
   };
-};
-
-export const shootersExtendedInfoForDivision = async ({
-  division,
-  memberNumber,
-}) => {
-  const query = Shooter.where({
-    division,
-    reclassificationsCurPercentCurrent: { $gt: 0 },
-  });
-  if (memberNumber) {
-    query.where({ memberNumber });
-  }
-
-  const shooters = await query.lean().limit(0).exec();
-  return legacyShootersExtendedAdapter(shooters, division);
 };
