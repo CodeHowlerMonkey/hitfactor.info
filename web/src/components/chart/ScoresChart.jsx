@@ -116,7 +116,6 @@ const xLinesForHHF = (prefix, hhf) =>
 const modeBucketForMode = (mode) =>
   ({
     Official: "curPercent",
-    "Historical CHHF": "historicalCurHHFPercent",
     "Current CHHF": "curHHFPercent",
     Recommended: "recPercent",
   }[mode]);
@@ -135,7 +134,7 @@ export const ScoresChart = ({
   recommendedHHF15,
 }) => {
   const [full, setFull] = useState(false);
-  const modes = ["Official", "Historical CHHF", "Current CHHF", "Recommended"];
+  const modes = ["Official", "Current CHHF", "Recommended"];
   const [mode, setMode] = useState(modes[0]);
   const data = useApi(
     `/classifiers/${division}/${classifier}/chart?full=${full ? 1 : 0}`
