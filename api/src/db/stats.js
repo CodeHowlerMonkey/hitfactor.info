@@ -5,99 +5,61 @@ import {
 } from "../../../shared/utils/classification.js";
 import { mapDivisions } from "../dataUtil/divisions.js";
 import { Shooter } from "./shooters.js";
-
-const calculateCurrentClassifications = (memberCurPercentObj) =>
-  mapDivisions((div) => {
-    const curPercent = memberCurPercentObj[div];
-    return classForPercent(curPercent);
-  });
-
-const selectClassificationsForDivision = (
-  division,
-  extMemberInfoObject,
-  mode
-) => {
-  let classificationsObj = extMemberInfoObject.classifications;
-  if (mode === "percent") {
-    classificationsObj = calculateCurrentClassifications(
-      extMemberInfoObject.current
-    );
-  } else if (mode === "curHHFPercent") {
-    classificationsObj = calculateCurrentClassifications(
-      mapDivisions(
-        (div) =>
-          extMemberInfoObject.reclassificationsByCurPercent?.[div]?.percent ?? 0
-      )
-    );
-  } else if (mode === "recHHFPercent") {
-    classificationsObj = calculateCurrentClassifications(
-      mapDivisions(
-        (div) =>
-          extMemberInfoObject.reclassificationsByRecPercent?.[div]?.percent ?? 0
-      )
-    );
-  }
-
-  return division
-    ? {
-        [division]: classificationsObj[division],
-      }
-    : classificationsObj;
-};
-
-const getHighestClassificationCountsFor = (division, mode, shootersTable) => {
-  const highestClassifications = shootersTable
-    .map((cur) =>
-      highestClassification(
-        selectClassificationsForDivision(division, cur, mode)
-      )
-    )
-    .filter(Boolean);
-  const highestClassificationCounts = new Map();
-  highestClassificationCounts.set("U", 0);
-  highestClassificationCounts.set("D", 0);
-  highestClassificationCounts.set("C", 0);
-  highestClassificationCounts.set("B", 0);
-  highestClassificationCounts.set("A", 0);
-  highestClassificationCounts.set("M", 0);
-  highestClassificationCounts.set("GM", 0);
-  for (let cur of highestClassifications) {
-    const curNum = highestClassificationCounts.get(cur) ?? 0;
-    highestClassificationCounts.set(cur, curNum + 1);
-  }
-  return highestClassificationCounts;
-};
-
-const getDivisionClassBucket = (div, mode, shootersTable) => ({
-  U: getHighestClassificationCountsFor(div, mode, shootersTable).get("U"),
-  D: getHighestClassificationCountsFor(div, mode, shootersTable).get("D"),
-  C: getHighestClassificationCountsFor(div, mode, shootersTable).get("C"),
-  B: getHighestClassificationCountsFor(div, mode, shootersTable).get("B"),
-  A: getHighestClassificationCountsFor(div, mode, shootersTable).get("A"),
-  M: getHighestClassificationCountsFor(div, mode, shootersTable).get("M"),
-  GM: getHighestClassificationCountsFor(div, mode, shootersTable).get("GM"),
-});
-
-const bucketBy = (byWhat, shootersTable) => ({
-  all: getDivisionClassBucket(undefined, byWhat, shootersTable),
-  ...mapDivisions((div) => getDivisionClassBucket(div, byWhat, shootersTable)),
-  Approx: {
-    U: 0,
-    D: 19,
-    C: 42,
-    B: 25,
-    A: 8,
-    M: 5,
-    GM: 1,
-  },
-});
+import { loadJSON } from "../utils.js";
 
 const StatsSchema = new mongoose.Schema({}, { strict: false });
 export const Stats = mongoose.model("Stats", StatsSchema);
 
+const addCurClassField = () => ({
+  $addFields: {
+    curClass: {
+      $switch: {
+        default: "U",
+        branches: [
+          {
+            case: { $gte: ["$current", 95] },
+            then: "GM",
+          },
+          {
+            case: {
+              $and: [{ $gte: ["$current", 85] }, { $lt: ["$current", 95] }],
+            },
+            then: "M",
+          },
+          {
+            case: {
+              $and: [{ $gte: ["$current", 75] }, { $lt: ["$current", 85] }],
+            },
+            then: "A",
+          },
+          {
+            case: {
+              $and: [{ $gte: ["$current", 60] }, { $lt: ["$current", 75] }],
+            },
+            then: "B",
+          },
+          {
+            case: {
+              $and: [{ $gte: ["$current", 40] }, { $lt: ["$current", 60] }],
+            },
+            then: "C",
+          },
+          {
+            case: {
+              $and: [{ $gte: ["$current", 0.01] }, { $lt: ["$current", 40] }],
+            },
+            then: "D",
+          },
+        ],
+      },
+    },
+  },
+});
+
 export const statsByDivision = async (field) => {
   const byDiv = mapDivisions(() => ({}));
   const dbResults = await Shooter.aggregate([
+    addCurClassField(),
     {
       $project: {
         division: true,
@@ -124,7 +86,8 @@ export const statsByDivision = async (field) => {
 
 const classesRanked = ["X", "U", "D", "C", "B", "A", "M", "GM"];
 export const statsByAll = async (field) => {
-  return Shooter.aggregate([
+  const aggregateResult = await Shooter.aggregate([
+    addCurClassField(),
     {
       $project: {
         _id: false,
@@ -160,21 +123,66 @@ export const statsByAll = async (field) => {
         count: { $sum: 1 },
       },
     },
+    {
+      $group: {
+        _id: null, // Grouping all documents into a single group
+        allDocuments: { $addToSet: "$$ROOT" }, // Accumulating all documents into an array
+      },
+    },
+    {
+      $addFields: {
+        allDocumentsReduced: {
+          $reduce: {
+            input: "$allDocuments",
+            initialValue: {},
+            in: {
+              $mergeObjects: [
+                "$$value",
+                { $arrayToObject: [[["$$this._id", "$$this.count"]]] },
+              ],
+            },
+          },
+        },
+      },
+    },
+    { $replaceRoot: { newRoot: "$allDocumentsReduced" } },
   ]);
+
+  return aggregateResult[0];
 };
+
+const statsByDivAndAll = async (field) => {
+  const all = await statsByAll(field);
+  const { loco, ...byDiv } = await statsByDivision(field);
+
+  return {
+    all,
+    ...byDiv,
+  };
+};
+
+const allDivs = ["opn", "ltd", "l10", "prod", "ss", "rev", "co", "lo", "pcc"];
+const validClassifications = ["GM", "M", "A", "B", "C", "D"];
+const hasClassification = (shooterObj, div) =>
+  validClassifications.includes(shooterObj[div]);
+const hasAnyClassification = (shooterObj) =>
+  allDivs.some((div) => hasClassification(shooterObj, div));
+const hasNoClassifications = (shooterObj) => !hasAnyClassification(shooterObj);
 
 export const hydrateStats = async () => {
   console.log("hydrating stats");
-  await Stats.collection.drop();
   console.time("stats");
-  const shootersTable = await Shooter.find({}).lean().limit(0);
-  const stats = {
-    byClass: bucketBy("class", shootersTable),
-    byPercent: bucketBy("percent", shootersTable),
-    byCurHHFPercent: bucketBy("curHHFPercent", shootersTable),
-    byRecHHFPercent: bucketBy("recHHFPercent", shootersTable),
-  };
+  const byClass = await statsByDivAndAll("class");
+  const byPercent = await statsByDivAndAll("curClass");
+  const byCurHHFPercent = await statsByDivAndAll("curHHFClass");
+  const byRecHHFPercent = await statsByDivAndAll("recClass");
 
-  await Stats.create(stats);
+  await Stats.collection.drop();
+  await Stats.create({
+    byClass,
+    byPercent,
+    byCurHHFPercent,
+    byRecHHFPercent,
+  });
   console.timeEnd("stats");
 };
