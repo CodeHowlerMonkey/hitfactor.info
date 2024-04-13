@@ -318,3 +318,43 @@ export const divisionShooterAdapter = (shooter, division) => {
     division,
   };
 };
+
+const expiredShootersAggregate = [
+  /*
+  {
+    $match: {
+      division: "co",
+      class: { $ne: "U" },
+    },
+  },*/
+  {
+    $group: {
+      _id: "$memberNumber",
+      expires: {
+        $first: "$data.expiration_date",
+      },
+      dateDiff: {
+        $first: {
+          $dateDiff: {
+            startDate: "$$NOW",
+            endDate: {
+              $dateFromString: {
+                dateString: "$data.expiration_date",
+              },
+            },
+            unit: "day",
+          },
+        },
+      },
+    },
+  },
+  // expired in last year
+  {
+    $match: {
+      dateDiff: { $gte: -730, $lt: -365 },
+    },
+  },
+  {
+    $count: "count",
+  },
+];
