@@ -410,7 +410,7 @@ export const ClassificationStats = () => {
         <Row>
           <ClassificationsChart
             division="Approx"
-            apiData={apiData?.[modeBucket]}
+            apiData={{ Approx: { GM: 1, M: 4, A: 10, B: 25, C: 45, D: 15 } }}
             bar
           />{" "}
         </Row>
