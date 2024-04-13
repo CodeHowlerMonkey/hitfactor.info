@@ -11,14 +11,20 @@ export const dirPath = (...args) => path.join(__dirname, ...args);
 export const loadJSON = (path) =>
   JSON.parse(fs.readFileSync(dirPath(path), "utf8"));
 
-export const processImport = (dir, fileRegexp, forEachFileJSONCb) => {
+const filesToProcess = (dir, fileRegexp) => {
   const files = fs
     .readdirSync(dirPath(dir))
     .filter((file) => !!file.match(fileRegexp));
 
-  const filesToProcess = !process.env.QUICK_DEV ? files : files.slice(165, 170);
+  if (!process.env.QUICK_DEV) {
+    return files;
+  }
 
-  filesToProcess.forEach((file) => {
+  return files.filter((f) => f.includes(".24"));
+};
+
+export const processImport = (dir, fileRegexp, forEachFileJSONCb) => {
+  filesToProcess(dir, fileRegexp).forEach((file) => {
     const curJSON = loadJSON(dir + "/" + file);
     curJSON.forEach(forEachFileJSONCb);
   });
@@ -29,15 +35,8 @@ export const processImportAsync = async (
   fileRegexp,
   forEachFileJSONCb
 ) => {
-  const files = fs
-    .readdirSync(dirPath(dir))
-    .filter((file) => !!file.match(fileRegexp));
-
-  const filesToProcess = !process.env.QUICK_DEV
-    ? files
-    : files.slice(files.length - 4, files.length);
-
-  for (const file of filesToProcess) {
+  const files = filesToProcess(dir, fileRegexp);
+  for (const file of files) {
     const curJSON = loadJSON(dir + "/" + file);
     await Promise.all(curJSON.map(forEachFileJSONCb));
   }
