@@ -237,6 +237,7 @@ export const ScoresChart = ({
           }}
         >
           <SelectButton
+            allowEmpty={false}
             options={modes}
             value={mode}
             onChange={(e) => setMode(e.value)}
@@ -256,6 +257,7 @@ export const ScoresChart = ({
     >
       <div className="flex justify-space-around">
         <SelectButton
+          allowEmpty={false}
           options={modes}
           value={mode}
           onChange={(e) => setMode(e.value)}

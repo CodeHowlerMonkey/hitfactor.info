@@ -169,6 +169,7 @@ export const ClassificationsChart = ({
 
 const ModeSwitch = ({ mode, setMode, modes }) => (
   <SelectButton
+    allowEmpty={false}
     options={modes}
     value={mode}
     onChange={(e) => setMode(e.value)}
