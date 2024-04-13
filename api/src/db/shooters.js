@@ -117,6 +117,7 @@ const OldShooterSchema = new Schema(
 const ShooterSchema = new Schema({}, { strict: false });
 ShooterSchema.index({ memberNumber: 1, division: 1 });
 ShooterSchema.index({ memberNumber: 1 });
+ShooterSchema.index({ memberNumberDivision: 1 });
 ShooterSchema.index({ memberId: 1 });
 
 export const Shooter = mongoose.model("Shooter", ShooterSchema);
@@ -316,6 +317,7 @@ export const divisionShooterAdapter = (shooter, division) => {
     age: shooter.ages[division],
     age1: shooter.age1s[division],
     division,
+    memberNumberDivision: [shooter.memberNumber, division].join(":"),
   };
 };
 

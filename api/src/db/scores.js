@@ -18,6 +18,7 @@ const ScoreSchema = new mongoose.Schema(
     source: String,
     memberNumber: String,
     division: String,
+    memberNumberDivision: String,
   },
   { strict: false }
 );
@@ -41,6 +42,8 @@ ScoreSchema.virtual("percentMinusCurPercent").get(function () {
 
 ScoreSchema.index({ classifier: 1, division: 1 });
 ScoreSchema.index({ memberNumber: 1 });
+ScoreSchema.index({ memberNumberDivision: 1 });
+ScoreSchema.index({ hf: -1 });
 
 export const Score = mongoose.model("Score", ScoreSchema);
 
@@ -108,6 +111,7 @@ export const hydrateScores = async () => {
                   source,
                   memberNumber,
                   division: divShort,
+                  memberNumberDivision: [memberNumber, divShort].join(":"),
 
                   // set in second step in hydrareRecHHF()
                   // recHHF: getRecHHFMap()[division]?.[number] || 0;

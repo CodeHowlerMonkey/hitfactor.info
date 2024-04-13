@@ -14,54 +14,75 @@ import { multisort } from "../../../../../shared/utils/sort.js";
 import { PAGE_SIZE } from "../../../../../shared/constants/pagination.js";
 import { RecHHF } from "../../../db/recHHF.js";
 
+const _getShooterField = (field) => ({
+  $getField: {
+    input: { $arrayElemAt: ["$shooters", 0] },
+    field,
+  },
+});
 const _runs = async ({ number, division, hhf, hhfs }) => {
-  const scores = () => Score.find({ classifier: number, division });
-  const divisionClassifierRunsSortedByHFOrPercent = (await scores().limit(0))
-    .map((doc) => doc.toObject())
-    .sort((a, b) => b.hf - a.hf);
+  const runs = await Score.aggregate([
+    {
+      $project: {
+        _id: false,
+      },
+    },
+    { $match: { classifier: number, division, hf: { $gt: 0 } } },
+    {
+      $lookup: {
+        from: "shooters",
+        localField: "memberNumberDivision",
+        foreignField: "memberNumberDivision",
+        as: "shooters",
+      },
+    },
+    {
+      $addFields: {
+        class: _getShooterField("class"),
+        high: _getShooterField("high"),
+        current: _getShooterField("current"),
+        name: _getShooterField("name"),
+        reclassifications: _getShooterField("reclassifications"),
+      },
+    },
+    {
+      $project: {
+        shooters: false,
+        memberNumberDivision: false,
+        classifier: false,
+        division: false,
+      },
+    },
+    { $sort: { hf: -1 } },
+  ]);
 
-  const memberNumbers = await scores().distinct("memberNumber");
-  const shooterDocs = await Shooter.find({
-    memberNumber: { $in: memberNumbers },
-  })
-    .limit(0)
-    .select(["classifications", "high", "current", "memberNumber", "name"])
-    .lean();
+  return runs.map((run, index, allRuns) => {
+    const { memberNumber } = run;
+    const percent = N(run.percent);
+    const curPercent = PositiveOrMinus1(Percent(run.hf, hhf));
+    const recPercent = PositiveOrMinus1(Percent(run.hf, run.recHHF));
+    const percentMinusCurPercent = N(percent - curPercent);
 
-  const shooters = shooterDocs.map((doc) => ({
-    class: doc.classifications[division],
-    high: doc.high[division],
-    current: doc.current[division],
-    division,
-    memberNumber: doc.memberNumber,
-    name: doc.name,
-  }));
+    const findHistoricalHHF = hhfs.findLast(
+      (hhf) => hhf.date <= new Date(run.sd).getTime()
+    )?.hhf;
 
-  return divisionClassifierRunsSortedByHFOrPercent.map(
-    (run, index, allRuns) => {
-      const { memberNumber } = run;
-      const percent = N(run.percent);
-      const curPercent = PositiveOrMinus1(Percent(run.hf, hhf));
-      const percentMinusCurPercent = N(percent - curPercent);
+    const recalcHistoricalHHF = HF((100 * run.hf) / run.percent);
 
-      const findHistoricalHHF = hhfs.findLast(
-        (hhf) => hhf.date <= new Date(run.sd).getTime()
-      )?.hhf;
-
-      const recalcHistoricalHHF = HF((100 * run.hf) / run.percent);
-
-      return {
-        ...run,
-        ...shooters.find((c) => c.memberNumber === memberNumber),
-        historicalHHF: findHistoricalHHF ?? recalcHistoricalHHF,
-        percent,
-        curPercent,
-        percentMinusCurPercent: percent >= 100 ? 0 : percentMinusCurPercent,
-        place: index + 1,
-        percentile: PositiveOrMinus1(Percent(index, allRuns.length)),
-      };
-    }
-  );
+    return {
+      ...run,
+      sd: new Date(run.sd).toLocaleDateString(),
+      historicalHHF: findHistoricalHHF ?? recalcHistoricalHHF,
+      percent,
+      curPercent,
+      recPercent,
+      percentMinusCurPercent: percent >= 100 ? 0 : percentMinusCurPercent,
+      place: index + 1,
+      percentile: PositiveOrMinus1(Percent(index, allRuns.length)),
+      memberNumber,
+      division,
+    };
+  });
 };
 
 const classifiersRoutes = async (fastify, opts) => {
@@ -87,12 +108,10 @@ const classifiersRoutes = async (fastify, opts) => {
       sort,
       order,
       page: pageString,
-      //legacy,
       hhf: filterHHFString,
       club: filterClubString,
       filter: filterString,
     } = req.query;
-    //const includeNoHF = Number(legacy) === 1;
     const page = Number(pageString) || 1;
     const filterHHF = parseFloat(filterHHFString);
     const c = classifiers.find((cur) => cur.classifier === number);
@@ -201,47 +220,68 @@ const classifiersRoutes = async (fastify, opts) => {
     const { full: fullString } = req.query;
     const full = Number(fullString);
 
-    const [scores, memberNumbers] = await Promise.all([
-      Score.find({ classifier: number, division }).limit(0),
-      Score.find({ classifier: number, division }).distinct("memberNumber"),
+    const runs = await Score.aggregate([
+      {
+        $project: {
+          hf: true,
+          memberNumber: true,
+          memberNumberDivision: true,
+          classifier: true,
+          division: true,
+          _id: false,
+        },
+      },
+      { $match: { classifier: number, division, hf: { $gt: 0 } } },
+      {
+        $lookup: {
+          from: "shooters",
+          localField: "memberNumberDivision",
+          foreignField: "memberNumberDivision",
+          as: "shooters",
+        },
+      },
+      {
+        $addFields: {
+          curPercent: {
+            $getField: {
+              input: { $arrayElemAt: ["$shooters", 0] },
+              field: "current",
+            },
+          },
+          curHHFPercent: {
+            $getField: {
+              input: { $arrayElemAt: ["$shooters", 0] },
+              field: "reclassificationsCurPercentCurrent",
+            },
+          },
+          recPercent: {
+            $getField: {
+              input: { $arrayElemAt: ["$shooters", 0] },
+              field: "reclassificationsRecPercentCurrent",
+            },
+          },
+        },
+      },
+      {
+        $project: {
+          shooters: false,
+          memberNumberDivision: false,
+          classifier: false,
+          division: false,
+        },
+      },
+      { $sort: { hf: -1 } },
     ]);
 
-    const runs = scores
-      .map((doc) => doc.toObject())
-      .sort((a, b) => b.hf - a.hf)
-      .filter(({ hf }) => hf > 0);
-
-    const shooters = await Shooter.find({
-      memberNumber: { $in: memberNumbers },
-    }).limit(0);
-
     const hhf = curHHFForDivisionClassifier({ number, division });
-    const allPoints = runs.map((run, index, allRuns) => {
-      const shooter = shooters.find(
-        (doc) => doc.memberNumber === run.memberNumber
-      );
-
-      return {
-        x: HF(run.hf),
-        y: PositiveOrMinus1(Percent(index, allRuns.length)),
-        memberNumber: run.memberNumber,
-        // percentages in classifier chart are used for colors
-        // historical (if possible) or current curHHFPercent of the shooter for dot color
-        historicalCurHHFPercent:
-          shooter?.reclassificationsByCurPercent[
-            division
-          ]?.percentWithDates.findLast(({ sd }) => {
-            const runUnixTime = new Date(run.sd).getTime();
-            const sdUnixTime = new Date(sd).getTime();
-            return sdUnixTime < runUnixTime;
-          }).p || 0,
-        curPercent: shooter?.current[division] || 0,
-        curHHFPercent:
-          shooter?.reclassificationsByCurPercent[division]?.percent || 0,
-        recPercent:
-          shooter?.reclassificationsByRecPercent[division]?.percent || 0,
-      };
-    });
+    const allPoints = runs.map((run, index, allRuns) => ({
+      x: HF(run.hf),
+      y: PositiveOrMinus1(Percent(index, allRuns.length)),
+      memberNumber: run.memberNumber,
+      curPercent: run.curPercent || 0,
+      curHHFPercent: run.curHHFPercent || 0,
+      recPercent: run.recPercent || 0,
+    }));
 
     // for zoomed in mode return all points
     if (full === 1) {
@@ -249,8 +289,8 @@ const classifiersRoutes = async (fastify, opts) => {
     }
 
     // always return top 100 points, and reduce by 0.5% grouping for other to make render easier
-    const first50 = allPoints.slice(0, 50);
-    const other = allPoints.slice(50, allPoints.length);
+    const first50 = allPoints.slice(0, 100);
+    const other = allPoints.slice(100, allPoints.length);
     return [
       ...first50,
       ...uniqBy(
