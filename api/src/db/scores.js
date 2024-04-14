@@ -18,6 +18,9 @@ const ScoreSchema = new mongoose.Schema(
     source: String,
     memberNumber: String,
     division: String,
+
+    // compound keys for lookups
+    classifierDivision: String,
     memberNumberDivision: String,
   },
   { strict: false }
@@ -25,15 +28,22 @@ const ScoreSchema = new mongoose.Schema(
 ScoreSchema.virtual("isMajor").get(function () {
   return this.source === "Major Match";
 });
+ScoreSchema.virtual("HHFs", {
+  ref: "RecHHF",
+  foreignField: "classifierDivision",
+  localField: "classifierDivision",
+});
 ScoreSchema.virtual("curPercent").get(function () {
+  const curHHF = this.HHFs?.[0]?.curHHF || -1;
   return this.isMajor
     ? this.percent
-    : PositiveOrMinus1(Percent(this.hf, this.hhf));
+    : PositiveOrMinus1(Percent(this.hf, curHHF));
 });
 ScoreSchema.virtual("recPercent").get(function () {
+  const recHHF = this.HHFs?.[0]?.recHHF || -1;
   return this.isMajor
     ? this.percent
-    : PositiveOrMinus1(Percent(this.hf, this.recHHF));
+    : PositiveOrMinus1(Percent(this.hf, recHHF));
 });
 // TODO: get rid of percentMinusCurPercent
 ScoreSchema.virtual("percentMinusCurPercent").get(function () {
@@ -43,6 +53,7 @@ ScoreSchema.virtual("percentMinusCurPercent").get(function () {
 ScoreSchema.index({ classifier: 1, division: 1 });
 ScoreSchema.index({ memberNumber: 1 });
 ScoreSchema.index({ memberNumberDivision: 1 });
+ScoreSchema.index({ classifierDivision: 1 });
 ScoreSchema.index({ hf: -1 });
 
 export const Score = mongoose.model("Score", ScoreSchema);
@@ -101,6 +112,12 @@ export const hydrateScores = async () => {
 
                 return {
                   classifier,
+                  division: divShort,
+                  classifierDivision: [classifier, divShort].joing(":"),
+
+                  memberNumber,
+                  memberNumberDivision: [memberNumber, divShort].join(":"),
+
                   sd,
                   clubid,
                   club_name,
@@ -109,12 +126,6 @@ export const hydrateScores = async () => {
                   hhf,
                   code,
                   source,
-                  memberNumber,
-                  division: divShort,
-                  memberNumberDivision: [memberNumber, divShort].join(":"),
-
-                  // set in second step in hydrareRecHHF()
-                  // recHHF: getRecHHFMap()[division]?.[number] || 0;
                 };
               }
             );

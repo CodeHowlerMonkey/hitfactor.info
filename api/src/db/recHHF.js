@@ -452,13 +452,16 @@ export const recommendedHHFFor = async ({ division, number }) =>
 const RecHHFSchema = new mongoose.Schema({
   classifier: String,
   division: String,
+  curHHF: Number,
   recHHF: Number,
   rec1HHF: Number,
   rec5HHF: Number,
   rec15HHF: Number,
+  classifierDivision: String,
 });
 
 RecHHFSchema.index({ classifier: 1, division: 1 }, { unique: true });
+RecHHFSchema.index({ classifierDivision: 1 }, { unique: true });
 
 export const RecHHF = mongoose.model("RecHHF", RecHHFSchema);
 
@@ -486,14 +489,17 @@ export const hydrateRecHHF = async () => {
       const rec1HHF = r1(allRuns);
       const rec5HHF = r5(allRuns);
       const rec15HHF = r15(allRuns);
-      const curHHF = curHHFForDivisionClassifier({
-        division,
-        number: classifier,
-      });
+      const curHHF =
+        curHHFForDivisionClassifier({
+          division,
+          number: classifier,
+        }) || -1;
       await Promise.all([
         RecHHF.create({
           division,
           classifier,
+          classifierDivision: [classifier, division].join(":"),
+          curHHF,
           recHHF,
           rec1HHF,
           rec5HHF,
