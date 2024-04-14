@@ -59,13 +59,9 @@ const uploadRoutes = async (fastify, opts) => {
           .map((s) => [s.stage_uuid, s.stage_classifiercode])
       );
       const classifierUUIDs = Object.keys(classifiersMap);
-      //return classifierUUIDs
-
       const classifierResults = results.filter((r) =>
         classifierUUIDs.includes(r.stageUUID)
       );
-
-      // TODO: coolect classifier codes and fetch once all recHHFs for them, then lookup and insert instead of 0s
 
       return classifierResults
         .map((r) => {
@@ -85,23 +81,19 @@ const uploadRoutes = async (fastify, opts) => {
 
             return {
               hf: Number(a.hitFactor),
+              hhf,
+              percent,
               memberNumber,
               classifier,
-              upload: uuid,
               division,
+              upload: uuid,
               clubid: match.match_clubcode,
               club_name: match.match_clubname,
               sd: new Date(match.match_date),
-              percent,
-              code: "upload",
+              code: "N",
               source: "Stage Score",
               memberNumberDivision: [memberNumber, division].join(":"),
-              hhf,
-              curHHF: hhf,
-              recHHF: 0,
-              rec1HHF: 0,
-              rec5HHF: 0,
-              rec15HHF: 0,
+              classifierDivision: [classifier, division].join(":"),
             };
           });
         })
