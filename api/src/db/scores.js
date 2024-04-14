@@ -13,7 +13,6 @@ const ScoreSchema = new mongoose.Schema(
     club_name: String,
     percent: Number,
     hf: Number,
-    recHHF: Number,
     code: { type: String, maxLength: 1 },
     source: String,
     memberNumber: String,
@@ -32,6 +31,9 @@ ScoreSchema.virtual("HHFs", {
   ref: "RecHHF",
   foreignField: "classifierDivision",
   localField: "classifierDivision",
+});
+ScoreSchema.virtual("recHHF").get(function () {
+  return this.HHFs?.[0]?.curHHF || -1;
 });
 ScoreSchema.virtual("curPercent").get(function () {
   const curHHF = this.HHFs?.[0]?.curHHF || -1;
@@ -141,6 +143,7 @@ export const hydrateScores = async () => {
 
 export const shooterScoresChartData = async ({ memberNumber, division }) => {
   const scores = await Score.find({ memberNumber, division })
+    .populate("HHFs")
     .limit(0)
     .sort({ sd: -1 });
   return scores
@@ -159,7 +162,9 @@ export const scoresForDivisionForShooter = async ({
   division,
   memberNumber,
 }) => {
-  const scores = await Score.find({ division, memberNumber }).limit(0);
+  const scores = await Score.find({ division, memberNumber })
+    .populate("HHFs")
+    .limit(0);
   return scores.map((doc, index) => {
     const obj = doc.toObject({ virtuals: true });
     obj.index = index;
