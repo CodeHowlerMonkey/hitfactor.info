@@ -4,10 +4,7 @@ import transform from "lodash.transform";
 
 import { stringSort } from "../../../shared/utils/sort.js";
 
-import {
-  basicInfoForClassifier,
-  classifiers,
-} from "../dataUtil/classifiersData.js";
+import { basicInfoForClassifier, classifiers } from "../dataUtil/classifiersData.js";
 import { HF, N, Percent } from "../dataUtil/numbers.js";
 import { divShortToHHFs } from "../dataUtil/hhf.js";
 
@@ -57,8 +54,7 @@ const extendedInfoForClassifier = (c, division, hitFactorScores) => {
       hitFactorScores[Math.floor(x * 0.01 * hitFactorScores.length)]?.hf,
       hhf
     ),
-    [`top${x}PercentileHF`]:
-      hitFactorScores[Math.floor(x * 0.01 * hitFactorScores.length)]?.hf,
+    [`top${x}PercentileHF`]: hitFactorScores[Math.floor(x * 0.01 * hitFactorScores.length)]?.hf,
   });
 
   const inversePercentileStats = (xPercent) => ({
@@ -149,11 +145,7 @@ export const hydrateClassifiersExtendedMeta = async () => {
       const recHHF = recHHFQuery?.recHHF;
       const inverseRecPercentileStats = (xPercent) => ({
         [`inverse${xPercent}RecPercentPercentile`]: Percent(
-          recHHF > 0
-            ? hitFactorScores.findLastIndex(
-                (c) => (100 * c.hf) / recHHF >= xPercent
-              )
-            : -1,
+          recHHF > 0 ? hitFactorScores.findLastIndex((c) => (100 * c.hf) / recHHF >= xPercent) : -1,
           hitFactorScores.length
         ),
       });
