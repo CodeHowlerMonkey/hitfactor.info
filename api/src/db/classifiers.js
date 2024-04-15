@@ -131,7 +131,7 @@ export const hydrateClassifiersExtendedMeta = async () => {
   let i = 0;
   const total = classifiers.length * 9;
   console.log("hydrating classifiers extended meta");
-  Classifier.collection.drop();
+  await Classifier.collection.drop();
   console.time("classifiers");
   const divisions = (await Score.find().distinct("division")).filter(Boolean);
   for (const division of divisions) {

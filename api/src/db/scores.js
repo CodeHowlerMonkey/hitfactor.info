@@ -69,7 +69,7 @@ const badScoresMap = {
 export const hydrateScores = async () => {
   console.log("hydrating initial scores");
   console.time("scores");
-  await Score.deleteMany({});
+  await Score.collection.drop();
   await processImportAsync("../../data/imported", /classifiers\.\d+\.json/, async (obj) => {
     const memberNumber = obj?.value?.member_data?.member_number;
     const memberId = obj?.value?.member_data?.member_id;
