@@ -264,12 +264,14 @@ const classificationsBreakdownAdapter = (c, division) => {
         curPercent: reclassificationsCurPercent,
         recPercent: reclassificationsRecPercent,
       },
-      hqClass,
-      curHHFClass: reclassificationsCurPercent.class,
+
       recClass: reclassificationsRecPercent.class,
-      hqClassRank: rankForClass(hqClass),
-      curHHFClassRank: rankForClass(reclassificationsCurPercent.class),
       recClassRank: rankForClass(reclassificationsRecPercent.class),
+      hqClass,
+      hqClassRank: rankForClass(hqClass),
+      curHHFClass: reclassificationsCurPercent.class,
+      curHHFClassRank: rankForClass(reclassificationsCurPercent.class),
+
       hqToCurHHFPercent,
       hqToRecPercent,
       division,

@@ -31,10 +31,7 @@ const toFixedWithSuffixValueOrPlaceholder = (
 const percentValueOrEmpty = (value) =>
   toFixedWithSuffixValueOrPlaceholder(value, 2, "%", "");
 
-const cardRow = (
-  { classes, highs, currents, ages, reclassifications },
-  div
-) => ({
+const cardRow = ({ classes, currents, ages, reclassifications }, div) => ({
   division: tableNameForDiv[div],
   hq: [classes[div], percentValueOrEmpty(currents[div])]
     .filter(Boolean)

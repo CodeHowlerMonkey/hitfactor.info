@@ -126,6 +126,7 @@ ClassifierSchema.index({ classifier: 1, division: 1 }, { unique: true });
 ClassifierSchema.index({ division: 1 });
 export const Classifier = mongoose.model("Classifier", ClassifierSchema);
 
+//TODO: extract hydrateSingleClassiferExtendedMeta similar to recHHF extract
 export const hydrateClassifiersExtendedMeta = async () => {
   let i = 0;
   const total = classifiers.length * 9;
