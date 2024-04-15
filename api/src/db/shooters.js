@@ -182,8 +182,15 @@ export const hydrateShooters = async () => {
       };
 
       process.stdout.write(".");
-      return mapDivisionsAsync((div) =>
-        Shooter.create(divisionShooterAdapter(shooterDoc, div))
+      return mapDivisionsAsync((division) =>
+        Shooter.create({
+          ...shooterDoc,
+          ...classificationsBreakdownAdapter(shooterDoc, division),
+          age: shooterDoc.ages[division],
+          age1: shooterDoc.age1s[division],
+          division,
+          memberNumberDivision: [shooterDoc.memberNumber, division].join(":"),
+        })
       );
     }
   );
@@ -281,43 +288,6 @@ const classificationsBreakdownAdapter = (c, division) => {
     current: 0,
     division,
     name: "Expired / Not Found",
-  };
-};
-
-const addRankAndPercentile = (collection, field) =>
-  collection
-    .sort(safeNumSort(field)) // sort by high to calculate highRank
-    .map((c, index, all) => ({
-      ...c,
-      [`${field}Rank`]: index,
-      [`${field}Percentile`]: Percent(index, all.length),
-    }));
-
-export const legacyShootersExtendedAdapter = (shooters, division) => {
-  const withBreakDown = shooters.map((c) =>
-    classificationsBreakdownAdapter(c, division)
-  );
-  const withHigh = addRankAndPercentile(withBreakDown, "high");
-  const withCurrent = addRankAndPercentile(withHigh, "current");
-
-  return withCurrent.map((c) => {
-    // TODO: move age calculation to calculateUSPSAClassification
-    // should be cheaper and more precise for curHHF/recHHF modes
-    c.age = c.ages[division];
-    c.age1 = c.age1s[division];
-    // c.ages = c.ages
-    return c;
-  });
-};
-
-export const divisionShooterAdapter = (shooter, division) => {
-  return {
-    ...shooter,
-    ...classificationsBreakdownAdapter(shooter, division),
-    age: shooter.ages[division],
-    age1: shooter.age1s[division],
-    division,
-    memberNumberDivision: [shooter.memberNumber, division].join(":"),
   };
 };
 
