@@ -465,6 +465,12 @@ RecHHFSchema.index({ classifierDivision: 1 }, { unique: true });
 
 export const RecHHF = mongoose.model("RecHHF", RecHHFSchema);
 
+/**
+ * Upserts a single recHHF after calculating it from all available scores
+ * for the given division/classifier combo
+ *
+ * Used in initial hydration and to update recHHFs after an upload
+ */
 export const hydrateSingleRecHFF = async (division, classifier) => {
   const allRuns = await runsForRecs({ division, number: classifier });
   const recHHF = recommendedHHFFunctionFor({
