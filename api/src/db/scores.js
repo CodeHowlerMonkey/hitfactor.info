@@ -110,7 +110,7 @@ export const hydrateScores = async () => {
               return {
                 classifier,
                 division: divShort,
-                classifierDivision: [classifier, divShort].joing(":"),
+                classifierDivision: [classifier, divShort].join(":"),
 
                 memberNumber,
                 memberNumberDivision: [memberNumber, divShort].join(":"),
