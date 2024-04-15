@@ -465,6 +465,37 @@ RecHHFSchema.index({ classifierDivision: 1 }, { unique: true });
 
 export const RecHHF = mongoose.model("RecHHF", RecHHFSchema);
 
+export const hydrateSingleRecHFF = async (division, classifier) => {
+  const allRuns = await runsForRecs({ division, number: classifier });
+  const recHHF = recommendedHHFFunctionFor({
+    division,
+    number: classifier,
+  })(allRuns);
+  const rec1HHF = r1(allRuns);
+  const rec5HHF = r5(allRuns);
+  const rec15HHF = r15(allRuns);
+  const curHHF =
+    curHHFForDivisionClassifier({
+      division,
+      number: classifier,
+    }) || -1;
+
+  return RecHHF.findOneAndUpdate(
+    { division, classifier },
+    {
+      division,
+      classifier,
+      classifierDivision: [classifier, division].join(":"),
+      curHHF,
+      recHHF,
+      rec1HHF,
+      rec5HHF,
+      rec15HHF,
+    },
+    { upsert: true }
+  );
+};
+
 export const hydrateRecHHF = async () => {
   await RecHHF.collection.drop();
   console.log("hydrating recommended HHFs");
@@ -481,35 +512,7 @@ export const hydrateRecHHF = async () => {
   const total = divisions.length * classifers.length;
   for (const division of divisions) {
     for (const classifier of classifers) {
-      const allRuns = await runsForRecs({ division, number: classifier });
-      const recHHF = recommendedHHFFunctionFor({
-        division,
-        number: classifier,
-      })(allRuns);
-      const rec1HHF = r1(allRuns);
-      const rec5HHF = r5(allRuns);
-      const rec15HHF = r15(allRuns);
-      const curHHF =
-        curHHFForDivisionClassifier({
-          division,
-          number: classifier,
-        }) || -1;
-      await Promise.all([
-        RecHHF.create({
-          division,
-          classifier,
-          classifierDivision: [classifier, division].join(":"),
-          curHHF,
-          recHHF,
-          rec1HHF,
-          rec5HHF,
-          rec15HHF,
-        }),
-        Score.updateMany(
-          { division, classifier },
-          { recHHF, rec1HHF, rec5HHF, rec15HHF, curHHF }
-        ),
-      ]);
+      await hydrateSingleRecHFF(division, classifier);
       process.stdout.write(`\r${i}/${total}`);
       ++i;
     }
