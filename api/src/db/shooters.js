@@ -59,7 +59,7 @@ const scoresAgeAggr = async (memberNumber, division, maxScores) => {
 // TODO: move score calculation to reclassifications, so we don't rely on USPSA
 // flags
 export const scoresAge = async (division, memberNumber, maxScores = 4) => {
-  const scoreDates = await Score.find({ memberNumber, division, code: "Y" })
+  const scoreDates = await Score.find({ memberNumber, division })
     .sort({ sd: -1 })
     .limit(maxScores)
     .select("sd")
