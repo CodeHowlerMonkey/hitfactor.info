@@ -1,3 +1,4 @@
+import { UTCDate } from "../../../../../shared/utils/date.js";
 import { curHHFForDivisionClassifier } from "../../../dataUtil/hhf.js";
 import { HF, Percent } from "../../../dataUtil/numbers.js";
 
@@ -89,7 +90,7 @@ const uploadRoutes = async (fastify, opts) => {
               upload: uuid,
               clubid: match.match_clubcode,
               club_name: match.match_clubname,
-              sd: new Date(match.match_date),
+              sd: UTCDate(match.match_date),
               code: "N",
               source: "Stage Score",
               memberNumberDivision: [memberNumber, division].join(":"),

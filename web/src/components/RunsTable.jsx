@@ -106,7 +106,7 @@ export const useRunsTableData = ({ division, classifier }) => {
 
   const data = (apiData?.runs ?? []).map((d) => ({
     ...d,
-    updated: new Date(d.updated).toLocaleDateString(),
+    updated: new Date(d.updated).toLocaleDateString("en-us", { timeZone: "UTC" }),
   }));
 
   return {

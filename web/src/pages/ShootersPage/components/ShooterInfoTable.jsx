@@ -52,7 +52,7 @@ const cardRow = ({ classes, currents, ages, reclassifications }, div) => ({
 });
 
 const dateValue = (value) =>
-  !value ? "" : new Date(value).toLocaleDateString();
+  !value ? "" : new Date(value).toLocaleDateString("en-us", { timeZone: "UTC" });
 
 export const ShooterInfoTable = ({ info }) => {
   const loading = !info?.data?.member_id;

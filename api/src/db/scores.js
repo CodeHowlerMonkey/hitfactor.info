@@ -1,5 +1,7 @@
 import mongoose from "mongoose";
 
+import { UTCDate } from "../../../shared/utils/date.js";
+
 import { processImportAsync } from "../utils.js";
 import { divIdToShort } from "../dataUtil/divisions.js";
 import { curHHFForDivisionClassifier } from "../dataUtil/hhf.js";
@@ -120,7 +122,7 @@ export const hydrateScores = async () => {
                   memberNumber,
                   memberNumberDivision: [memberNumber, divShort].join(":"),
 
-                  sd,
+                sd: UTCDate(sd),
                   clubid,
                   club_name,
                   percent,

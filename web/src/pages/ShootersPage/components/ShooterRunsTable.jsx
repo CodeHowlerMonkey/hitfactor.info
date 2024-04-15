@@ -41,7 +41,7 @@ const ShooterRunsTable = ({
       field="sdUnix"
       header="Date"
       sortable
-      body={(run) => new Date(run.sd).toLocaleDateString()}
+      body={(run) => new Date(run.sd).toLocaleDateString("en-us", { timeZone: "UTC" })}
     />
     <Column
       field="classifier"

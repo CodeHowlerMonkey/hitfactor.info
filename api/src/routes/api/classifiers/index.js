@@ -69,7 +69,7 @@ const _runs = async ({ number, division, hhf, hhfs }) => {
 
     return {
       ...run,
-      sd: new Date(run.sd).toLocaleDateString(),
+      sd: new Date(run.sd).toLocaleDateString("en-us", { timeZone: "UTC" }),
       historicalHHF: findHistoricalHHF ?? recalcHistoricalHHF,
       percent,
       curPercent,
