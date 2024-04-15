@@ -134,7 +134,7 @@ export const hydrateShooters = async () => {
         const hqToRecPercent = hqCurrent - reclassificationsRecPercentCurrent;
 
         //return Shooter.findOneAndUpdate(
-        //  { memberNumber, division },
+        // { memberNumber, division },
         // { upsert: true }
         return Shooter.create({
           data: c.member_data,

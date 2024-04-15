@@ -57,11 +57,7 @@ const LegacyCheckbox = ({ onChange }) => {
   useEffect(() => onChange?.(value), [value]);
   return (
     <>
-      <Checkbox
-        inputId="legacyCheck"
-        checked={value}
-        onChange={(e) => setValue(e.checked)}
-      />
+      <Checkbox inputId="legacyCheck" checked={value} onChange={(e) => setValue(e.checked)} />
       <label htmlFor="legacyCheck" className="ml-2 mr-4">
         Incl. Legacy
       </label>
@@ -70,11 +66,7 @@ const LegacyCheckbox = ({ onChange }) => {
 };
 
 export const useRunsTableData = ({ division, classifier }) => {
-  const {
-    query: pageQuery,
-    reset: resetPage,
-    ...pageProps
-  } = useTablePagination();
+  const { query: pageQuery, reset: resetPage, ...pageProps } = useTablePagination();
   const { query, ...sortProps } = useTableSort({
     mode: "multiple",
     onSortCallback: () => resetPage(),
@@ -184,10 +176,7 @@ const RunsTable = ({
         header="Shooter"
         sortable
         body={(run) => (
-          <ShooterCell
-            data={run}
-            onClick={() => onShooterSelection?.(run.memberNumber)}
-          />
+          <ShooterCell data={run} onClick={() => onShooterSelection?.(run.memberNumber)} />
         )}
       />
       <Column

@@ -10,9 +10,7 @@ const fetchPS = async (path) =>
   ).json();
 
 const normalizeDivision = (shitShowDivisionNameCanBeAnythingWTFPS) => {
-  const lowercaseNoSpace = shitShowDivisionNameCanBeAnythingWTFPS
-    .toLowerCase()
-    .replace(/\s/g, "");
+  const lowercaseNoSpace = shitShowDivisionNameCanBeAnythingWTFPS.toLowerCase().replace(/\s/g, "");
   const anythingMap = {
     open: "opn",
 
@@ -51,18 +49,14 @@ const uploadRoutes = async (fastify, opts) => {
         fetchPS(`${uuid}/results.json`),
       ]);
       const { match_shooters, match_stages } = match;
-      const shootersMap = Object.fromEntries(
-        match_shooters.map((s) => [s.sh_uuid, s.sh_id])
-      );
+      const shootersMap = Object.fromEntries(match_shooters.map((s) => [s.sh_uuid, s.sh_id]));
       const classifiersMap = Object.fromEntries(
         match_stages
           .filter((s) => !!s.stage_classifiercode)
           .map((s) => [s.stage_uuid, s.stage_classifiercode])
       );
       const classifierUUIDs = Object.keys(classifiersMap);
-      const classifierResults = results.filter((r) =>
-        classifierUUIDs.includes(r.stageUUID)
-      );
+      const classifierResults = results.filter((r) => classifierUUIDs.includes(r.stageUUID));
 
       return classifierResults
         .map((r) => {
@@ -99,9 +93,7 @@ const uploadRoutes = async (fastify, opts) => {
           });
         })
         .flat()
-        .filter(
-          (r) => r.hf > 0 && !!r.memberNumber && !!r.classifier && !!r.division
-        );
+        .filter((r) => r.hf > 0 && !!r.memberNumber && !!r.classifier && !!r.division);
     } catch (e) {
       console.error(e);
       return { error: e };

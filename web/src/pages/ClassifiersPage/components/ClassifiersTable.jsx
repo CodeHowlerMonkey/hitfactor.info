@@ -7,11 +7,7 @@ import { useApi } from "../../../utils/client";
 import useTableSort from "../../../components/Table/useTableSort";
 import { headerTooltipOptions } from "../../../components/Table/Table";
 
-import {
-  numSort,
-  dateSort,
-  classifierCodeSort,
-} from "../../../../../shared/utils/sort";
+import { numSort, dateSort, classifierCodeSort } from "../../../../../shared/utils/sort";
 import ClassifierCell from "../../../components/ClassifierCell";
 import { renderHFOrNA, renderPercent } from "../../../components/Table";
 
@@ -43,18 +39,13 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
   const data = (useApi("/classifiers/" + (division ?? "")) ?? [])
     .map((d) => ({
       ...d,
-      updated: new Date(d.updated).toLocaleDateString(),
+      updated: new Date(d.updated).toLocaleDateString("en-us", { timeZone: "UTC" }),
       recHHFChange: d.recHHF - d.hhf,
     }))
     .sort((a, b) => {
       switch (sortState.sortField) {
         case "code":
-          return classifierCodeSort(
-            a,
-            b,
-            sortState.sortField,
-            sortState.sortOrder
-          );
+          return classifierCodeSort(a, b, sortState.sortField, sortState.sortOrder);
 
         case "updated":
           return dateSort(a, b, sortState.sortField, sortState.sortOrder);
@@ -68,11 +59,7 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
       }
     })
     .filter(
-      (cur) =>
-        !filter ||
-        (cur.code + "###" + cur.name)
-          .toLowerCase()
-          .includes(filter.toLowerCase())
+      (cur) => !filter || (cur.code + "###" + cur.name).toLowerCase().includes(filter.toLowerCase())
     );
 
   return (

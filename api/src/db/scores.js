@@ -39,15 +39,11 @@ ScoreSchema.virtual("recHHF").get(function () {
 });
 ScoreSchema.virtual("curPercent").get(function () {
   const curHHF = this.HHFs?.[0]?.curHHF || -1;
-  return this.isMajor
-    ? this.percent
-    : PositiveOrMinus1(Percent(this.hf, curHHF));
+  return this.isMajor ? this.percent : PositiveOrMinus1(Percent(this.hf, curHHF));
 });
 ScoreSchema.virtual("recPercent").get(function () {
   const recHHF = this.HHFs?.[0]?.recHHF || -1;
-  return this.isMajor
-    ? this.percent
-    : PositiveOrMinus1(Percent(this.hf, recHHF));
+  return this.isMajor ? this.percent : PositiveOrMinus1(Percent(this.hf, recHHF));
 });
 // TODO: get rid of percentMinusCurPercent
 ScoreSchema.virtual("percentMinusCurPercent").get(function () {
@@ -74,72 +70,68 @@ export const hydrateScores = async () => {
   console.log("hydrating initial scores");
   console.time("scores");
   await Score.deleteMany({});
-  await processImportAsync(
-    "../../data/imported",
-    /classifiers\.\d+\.json/,
-    async (obj) => {
-      const memberNumber = obj?.value?.member_data?.member_number;
-      const memberId = obj?.value?.member_data?.member_id;
-      const classifiers = obj?.value?.classifiers;
-      return Promise.all(
-        classifiers.map((divObj) => {
-          const divShort = divIdToShort[divObj?.division_id];
-          if (!divShort) {
-            // new imports have some weird division numbers (1, 10, etc) no idea what that is
-            // just skip for now
-            return null;
-          }
+  await processImportAsync("../../data/imported", /classifiers\.\d+\.json/, async (obj) => {
+    const memberNumber = obj?.value?.member_data?.member_number;
+    const memberId = obj?.value?.member_data?.member_id;
+    const classifiers = obj?.value?.classifiers;
+    return Promise.all(
+      classifiers.map((divObj) => {
+        const divShort = divIdToShort[divObj?.division_id];
+        if (!divShort) {
+          // new imports have some weird division numbers (1, 10, etc) no idea what that is
+          // just skip for now
+          return null;
+        }
 
-          const curFileScores = divObj.division_classifiers
-            .filter(({ source }) => source !== "Legacy") // saves RAM, no point looking at old
-            .filter((obj) => !badScoresMap[classifierScoreId(memberId, obj)]) // ignore banned scores
-            .map(
-              ({
-                code,
-                source,
-                hf: hfRaw,
-                percent: percentString,
-                sd,
-                clubid,
-                club_name,
+        const curFileScores = divObj.division_classifiers
+          .filter(({ source }) => source !== "Legacy") // saves RAM, no point looking at old
+          .filter((obj) => !badScoresMap[classifierScoreId(memberId, obj)]) // ignore banned scores
+          .map(
+            ({
+              code,
+              source,
+              hf: hfRaw,
+              percent: percentString,
+              sd,
+              clubid,
+              club_name,
+              classifier,
+            }) => {
+              const isMajor = source === "Major Match";
+              const hhf = isMajor
+                ? -1
+                : curHHFForDivisionClassifier({
+                    division: divShort,
+                    number: classifier,
+                  });
+              const percent = Number(percentString);
+              const hf = Number(hfRaw);
+
+              return {
                 classifier,
-              }) => {
-                const isMajor = source === "Major Match";
-                const hhf = isMajor
-                  ? -1
-                  : curHHFForDivisionClassifier({
-                      division: divShort,
-                      number: classifier,
-                    });
-                const percent = Number(percentString);
-                const hf = Number(hfRaw);
+                division: divShort,
+                classifierDivision: [classifier, divShort].joing(":"),
 
-                return {
-                  classifier,
-                  division: divShort,
-                  classifierDivision: [classifier, divShort].joing(":"),
-
-                  memberNumber,
-                  memberNumberDivision: [memberNumber, divShort].join(":"),
+                memberNumber,
+                memberNumberDivision: [memberNumber, divShort].join(":"),
 
                 sd: UTCDate(sd),
-                  clubid,
-                  club_name,
-                  percent,
-                  hf: !isNaN(hf) ? hf : undefined,
-                  hhf,
-                  code,
-                  source,
-                };
-              }
-            );
+                clubid,
+                club_name,
+                percent,
+                hf: !isNaN(hf) ? hf : undefined,
+                hhf,
+                code,
+                source,
+              };
+            }
+          );
 
-          process.stdout.write(".");
-          return Score.insertMany(curFileScores);
-        })
-      );
-    }
-  );
+        process.stdout.write(".");
+        return Score.insertMany(curFileScores);
+      })
+    );
+  });
   console.timeEnd("scores");
 };
 
@@ -160,13 +152,8 @@ export const shooterScoresChartData = async ({ memberNumber, division }) => {
     .filter((run) => !!run.classifier); // no majors for now in the graph
 };
 
-export const scoresForDivisionForShooter = async ({
-  division,
-  memberNumber,
-}) => {
-  const scores = await Score.find({ division, memberNumber })
-    .populate("HHFs")
-    .limit(0);
+export const scoresForDivisionForShooter = async ({ division, memberNumber }) => {
+  const scores = await Score.find({ division, memberNumber }).populate("HHFs").limit(0);
   return scores.map((doc, index) => {
     const obj = doc.toObject({ virtuals: true });
     obj.index = index;

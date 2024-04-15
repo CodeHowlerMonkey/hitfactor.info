@@ -15,12 +15,7 @@ const tableNameForDiv = {
   lo: "LO",
 };
 
-const toFixedWithSuffixValueOrPlaceholder = (
-  value,
-  length,
-  suffix,
-  empty = "—"
-) => {
+const toFixedWithSuffixValueOrPlaceholder = (value, length, suffix, empty = "—") => {
   if (!value) {
     return empty;
   }
@@ -28,14 +23,11 @@ const toFixedWithSuffixValueOrPlaceholder = (
   return value.toFixed(length) + suffix;
 };
 
-const percentValueOrEmpty = (value) =>
-  toFixedWithSuffixValueOrPlaceholder(value, 2, "%", "");
+const percentValueOrEmpty = (value) => toFixedWithSuffixValueOrPlaceholder(value, 2, "%", "");
 
 const cardRow = ({ classes, currents, ages, reclassifications }, div) => ({
   division: tableNameForDiv[div],
-  hq: [classes[div], percentValueOrEmpty(currents[div])]
-    .filter(Boolean)
-    .join(" / "),
+  hq: [classes[div], percentValueOrEmpty(currents[div])].filter(Boolean).join(" / "),
   curHHF: [
     reclassifications.curPercent.classes[div],
     percentValueOrEmpty(reclassifications?.curPercent?.currents?.[div]),
@@ -74,12 +66,7 @@ export const ShooterInfoTable = ({ info }) => {
           minWidth: "36rem",
           maxWidth: "58rem",
         }}
-        body={() => (
-          <ShooterChart
-            division={info.division}
-            memberNumber={info.memberNumber}
-          />
-        )}
+        body={() => <ShooterChart division={info.division} memberNumber={info.memberNumber} />}
       />
       <Column
         align="center"
@@ -87,10 +74,7 @@ export const ShooterInfoTable = ({ info }) => {
         field="test2"
         header="Shooter Info / Card"
         body={() => (
-          <div
-            className="h-full w-24rem"
-            style={{ marginLeft: "auto", overflowY: "scroll" }}
-          >
+          <div className="h-full w-24rem" style={{ marginLeft: "auto", overflowY: "scroll" }}>
             <DataTable
               tableStyle={{ maxWidth: "100%", margin: " 0 auto" }}
               size="small"
