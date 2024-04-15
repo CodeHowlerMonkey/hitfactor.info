@@ -63,9 +63,7 @@ const _runs = async ({ number, division, hhf, hhfs }) => {
     const recPercent = PositiveOrMinus1(Percent(run.hf, run.recHHF));
     const percentMinusCurPercent = N(percent - curPercent);
 
-    const findHistoricalHHF = hhfs.findLast(
-      (hhf) => hhf.date <= new Date(run.sd).getTime()
-    )?.hhf;
+    const findHistoricalHHF = hhfs.findLast((hhf) => hhf.date <= new Date(run.sd).getTime())?.hhf;
 
     const recalcHistoricalHHF = HF((100 * run.hf) / run.percent);
 
@@ -95,10 +93,7 @@ const classifiersRoutes = async (fastify, opts) => {
 
   fastify.get("/download/:division", async (req, res) => {
     const { division } = req.params;
-    res.header(
-      "Content-Disposition",
-      `attachment; filename=classifiers.${division}.json`
-    );
+    res.header("Content-Disposition", `attachment; filename=classifiers.${division}.json`);
     return Classifier.find({ division });
   });
 
@@ -149,15 +144,11 @@ const classifiersRoutes = async (fastify, opts) => {
       );
     }
     if (filterClubString) {
-      runsUnsorted = runsUnsorted
-        .filter((run) => run.clubid === filterClubString)
-        .slice(0, 10);
+      runsUnsorted = runsUnsorted.filter((run) => run.clubid === filterClubString).slice(0, 10);
     }
-    const runs = multisort(
-      runsUnsorted,
-      sort?.split?.(","),
-      order?.split?.(",")
-    ).map((run, index) => ({ ...run, index }));
+    const runs = multisort(runsUnsorted, sort?.split?.(","), order?.split?.(",")).map(
+      (run, index) => ({ ...run, index })
+    );
 
     const recHHFInfo = await RecHHF.findOne({ classifier: number, division })
       .select(["recHHF", "rec1HHF", "rec5HHF", "rec15HHF"])

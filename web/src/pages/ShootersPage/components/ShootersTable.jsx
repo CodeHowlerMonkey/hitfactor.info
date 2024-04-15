@@ -39,16 +39,8 @@ const TableFilter = ({ placeholder, onFilterChange }) => {
   );
 };
 
-export const useShootersTableData = ({
-  division,
-  inconsistencies,
-  classFilter,
-}) => {
-  const {
-    query: pageQuery,
-    reset: resetPage,
-    ...pageProps
-  } = useTablePagination();
+export const useShootersTableData = ({ division, inconsistencies, classFilter }) => {
+  const { query: pageQuery, reset: resetPage, ...pageProps } = useTablePagination();
   const { query, ...sortProps } = useTableSort({
     mode: "multiple",
     onSortCallback: () => resetPage(),
@@ -83,12 +75,7 @@ export const useShootersTableData = ({
   };
 };
 
-const ShootersTable = ({
-  division,
-  onShooterSelection,
-  inconsistencies,
-  classFilter,
-}) => {
+const ShootersTable = ({ division, onShooterSelection, inconsistencies, classFilter }) => {
   const {
     data,
     shootersTotal,
@@ -147,19 +134,14 @@ const ShootersTable = ({
         align="center"
         headerTooltip="Top percentile for this shooter in current sort mode."
         headerTooltipOptions={headerTooltipOptions}
-        body={(c) =>
-          ((100 * c.index) / (shootersTotalWithoutFilters - 1)).toFixed(2) + "%"
-        }
+        body={(c) => ((100 * c.index) / (shootersTotalWithoutFilters - 1)).toFixed(2) + "%"}
       />
       <Column
         field="memberNumber"
         header="Shooter"
         sortable
         body={(shooter) => (
-          <ShooterCell
-            data={shooter}
-            onClick={() => onShooterSelection?.(shooter.memberNumber)}
-          />
+          <ShooterCell data={shooter} onClick={() => onShooterSelection?.(shooter.memberNumber)} />
         )}
       />
       <Column field="recClass" header="Rec." {...classColumnProps} />
@@ -198,36 +180,6 @@ const ShootersTable = ({
         sortable
         body={renderPercentDiff}
       />
-      {/*
-      <Column
-        field="high"
-        header="High %"
-        sortable
-        body={(c) => (c.high || 0).toFixed(2) + "%"}
-      />
-      <Column
-        field="currentRank"
-        header="Cur. Rank"
-        sortable
-        headerTooltip="TopXXX Rank of that Shooter baed on their Current Division Percentage"
-        headerTooltipOptions={headerTooltipOptions}
-      />
-      <Column
-        field="highRank"
-        header="High. Rank"
-        sortable
-        headerTooltip="TopXXX Rank of that Shooter baed on their(and others) High Division Percentage"
-        headerTooltipOptions={headerTooltipOptions}
-        />*/}
-      {/* TODO: maybe merge # and percentile columns, move things aroung, Rec, Cur, HQ */}
-      {/*
-      <Column
-        field="highPercentile"
-        header="High Percentile"
-        sortable
-        body={(c) => "Top " + c.highPercentile.toFixed(2) + "%"}
-      />
-      */}
       <Column
         field="age"
         header="Age"
