@@ -122,6 +122,23 @@ ShooterSchema.index({ memberId: 1 });
 
 export const Shooter = mongoose.model("Shooter", ShooterSchema);
 
+export const reduceByDiv = (classifications, valueFn) =>
+  classifications.reduce(
+    (acc, c) => ({
+      ...acc,
+      [divIdToShort[c.division_id]]: valueFn(c),
+    }),
+    {}
+  );
+
+// TODO: can I do lean here?
+const allDivisionsScores = async (memberNumber) => {
+  const query = Score.find({ memberNumber }).limit(0).sort({ sd: -1 });
+  const data = await query;
+
+  return data.map((doc) => doc.toObject({ virtuals: true }));
+};
+
 export const hydrateShooters = async () => {
   console.log("hydrating shooters");
   await Shooter.collection.drop();
@@ -131,6 +148,8 @@ export const hydrateShooters = async () => {
     /classification\.\d+\.json/,
     async ({ value: c }) => {
       const memberNumber = memberNumberFromMemberData(c.member_data);
+      const memberScores = await allDivisionsScores(memberNumber);
+
       const shooterDoc = {
         data: c.member_data,
         memberId: c.member_data.member_id,
@@ -142,37 +161,17 @@ export const hydrateShooters = async () => {
         ]
           .filter(Boolean)
           .join(" "),
-        classifications: c.classifications.reduce(
-          (acc, c) => ({
-            ...acc,
-            [divIdToShort[c.division_id]]: c.class,
-          }),
-          {}
-        ),
-        high: c.classifications.reduce(
-          (acc, c) => ({
-            ...acc,
-            [divIdToShort[c.division_id]]: Number(c.high_percent),
-          }),
-          {}
-        ),
-        current: c.classifications.reduce(
-          (acc, c) => ({
-            ...acc,
-            [divIdToShort[c.division_id]]: Number(c.current_percent),
-          }),
-          {}
+        classifications: reduceByDiv(c.classifications, (r) => r.class),
+        high: reduceByDiv(c.classifications, (r) => Number(c.high_percent)),
+        current: reduceByDiv(c.classifications, (r) =>
+          Number(c.current_percent)
         ),
         reclassificationsByCurPercent: calculateUSPSAClassification(
-          (await Score.find({ memberNumber }).limit(0).sort({ sd: -1 })).map(
-            (doc) => doc.toObject({ virtuals: true })
-          ),
+          memberScores,
           "curPercent"
         ),
         reclassificationsByRecPercent: calculateUSPSAClassification(
-          (await Score.find({ memberNumber }).limit(0)).map((doc) =>
-            doc.toObject({ virtuals: true })
-          ),
+          memberScores,
           "recPercent"
         ),
         ages: await mapDivisionsAsync((div) => scoresAge(div, memberNumber)),
