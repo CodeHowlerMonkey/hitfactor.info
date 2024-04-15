@@ -98,7 +98,9 @@ const uploadRoutes = async (fastify, opts) => {
           });
         })
         .flat()
-        .filter((r) => r.hf > 0 && !!r.memberNumber);
+        .filter(
+          (r) => r.hf > 0 && !!r.memberNumber && !!r.classifier && !!r.division
+        );
     } catch (e) {
       console.error(e);
       return { error: e };
