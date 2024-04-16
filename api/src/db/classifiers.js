@@ -4,7 +4,11 @@ import transform from "lodash.transform";
 
 import { stringSort } from "../../../shared/utils/sort.js";
 
-import { basicInfoForClassifier, classifiers } from "../dataUtil/classifiersData.js";
+import {
+  basicInfoForClassifier,
+  classifiers as _classifiers,
+  classifiersByNumber,
+} from "../dataUtil/classifiersData.js";
 import { HF, N, Percent } from "../dataUtil/numbers.js";
 import { divShortToHHFs } from "../dataUtil/hhf.js";
 
@@ -122,45 +126,50 @@ ClassifierSchema.index({ classifier: 1, division: 1 }, { unique: true });
 ClassifierSchema.index({ division: 1 });
 export const Classifier = mongoose.model("Classifier", ClassifierSchema);
 
-//TODO: extract hydrateSingleClassiferExtendedMeta similar to recHHF extract
+export const hydrateSingleClassiferExtendedMeta = async (division, classifier) => {
+  const c = classifiersByNumber[classifier];
+  const [recHHFQuery, hitFactorScores] = await Promise.all([
+    RecHHF.findOne({ division, classifier }).select("recHHF").lean(),
+    Score.find({ division, classifier, hf: { $gte: 0 } })
+      .sort({ hf: -1 })
+      .limit(0)
+      .lean(),
+  ]);
+
+  const recHHF = recHHFQuery?.recHHF;
+  const inverseRecPercentileStats = (xPercent) => ({
+    [`inverse${xPercent}RecPercentPercentile`]: Percent(
+      recHHF > 0 ? hitFactorScores.findLastIndex((c) => (100 * c.hf) / recHHF >= xPercent) : -1,
+      hitFactorScores.length
+    ),
+  });
+  const classifierMetaDoc = {
+    division,
+    ...basicInfoForClassifier(c),
+    ...extendedInfoForClassifier(c, division, hitFactorScores),
+    recHHF,
+    ...inverseRecPercentileStats(100),
+    ...inverseRecPercentileStats(95),
+    ...inverseRecPercentileStats(85),
+    ...inverseRecPercentileStats(75),
+  };
+
+  return Classifier.findOneAndUpdate({ division, classifier }, { $set: classifierMetaDoc });
+};
+
 export const hydrateClassifiersExtendedMeta = async () => {
   let i = 0;
-  const total = classifiers.length * 9;
+  const total = _classifiers.length * 9;
   console.log("hydrating classifiers extended meta");
   await Classifier.collection.drop();
   console.time("classifiers");
   const divisions = (await Score.find().distinct("division")).filter(Boolean);
   for (const division of divisions) {
-    for (const c of classifiers) {
+    for (const c of _classifiers) {
       ++i;
       const { classifier } = c;
-      const [recHHFQuery, hitFactorScores] = await Promise.all([
-        RecHHF.findOne({ division, classifier }).select("recHHF").lean(),
-        Score.find({ division, classifier, hf: { $gte: 0 } })
-          .sort({ hf: -1 })
-          .limit(0)
-          .lean(),
-      ]);
-
-      const recHHF = recHHFQuery?.recHHF;
-      const inverseRecPercentileStats = (xPercent) => ({
-        [`inverse${xPercent}RecPercentPercentile`]: Percent(
-          recHHF > 0 ? hitFactorScores.findLastIndex((c) => (100 * c.hf) / recHHF >= xPercent) : -1,
-          hitFactorScores.length
-        ),
-      });
-      const classifierMetaDoc = {
-        division,
-        ...basicInfoForClassifier(c),
-        ...extendedInfoForClassifier(c, division, hitFactorScores),
-        recHHF,
-        ...inverseRecPercentileStats(100),
-        ...inverseRecPercentileStats(95),
-        ...inverseRecPercentileStats(85),
-        ...inverseRecPercentileStats(75),
-      };
+      await hydrateSingleClassiferExtendedMeta(division, classifier);
       process.stdout.write(`\r${i}/${total}`);
-      await Classifier.create(classifierMetaDoc);
     }
   }
   console.timeEnd("classifiers");

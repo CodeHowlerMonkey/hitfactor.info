@@ -180,6 +180,55 @@ export const hydrateShooters = async () => {
   console.timeEnd("shooters");
 };
 
+export const reclassifySingleShooter = async (memberNumber, division) => {
+  try {
+    const shooter = await Shooter.findOne({ memberNumber, division });
+    // select current
+    const memberScores = await allDivisionsScores(memberNumber);
+    const ages = await mapDivisionsAsync((div) => scoresAge(div, memberNumber));
+    const age1s = await mapDivisionsAsync((div) => scoresAge(div, memberNumber, 1));
+    const recalcByCurPercent = calculateUSPSAClassification(memberScores, "curPercent");
+    const recalcByRecPercent = calculateUSPSAClassification(memberScores, "recPercent");
+
+    const recalcDivCur = reclassificationBreakdown(recalcByCurPercent, division);
+    const recalcDivRec = reclassificationBreakdown(recalcByRecPercent, division);
+
+    const reclassificationsCurPercentCurrent = Number((recalcDivCur?.current ?? 0).toFixed(4));
+    const reclassificationsRecPercentCurrent = Number((recalcDivRec?.current ?? 0).toFixed(4));
+    const hqToCurHHFPercent = shooter?.current - reclassificationsCurPercentCurrent;
+    const hqToRecPercent = shooter?.current - reclassificationsRecPercentCurrent;
+
+    return Shooter.findOneAndUpdate(
+      { memberNumber, division },
+      {
+        memberNumber,
+        ages,
+        age: ages[division],
+        age1s,
+        age1: age1s[division],
+        reclassificationsCurPercentCurrent, // aka curHHFPercent
+        reclassificationsRecPercentCurrent, // aka recPercent
+        reclassifications: {
+          curPercent: recalcDivCur,
+          recPercent: recalcDivRec,
+        },
+
+        recClass: recalcDivRec.class,
+        recClassRank: rankForClass(recalcDivRec.class),
+        curHHFClass: recalcDivCur.class,
+        curHHFClassRank: rankForClass(recalcDivCur.class),
+
+        hqToCurHHFPercent,
+        hqToRecPercent,
+      },
+      { upsert: true }
+    );
+  } catch (error) {
+    console.log("reclassify error:");
+    console.log(error);
+  }
+};
+
 const expiredShootersAggregate = [
   /*
   {

@@ -1,9 +1,10 @@
 import mongoose from "mongoose";
 import { hydrateStats } from "./stats.js";
-import { hydrateScores } from "./scores.js";
-import { hydrateRecHHF } from "./recHHF.js";
+import { Score, hydrateScores } from "./scores.js";
+import { RecHHF, hydrateRecHHF } from "./recHHF.js";
 import { hydrateShooters } from "./shooters.js";
 import { hydrateClassifiersExtendedMeta } from "./classifiers.js";
+import { curHHFForDivisionClassifier } from "../dataUtil/hhf.js";
 
 export const connect = async () => {
   const { QUICK_DEV, MONGO_URL, MONGO_URL_QUICK } = process.env;
@@ -15,11 +16,11 @@ export const hydrate = async () => {
   console.log("hydrating everything");
   console.time("full hydration");
 
-  await hydrateScores();
-  await hydrateRecHHF();
-  await hydrateShooters();
-  await hydrateClassifiersExtendedMeta();
-  await hydrateStats();
+  await hydrateScores(); // 5min all (1.3M) // undupe upload-vs-upload and import-vs-upload
+  await hydrateRecHHF(); // 10min all partial is easy
+  await hydrateShooters(); // 1hr refactor done, needs recalc fn
+  await hydrateClassifiersExtendedMeta(); // 14min all 9 * 94 partial is easy
+  await hydrateStats(); // 25s from scratch
 
   console.timeEnd("full hydration");
   console.log("hydration done");

@@ -16,15 +16,9 @@ import { curHHFForDivisionClassifier } from "../dataUtil/hhf.js";
  *
  * @todo un-export
  */
-export const recommendedHHFByPercentileAndPercent = (
-  runs,
-  targetPercentile,
-  percent
-) => {
+export const recommendedHHFByPercentileAndPercent = (runs, targetPercentile, percent) => {
   const closestPercentileRun = runs.sort(
-    (a, b) =>
-      Math.abs(a.percentile - targetPercentile) -
-      Math.abs(b.percentile - targetPercentile)
+    (a, b) => Math.abs(a.percentile - targetPercentile) - Math.abs(b.percentile - targetPercentile)
   )[0];
   if (!closestPercentileRun) {
     return 0;
@@ -32,8 +26,7 @@ export const recommendedHHFByPercentileAndPercent = (
 
   // if found percentile is higher (more people can achieve this result) than we need
   // to slightly increase the recommendation. If it's lower (less people) -- decrease it.
-  const missCorrection =
-    1 + (closestPercentileRun.percentile - targetPercentile) / 100;
+  const missCorrection = 1 + (closestPercentileRun.percentile - targetPercentile) / 100;
   const percentScale = 1 / (percent / 100.0);
 
   return HF(closestPercentileRun.hf * missCorrection * percentScale);
@@ -445,9 +438,7 @@ const runsForRecs = async ({ division, number }) =>
     }));
 
 export const recommendedHHFFor = async ({ division, number }) =>
-  recommendedHHFFunctionFor({ division, number })(
-    await runsForRecs({ division, number })
-  );
+  recommendedHHFFunctionFor({ division, number })(await runsForRecs({ division, number }));
 
 const RecHHFSchema = new mongoose.Schema({
   classifier: String,
@@ -489,14 +480,16 @@ export const hydrateSingleRecHFF = async (division, classifier) => {
   return RecHHF.findOneAndUpdate(
     { division, classifier },
     {
-      division,
-      classifier,
-      classifierDivision: [classifier, division].join(":"),
-      curHHF,
-      recHHF,
-      rec1HHF,
-      rec5HHF,
-      rec15HHF,
+      $set: {
+        division,
+        classifier,
+        classifierDivision: [classifier, division].join(":"),
+        curHHF,
+        recHHF,
+        rec1HHF,
+        rec5HHF,
+        rec15HHF,
+      },
     },
     { upsert: true }
   );
@@ -507,12 +500,8 @@ export const hydrateRecHHF = async () => {
   console.log("hydrating recommended HHFs");
   console.time("recHHFs");
   const divisions = (await Score.find().distinct("division")).filter(Boolean);
-  const classifers = (await Score.find().distinct("classifier")).filter(
-    Boolean
-  );
-  console.log(
-    `Divisions: ${divisions.length}, Classifiers: ${classifers.length}`
-  );
+  const classifers = (await Score.find().distinct("classifier")).filter(Boolean);
+  console.log(`Divisions: ${divisions.length}, Classifiers: ${classifers.length}`);
 
   let i = 1;
   const total = divisions.length * classifers.length;
