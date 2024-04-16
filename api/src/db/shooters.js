@@ -9,6 +9,7 @@ import {
 } from "../../../shared/utils/classification.js";
 
 import { Score } from "./scores.js";
+import { Percent, PositiveOrMinus1 } from "../dataUtil/numbers.js";
 
 const memberIdToNumberMap = loadJSON("../../data/meta/memberIdToNumber.json");
 const memberNumberFromMemberData = (memberData) => {
@@ -87,6 +88,70 @@ export const reduceByDiv = (classifications, valueFn) =>
     }),
     {}
   );
+
+export const testBrutalClassification = async (memberNumber) => {
+  const classifiers = await Score.aggregate([
+    { $match: { memberNumber, hf: { $gt: 0 } } },
+    {
+      $project: {
+        _id: false,
+        hf: true,
+        division: true,
+        classifier: true,
+        classifierDivision: true,
+        sd: true,
+      },
+    },
+    // use avg score for dupes and count them as one classifier in best 6 out of 10
+    {
+      $group: {
+        _id: ["$classifier", "$division"],
+        hf: { $avg: "$hf" },
+        sd: { $first: "$sd" },
+        division: { $first: "$division" },
+        classifier: { $first: "$classifier" },
+        classifierDivision: { $first: "$classifierDivision" },
+      },
+    },
+    {
+      $lookup: {
+        from: "rechhfs",
+        localField: "classifierDivision",
+        foreignField: "classifierDivision",
+        as: "HHFs",
+      },
+    },
+    {
+      $unwind: {
+        path: "$HHFs",
+        preserveNullAndEmptyArrays: false,
+      },
+    },
+    {
+      $addFields: {
+        recHHF: "$HHFs.recHHF",
+        curHHF: "$HHFs.curHHF",
+        source: "Stage Score",
+      },
+    },
+    {
+      $project: {
+        _id: false,
+        HHFs: false,
+      },
+    },
+  ]);
+  const runs = classifiers.map((d) => {
+    d.curPercent = PositiveOrMinus1(Percent(d.hf, d.curHHF));
+    d.recPercent = PositiveOrMinus1(Percent(d.hf, d.recHHF));
+    return d;
+  });
+  const majors = (await Score.find({ memberNumber, source: "Major Match" }).populate("HHFs")).map(
+    (m) => m.toObject({ virtuals: true })
+  );
+
+  return calculateUSPSAClassification([...runs, ...majors], "recPercent");
+};
 
 // TODO: can I do lean here?
 const allDivisionsScores = async (memberNumber) => {
