@@ -12,7 +12,8 @@ const ShooterRunsTable = ({
   onClubSelection,
 }) => (
   <DataTable
-    sortMode="multiple"
+    sortOrder={-1}
+    sortField="sdUnix"
     loading={!classifiers?.length}
     stripedRows
     /*lazy*/
