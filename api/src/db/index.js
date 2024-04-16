@@ -6,7 +6,9 @@ import { hydrateShooters } from "./shooters.js";
 import { hydrateClassifiersExtendedMeta } from "./classifiers.js";
 
 export const connect = async () => {
-  await mongoose.connect(process.env.MONGO_URL);
+  const { QUICK_DEV, MONGO_URL, MONGO_URL_QUICK } = process.env;
+  const url = !QUICK_DEV ? MONGO_URL : MONGO_URL_QUICK;
+  await mongoose.connect(url);
 };
 
 export const hydrate = async () => {
