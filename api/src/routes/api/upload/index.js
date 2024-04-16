@@ -102,66 +102,75 @@ const scoresForUpload = async (uuid) => {
     .filter((r) => r.hf > 0 && !!r.memberNumber && !!r.classifier && !!r.division);
 };
 
+const postScoreUpload = async (classifiers, shooters) => {
+  console.time("postScoreUpload");
+  // recalc recHHF
+  for (const { classifier, division } of classifiers) {
+    await hydrateSingleRecHFF(division, classifier);
+  }
+  console.timeLog("postScoreUpload", "recHHFs");
+
+  // recalc shooters
+  for (const { memberNumber, division } of shooters) {
+    await reclassifySingleShooter(memberNumber, division);
+  }
+  console.timeLog("postScoreUpload", "shooters");
+
+  // recalc classifier meta
+  for (const { classifier, division } of classifiers) {
+    await hydrateSingleClassiferExtendedMeta(division, classifier);
+  }
+  console.timeLog("postScoreUpload", "classifiers");
+
+  // recalc all stats without waiting
+  await hydrateStats();
+  console.timeEnd("postScoreUpload");
+};
+
 const uploadRoutes = async (fastify, opts) => {
   fastify.get("/:uuid", async (req, res) => {
-    const { uuid } = req.params;
-    const scores = await scoresForUpload(uuid);
-    await Score.bulkWrite(
-      scores.map((s) => ({
-        updateOne: {
-          filter: {
-            memberNumberDivision: s.memberNumberDivision,
-            classifierDivision: s.classifierDivision,
-            hf: s.hf,
-            sd: s.sd,
-            clubid: s.clubid,
-          },
-          update: { $set: s },
-          upsert: true,
-        },
-      }))
-    );
-
-    const classifiers = uniqBy(
-      scores.map(({ classifierDivision, classifier, division }) => ({
-        classifierDivision,
-        classifier,
-        division,
-      })),
-      (s) => s.classifierDivision
-    );
-    const shooters = uniqBy(
-      scores.map(({ memberNumberDivision, memberNumber, division }) => ({
-        memberNumberDivision,
-        memberNumber,
-        division,
-      })),
-      (s) => s.memberNumberDivision
-    );
-
-    // recalc recHHF
-    for (const { classifier, division } of classifiers) {
-      await hydrateSingleRecHFF(division, classifier);
-    }
-
-    // recalc shooters
-    for (const { memberNumber, division } of shooters) {
-      await reclassifySingleShooter(memberNumber, division);
-    }
-
-    // recalc classifier meta
-    for (const { classifier, division } of classifiers) {
-      await hydrateSingleClassiferExtendedMeta(division, classifier);
-    }
-
-    // recalc all stats without waiting
-    hydrateStats();
-
-    return {
-      shooters,
-      classifiers,
-    };
     try {
+      const { uuid } = req.params;
+      const scores = await scoresForUpload(uuid);
+      await Score.bulkWrite(
+        scores.map((s) => ({
+          updateOne: {
+            filter: {
+              memberNumberDivision: s.memberNumberDivision,
+              classifierDivision: s.classifierDivision,
+              hf: s.hf,
+              sd: s.sd,
+              clubid: s.clubid,
+            },
+            update: { $set: s },
+            upsert: true,
+          },
+        }))
+      );
+
+      const classifiers = uniqBy(
+        scores.map(({ classifierDivision, classifier, division }) => ({
+          classifierDivision,
+          classifier,
+          division,
+        })),
+        (s) => s.classifierDivision
+      );
+      const shooters = uniqBy(
+        scores.map(({ memberNumberDivision, memberNumber, division }) => ({
+          memberNumberDivision,
+          memberNumber,
+          division,
+        })),
+        (s) => s.memberNumberDivision
+      );
+
+      postScoreUpload(classifiers, shooters);
+
+      return {
+        shooters,
+        classifiers,
+      };
     } catch (e) {
       console.error(e);
       return { error: e };
