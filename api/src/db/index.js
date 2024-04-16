@@ -1,10 +1,9 @@
 import mongoose from "mongoose";
 import { hydrateStats } from "./stats.js";
-import { Score, hydrateScores } from "./scores.js";
-import { RecHHF, hydrateRecHHF } from "./recHHF.js";
+import { hydrateScores } from "./scores.js";
+import { hydrateRecHHF } from "./recHHF.js";
 import { hydrateShooters } from "./shooters.js";
 import { hydrateClassifiersExtendedMeta } from "./classifiers.js";
-import { curHHFForDivisionClassifier } from "../dataUtil/hhf.js";
 
 export const connect = async () => {
   const { QUICK_DEV, MONGO_URL, MONGO_URL_QUICK } = process.env;
