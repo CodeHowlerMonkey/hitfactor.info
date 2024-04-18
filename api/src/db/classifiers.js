@@ -89,6 +89,7 @@ const extendedInfoForClassifier = (c, division, hitFactorScores) => {
       name,
       label: id + " " + name,
     }))
+    .filter(({ id }) => !!id)
     .sort((a, b) => stringSort(a, b, "id", 1));
 
   const result = {
