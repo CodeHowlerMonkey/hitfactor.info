@@ -16,3 +16,21 @@ export const useApi = (endpoint) => {
   }, [endpoint]);
   return json;
 };
+
+export const postApi = async (endpoint, body) => {
+  try {
+    const response = await window.fetch(API_URL + endpoint, {
+      method: "POST",
+      body: JSON.stringify(body),
+      headers: {
+        "content-type": "application/json",
+      },
+    });
+    return await response.json();
+  } catch (e) {
+    console.error(e);
+    throw e;
+  }
+
+  return null;
+};

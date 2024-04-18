@@ -1,48 +1,114 @@
-import UnderConstruction from "../../components/UnderConstruction";
+import { useState } from "react";
+import { Button } from "primereact/button";
+import { InputTextarea } from "primereact/inputtextarea";
+import { ProgressSpinner } from "primereact/progressspinner";
+import { postApi } from "../../utils/client";
+import { Message } from "primereact/message";
 
-const UploadPage = () => (
-  <UnderConstruction>
-    This is first page where uploads of a single match will take place.
-    <br />
-    (Later maybe we can do club uploads from clubs page) One of the most
-    important features of this project is complete transparency, <br />
-    which database will decrease (unless you have ideas how to make an
-    open-source database) <br />
-    <br></br>
-    So upload actually will be just a transformation / download from
-    practiscore,
-    <br />
-    which then can be commited into this repo. <br />
-    <br />
-    When server starts up it can look into folder with uploads and load them all
-    up. <br />
-    I don't think we have so much data that it will actually be impossible to
-    run it that way <br />
-    anytime soon. Form time to time upload directory can be cleaned up and
-    scores commited into more persistent / easier to load <br />
-    file format.
-    <br />
-    Here's how this can be implemented:
-    <div style={{ padding: "0 2rem", backgroundColor: "rgba(55,55,55,0.15)" }}>
-      looks like we can just operate off a practiscore link:
-      https://practiscore.com/results/new/UUID
-      <br />
-      and then request 2 json files from S3 bucket:
-      <br />
-      1. https://s3.amazonaws.com/ps-scores/production/UUID/results.json
-      <br />
-      2. https://s3.amazonaws.com/ps-scores/production/UUID/match_def.json
-      <br />
-      <br />
-      match_def has info about the shooter, which will allow linking shooter
-      results to their USPSA number
-      <br />
-      it also marks which stage is a classifier and what is the code/number
-      <br />
-      then we can just filter through results and get data we need
-      <br />
+const uuidsFromUrlString = (str) =>
+  str.match(/([0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12})/gi);
+
+const shooterHref = (memberNumber, division) => `/shooters/${division}/${memberNumber || ""}`;
+const classifierHref = (classifier, division) => `/classifiers/${division}/${classifier || ""}`;
+const UploadPage = () => {
+  const [value, setValue] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [result, setResult] = useState(null);
+
+  return (
+    <div className="flex flex-column flex align-items-center mt-2">
+      {!result && (
+        <span className="mx-5 my-2">
+          <p>
+            Use{" "}
+            <a href="https://practiscore.com/results" target="_blank">
+              PractiScore
+            </a>{" "}
+            to obtain the Scores URLs. If you have Competitor app - you can also use "Open in
+            Browser" match option.
+          </p>
+          <p>
+            Acceptable URLs must end in a UUID, and NOT a number.
+            <br /> For example:
+            {"  "}
+            <code>https://practiscore.com/results/new/4ef54927-f807-4450-ac4e-d3132f70b301</code>
+            <br />
+            If you have a number URL - you can scroll down and click "Html Results".
+          </p>
+        </span>
+      )}
+      {loading && <ProgressSpinner />}
+      {error && <Message severity="error" text={error.toString?.() || error} className="m-4" />}
+      {result && <Message severity="success" text="Upload Complete!" icon="pi pi-check" />}
+      {result && (
+        <div className="flex justify-content-around sm: w-full lg:w-10 mt-4">
+          <div>
+            Classifiers:
+            <ul>
+              {result.classifiers?.map((c) => (
+                <li>
+                  <a href={classifierHref(c.classifier, c.division)} target="_blank">
+                    {c.classifier} - {c.division}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            Shooters:
+            <ul>
+              {result.shooters?.map((s) => (
+                <li>
+                  <a href={shooterHref(s.memberNumber, s.division)} target="_blank">
+                    {s.memberNumber} - {s.division}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
+      <div className="sm:w-full sm:px-4 flex lg:w-full">
+        <InputTextarea
+          className="w-full sm:text-4xl lg:w-10 lg:text-base mx-auto"
+          placeholder="PS Scores URLs"
+          autoFocus
+          disabled={loading}
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          rows={24}
+          cols={75}
+        />
+      </div>
+      <Button
+        size="large"
+        className="m-4 md:text-4xl lg:text-base"
+        label="Upload  "
+        icon="pi pi-upload md:text-4xl md:pl-3 lg:text-base lg:p-0"
+        iconPos="right"
+        loading={loading}
+        onClick={async () => {
+          setLoading(true);
+          setError(null);
+          setResult(null);
+          try {
+            const apiResponse = await postApi("/upload", { uuids: uuidsFromUrlString(value) });
+            if (apiResponse.error) {
+              setError(apiResponse.error);
+            } else {
+              setValue("");
+              setResult(apiResponse);
+            }
+            console.log(apiResponse);
+          } catch (e) {
+            setError(e);
+          }
+          setLoading(false);
+        }}
+      />
     </div>
-  </UnderConstruction>
-);
+  );
+};
 
 export default UploadPage;

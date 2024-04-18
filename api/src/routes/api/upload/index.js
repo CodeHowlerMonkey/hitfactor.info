@@ -8,12 +8,15 @@ import { hydrateSingleClassiferExtendedMeta } from "../../../db/classifiers.js";
 import { hydrateStats } from "../../../db/stats.js";
 import { reclassifySingleShooter, testBrutalClassification } from "../../../db/shooters.js";
 
-const fetchPS = async (path) =>
-  (
-    await fetch("https://s3.amazonaws.com/ps-scores/production/" + path, {
+const fetchPS = async (path) => {
+  const response = await fetch("https://s3.amazonaws.com/ps-scores/production/" + path, {
       referrer: "https://practiscore.com",
-    })
-  ).json();
+  });
+  if (response.status !== 200) {
+    return null;
+  }
+  return await response.json();
+};
 
 const normalizeDivision = (shitShowDivisionNameCanBeAnythingWTFPS) => {
   const lowercaseNoSpace = shitShowDivisionNameCanBeAnythingWTFPS.toLowerCase().replace(/\s/g, "");
@@ -46,14 +49,14 @@ const normalizeDivision = (shitShowDivisionNameCanBeAnythingWTFPS) => {
   return anythingMap[lowercaseNoSpace] || lowercaseNoSpace;
 };
 
-const uuidFromUrlString = (str) =>
-  str.match(/([0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12})/i)?.[0];
-
 const scoresForUpload = async (uuid) => {
   const [match, results] = await Promise.all([
     fetchPS(`${uuid}/match_def.json`),
     fetchPS(`${uuid}/results.json`),
   ]);
+  if (!match || !results) {
+    return [];
+  }
   const { match_shooters, match_stages } = match;
   const shootersMap = Object.fromEntries(match_shooters.map((s) => [s.sh_uuid, s.sh_id]));
   const classifiersMap = Object.fromEntries(
@@ -102,84 +105,98 @@ const scoresForUpload = async (uuid) => {
     .filter((r) => r.hf > 0 && !!r.memberNumber && !!r.classifier && !!r.division);
 };
 
-const postScoreUpload = async (classifiers, shooters) => {
-  console.time("postScoreUpload");
+const multimatchScoresForUpload = async (uuidsRaw) => {
+  const uuids = uuidsRaw.filter((maybeUUID) => true);
+  if (!uuids?.length) {
+    return [];
+  }
+
+  const deepArrays = await Promise.all(uuids.map((uuid) => scoresForUpload(uuid)));
+  return deepArrays.flat();
+};
+
+const afterUpload = async (classifiers, shooters) => {
+  console.time("afterUpload");
   // recalc recHHF
   for (const { classifier, division } of classifiers) {
     await hydrateSingleRecHFF(division, classifier);
   }
-  console.timeLog("postScoreUpload", "recHHFs");
+  console.timeLog("afterUpload", "recHHFs");
 
   // recalc shooters
   for (const { memberNumber, division } of shooters) {
     await reclassifySingleShooter(memberNumber, division);
   }
-  console.timeLog("postScoreUpload", "shooters");
+  console.timeLog("afterUpload", "shooters");
 
   // recalc classifier meta
   for (const { classifier, division } of classifiers) {
     await hydrateSingleClassiferExtendedMeta(division, classifier);
   }
-  console.timeLog("postScoreUpload", "classifiers");
+  console.timeLog("afterUpload", "classifiers");
 
   // recalc all stats without waiting
   await hydrateStats();
-  console.timeEnd("postScoreUpload");
+  console.timeEnd("afterUpload");
 };
 
 const uploadRoutes = async (fastify, opts) => {
   fastify.get("/test/:memberNumber", async (req, res) => {
     const { memberNumber } = req.params;
     return testBrutalClassification(memberNumber);
-  }),
-    fastify.get("/:uuid", async (req, res) => {
-      try {
-        const { uuid } = req.params;
-        const scores = await scoresForUpload(uuid);
-        await Score.bulkWrite(
-          scores.map((s) => ({
-            updateOne: {
-              filter: {
-                memberNumberDivision: s.memberNumberDivision,
-                classifierDivision: s.classifierDivision,
-                hf: s.hf,
-                sd: s.sd,
-                clubid: s.clubid,
-              },
-              update: { $set: s },
-              upsert: true,
-            },
-          }))
-        );
+  });
 
-        const classifiers = uniqBy(
-          scores.map(({ classifierDivision, classifier, division }) => ({
-            classifierDivision,
-            classifier,
-            division,
-          })),
-          (s) => s.classifierDivision
-        );
-        const shooters = uniqBy(
-          scores.map(({ memberNumberDivision, memberNumber, division }) => ({
-            memberNumberDivision,
-            memberNumber,
-            division,
-          })),
-          (s) => s.memberNumberDivision
-        );
-
-        postScoreUpload(classifiers, shooters);
-
-        return {
-          shooters,
-          classifiers,
-        };
-      } catch (e) {
-        console.error(e);
-        return { error: e };
+  fastify.post("/", async (req, res) => {
+    try {
+      const { uuids } = req.body;
+      const scores = await multimatchScoresForUpload(uuids);
+      if (!scores.length) {
+        return { error: "No classifier scores found" };
       }
-    });
+      await Score.bulkWrite(
+        scores.map((s) => ({
+          updateOne: {
+            filter: {
+              memberNumberDivision: s.memberNumberDivision,
+              classifierDivision: s.classifierDivision,
+              hf: s.hf,
+              sd: s.sd,
+              clubid: s.clubid,
+            },
+            update: { $set: s },
+            upsert: true,
+          },
+        }))
+      );
+
+      const classifiers = uniqBy(
+        scores.map(({ classifierDivision, classifier, division }) => ({
+          classifierDivision,
+          classifier,
+          division,
+        })),
+        (s) => s.classifierDivision
+      );
+      const shooters = uniqBy(
+        scores.map(({ memberNumberDivision, memberNumber, division }) => ({
+          memberNumberDivision,
+          memberNumber,
+          division,
+        })),
+        (s) => s.memberNumberDivision
+      );
+
+      afterUpload(classifiers, shooters);
+
+      return {
+        shooters,
+        classifiers,
+      };
+    } catch (e) {
+      console.error(e);
+      return { error: e };
+    }
+  });
 };
 
 export default uploadRoutes;
