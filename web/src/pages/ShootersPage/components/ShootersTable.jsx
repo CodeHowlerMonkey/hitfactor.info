@@ -56,7 +56,7 @@ export const useShootersTableData = ({ division, inconsistencies, classFilter })
   const apiEndpoint = !division
     ? null
     : `/shooters/${division}?${query}&${pageQuery}&${filtersQuery}`;
-  const apiData = useApi(apiEndpoint);
+  const { json: apiData, loading } = useApi(apiEndpoint);
   const shootersTotal = apiData?.shootersTotal ?? 0;
   const shootersTotalWithoutFilters = apiData?.shootersTotalWithoutFilters ?? 0;
 
@@ -64,6 +64,7 @@ export const useShootersTableData = ({ division, inconsistencies, classFilter })
 
   return {
     data,
+    loading,
     shootersTotal,
     shootersTotalWithoutFilters,
     query,
@@ -78,6 +79,7 @@ export const useShootersTableData = ({ division, inconsistencies, classFilter })
 const ShootersTable = ({ division, onShooterSelection, inconsistencies, classFilter }) => {
   const {
     data,
+    loading,
     shootersTotal,
     query,
     sortProps,
@@ -89,7 +91,7 @@ const ShootersTable = ({ division, onShooterSelection, inconsistencies, classFil
   } = useShootersTableData({ division, inconsistencies, classFilter });
   return (
     <DataTable
-      loading={!data?.length}
+      loading={loading}
       stripedRows
       lazy
       value={data ?? []}

@@ -31,13 +31,15 @@ const yLine = (name, y, alpha) => ({
 export const ScoresChart = ({ division, memberNumber }) => {
   const [full, setFull] = useState(false);
   const [percentMode, setPercentMode] = useState(false);
-  const data = useApi(
-    `/shooters/${division}/${memberNumber}/chart?y=${
-      percentMode ? "percent" : "curPercent"
-    }`
+  const { json: data, loading } = useApi(
+    `/shooters/${division}/${memberNumber}/chart?y=${percentMode ? "percent" : "curPercent"}`
   );
-  if (!data?.length) {
+  if (loading) {
     return <ProgressSpinner />;
+  }
+
+  if (!data) {
+    return null;
   }
 
   const graph = (
@@ -72,8 +74,7 @@ export const ScoresChart = ({ division, memberNumber }) => {
         plugins: {
           tooltip: {
             callbacks: {
-              label: ({ raw: { y, classifier } }) =>
-                classifier + ": " + y + "%",
+              label: ({ raw: { y, classifier } }) => classifier + ": " + y + "%",
               title: ([
                 {
                   raw: { x, y },

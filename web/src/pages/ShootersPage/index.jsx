@@ -45,22 +45,16 @@ const ShootersPage = () => {
 };
 
 const useShooterTableData = ({ division, memberNumber }) => {
-  const apiEndpoint = !(division && memberNumber)
-    ? null
-    : `/shooters/${division}/${memberNumber}`;
-  const apiData = useApi(apiEndpoint);
+  const apiEndpoint = !(division && memberNumber) ? null : `/shooters/${division}/${memberNumber}`;
+  const { json: apiData, loading } = useApi(apiEndpoint);
   const info = apiData?.info || {};
   const classifiers = apiData?.classifiers || [];
   const downloadUrl = `/api/shooters/download/${division}/${memberNumber}`;
 
-  return { ...apiData, info, classifiers, downloadUrl };
+  return { ...apiData, info, classifiers, downloadUrl, loading };
 };
 
-export const ShooterRunsAndInfo = ({
-  division,
-  memberNumber,
-  onBackToShooters,
-}) => {
+export const ShooterRunsAndInfo = ({ division, memberNumber, onBackToShooters }) => {
   const navigate = useNavigate();
   const { info, downloadUrl, ...tableShit } = useShooterTableData({
     division,
@@ -85,12 +79,7 @@ export const ShooterRunsAndInfo = ({
         <h1 style={{ margin: "auto" }}>
           {memberNumber} - {name} - {divShortToLong[division]}
         </h1>
-        <a
-          href={downloadUrl}
-          download
-          className="px-5 py-2"
-          style={{ fontSize: "1.625rem" }}
-        >
+        <a href={downloadUrl} download className="px-5 py-2" style={{ fontSize: "1.625rem" }}>
           <i
             className="pi pi-download"
             style={{ fontSize: "1.2rem", fontWeight: "bold", color: "#ae9ef1" }}
@@ -105,9 +94,7 @@ export const ShooterRunsAndInfo = ({
 
       <ShooterRunsTable
         {...tableShit}
-        onClassifierSelection={(number) =>
-          navigate(`/classifiers/${division}/${number}`)
-        }
+        onClassifierSelection={(number) => navigate(`/classifiers/${division}/${number}`)}
         onClubSelection={(club) => navigate("/clubs/" + club)}
       />
     </>

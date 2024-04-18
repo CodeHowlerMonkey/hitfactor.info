@@ -90,9 +90,9 @@ export const useRunsTableData = ({ division, classifier }) => {
   const apiEndpoint = !(division && classifier)
     ? null
     : `/classifiers/${division}/${classifier}?${query}&${pageQuery}&${filtersQuery}`;
-  const apiData = useApi(apiEndpoint);
-  const info = apiData?.info || {};
-  const { hhfs, clubs } = info;
+  const { json: apiData, loading } = useApi(apiEndpoint);
+  const info = apiData?.info;
+  const { hhfs, clubs } = info || {};
   // info bucket has total runs too for header, needs to be renamed
   const runsTotal = apiData?.runsTotal;
 
@@ -102,6 +102,7 @@ export const useRunsTableData = ({ division, classifier }) => {
   }));
 
   return {
+    loading,
     info,
     data,
     runsTotal,
@@ -122,6 +123,7 @@ export const useRunsTableData = ({ division, classifier }) => {
 };
 
 const RunsTable = ({
+  loading,
   data,
   runsTotal,
   clubs,
@@ -136,7 +138,7 @@ const RunsTable = ({
 }) => {
   return (
     <DataTable
-      loading={!data?.length}
+      loading={loading}
       stripedRows
       lazy
       value={data ?? []}

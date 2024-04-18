@@ -5,6 +5,7 @@ import { Button } from "primereact/button";
 import ClassifiersTable from "./components/ClassifiersTable";
 import RunsTable, { useRunsTableData } from "../../components/RunsTable";
 import ClassifierInfoTable from "./components/ClassifierInfoTable";
+import { ProgressSpinner } from "primereact/progressspinner";
 
 // TODO: shooters table for single classifier? # attempts, low HF, high HF, same for percent, same for curPercent
 // TODO: all classifiers total number of reshoots (non-uniqueness)
@@ -20,8 +21,7 @@ const ClassifiersPage = () => {
     () => navigate(`/classifiers/${division}`),
     [navigate, division]
   );
-  const onShooterSelection = (memberNumber) =>
-    navigate(`/shooters/${division}/${memberNumber}`);
+  const onShooterSelection = (memberNumber) => navigate(`/shooters/${division}/${memberNumber}`);
 
   const onClubSelection = (club) => navigate("/clubs/" + club);
 
@@ -31,9 +31,7 @@ const ClassifiersPage = () => {
       {division && !classifier && (
         <ClassifiersTable
           division={division}
-          onClassifierSelection={(classifierCode) =>
-            navigate("./" + classifierCode)
-          }
+          onClassifierSelection={(classifierCode) => navigate("./" + classifierCode)}
         />
       )}
       {classifier && (
@@ -56,11 +54,14 @@ export const ClassifierRunsAndInfo = ({
   onShooterSelection,
   onClubSelection,
 }) => {
-  const { info, downloadUrl, ...useRunsTableDataResults } = useRunsTableData({
+  const { loading, info, downloadUrl, ...useRunsTableDataResults } = useRunsTableData({
     division,
     classifier,
   });
-  const { code, name } = info;
+  const { code, name } = info || {};
+  if (!loading && info && (!code || !name)) {
+    return "Classifier Not Found";
+  }
 
   return (
     <>
@@ -78,29 +79,30 @@ export const ClassifierRunsAndInfo = ({
         <h1 style={{ margin: "auto" }}>
           {code} {name}
         </h1>
-        <a
-          href={downloadUrl}
-          download
-          className="px-5 py-2"
-          style={{ fontSize: "1.625rem" }}
-        >
+        <a href={downloadUrl} download className="px-5 py-2" style={{ fontSize: "1.625rem" }}>
           <i
             className="pi pi-download"
             style={{ fontSize: "1.2rem", fontWeight: "bold", color: "#ae9ef1" }}
           />
         </a>
       </div>
-      <div className="flex" style={{ height: "35rem" }}>
-        <div className="w-full h-full bg-primary-reverse">
-          <ClassifierInfoTable {...{ division, classifier }} {...info} />
-        </div>
-      </div>
+      {loading && <ProgressSpinner />}
+      {!loading && (
+        <>
+          <div className="flex" style={{ height: "35rem" }}>
+            <div className="w-full h-full bg-primary-reverse">
+              <ClassifierInfoTable {...{ division, classifier }} {...info} />
+            </div>
+          </div>
 
-      <RunsTable
-        {...useRunsTableDataResults}
-        onShooterSelection={onShooterSelection}
-        onClubSelection={onClubSelection}
-      />
+          <RunsTable
+            loading={loading}
+            {...useRunsTableDataResults}
+            onShooterSelection={onShooterSelection}
+            onClubSelection={onClubSelection}
+          />
+        </>
+      )}
     </>
   );
 };

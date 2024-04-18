@@ -36,7 +36,8 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
   const sortState = sortProps;
 
   const downloadUrl = "/api/classifiers/download/" + division;
-  const data = (useApi("/classifiers/" + (division ?? "")) ?? [])
+  const { json: dataRaw, loading } = useApi("/classifiers/" + (division ?? ""));
+  const data = (dataRaw ?? [])
     .map((d) => ({
       ...d,
       updated: new Date(d.updated).toLocaleDateString("en-us", { timeZone: "UTC" }),
@@ -64,6 +65,7 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
 
   return (
     <DataTable
+      loading={loading}
       showGridlines
       size="small"
       selectionMode={"single"}

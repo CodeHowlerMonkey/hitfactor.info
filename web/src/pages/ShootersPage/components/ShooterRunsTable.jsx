@@ -10,11 +10,12 @@ const ShooterRunsTable = ({
   classifiersPage,
   onClassifierSelection,
   onClubSelection,
+  loading,
 }) => (
   <DataTable
     sortOrder={-1}
     sortField="sdUnix"
-    loading={!classifiers?.length}
+    loading={loading}
     stripedRows
     /*lazy*/
     value={(classifiers ?? []).map((c) => ({
