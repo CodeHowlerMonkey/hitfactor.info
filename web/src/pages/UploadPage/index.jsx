@@ -71,13 +71,13 @@ const UploadPage = () => {
       )}
       <div className="sm:w-full sm:px-4 flex lg:w-full">
         <InputTextarea
-          className="w-full sm:text-4xl lg:w-10 lg:text-base mx-auto"
+          className="w-full lg:w-10 lg:text-base mx-auto sm:h-5rem"
           placeholder="PS Scores URLs"
           autoFocus
           disabled={loading}
           value={value}
           onChange={(e) => setValue(e.target.value)}
-          rows={24}
+          rows={12}
           cols={75}
         />
       </div>
