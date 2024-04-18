@@ -10,7 +10,7 @@ import { reclassifySingleShooter, testBrutalClassification } from "../../../db/s
 
 const fetchPS = async (path) => {
   const response = await fetch("https://s3.amazonaws.com/ps-scores/production/" + path, {
-      referrer: "https://practiscore.com",
+    referrer: "https://practiscore.com",
   });
   if (response.status !== 200) {
     return null;
@@ -117,28 +117,33 @@ const multimatchScoresForUpload = async (uuidsRaw) => {
 };
 
 const afterUpload = async (classifiers, shooters) => {
-  console.time("afterUpload");
-  // recalc recHHF
-  for (const { classifier, division } of classifiers) {
-    await hydrateSingleRecHFF(division, classifier);
-  }
-  console.timeLog("afterUpload", "recHHFs");
+  try {
+    console.time("afterUpload");
+    // recalc recHHF
+    for (const { classifier, division } of classifiers) {
+      await hydrateSingleRecHFF(division, classifier);
+    }
+    console.timeLog("afterUpload", "recHHFs");
 
-  // recalc shooters
-  for (const { memberNumber, division } of shooters) {
-    await reclassifySingleShooter(memberNumber, division);
-  }
-  console.timeLog("afterUpload", "shooters");
+    // recalc shooters
+    for (const { memberNumber, division } of shooters) {
+      await reclassifySingleShooter(memberNumber, division);
+    }
+    console.timeLog("afterUpload", "shooters");
 
-  // recalc classifier meta
-  for (const { classifier, division } of classifiers) {
-    await hydrateSingleClassiferExtendedMeta(division, classifier);
-  }
-  console.timeLog("afterUpload", "classifiers");
+    // recalc classifier meta
+    for (const { classifier, division } of classifiers) {
+      await hydrateSingleClassiferExtendedMeta(division, classifier);
+    }
+    console.timeLog("afterUpload", "classifiers");
 
-  // recalc all stats without waiting
-  await hydrateStats();
-  console.timeEnd("afterUpload");
+    // recalc all stats without waiting
+    await hydrateStats();
+    console.timeEnd("afterUpload");
+  } catch (err) {
+    console.error("afterUpload error:");
+    console.error(err);
+  }
 };
 
 const uploadRoutes = async (fastify, opts) => {
