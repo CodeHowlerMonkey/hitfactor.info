@@ -44,7 +44,7 @@ const calcLegitRunStats = (runs, hhf) =>
   );
 
 const extendedInfoForClassifier = (c, division, hitFactorScores) => {
-  if (!division) {
+  if (!division || !c?.id) {
     return {};
   }
   const divisionHHFs = divShortToHHFs[division];

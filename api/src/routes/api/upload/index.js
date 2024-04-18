@@ -81,7 +81,7 @@ const scoresForUpload = async (uuid) => {
           number: classifier,
         });
         const hf = Number(a.hitFactor);
-        const percent = Percent(hf, hhf);
+        const percent = Percent(hf, hhf) || 0;
 
         return {
           hf: Number(a.hitFactor),

@@ -8,11 +8,11 @@ export const classifiersByNumber = classifiers.reduce((acc, cur) => {
 }, {});
 
 export const basicInfoForClassifier = (c) => ({
-  id: c.id,
-  code: c.classifier,
-  classifier: c.classifier,
-  name: c.name,
-  scoring: c.scoring,
+  id: c?.id,
+  code: c?.classifier,
+  classifier: c?.classifier,
+  name: c?.name,
+  scoring: c?.scoring,
 });
 
 export const basicInfoForClassifierCode = (number) => {
