@@ -187,6 +187,7 @@ const uploadRoutes = async (fastify, opts) => {
       ).json();
       return hits.map((h) => ({
         date: new Date(h.match_date).toLocaleDateString(),
+        state: h.front_club_state,
         name: h.match_name,
         uuid: h.match_id,
       }));

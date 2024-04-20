@@ -114,9 +114,10 @@ const UploadPage = () => {
             }}
           >
             <Column field="date" header="Date" />
+            <Column field="state" header="State" />
             <Column field="name" header="Match Name" />
             <Column
-              header="Upload"
+              header="Upload?"
               body={(match) => (
                 <ToggleButton
                   className="p-2"
