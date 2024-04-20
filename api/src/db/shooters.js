@@ -57,20 +57,6 @@ const scoresAgeAggr = async (memberNumber, division, maxScores) => {
   ]);
 };
 
-// TODO: move score calculation to reclassifications, so we don't rely on USPSA
-// flags
-export const scoresAge = async (division, memberNumber, maxScores = 4) => {
-  const scoreDates = await Score.find({ memberNumber, division })
-    .sort({ sd: -1 })
-    .limit(maxScores)
-    .select("sd")
-    .lean();
-
-  return scoreDates
-    .map((c) => (new Date() - new Date(c.sd)) / (28 * 24 * 60 * 60 * 1000)) // millisecconds to 28-day "months"
-    .reduce((acc, curV, unusedIndex, arr) => acc + curV / arr.length, 0);
-};
-
 // TODO: write up the schema once it's stable
 const ShooterSchema = new Schema({}, { strict: false });
 ShooterSchema.index({ memberNumber: 1, division: 1 });
@@ -178,12 +164,12 @@ export const hydrateShooters = async () => {
     async ({ value: c }) => {
       const memberNumber = memberNumberFromMemberData(c.member_data);
       const memberScores = await allDivisionsScores(memberNumber);
-      const ages = await mapDivisionsAsync((div) => scoresAge(div, memberNumber));
-      const age1s = await mapDivisionsAsync((div) => scoresAge(div, memberNumber, 1));
       const hqClasses = reduceByDiv(c.classifications, (r) => r.class);
       const hqCurrents = reduceByDiv(c.classifications, (r) => Number(r.current_percent));
       const recalcByCurPercent = calculateUSPSAClassification(memberScores, "curPercent");
       const recalcByRecPercent = calculateUSPSAClassification(memberScores, "recPercent");
+      const ages = mapDivisions((div) => recalcByRecPercent?.[div]?.age);
+      const age1s = mapDivisions((div) => recalcByRecPercent?.[div]?.age1);
 
       process.stdout.write(".");
       return mapDivisionsAsync((division) => {
@@ -216,11 +202,10 @@ export const hydrateShooters = async () => {
           currents: hqCurrents,
           current: hqCurrent,
 
-          // TODO: make ages part of the reclassification
           ages,
-          age: ages[division],
+          age: recalcByRecPercent?.[division]?.age,
           age1s,
-          age1: age1s[division],
+          age1: recalcByRecPercent?.[division]?.age1,
 
           reclassificationsCurPercentCurrent, // aka curHHFPercent
           reclassificationsRecPercentCurrent, // aka recPercent
@@ -247,19 +232,20 @@ export const hydrateShooters = async () => {
 
 export const reclassifySingleShooter = async (memberNumber, division) => {
   try {
-    const shooter = await Shooter.findOne({ memberNumber, division });
     // select current
     const memberScores = await allDivisionsScores(memberNumber);
-    const ages = await mapDivisionsAsync((div) => scoresAge(div, memberNumber));
-    const age1s = await mapDivisionsAsync((div) => scoresAge(div, memberNumber, 1));
     const recalcByCurPercent = calculateUSPSAClassification(memberScores, "curPercent");
     const recalcByRecPercent = calculateUSPSAClassification(memberScores, "recPercent");
 
     const recalcDivCur = reclassificationBreakdown(recalcByCurPercent, division);
     const recalcDivRec = reclassificationBreakdown(recalcByRecPercent, division);
+    const ages = mapDivisions((div) => recalcByRecPercent?.[div]?.age);
+    const age1s = mapDivisions((div) => recalcByRecPercent?.[div]?.age1);
 
     const reclassificationsCurPercentCurrent = Number((recalcDivCur?.current ?? 0).toFixed(4));
     const reclassificationsRecPercentCurrent = Number((recalcDivRec?.current ?? 0).toFixed(4));
+
+    const shooter = await Shooter.findOne({ memberNumber, division });
     const hqToCurHHFPercent = shooter?.current - reclassificationsCurPercentCurrent;
     const hqToRecPercent = shooter?.current - reclassificationsRecPercentCurrent;
 
@@ -267,10 +253,12 @@ export const reclassifySingleShooter = async (memberNumber, division) => {
       { memberNumber, division },
       {
         memberNumber,
+
         ages,
-        age: ages[division],
+        age: recalcByRecPercent?.[division]?.age,
         age1s,
-        age1: age1s[division],
+        age1: recalcByRecPercent?.[division]?.age1,
+
         reclassificationsCurPercentCurrent, // aka curHHFPercent
         reclassificationsRecPercentCurrent, // aka recPercent
         reclassifications: {
