@@ -8,12 +8,10 @@ import { InputText } from "primereact/inputtext";
 import { useDebounce } from "use-debounce";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
-import { Divider } from "primereact/divider";
 import { ToggleButton } from "primereact/togglebutton";
 import uniqBy from "lodash.uniqby";
+import { uuidsFromUrlString } from "../../../../shared/utils/uuid";
 
-const uuidsFromUrlString = (str) =>
-  str.match(/([0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12})/gi);
 const shooterHref = (memberNumber, division) => `/shooters/${division}/${memberNumber || ""}`;
 const classifierHref = (classifier, division) => `/classifiers/${division}/${classifier || ""}`;
 
@@ -192,7 +190,9 @@ const UploadResults = ({ result, loading, error }) => {
     <>
       {loading && <ProgressSpinner />}
       {error && <Message severity="error" text={error.toString?.() || error} className="m-4" />}
-      {result && <Message severity="success" text="Upload Complete!" icon="pi pi-check" />}
+      {result && (
+        <Message severity="success" text="Upload Complete!" icon="pi pi-check" className="m-4" />
+      )}
       {result && (
         <div className="flex justify-content-around sm: w-full lg:w-10 mt-4">
           <div>

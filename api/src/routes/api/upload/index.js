@@ -1,5 +1,6 @@
 import uniqBy from "lodash.uniqby";
 import { UTCDate } from "../../../../../shared/utils/date.js";
+import { uuidsFromUrlString } from "../../../../../shared/utils/uuid.js";
 import { curHHFForDivisionClassifier } from "../../../dataUtil/hhf.js";
 import { HF, Percent } from "../../../dataUtil/numbers.js";
 import { Score } from "../../../db/scores.js";
@@ -7,6 +8,7 @@ import { hydrateSingleRecHFF } from "../../../db/recHHF.js";
 import { hydrateSingleClassiferExtendedMeta } from "../../../db/classifiers.js";
 import { hydrateStats } from "../../../db/stats.js";
 import { reclassifySingleShooter, testBrutalClassification } from "../../../db/shooters.js";
+import { DQs } from "../../../db/dq.js";
 
 const fetchPS = async (path) => {
   const response = await fetch("https://s3.amazonaws.com/ps-scores/production/" + path, {
@@ -49,7 +51,7 @@ const normalizeDivision = (shitShowDivisionNameCanBeAnythingWTFPS) => {
   return anythingMap[lowercaseNoSpace] || lowercaseNoSpace;
 };
 
-const scoresForUpload = async (uuid) => {
+const matchInfo = async (uuid) => {
   const [match, results] = await Promise.all([
     fetchPS(`${uuid}/match_def.json`),
     fetchPS(`${uuid}/results.json`),
@@ -67,7 +69,7 @@ const scoresForUpload = async (uuid) => {
   const classifierUUIDs = Object.keys(classifiersMap);
   const classifierResults = results.filter((r) => classifierUUIDs.includes(r.stageUUID));
 
-  return classifierResults
+  const scores = classifierResults
     .map((r) => {
       const { stageUUID, ...varNameResult } = r;
       const classifier = classifiersMap[stageUUID];
@@ -104,16 +106,26 @@ const scoresForUpload = async (uuid) => {
     })
     .flat()
     .filter((r) => r.hf > 0 && !!r.memberNumber && !!r.classifier && !!r.division);
+
+  return { scores, match, results };
 };
 
-const multimatchScoresForUpload = async (uuidsRaw) => {
-  const uuids = uuidsRaw.filter((maybeUUID) => true);
+const multimatchUploadResults = async (uuidsRaw) => {
+  const uuids = uuidsRaw.filter((maybeUUID) => uuidsFromUrlString(maybeUUID)?.length === 1);
   if (!uuids?.length) {
     return [];
   }
 
-  const deepArrays = await Promise.all(uuids.map((uuid) => scoresForUpload(uuid)));
-  return deepArrays.flat();
+  const matchResults = await Promise.all(uuids.map((uuid) => matchInfo(uuid, true)));
+  return matchResults.reduce(
+    (acc, cur) => {
+      acc.scores = acc.scores.concat(cur.scores);
+      acc.matches = acc.matches.concat(cur.match);
+      acc.results = acc.results.concat(cur.results);
+      return acc;
+    },
+    { scores: [], matches: [], results: [] }
+  );
 };
 
 const afterUpload = async (classifiers, shooters) => {
@@ -182,11 +194,56 @@ const uploadRoutes = async (fastify, opts) => {
     return [];
   });
 
+  fastify.get("/info/:uuid", async (req) => {
+    const { uuid } = req.params;
+    return matchInfo(uuid, true);
+  });
 
   fastify.post("/", async (req, res) => {
     try {
       const { uuids } = req.body;
-      const scores = await multimatchScoresForUpload(uuids);
+      const { scores, matches } = await multimatchUploadResults(uuids);
+
+      try {
+        const dqDocs = matches.reduce((acc, match) => {
+          match.match_shooters.forEach((shooter) => {
+            if (!shooter.sh_dq) {
+              return;
+            }
+
+            acc.push({
+              memberNumber: shooter.sh_id,
+              lastName: shooter.sh_ln,
+              firstName: shooter.sh_fn,
+              division: shooter.sh_dvp,
+              upload: match.match_id,
+              clubId: match.match_clubcode,
+              clubName: match.match_clubname || match.match_name,
+              matchName: match.match_name,
+              sd: UTCDate(match.match_date),
+              dq: shooter.sh_dqrule,
+            });
+          });
+          return acc;
+        }, []);
+        await DQs.bulkWrite(
+          dqDocs.map((dq) => ({
+            updateOne: {
+              filter: {
+                memberNumber: dq.memberNumber,
+                division: dq.division,
+                upload: dq.upload,
+              },
+              update: { $set: dq },
+              upsert: true,
+            },
+          }))
+        );
+      } catch (e) {
+        console.error("failed to save dqs");
+        console.error(e);
+      }
+
       if (!scores.length) {
         return { error: "No classifier scores found" };
       }
