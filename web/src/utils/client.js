@@ -40,3 +40,15 @@ export const postApi = async (endpoint, body) => {
 
   return null;
 };
+
+export const getApi = async (endpoint) => {
+  try {
+    const response = await window.fetch(API_URL + endpoint);
+    return await response.json();
+  } catch (e) {
+    console.error(e);
+    throw e;
+  }
+
+  return null;
+};

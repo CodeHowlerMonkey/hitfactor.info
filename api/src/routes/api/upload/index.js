@@ -152,6 +152,37 @@ const uploadRoutes = async (fastify, opts) => {
     return testBrutalClassification(memberNumber);
   });
 
+  fastify.get("/searchMatches", async (req, res) => {
+    const { q } = req.query;
+    try {
+      const {
+        results: [{ hits }],
+      } = await (
+        await fetch(process.env.ALGOLIA_URL, {
+          body: JSON.stringify({
+            requests: [
+              {
+                indexName: "postmatches",
+                params:
+                  "hitsPerPage=5&query=" +
+                  encodeURIComponent(q) +
+                  "&facetFilters=templateName:USPSA", // I'm not installing qs for one API reee
+              },
+            ],
+          }),
+          method: "POST",
+        })
+      ).json();
+      return hits.map((h) => ({
+        date: new Date(h.match_date).toLocaleDateString(),
+        name: h.match_name,
+        uuid: h.match_id,
+      }));
+    } catch (err) {}
+    return [];
+  });
+
+
   fastify.post("/", async (req, res) => {
     try {
       const { uuids } = req.body;
