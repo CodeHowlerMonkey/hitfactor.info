@@ -254,9 +254,11 @@ const OldUploadPage = () => {
           </p>
         </span>
       )}
-      {loading && <ProgressSpinner />}
-      {error && <Message severity="error" text={error.toString?.() || error} className="m-4" />}
-      {result && <Message severity="success" text="Upload Complete!" icon="pi pi-check" />}
+      <div className="m-4">
+        {loading && <ProgressSpinner />}
+        {error && <Message severity="error" text={error.toString?.() || error} className="m-4" />}
+        {result && <Message severity="success" text="Upload Complete!" icon="pi pi-check" />}
+      </div>
       {result && (
         <div className="flex justify-content-around sm: w-full lg:w-10 mt-4">
           <div>
