@@ -59,9 +59,7 @@ export const lowestAllowedPercentForClass = (classification) =>
   }[classification] || 0);
 
 // C-class check, NOT used for initial classification
-export const lowestAllowedPercentForOtherDivisionClass = (
-  highestClassification
-) =>
+export const lowestAllowedPercentForOtherDivisionClass = (highestClassification) =>
   ({
     GM: 85,
     M: 75,
@@ -87,8 +85,7 @@ export const canBeInserted = (c, state, percentField = "percent") => {
     const cFlagThreshold = lowestAllowedPercentForOtherDivisionClass(
       highestClassification(getDivToClass(state))
     );
-    const isBFlag =
-      percent <= lowestAllowedPercentForClass(getDivToClass(state)[division]);
+    const isBFlag = percent <= lowestAllowedPercentForClass(getDivToClass(state)[division]);
     const isCFlag = percent <= cFlagThreshold;
 
     // First non-dupe 4 always count
@@ -115,8 +112,7 @@ export const canBeInserted = (c, state, percentField = "percent") => {
 export const hasDuplicateInWindow = (c, window) =>
   window.map((cur) => cur.classifier).includes(c.classifier);
 
-export const hasDuplicate = (c, state) =>
-  hasDuplicateInWindow(c, state[c.division].window);
+export const hasDuplicate = (c, state) => hasDuplicateInWindow(c, state[c.division].window);
 
 export const numberOfDuplicates = (window) => {
   const table = {};
@@ -139,10 +135,14 @@ const windowSizeForScore = (windowSize) => {
   return 6;
 };
 
-export const percentForDivWindow = (div, state, percentField = "percent") => {
-  const window = state[div].window.toSorted((a, b) =>
-    numSort(a, b, percentField, -1)
-  );
+const ageForDate = (now, sd) => (now - new Date(sd)) / (28 * 24 * 60 * 60 * 1000);
+export const percentAndAgesForDivWindow = (
+  div,
+  state,
+  percentField = "percent",
+  now = new Date()
+) => {
+  const window = state[div].window.toSorted((a, b) => numSort(a, b, percentField, -1));
 
   //de-dupe needs to be done in reverse, because percent are sorted asc
   const dFlagsApplied = uniqBy(window, (c) => c.classifier);
@@ -150,11 +150,24 @@ export const percentForDivWindow = (div, state, percentField = "percent") => {
   // remove lowest 2
   const newLength = windowSizeForScore(dFlagsApplied.length);
   const fFlagsApplied = dFlagsApplied.slice(0, newLength);
-  return fFlagsApplied.reduce(
+  const percent = fFlagsApplied.reduce(
     (acc, curValue, curIndex, allInWindow) =>
       acc + Math.min(100, curValue[percentField]) / allInWindow.length,
     0
   );
+
+  const age = fFlagsApplied.reduce(
+    (acc, curValue, curIndex, allInWindow) =>
+      acc + ageForDate(now, curValue.sd || now) / allInWindow.length,
+    0
+  );
+  const lastScore = fFlagsApplied.toSorted((a, b) => dateSort(a, b, "sd", -1))[0];
+  const age1 = ageForDate(now, lastScore?.sd || now);
+  return {
+    percent,
+    age,
+    age1,
+  };
 };
 
 export const newClassificationCalculationState = () =>
@@ -180,7 +193,8 @@ export const addToCurWindow = (c, curWindow, targetWindowSize = 8) => {
 // TODO: minimal class as highest - 1
 export const calculateUSPSAClassification = (
   classifiers,
-  percentField = "percent"
+  percentField = "percent",
+  now = new Date()
 ) => {
   const state = newClassificationCalculationState();
   if (!classifiers.length) {
@@ -212,14 +226,27 @@ export const calculateUSPSAClassification = (
 
     addToCurWindow(c, curWindow, percentField === "recPercent" ? 10 : 8);
 
+    // age1 can be set even before we have enough classifiers
+    if (curWindow.length >= 1) {
+      const lastScore = curWindow.toSorted((a, b) => dateSort(a, b, "sd", -1))[0];
+      const age1 = ageForDate(now, lastScore?.sd || now);
+      state[division].age1 = age1;
+    }
+
     // Calculate if have enough classifiers
     if (curWindow.length >= 4) {
       const oldHighPercent = state[division].highPercent;
-      const newPercent = percentForDivWindow(division, state, percentField);
+      const {
+        percent: newPercent,
+        age,
+        age1,
+      } = percentAndAgesForDivWindow(division, state, percentField, now);
+
       if (newPercent > oldHighPercent) {
         state[division].highPercent = newPercent;
       }
       state[division].percent = newPercent;
+      state[division].age = age;
       state[c.division].percentWithDates.push({ p: newPercent, sd: c.sd });
     }
   };

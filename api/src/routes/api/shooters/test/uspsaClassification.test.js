@@ -12,15 +12,11 @@ import {
   lowestAllowedPercentForOtherDivisionClass,
   newClassificationCalculationState,
   numberOfDuplicates,
-  percentForDivWindow,
+  percentAndAgesForDivWindow,
 } from "../../../../../../shared/utils/classification.js";
 import { mapDivisions } from "../../../../dataUtil/divisions.js";
 
-import testData, {
-  csClassifiers,
-  csOpenClassifiers,
-  noCurPercentButExpected,
-} from "./testData.js";
+import testData, { csClassifiers, csOpenClassifiers, noCurPercentButExpected } from "./testData.js";
 
 test("lets make sure this works first", (t) => {
   assert.strictEqual(1, 1);
@@ -95,14 +91,8 @@ test("classForPercent", (t) => {
 test("highestClassification", (t) => {
   assert.strictEqual(highestClassification({ foo: "U", bar: "A" }), "A");
   assert.strictEqual(highestClassification({ foo: "A", bar: "M" }), "M");
-  assert.strictEqual(
-    highestClassification({ foo: "A", bar: "M", baz: "C" }),
-    "M"
-  );
-  assert.strictEqual(
-    highestClassification({ foo: "A", bar: "M", baz: "GM" }),
-    "GM"
-  );
+  assert.strictEqual(highestClassification({ foo: "A", bar: "M", baz: "C" }), "M");
+  assert.strictEqual(highestClassification({ foo: "A", bar: "M", baz: "GM" }), "GM");
 
   assert.strictEqual(
     highestClassification({
@@ -223,13 +213,7 @@ test("getDivToClass", (t) => {
   });
 });
 
-const makeClassifier = ({
-  classifier,
-  percent,
-  division,
-  sd,
-  curPercent,
-} = {}) => ({
+const makeClassifier = ({ classifier, percent, division, sd, curPercent } = {}) => ({
   classifier: classifier ?? "99-11",
   sd: sd ?? "1/01/23",
   percent: percent ?? 74.999,
@@ -253,41 +237,23 @@ test("canBeInserted", (t) => {
 
   // check B flag logic
   state.ss.highPercent = 75.001;
-  assert.strictEqual(
-    canBeInserted(makeClassifier({ percent: 70 }), state),
-    false
-  );
+  assert.strictEqual(canBeInserted(makeClassifier({ percent: 70 }), state), false);
 
   // check C flag logic
   state.ss.highPercent = 75.001;
-  assert.strictEqual(
-    canBeInserted(makeClassifier({ percent: 70.01 }), state),
-    true
-  );
+  assert.strictEqual(canBeInserted(makeClassifier({ percent: 70.01 }), state), true);
   state.rev.highPercent = 86;
-  assert.strictEqual(
-    canBeInserted(makeClassifier({ percent: 70.01 }), state),
-    false
-  );
+  assert.strictEqual(canBeInserted(makeClassifier({ percent: 70.01 }), state), false);
 
   // check that B and C checks don't count if window is smaller than 4
   state.ss.window = [makeClassifier(), makeClassifier(), makeClassifier()];
-  assert.strictEqual(
-    canBeInserted(makeClassifier({ percent: 70.01 }), state),
-    true
-  );
-  assert.strictEqual(
-    canBeInserted(makeClassifier({ percent: 20.01 }), state),
-    true
-  );
+  assert.strictEqual(canBeInserted(makeClassifier({ percent: 70.01 }), state), true);
+  assert.strictEqual(canBeInserted(makeClassifier({ percent: 20.01 }), state), true);
 });
 
 test("canBeInserted + percentField", (t) => {
   const state = newClassificationCalculationState();
-  assert.strictEqual(
-    canBeInserted(makeClassifier({ curPercent: 12 }), state, "curPercent"),
-    true
-  );
+  assert.strictEqual(canBeInserted(makeClassifier({ curPercent: 12 }), state, "curPercent"), true);
 
   state.ss.window = [
     makeClassifier({ curPercent: 12, classifier: "13-01" }),
@@ -297,21 +263,12 @@ test("canBeInserted + percentField", (t) => {
     makeClassifier({ curPercent: 12, classifier: "13-08" }),
     makeClassifier({ curPercent: 12, classifier: "13-09" }),
   ];
-  assert.strictEqual(
-    canBeInserted(makeClassifier({ curPercent: 12 }), state, "curPercent"),
-    true
-  );
+  assert.strictEqual(canBeInserted(makeClassifier({ curPercent: 12 }), state, "curPercent"), true);
 
   // check B flag logic
   state.ss.highPercent = 75.001;
-  assert.strictEqual(
-    canBeInserted(makeClassifier({ curPercent: 70 }), state, "curPercent"),
-    false
-  );
-  assert.strictEqual(
-    canBeInserted(makeClassifier({ curPercent: 76 }), state, "curPercent"),
-    true
-  );
+  assert.strictEqual(canBeInserted(makeClassifier({ curPercent: 70 }), state, "curPercent"), false);
+  assert.strictEqual(canBeInserted(makeClassifier({ curPercent: 76 }), state, "curPercent"), true);
 
   // check C flag logic
   state.ss.highPercent = 75.001;
@@ -343,84 +300,68 @@ test("hasDuplicate", (t) => {
 
   state.ss.window = [makeClassifier()];
   assert.strictEqual(hasDuplicate(makeClassifier(), state), true);
-  assert.strictEqual(
-    hasDuplicate(makeClassifier({ classifier: "99-12" }), state),
-    false
-  );
+  assert.strictEqual(hasDuplicate(makeClassifier({ classifier: "99-12" }), state), false);
   state.ss.window.push(makeClassifier({ classifier: "99-12" }));
-  assert.strictEqual(
-    hasDuplicate(makeClassifier({ classifier: "99-12" }), state),
-    true
-  );
+  assert.strictEqual(hasDuplicate(makeClassifier({ classifier: "99-12" }), state), true);
 });
 
-test("percentForDivWindow", (t) => {
+test("percentAndAgesForDivWindow", (t) => {
   // default to zero
   const state = newClassificationCalculationState();
-  assert.strictEqual(percentForDivWindow("ss", state), 0);
+  assert.strictEqual(percentAndAgesForDivWindow("ss", state).percent, 0);
 
   // single classifier
   state.ss.window.push(makeClassifier({ percent: 50 }));
-  assert.strictEqual(percentForDivWindow("ss", state), 0);
+  assert.strictEqual(percentAndAgesForDivWindow("ss", state).percent, 0);
 
   // best of same single classifier duplicates
   state.ss.window = [];
   state.ss.window.push(makeClassifier({ percent: 75 }));
-  assert.strictEqual(percentForDivWindow("ss", state), 0);
+  assert.strictEqual(percentAndAgesForDivWindow("ss", state).percent, 0);
   state.ss.window.push(makeClassifier({ percent: 85 }));
   state.ss.window.push(makeClassifier({ percent: 95 }));
   state.ss.window.push(makeClassifier({ percent: 97 }));
   state.ss.window.push(makeClassifier({ percent: 97 }));
-  assert.strictEqual(percentForDivWindow("ss", state), 0);
+  assert.strictEqual(percentAndAgesForDivWindow("ss", state).percent, 0);
 
   // average of 4 unique
   state.ss.window.push(makeClassifier({ classifier: "01-01", percent: 75 }));
   state.ss.window.push(makeClassifier({ classifier: "01-02", percent: 65 }));
   state.ss.window.push(makeClassifier({ classifier: "01-03", percent: 45 }));
   //  (97+75+65+45)/4 = 70.5
-  assert.strictEqual(percentForDivWindow("ss", state), (97 + 75 + 65 + 45) / 4);
+  assert.strictEqual(percentAndAgesForDivWindow("ss", state).percent, (97 + 75 + 65 + 45) / 4);
 
   // best 4 out of 5
-  state.ss.window.push(
-    makeClassifier({ classifier: "01-04", percent: 95, sd: "2/01/2023" })
-  );
-  assert.strictEqual(percentForDivWindow("ss", state), 75.4);
+  state.ss.window.push(makeClassifier({ classifier: "01-04", percent: 95, sd: "2/01/2023" }));
+  assert.strictEqual(percentAndAgesForDivWindow("ss", state).percent, 75.4);
 
   // best 4 out of 6
-  state.ss.window.push(
-    makeClassifier({ classifier: "01-05", percent: 90, sd: "2/01/2023" })
-  );
-  assert.strictEqual(percentForDivWindow("ss", state).toFixed(2), "77.83");
+  state.ss.window.push(makeClassifier({ classifier: "01-05", percent: 90, sd: "2/01/2023" }));
+  assert.strictEqual(percentAndAgesForDivWindow("ss", state).percent.toFixed(2), "77.83");
 
   // best 6 out of 7
-  state.ss.window.push(
-    makeClassifier({ classifier: "01-06", percent: 30, sd: "2/01/2023" })
-  );
+  state.ss.window.push(makeClassifier({ classifier: "01-06", percent: 30, sd: "2/01/2023" }));
   assert.strictEqual(
-    percentForDivWindow("ss", state),
+    percentAndAgesForDivWindow("ss", state).percent,
     (97 + 95 + 90 + 75 + 65 + 45) / 6
   );
 
   // best 6 out of 8
-  state.ss.window.push(
-    makeClassifier({ classifier: "01-07", percent: 100, sd: "2/01/2023" })
-  );
+  state.ss.window.push(makeClassifier({ classifier: "01-07", percent: 100, sd: "2/01/2023" }));
   assert.strictEqual(
-    percentForDivWindow("ss", state),
+    percentAndAgesForDivWindow("ss", state).percent,
     (100 + 97 + 95 + 90 + 75 + 65) / 6
   );
 
   // another duplicate
-  state.ss.window.push(
-    makeClassifier({ classifier: "01-07", percent: 99, sd: "2/01/2023" })
-  );
+  state.ss.window.push(makeClassifier({ classifier: "01-07", percent: 99, sd: "2/01/2023" }));
   assert.strictEqual(
-    percentForDivWindow("ss", state),
+    percentAndAgesForDivWindow("ss", state).percent,
     (100 + 97 + 95 + 90 + 75 + 65) / 6
   );
 });
 
-test("percentForDivWindow + percentField", (t) => {
+test("percentAndAgesForDivWindow + percentField", (t) => {
   // default to zero
   const state = newClassificationCalculationState();
   state.ss.window.push(makeClassifier({ curPercent: 75 }));
@@ -433,18 +374,12 @@ test("percentForDivWindow + percentField", (t) => {
   state.ss.window.push(makeClassifier({ classifier: "01-03", curPercent: 45 }));
 
   // best 4 out of 5
-  state.ss.window.push(
-    makeClassifier({ classifier: "01-04", curPercent: 95, sd: "2/01/2023" })
-  );
+  state.ss.window.push(makeClassifier({ classifier: "01-04", curPercent: 95, sd: "2/01/2023" }));
 
-  state.ss.window.push(
-    makeClassifier({ classifier: "01-05", curPercent: 90, sd: "2/01/2023" })
-  );
+  state.ss.window.push(makeClassifier({ classifier: "01-05", curPercent: 90, sd: "2/01/2023" }));
 
   // best 6 out of 7
-  state.ss.window.push(
-    makeClassifier({ classifier: "01-06", curPercent: 30, sd: "2/01/2023" })
-  );
+  state.ss.window.push(makeClassifier({ classifier: "01-06", curPercent: 30, sd: "2/01/2023" }));
   state.ss.window.push(
     makeClassifier({
       classifier: "01-07",
@@ -462,30 +397,19 @@ test("percentForDivWindow + percentField", (t) => {
     })
   );
 
-  assert.strictEqual(percentForDivWindow("ss", state).toFixed(4), "79.1658");
+  assert.strictEqual(percentAndAgesForDivWindow("ss", state).percent.toFixed(4), "79.1658");
   assert.strictEqual(
-    percentForDivWindow("ss", state, "curPercent"),
+    percentAndAgesForDivWindow("ss", state, "curPercent").percent,
     (100 + 97 + 95 + 90 + 75 + 65) / 6
   );
 });
 
 test("numberOfDuplicates", (t) => {
   assert.strictEqual(numberOfDuplicates([makeClassifier()]), 0);
+  assert.strictEqual(numberOfDuplicates([makeClassifier(), makeClassifier()]), 1);
+  assert.strictEqual(numberOfDuplicates([makeClassifier(), makeClassifier(), makeClassifier()]), 2);
   assert.strictEqual(
-    numberOfDuplicates([makeClassifier(), makeClassifier()]),
-    1
-  );
-  assert.strictEqual(
-    numberOfDuplicates([makeClassifier(), makeClassifier(), makeClassifier()]),
-    2
-  );
-  assert.strictEqual(
-    numberOfDuplicates([
-      makeClassifier(),
-      makeClassifier(),
-      makeClassifier(),
-      makeClassifier(),
-    ]),
+    numberOfDuplicates([makeClassifier(), makeClassifier(), makeClassifier(), makeClassifier()]),
     3
   );
   assert.strictEqual(
@@ -680,6 +604,30 @@ test("calculateUSPSAClassification + percentField", (t) => {
   // TODO: add more testData real people, if edge cases are detected
 });
 
+test("calculateUSPSAClassification + percentField + ages", (t) => {
+  const result = calculateUSPSAClassification(testData, "curPercent", new Date("4/20/2024"));
+  const longResult = calculateUSPSAClassification(testData, "curPercent", new Date("4/20/2028"));
+  assert.strictEqual(Number(result.ltd.age.toFixed(2)), 32.61);
+  assert.strictEqual(Number(result.ltd.age1.toFixed(2)), 28);
+  assert.strictEqual(Number(longResult.ltd.age.toFixed(2)), 84.79);
+  assert.strictEqual(Number(result.prod.age.toFixed(2)), 31.53);
+  assert.strictEqual(Number(result.prod.age1.toFixed(2)), 2);
+  assert.strictEqual(Number(result.co.age.toFixed(2)), 9.9);
+  assert.strictEqual(Number(result.co.age1.toFixed(2)), 7.79);
+  assert.strictEqual(Number(result.lo.age.toFixed(2)), 3.96);
+  assert.strictEqual(Number(result.lo.age1.toFixed(2)), 2);
+});
+
+test("calculateUSPSAClassification + percentField + age1 + only1classifier", (t) => {
+  const result = calculateUSPSAClassification(
+    testData.slice(0, 1),
+    "curPercent",
+    new Date("4/20/2024")
+  );
+  assert.strictEqual(Number(result.ltd.age?.toFixed(2)), NaN);
+  assert.strictEqual(Number(result.ltd.age1.toFixed(2)), 27.39);
+});
+
 test("calculateUSPSAClassification + percentField + dates", (t) => {
   const result = calculateUSPSAClassification(testData, "curPercent");
   assert.deepEqual(result.co.percentWithDates, [
@@ -730,9 +678,6 @@ test("calculateUSPSAClassification CS should have curPercent in Open", (t) => {
 });
 
 test("calculateUSPSAClassification A111317 should have co", (t) => {
-  const result = calculateUSPSAClassification(
-    noCurPercentButExpected,
-    "curPercent"
-  );
+  const result = calculateUSPSAClassification(noCurPercentButExpected, "curPercent");
   assert.strictEqual(Number(result.co.percent.toFixed(2)), 68.23);
 });
