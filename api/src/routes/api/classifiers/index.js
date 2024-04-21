@@ -17,6 +17,12 @@ const _getShooterField = (field) => ({
     field,
   },
 });
+const _getRecHHFField = (field) => ({
+  $getField: {
+    input: { $arrayElemAt: ["$rechhfs", 0] },
+    field,
+  },
+});
 const _runs = async ({ number, division, hhf, hhfs }) => {
   const runs = await Score.aggregate([
     {
@@ -34,6 +40,14 @@ const _runs = async ({ number, division, hhf, hhfs }) => {
       },
     },
     {
+      $lookup: {
+        from: "rechhfs",
+        localField: "classifierDivision",
+        foreignField: "classifierDivision",
+        as: "rechhfs",
+      },
+    },
+    {
       $addFields: {
         class: _getShooterField("class"),
         current: _getShooterField("current"),
@@ -43,11 +57,13 @@ const _runs = async ({ number, division, hhf, hhfs }) => {
         curHHFClass: _getShooterField("curHHFClass"),
         reclassificationsCurPercentCurrent: _getShooterField("reclassificationsCurPercentCurrent"),
         reclassificationsRecPercentCurrent: _getShooterField("reclassificationsRecPercentCurrent"),
+        recHHF: _getRecHHFField("recHHF"),
       },
     },
     {
       $project: {
         shooters: false,
+        rechhfs: false,
         memberNumberDivision: false,
         classifier: false,
         division: false,
