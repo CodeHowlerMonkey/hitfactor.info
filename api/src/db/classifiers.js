@@ -127,10 +127,10 @@ ClassifierSchema.index({ classifier: 1, division: 1 }, { unique: true });
 ClassifierSchema.index({ division: 1 });
 export const Classifier = mongoose.model("Classifier", ClassifierSchema);
 
-export const hydrateSingleClassiferExtendedMeta = async (division, classifier) => {
+export const singleClassifierExtendedMetaDoc = async (division, classifier, recHHFReady) => {
   const c = classifiersByNumber[classifier];
   const [recHHFQuery, hitFactorScores] = await Promise.all([
-    RecHHF.findOne({ division, classifier }).select("recHHF").lean(),
+    recHHFReady ?? RecHHF.findOne({ division, classifier }).select("recHHF").lean(),
     Score.find({ division, classifier, hf: { $gte: 0 } })
       .sort({ hf: -1 })
       .limit(0)
@@ -144,7 +144,7 @@ export const hydrateSingleClassiferExtendedMeta = async (division, classifier) =
       hitFactorScores.length
     ),
   });
-  const classifierMetaDoc = {
+  return {
     division,
     ...basicInfoForClassifier(c),
     ...extendedInfoForClassifier(c, division, hitFactorScores),
@@ -154,8 +154,6 @@ export const hydrateSingleClassiferExtendedMeta = async (division, classifier) =
     ...inverseRecPercentileStats(85),
     ...inverseRecPercentileStats(75),
   };
-
-  return Classifier.findOneAndUpdate({ division, classifier }, { $set: classifierMetaDoc });
 };
 
 export const hydrateClassifiersExtendedMeta = async () => {
@@ -169,7 +167,8 @@ export const hydrateClassifiersExtendedMeta = async () => {
     for (const c of _classifiers) {
       ++i;
       const { classifier } = c;
-      await hydrateSingleClassiferExtendedMeta(division, classifier);
+      const doc = await singleClassifierExtendedMetaDoc(division, classifier);
+      Classifier.findOneAndUpdate({ division, classifier }, { $set: doc });
       process.stdout.write(`\r${i}/${total}`);
     }
   }

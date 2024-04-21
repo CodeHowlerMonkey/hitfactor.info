@@ -20,6 +20,7 @@ export const recommendedHHFByPercentileAndPercent = (runs, targetPercentile, per
   const closestPercentileRun = runs.sort(
     (a, b) => Math.abs(a.percentile - targetPercentile) - Math.abs(b.percentile - targetPercentile)
   )[0];
+
   if (!closestPercentileRun) {
     return 0;
   }
@@ -425,17 +426,42 @@ const recommendedHHFFunctionFor = ({ division, number }) => {
 };
 
 const runsForRecs = async ({ division, number }) =>
-  (await Score.find({ classifier: number, division }).limit(0))
-    .map((doc) => doc.toObject())
-    .map((c) => {
-      c.hf = c.hf ?? 0;
-      return c;
-    })
-    .sort((a, b) => b.hf - a.hf)
-    .map((run, index, allRuns) => ({
-      ...run,
-      percentile: PositiveOrMinus1(Percent(index, allRuns.length)),
-    }));
+  (
+    await Score.find({ classifier: number, division, hf: { $gt: 0 } })
+      .sort({ hf: -1 })
+      .limit(0)
+      .lean()
+  ).map((run, index, allRuns) => ({
+    ...run,
+    percentile: PositiveOrMinus1(Percent(index, allRuns.length)),
+  }));
+
+const runsForRecsMultiByClassifierDivision = async (classifiers) => {
+  const runs = await Score.find({
+    classifierDivision: { $in: classifiers.map((c) => [c.classifier, c.division].join(":")) },
+    hf: { $gt: 0 },
+  })
+    .select({ hf: true, _id: false, classifierDivision: true })
+    .sort({ hf: -1 })
+    .limit(0)
+    .lean();
+
+  const byCD = runs.reduce((acc, cur) => {
+    const curClassifierDivision = acc[cur.classifierDivision] ?? [];
+    curClassifierDivision.push(cur);
+    acc[cur.classifierDivision] = curClassifierDivision;
+    return acc;
+  }, {});
+
+  // mutate runs grouped by classifierDivision to add percentile
+  Object.keys(byCD).forEach((CD) => {
+    byCD[CD].forEach((run, runIndex, allRunsInCD) => {
+      run.percentile = PositiveOrMinus1(Percent(runIndex, allRunsInCD.length));
+    });
+  });
+
+  return byCD;
+};
 
 export const recommendedHHFFor = async ({ division, number }) =>
   recommendedHHFFunctionFor({ division, number })(await runsForRecs({ division, number }));
@@ -456,6 +482,28 @@ RecHHFSchema.index({ classifierDivision: 1 }, { unique: true });
 
 export const RecHHF = mongoose.model("RecHHF", RecHHFSchema);
 
+export const recHHFUpdate = (runs, division, classifier) => {
+  const recHHF = recommendedHHFFunctionFor({
+    division,
+    number: classifier,
+  })(runs);
+  const rec1HHF = r1(runs);
+  const rec5HHF = r5(runs);
+  const rec15HHF = r15(runs);
+  const curHHF = curHHFForDivisionClassifier({ division, number: classifier }) || -1;
+
+  return {
+    division,
+    classifier,
+    classifierDivision: [classifier, division].join(":"),
+    curHHF,
+    recHHF,
+    rec1HHF,
+    rec5HHF,
+    rec15HHF,
+  };
+};
+
 /**
  * Upserts a single recHHF after calculating it from all available scores
  * for the given division/classifier combo
@@ -464,34 +512,35 @@ export const RecHHF = mongoose.model("RecHHF", RecHHFSchema);
  */
 export const hydrateSingleRecHFF = async (division, classifier) => {
   const allRuns = await runsForRecs({ division, number: classifier });
-  const recHHF = recommendedHHFFunctionFor({
-    division,
-    number: classifier,
-  })(allRuns);
-  const rec1HHF = r1(allRuns);
-  const rec5HHF = r5(allRuns);
-  const rec15HHF = r15(allRuns);
-  const curHHF =
-    curHHFForDivisionClassifier({
-      division,
-      number: classifier,
-    }) || -1;
+  const update = recHHFUpdate(allRuns, division, classifier);
 
-  return RecHHF.findOneAndUpdate(
-    { division, classifier },
-    {
-      $set: {
-        division,
-        classifier,
-        classifierDivision: [classifier, division].join(":"),
-        curHHF,
-        recHHF,
-        rec1HHF,
-        rec5HHF,
-        rec15HHF,
-      },
-    },
-    { upsert: true }
+  return RecHHF.findOneAndUpdate({ division, classifier }, { $set: update }, { upsert: true });
+};
+
+export const hydrateRecHHFsForClassifiers = async (classifiers) => {
+  const runsByClassifierDivision = await runsForRecsMultiByClassifierDivision(classifiers);
+  const updates = classifiers.map((c) =>
+    recHHFUpdate(
+      runsByClassifierDivision[[c.classifier, c.division].join(":")],
+      c.division,
+      c.classifier
+    )
+  );
+
+  return RecHHF.bulkWrite(
+    updates.map((update) => {
+      const { division, classifier, classifierDivision, ...setUpdate } = update;
+      return {
+        updateOne: {
+          filter: { division, classifier },
+          update: {
+            $setOnInsert: { division, classifier, classifierDivision },
+            $set: setUpdate,
+          },
+          upsert: true,
+        },
+      };
+    })
   );
 };
 

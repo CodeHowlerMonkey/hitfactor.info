@@ -4,10 +4,10 @@ import { uuidsFromUrlString } from "../../../../../shared/utils/uuid.js";
 import { curHHFForDivisionClassifier } from "../../../dataUtil/hhf.js";
 import { HF, Percent } from "../../../dataUtil/numbers.js";
 import { Score } from "../../../db/scores.js";
-import { hydrateSingleRecHFF } from "../../../db/recHHF.js";
-import { hydrateSingleClassiferExtendedMeta } from "../../../db/classifiers.js";
+import { RecHHF, hydrateRecHHFsForClassifiers } from "../../../db/recHHF.js";
+import { singleClassifierExtendedMetaDoc, Classifier } from "../../../db/classifiers.js";
 import { hydrateStats } from "../../../db/stats.js";
-import { reclassifySingleShooter, testBrutalClassification } from "../../../db/shooters.js";
+import { reclassifyShooters, testBrutalClassification } from "../../../db/shooters.js";
 import { DQs } from "../../../db/dq.js";
 
 const fetchPS = async (path) => {
@@ -132,21 +132,40 @@ const afterUpload = async (classifiers, shooters) => {
   try {
     console.time("afterUpload");
     // recalc recHHF
-    for (const { classifier, division } of classifiers) {
-      await hydrateSingleRecHFF(division, classifier);
-    }
+    await hydrateRecHHFsForClassifiers(classifiers);
     console.timeLog("afterUpload", "recHHFs");
 
     // recalc shooters
-    for (const { memberNumber, division } of shooters) {
-      await reclassifySingleShooter(memberNumber, division);
-    }
+    await reclassifyShooters(shooters);
     console.timeLog("afterUpload", "shooters");
 
     // recalc classifier meta
-    for (const { classifier, division } of classifiers) {
-      await hydrateSingleClassiferExtendedMeta(division, classifier);
-    }
+    const recHHFs = await RecHHF.find({
+      classifierDivision: { $in: classifiers.map((c) => [c.classifer, c.division].join(":")) },
+    })
+      .select({ recHHF: true, _id: false, classifierDivision: true })
+      .lean();
+    const recHHFsByClassifierDivision = recHHFs.reduce((acc, cur) => {
+      acc[cur.classifierDivision] = cur;
+      return acc;
+    }, {});
+    const classifierDocs = await Promise.all(
+      classifiers.map(({ classifier, division }) =>
+        singleClassifierExtendedMetaDoc(
+          division,
+          classifier,
+          recHHFsByClassifierDivision[[classifier, division].join(":")]
+        )
+      )
+    );
+    await Classifier.bulkWrite(
+      classifierDocs.map((doc) => ({
+        updateOne: {
+          filter: { division: doc.division, classifier: doc.classifier },
+          update: { $set: doc },
+        },
+      }))
+    );
     console.timeLog("afterUpload", "classifiers");
 
     // recalc all stats without waiting

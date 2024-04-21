@@ -55,6 +55,7 @@ ScoreSchema.index({ memberNumber: 1 });
 ScoreSchema.index({ memberNumberDivision: 1 });
 ScoreSchema.index({ classifierDivision: 1 });
 ScoreSchema.index({ hf: -1 });
+ScoreSchema.index({ classifier: 1, division: 1, hf: -1 });
 
 export const Score = mongoose.model("Score", ScoreSchema);
 
