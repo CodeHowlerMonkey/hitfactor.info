@@ -268,11 +268,9 @@ export const reclassifyShooters = async (shooters) => {
       return {
         updateOne: {
           filter: { memberNumber, division },
-          update: {
-            $setOnInsert: {
-              memberNumber,
-              division,
-              memberNumberDivision: [memberNumber, division].join(":"),
+          update: [
+            {
+              //$setOnInsert: { // needs to be not in the aggregation
 
               // data: c.member_data,
               // TODO: implement these from what data we have
@@ -287,29 +285,35 @@ export const reclassifyShooters = async (shooters) => {
               // classes: hqClasses,
               // currents: hqCurrents,
               // current: hqCurrent,
-            },
-            $set: {
-              ages,
-              age: recalcByRecPercent?.[division]?.age,
-              age1s,
-              age1: recalcByRecPercent?.[division]?.age1,
+              //},
+              $set: {
+                memberNumber,
+                division,
+                memberNumberDivision: [memberNumber, division].join(":"),
+                ages,
+                age: recalcByRecPercent?.[division]?.age,
+                age1s,
+                age1: recalcByRecPercent?.[division]?.age1,
 
-              reclassificationsCurPercentCurrent, // aka curHHFPercent
-              reclassificationsRecPercentCurrent, // aka recPercent
-              reclassifications: {
-                curPercent: recalcDivCur,
-                recPercent: recalcDivRec,
+                reclassificationsCurPercentCurrent, // aka curHHFPercent
+                reclassificationsRecPercentCurrent, // aka recPercent
+                reclassifications: {
+                  curPercent: recalcDivCur,
+                  recPercent: recalcDivRec,
+                },
+
+                recClass: recalcDivRec.class,
+                recClassRank: rankForClass(recalcDivRec.class),
+                curHHFClass: recalcDivCur.class,
+                curHHFClassRank: rankForClass(recalcDivCur.class),
+
+                hqToCurHHFPercent: {
+                  $subtract: ["$current", reclassificationsCurPercentCurrent],
+                },
+                hqToRecPercent: { $subtract: ["$current", reclassificationsRecPercentCurrent] },
               },
-
-              recClass: recalcDivRec.class,
-              recClassRank: rankForClass(recalcDivRec.class),
-              curHHFClass: recalcDivCur.class,
-              curHHFClassRank: rankForClass(recalcDivCur.class),
-
-              hqToCurHHFPercent: { $subtract: ["$hqCurrent", reclassificationsCurPercentCurrent] },
-              hqToRecPercent: { $subtract: ["$hqCurrent", reclassificationsRecPercentCurrent] },
             },
-          },
+          ],
           upsert: true,
         },
       };
