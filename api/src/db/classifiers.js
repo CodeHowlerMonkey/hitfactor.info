@@ -15,6 +15,7 @@ import { divShortToHHFs } from "../dataUtil/hhf.js";
 import mongoose from "mongoose";
 import { Score } from "./scores.js";
 import { RecHHF } from "./recHHF.js";
+import { divShortNames } from "../dataUtil/divisions.js";
 
 const calcLegitRunStats = (runs, hhf) =>
   runs.reduce(
@@ -172,13 +173,12 @@ export const hydrateClassifiersExtendedMeta = async () => {
   console.log("hydrating classifiers extended meta");
   await Classifier.collection.drop();
   console.time("classifiers");
-  const divisions = (await Score.find().distinct("division")).filter(Boolean);
-  for (const division of divisions) {
+  for (const division of divShortNames) {
     for (const c of _classifiers) {
       ++i;
       const { classifier } = c;
       const doc = await singleClassifierExtendedMetaDoc(division, classifier);
-      Classifier.findOneAndUpdate({ division, classifier }, { $set: doc });
+      await Classifier.create(doc);
       process.stdout.write(`\r${i}/${total}`);
     }
   }
