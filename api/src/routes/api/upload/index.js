@@ -208,7 +208,7 @@ const uploadRoutes = async (fastify, opts) => {
               {
                 indexName: "postmatches",
                 params:
-                  "hitsPerPage=5&query=" +
+                  "hitsPerPage=10&query=" +
                   encodeURIComponent(q) +
                   "&facetFilters=templateName:USPSA", // I'm not installing qs for one API reee
               },
