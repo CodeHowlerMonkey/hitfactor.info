@@ -112,6 +112,7 @@ export const ShootersDistributionChart = ({ division, style }) => {
         >
           <span className="text-xl mx-4">Color:</span>
           <SelectButton
+            allowEmpty={false}
             options={modes}
             value={colorMode}
             onChange={(e) => setColorMode(e.value)}
@@ -125,6 +126,7 @@ export const ShootersDistributionChart = ({ division, style }) => {
         >
           <span className="text-xl mx-4">Position:</span>
           <SelectButton
+            allowEmpty={false}
             options={modes}
             value={xMode}
             onChange={(e) => setXMode(e.value)}

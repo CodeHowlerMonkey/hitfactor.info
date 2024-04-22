@@ -34,6 +34,7 @@ const modeItems = [
 const ModeSelect = ({ value, setValue }) => (
   <div className="mx-2">
     <SelectButton
+      allowEmpty={false}
       value={value}
       onChange={(e) => setValue(e.value)}
       optionLabel="name"
@@ -51,6 +52,7 @@ const versusItems = [
 const VersusSelect = ({ value, setValue }) => (
   <div className="mx-2">
     <SelectButton
+      allowEmpty={false}
       value={value}
       onChange={(e) => setValue(e.value)}
       optionLabel="name"
