@@ -1,11 +1,6 @@
 import mongoose from "mongoose";
-import {
-  highestClassification,
-  classForPercent,
-} from "../../../shared/utils/classification.js";
 import { mapDivisions } from "../dataUtil/divisions.js";
 import { Shooter } from "./shooters.js";
-import { loadJSON } from "../utils.js";
 
 const StatsSchema = new mongoose.Schema({}, { strict: false });
 export const Stats = mongoose.model("Stats", StatsSchema);

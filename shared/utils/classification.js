@@ -85,7 +85,8 @@ export const canBeInserted = (c, state, percentField = "percent") => {
     const cFlagThreshold = lowestAllowedPercentForOtherDivisionClass(
       highestClassification(getDivToClass(state))
     );
-    const isBFlag = percent <= lowestAllowedPercentForClass(getDivToClass(state)[division]);
+    const isBFlag =
+      percent <= lowestAllowedPercentForClass(getDivToClass(state)[division]);
     const isCFlag = percent <= cFlagThreshold;
 
     // First non-dupe 4 always count
@@ -112,7 +113,8 @@ export const canBeInserted = (c, state, percentField = "percent") => {
 export const hasDuplicateInWindow = (c, window) =>
   window.map((cur) => cur.classifier).includes(c.classifier);
 
-export const hasDuplicate = (c, state) => hasDuplicateInWindow(c, state[c.division].window);
+export const hasDuplicate = (c, state) =>
+  hasDuplicateInWindow(c, state[c.division].window);
 
 export const numberOfDuplicates = (window) => {
   const table = {};
