@@ -249,6 +249,7 @@ export const calculateUSPSAClassification = (
       }
       state[division].percent = newPercent;
       state[division].age = age;
+      state[division].age1 = age1;
       state[c.division].percentWithDates.push({ p: newPercent, sd: c.sd });
     }
   };
