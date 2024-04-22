@@ -156,13 +156,24 @@ const ShootersTable = ({
           />
         )}
       />
+      {/*
+      <Column field="brutalClass" header="Rec." {...classColumnProps} />
       <Column field="recClass" header="Rec." {...classColumnProps} />
       <Column field="curHHFClass" header="Cur.HHF" {...classColumnProps} />
       <Column field="hqClass" header="HQ" {...classColumnProps} />
+      */}
+      <Column
+        field="reclassificationsBrutalPercentCurrent"
+        header="Brutal %"
+        headerTooltip="Recommended classification percent of this shooter, using average score between duplicated. Major Matches results stay the same."
+        headerTooltipOptions={headerTooltipOptions}
+        sortable
+        body={renderPercent}
+      />
       <Column
         field="reclassificationsRecPercentCurrent"
-        header="Rec.HHFs %"
-        headerTooltip="Recommended classification percent of this shooter, if all their Y-flagged scores used the recommended HHFs for classifiers. Major Matches results stay the same."
+        header="Rec. %"
+        headerTooltip="Recommended classification percent of this shooter, using best 6 out of most revent 10 scores and recommended HHFs for classifiers. B/C flags are off, but duplicates are still allowed and only best duplicate is used. Major Matches results stay the same."
         headerTooltipOptions={headerTooltipOptions}
         sortable
         body={renderPercent}
@@ -177,9 +188,9 @@ const ShootersTable = ({
       />
       <Column field="current" header="HQ %" sortable body={renderPercent} />
       <Column
-        field="hqToCurHHFPercent"
-        header="HQ vs Cur.HHF %"
-        headerTooltip="Difference between official classification and current HHF classification percent."
+        field="hqToBrutalPercent"
+        header="HQ vs Brutal %"
+        headerTooltip="Difference between official and brutal classifications"
         headerTooltipOptions={headerTooltipOptions}
         sortable
         body={renderPercentDiff}
@@ -188,6 +199,14 @@ const ShootersTable = ({
         field="hqToRecPercent"
         header="HQ vs Rec.HHF %"
         headerTooltip="Difference between official and recommended classifications"
+        headerTooltipOptions={headerTooltipOptions}
+        sortable
+        body={renderPercentDiff}
+      />
+      <Column
+        field="hqToCurHHFPercent"
+        header="HQ vs Cur.HHF %"
+        headerTooltip="Difference between official classification and current HHF classification percent."
         headerTooltipOptions={headerTooltipOptions}
         sortable
         body={renderPercentDiff}

@@ -1,5 +1,5 @@
 import { v4 as randomUUID } from "uuid";
-import { mapDivisions } from "../../api/src/dataUtil/divisions.js";
+import { divShortNames, mapDivisions } from "../../api/src/dataUtil/divisions.js";
 import uniqBy from "lodash.uniqby";
 import { dateSort, numSort } from "./sort.js";
 
@@ -70,7 +70,7 @@ export const lowestAllowedPercentForOtherDivisionClass = (highestClassification)
 export const canBeInserted = (c, state, percentField = "percent") => {
   try {
     const { division, classifier } = c;
-    if (!division) {
+    if (!divShortNames.includes(division)) {
       return false;
     }
     const { window } = state[division];

@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { mapDivisions } from "../dataUtil/divisions.js";
+import { divShortNames, mapDivisions } from "../dataUtil/divisions.js";
 import { Shooter } from "./shooters.js";
 
 const StatsSchema = new mongoose.Schema({}, { strict: false });
@@ -73,9 +73,10 @@ export const statsByDivision = async (field) => {
   ]);
 
   dbResults.forEach(({ _id: [classLetter, division], count }) => {
-    if (division === "loco") {
+    if (!divShortNames.includes(division)) {
       return;
     }
+
     try {
       byDiv[division][classLetter] = count;
     } catch (err) {
@@ -181,6 +182,7 @@ export const hydrateStats = async () => {
   const byPercent = await statsByDivAndAll("curClass");
   const byCurHHFPercent = await statsByDivAndAll("curHHFClass");
   const byRecHHFPercent = await statsByDivAndAll("recClass");
+  const byBrutalPercent = await statsByDivAndAll("brutalClass");
 
   await Stats.collection.drop();
   await Stats.create({
@@ -188,6 +190,7 @@ export const hydrateStats = async () => {
     byPercent,
     byCurHHFPercent,
     byRecHHFPercent,
+    byBrutalPercent,
   });
   console.timeEnd("stats");
 };

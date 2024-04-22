@@ -105,7 +105,14 @@ const matchInfo = async (uuid) => {
       });
     })
     .flat()
-    .filter((r) => r.hf > 0 && !!r.memberNumber && !!r.classifier && !!r.division);
+    .filter(
+      (r) =>
+        r.hf > 0 &&
+        !!r.memberNumber &&
+        !!r.classifier &&
+        !!r.division &&
+        !!r.memberNumberDivision
+    );
 
   return { scores, match, results };
 };
@@ -222,7 +229,11 @@ const uploadRoutes = async (fastify, opts) => {
   fastify.post("/", async (req, res) => {
     try {
       const { uuids } = req.body;
-      const { scores, matches } = await multimatchUploadResults(uuids);
+      const { scores: scoresRaw, matches: matchesRaw } = await multimatchUploadResults(
+        uuids
+      );
+      const scores = scoresRaw.filter(Boolean);
+      const matches = matchesRaw.filter(Boolean);
 
       try {
         const dqDocs = matches.reduce((acc, match) => {
@@ -275,7 +286,9 @@ const uploadRoutes = async (fastify, opts) => {
               classifierDivision: s.classifierDivision,
               hf: s.hf,
               sd: s.sd,
-              clubid: s.clubid,
+              // some PS matches don't have club set, but all USPSA uploads do,
+              // so to prevent dupes, don't filter by club on score upsert
+              // clubid: s.clubid,
             },
             update: { $set: s },
             upsert: true,

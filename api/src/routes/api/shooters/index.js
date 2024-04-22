@@ -104,6 +104,7 @@ const shootersRoutes = async (fastify, opts) => {
         "current",
         "reclassificationsCurPercentCurrent",
         "reclassificationsRecPercentCurrent",
+        "reclassificationsBrutalPercentCurrent",
         "memberNumber",
       ])
       .lean()
@@ -114,6 +115,7 @@ const shootersRoutes = async (fastify, opts) => {
         curPercent: c.current,
         curHHFPercent: c.reclassificationsCurPercentCurrent,
         recPercent: c.reclassificationsRecPercentCurrent,
+        brutalPercent: c.reclassificationsBrutalPercentCurrent,
         memberNumber: c.memberNumber,
       }))
       .sort(safeNumSort("curPercent"))
@@ -130,6 +132,11 @@ const shootersRoutes = async (fastify, opts) => {
       .map((c, i, all) => ({
         ...c,
         recPercentPercentile: (100 * i) / (all.length - 1),
+      }))
+      .sort(safeNumSort("brutalPercent"))
+      .map((c, i, all) => ({
+        ...c,
+        brutalPercentPercentile: (100 * i) / (all.length - 1),
       }));
   });
 };

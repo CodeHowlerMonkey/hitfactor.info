@@ -174,7 +174,13 @@ const modeBucketForMode = (mode) => {
 
 // main "page" of this file
 export const ClassificationStats = () => {
-  const modes = ["By Class", "By Percent", "By Cur.HHF Percent", "By Rec.HHF Percent"];
+  const modes = [
+    "By Class",
+    "By Percent",
+    "By Cur.HHF Percent",
+    "By Rec.HHF Percent",
+    "By Brutal Percent",
+  ];
   const [mode, setMode] = useState(modes[0]);
   const modeSwitchProps = { modes, mode, setMode };
   const modeBucket = modeBucketForMode(mode);

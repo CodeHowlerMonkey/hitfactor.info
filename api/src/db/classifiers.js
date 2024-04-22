@@ -48,6 +48,9 @@ const extendedInfoForClassifier = (c, division, hitFactorScores) => {
     return {};
   }
   const divisionHHFs = divShortToHHFs[division];
+  if (!divisionHHFs) {
+    return {};
+  }
   const curHHFInfo = divisionHHFs.find((dHHF) => dHHF.classifier === c.id);
   const hhf = Number(curHHFInfo.hhf);
 

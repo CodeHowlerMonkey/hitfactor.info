@@ -45,6 +45,7 @@ const ModeSelect = ({ value, setValue }) => (
 const versusItems = [
   { name: "Cur. HHF", value: "curHHFClass" },
   { name: "Recommended", value: "recClass" },
+  { name: "Brutal", value: "brutalClass" },
 ];
 
 const VersusSelect = ({ value, setValue }) => (

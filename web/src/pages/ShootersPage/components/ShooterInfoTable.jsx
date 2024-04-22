@@ -1,8 +1,6 @@
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import ShooterChart from "../../../components/chart/ShooterChart";
-import { classForPercent } from "../../../../../shared/utils/classification";
-import { TabPanel, TabView } from "primereact/tabview";
 import { useState } from "react";
 
 const tableNameForDiv = {
@@ -61,79 +59,65 @@ export const ShooterInfoTable = ({ info }) => {
 
   return (
     <div classname="h-full">
-      <TabView
-        className="sm:text-sm"
-        panelContainerStyle={{ padding: 0 }}
-        activeIndex={activeIndex}
-        onTabChange={({ index }) => {
-          setActiveIndex(index);
-        }}
+      <DataTable
+        size="small"
+        showHeaders={false}
+        value={
+          loading
+            ? []
+            : [
+                {
+                  k: "ID",
+                  v: info?.data?.member_id,
+                },
+                {
+                  k: "Number",
+                  v: info?.memberNumber,
+                },
+                {
+                  k: "Joined",
+                  v: dateValue(info?.data?.joined_date),
+                },
+                {
+                  k: "Expires",
+                  v: dateValue(info?.data?.expiration_date),
+                },
+              ]
+        }
       >
-        <TabPanel header="Shooter Info / Card">
-          <DataTable
-            tableStyle={{ maxWidth: "40rem", margin: " 0 auto" }}
-            size="small"
-            showHeaders={false}
-            value={
-              loading
-                ? []
-                : [
-                    {
-                      k: "ID",
-                      v: info?.data?.member_id,
-                    },
-                    {
-                      k: "Number",
-                      v: info?.memberNumber,
-                    },
-                    {
-                      k: "Joined",
-                      v: dateValue(info?.data?.joined_date),
-                    },
-                    {
-                      k: "Expires",
-                      v: dateValue(info?.data?.expiration_date),
-                    },
-                  ]
-            }
-          >
-            <Column field="k" />
-            <Column field="v" align="right" />
-          </DataTable>
-          <DataTable
-            tableStyle={{ maxWidth: "40rem", margin: " 0 auto" }}
-            size="small"
-            stripedRows
-            value={
-              loading
-                ? []
-                : [
-                    cardRow(info, "opn"),
-                    cardRow(info, "ltd"),
-                    cardRow(info, "l10"),
-                    cardRow(info, "prod"),
-                    cardRow(info, "rev"),
-                    cardRow(info, "ss"),
-                    cardRow(info, "co"),
-                    cardRow(info, "pcc"),
-                    cardRow(info, "lo"),
-                  ]
-            }
-          >
-            <Column field="division" header="Div" />
-            <Column field="brutal" header="Brutal." />
-            <Column field="rec" header="Rec." />
-            <Column field="curHHF" header="Cur.HHF" />
-            <Column field="hq" header="HQ" />
-            <Column field="age" header="Age" />
-          </DataTable>
-        </TabPanel>
-        <TabPanel header="Scores Distribution">
-          <div className="h-32rem bg-primary-reverse">
-            <ShooterChart division={info.division} memberNumber={info.memberNumber} />
-          </div>
-        </TabPanel>
-      </TabView>
+        <Column field="k" />
+        <Column field="v" align="right" />
+      </DataTable>
+      <DataTable
+        size="small"
+        stripedRows
+        value={
+          loading
+            ? []
+            : [
+                cardRow(info, "opn"),
+                cardRow(info, "ltd"),
+                cardRow(info, "l10"),
+                cardRow(info, "prod"),
+                cardRow(info, "rev"),
+                cardRow(info, "ss"),
+                cardRow(info, "co"),
+                cardRow(info, "pcc"),
+                cardRow(info, "lo"),
+              ]
+        }
+      >
+        <Column field="division" header="Div" />
+        <Column field="brutal" header="Brutal." />
+        <Column field="rec" header="Rec." />
+        <Column field="curHHF" header="Cur.HHF" />
+        <Column field="hq" header="HQ" />
+        <Column field="age" header="Age" />
+      </DataTable>
+      <h3 className="m-4 mb-2">Scores Distribution</h3>
+      <div className="relative h-32rem bg-primary-reverse">
+        <ShooterChart division={info.division} memberNumber={info.memberNumber} />
+      </div>
     </div>
   );
 };

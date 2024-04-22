@@ -22,12 +22,13 @@ const lines = {
   ...xLine("40%", 40, r5annotationColor(0.5), 2.5),
 };
 
-const modes = ["HQ", "Cur. HHF", "Recommended"];
+const modes = ["HQ", "Cur. HHF", "Recommended", "Brutal"];
 const fieldForMode = (mode) =>
   ({
     HQ: "curPercent",
     "Cur. HHF": "curHHFPercent",
     Recommended: "recPercent",
+    Brutal: "brutalPercent",
   }[mode]);
 
 export const ShootersDistributionChart = ({ division, style }) => {
