@@ -1,17 +1,15 @@
 import { basicInfoForClassifierCode } from "../../../dataUtil/classifiersData.js";
-import {
-  classLetterSort,
-  multisort,
-  multisortObj,
-  safeNumSort,
-} from "../../../../../shared/utils/sort.js";
+import { multisort, multisortObj, safeNumSort } from "../../../../../shared/utils/sort.js";
 import { PAGE_SIZE } from "../../../../../shared/constants/pagination.js";
 import {
   scoresForDivisionForShooter,
   shooterScoresChartData,
 } from "../../../db/scores.js";
 import { Shooter } from "../../../db/shooters.js";
-import { escapeRegExp } from "../../../utils.js";
+import { textSearchMatch } from "../../../db/utils.js";
+
+// TODO: refactor to aggregation and use addPlaceAndPercentileAggregation
+// instead of JS logic, that is applied after filters
 const buildShootersQuery = (params, query) => {
   const { division } = params;
   const {
@@ -29,17 +27,7 @@ const buildShootersQuery = (params, query) => {
   }
 
   if (filterString) {
-    shootersQuery.where({
-      $or: [
-        { name: new RegExp(".*" + escapeRegExp(filterString) + ".*", "i") },
-        {
-          memberNumber: new RegExp(
-            ".*" + escapeRegExp(filterString) + ".*",
-            "i"
-          ),
-        },
-      ],
-    });
+    shootersQuery.where(textSearchMatch(["name", "memberNumber"], filterString));
   }
 
   if (inconString) {
