@@ -203,6 +203,7 @@ const RunsTable = ({ classifier, division, clubs, onShooterSelection }) => {
       <Column
         field="historicalHHF"
         header="Historical HHF"
+        /*
         sortable
         showFilterMenu={false}
         filter
@@ -216,7 +217,7 @@ const RunsTable = ({ classifier, division, clubs, onShooterSelection }) => {
               options.filterApplyCallback(value);
             }}
           />
-        )}
+        )}*/
         headerTooltip="Calculated HHF based on HF and Percent. Shows historical HHF value during the time when this score was processed."
         headerTooltipOptions={headerTooltipOptions}
       />
