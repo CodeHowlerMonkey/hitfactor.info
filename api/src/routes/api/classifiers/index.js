@@ -1,6 +1,9 @@
 import uniqBy from "lodash.uniqby";
 
-import { basicInfoForClassifier, classifiers } from "../../../dataUtil/classifiersData.js";
+import {
+  basicInfoForClassifier,
+  classifiers,
+} from "../../../dataUtil/classifiersData.js";
 import { HF, N, Percent, PositiveOrMinus1 } from "../../../dataUtil/numbers.js";
 import { curHHFForDivisionClassifier } from "../../../dataUtil/hhf.js";
 import { Score } from "../../../db/scores.js";

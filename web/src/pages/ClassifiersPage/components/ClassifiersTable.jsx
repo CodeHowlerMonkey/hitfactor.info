@@ -60,7 +60,9 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
       }
     })
     .filter(
-      (cur) => !filter || (cur.code + "###" + cur.name).toLowerCase().includes(filter.toLowerCase())
+      (cur) =>
+        !filter ||
+        (cur.code + "###" + cur.name).toLowerCase().includes(filter.toLowerCase())
     );
 
   return (

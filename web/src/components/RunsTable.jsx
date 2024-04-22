@@ -1,4 +1,3 @@
-import uniqBy from "lodash.uniqby";
 import qs from "query-string";
 import { useEffect, useState } from "react";
 import { DataTable } from "primereact/datatable";
@@ -11,8 +10,6 @@ import useTablePagination from "./Table/useTablePagination";
 import { headerTooltipOptions } from "./Table/Table";
 import { Dropdown } from "primereact/dropdown";
 import { useDebounce } from "use-debounce";
-import { bgColorForClass, fgColorForClass } from "../utils/color";
-import { stringSort } from "../../../shared/utils/sort";
 import ShooterCell from "./ShooterCell";
 
 const TableFilter = ({ placeholder, onFilterChange }) => {
@@ -57,7 +54,11 @@ const LegacyCheckbox = ({ onChange }) => {
   useEffect(() => onChange?.(value), [value]);
   return (
     <>
-      <Checkbox inputId="legacyCheck" checked={value} onChange={(e) => setValue(e.checked)} />
+      <Checkbox
+        inputId="legacyCheck"
+        checked={value}
+        onChange={(e) => setValue(e.checked)}
+      />
       <label htmlFor="legacyCheck" className="ml-2 mr-4">
         Incl. Legacy
       </label>
@@ -177,7 +178,10 @@ const RunsTable = ({ classifier, division, clubs, onShooterSelection }) => {
         header="Shooter"
         sortable
         body={(run) => (
-          <ShooterCell data={run} onClick={() => onShooterSelection?.(run.memberNumber)} />
+          <ShooterCell
+            data={run}
+            onClick={() => onShooterSelection?.(run.memberNumber)}
+          />
         )}
       />
       <Column

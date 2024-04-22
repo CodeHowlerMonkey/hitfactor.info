@@ -1,10 +1,7 @@
 import { basicInfoForClassifierCode } from "../../../dataUtil/classifiersData.js";
 import { multisort, multisortObj, safeNumSort } from "../../../../../shared/utils/sort.js";
 import { PAGE_SIZE } from "../../../../../shared/constants/pagination.js";
-import {
-  scoresForDivisionForShooter,
-  shooterScoresChartData,
-} from "../../../db/scores.js";
+import { scoresForDivisionForShooter, shooterScoresChartData } from "../../../db/scores.js";
 import { Shooter } from "../../../db/shooters.js";
 import { textSearchMatch } from "../../../db/utils.js";
 
@@ -12,11 +9,7 @@ import { textSearchMatch } from "../../../db/utils.js";
 // instead of JS logic, that is applied after filters
 const buildShootersQuery = (params, query) => {
   const { division } = params;
-  const {
-    filter: filterString,
-    inconsistencies: inconString,
-    classFilter,
-  } = query;
+  const { filter: filterString, inconsistencies: inconString, classFilter } = query;
   const shootersQuery = Shooter.where({
     division,
     reclassificationsCurPercentCurrent: { $gt: 0 },
@@ -54,9 +47,7 @@ const shootersRoutes = async (fastify, opts) => {
 
     const shootersQuery = buildShootersQuery(req.params, req.query);
     const skip = (page - 1) * PAGE_SIZE;
-    shootersQuery
-      .sort(multisortObj(sort?.split(","), order?.split(",")))
-      .skip(skip);
+    shootersQuery.sort(multisortObj(sort?.split(","), order?.split(","))).skip(skip);
 
     const paginatedData = await shootersQuery.limit(PAGE_SIZE).lean().exec();
     const withIndex = paginatedData.map((shooter, index) => ({
@@ -64,9 +55,7 @@ const shootersRoutes = async (fastify, opts) => {
       index: skip + index,
     }));
 
-    const count = await buildShootersQuery(req.params, req.query)
-      .countDocuments()
-      .exec();
+    const count = await buildShootersQuery(req.params, req.query).countDocuments().exec();
 
     return {
       shooters: withIndex,
@@ -88,11 +77,7 @@ const shootersRoutes = async (fastify, opts) => {
       }),
     ]);
 
-    const data = multisort(
-      scoresData,
-      sort?.split?.(","),
-      order?.split?.(",")
-    ).map((c) => ({
+    const data = multisort(scoresData, sort?.split?.(","), order?.split?.(",")).map((c) => ({
       ...c,
       classifierInfo: basicInfoForClassifierCode(c?.classifier),
     }));

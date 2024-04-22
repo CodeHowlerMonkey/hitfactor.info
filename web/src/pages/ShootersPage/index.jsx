@@ -45,7 +45,9 @@ const ShootersPage = () => {
 };
 
 const useShooterTableData = ({ division, memberNumber }) => {
-  const apiEndpoint = !(division && memberNumber) ? null : `/shooters/${division}/${memberNumber}`;
+  const apiEndpoint = !(division && memberNumber)
+    ? null
+    : `/shooters/${division}/${memberNumber}`;
   const { json: apiData, loading } = useApi(apiEndpoint);
   const info = apiData?.info || {};
   const classifiers = apiData?.classifiers || [];

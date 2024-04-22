@@ -76,7 +76,12 @@ export const useShootersTableData = ({ division, inconsistencies, classFilter })
   };
 };
 
-const ShootersTable = ({ division, onShooterSelection, inconsistencies, classFilter }) => {
+const ShootersTable = ({
+  division,
+  onShooterSelection,
+  inconsistencies,
+  classFilter,
+}) => {
   const {
     data,
     loading,
@@ -136,14 +141,19 @@ const ShootersTable = ({ division, onShooterSelection, inconsistencies, classFil
         align="center"
         headerTooltip="Top percentile for this shooter in current sort mode."
         headerTooltipOptions={headerTooltipOptions}
-        body={(c) => ((100 * c.index) / (shootersTotalWithoutFilters - 1)).toFixed(2) + "%"}
+        body={(c) =>
+          ((100 * c.index) / (shootersTotalWithoutFilters - 1)).toFixed(2) + "%"
+        }
       />
       <Column
         field="memberNumber"
         header="Shooter"
         sortable
         body={(shooter) => (
-          <ShooterCell data={shooter} onClick={() => onShooterSelection?.(shooter.memberNumber)} />
+          <ShooterCell
+            data={shooter}
+            onClick={() => onShooterSelection?.(shooter.memberNumber)}
+          />
         )}
       />
       <Column field="recClass" header="Rec." {...classColumnProps} />
