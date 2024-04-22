@@ -10,6 +10,13 @@ import { Classifier } from "../../../db/classifiers.js";
 import { multisort } from "../../../../../shared/utils/sort.js";
 import { PAGE_SIZE } from "../../../../../shared/constants/pagination.js";
 import { RecHHF } from "../../../db/recHHF.js";
+import {
+  addPlaceAndPercentileAggregation,
+  addTotalCountAggregation,
+  multiSortAndPaginate,
+  percentAggregationOp,
+  textSearchMatch,
+} from "../../../db/utils.js";
 
 const _getShooterField = (field) => ({
   $getField: {
@@ -23,14 +30,23 @@ const _getRecHHFField = (field) => ({
     field,
   },
 });
-const _runs = async ({ number, division, hhf, hhfs }) => {
-  const runs = await Score.aggregate([
+const _runsAggregation = async ({
+  classifier,
+  division,
+  sort,
+  order,
+  page,
+  filterString,
+  filterClubString,
+}) =>
+  Score.aggregate([
     {
       $project: {
         _id: false,
+        _v: false,
       },
     },
-    { $match: { classifier: number, division, hf: { $gt: 0 } } },
+    { $match: { classifier, division, hf: { $gt: 0 } } },
     {
       $lookup: {
         from: "shooters",
@@ -49,15 +65,23 @@ const _runs = async ({ number, division, hhf, hhfs }) => {
     },
     {
       $addFields: {
-        class: _getShooterField("class"),
-        current: _getShooterField("current"),
+        // score data for RunsTable
+        recHHF: _getRecHHFField("recHHF"),
+        curHHF: _getRecHHFField("curHHF"),
+
+        // shooter data for ShooterCell
+        hqClass: _getShooterField("class"),
+        hqCurrent: _getShooterField("current"),
         name: _getShooterField("name"),
         reclassifications: _getShooterField("reclassifications"),
         recClass: _getShooterField("recClass"),
         curHHFClass: _getShooterField("curHHFClass"),
-        reclassificationsCurPercentCurrent: _getShooterField("reclassificationsCurPercentCurrent"),
-        reclassificationsRecPercentCurrent: _getShooterField("reclassificationsRecPercentCurrent"),
-        recHHF: _getRecHHFField("recHHF"),
+        reclassificationsCurPercentCurrent: _getShooterField(
+          "reclassificationsCurPercentCurrent"
+        ),
+        reclassificationsRecPercentCurrent: _getShooterField(
+          "reclassificationsRecPercentCurrent"
+        ),
       },
     },
     {
@@ -69,35 +93,43 @@ const _runs = async ({ number, division, hhf, hhfs }) => {
         division: false,
       },
     },
-    { $sort: { hf: -1 } },
+    {
+      $addFields: {
+        recPercent: percentAggregationOp("$hf", "$recHHF", 4),
+        curPercent: percentAggregationOp("$hf", "$curHHF", 4),
+      },
+    },
+
+    ...addPlaceAndPercentileAggregation("hf"),
+    ...(!filterString
+      ? []
+      : [{ $match: textSearchMatch(["memberNumber", "name"], filterString) }]),
+    ...(!filterClubString ? [] : [{ $match: { clubid: filterClubString } }]),
+    ...addTotalCountAggregation("totalWithFilters"),
+    ...multiSortAndPaginate({ sort, order, page }),
   ]);
 
-  return runs.map((run, index, allRuns) => {
-    const { memberNumber } = run;
+const _runsAdapter = (classifier, division, runs, hhf /*hhfs*/) =>
+  runs.map((run, index) => {
     const percent = N(run.percent);
-    const curPercent = PositiveOrMinus1(Percent(run.hf, hhf));
-    const recPercent = PositiveOrMinus1(Percent(run.hf, run.recHHF));
+    const curPercent = PositiveOrMinus1(run.curPercent);
+    const recPercent = PositiveOrMinus1(run.recPercent);
     const percentMinusCurPercent = N(percent - curPercent);
 
-    const findHistoricalHHF = hhfs.findLast((hhf) => hhf.date <= new Date(run.sd).getTime())?.hhf;
-
+    //const findHistoricalHHF = hhfs.findLast((hhf) => hhf.date <= new Date(run.sd).getTime())?.hhf;
     const recalcHistoricalHHF = HF((100 * run.hf) / run.percent);
 
-    return {
-      ...run,
-      sd: new Date(run.sd).toLocaleDateString("en-us", { timeZone: "UTC" }),
-      historicalHHF: findHistoricalHHF ?? recalcHistoricalHHF,
-      percent,
-      curPercent,
-      recPercent,
-      percentMinusCurPercent: percent >= 100 ? 0 : percentMinusCurPercent,
-      place: index + 1,
-      percentile: PositiveOrMinus1(Percent(index, allRuns.length)),
-      memberNumber,
-      division,
-    };
+    run.sd = new Date(run.sd).toLocaleDateString("en-us", { timeZone: "UTC" });
+    run.historicalHHF = /*findHistoricalHHF ?? */ recalcHistoricalHHF;
+    run.percent = percent;
+    run.curPercent = curPercent;
+    run.recPercent = recPercent;
+    run.percentMinusCurPercent = percent >= 100 ? 0 : percentMinusCurPercent;
+    run.classifier = classifier;
+    run.division = division;
+    run.index = index;
+    return run;
   });
-};
 
 const classifiersRoutes = async (fastify, opts) => {
   fastify.get("/", (req, res) => classifiers.map(basicInfoForClassifier));
@@ -113,62 +145,22 @@ const classifiersRoutes = async (fastify, opts) => {
     return Classifier.find({ division });
   });
 
-  fastify.get("/:division/:number", async (req, res) => {
+  fastify.get("/info/:division/:number", async (req, res) => {
     const { division, number } = req.params;
-    const {
-      sort,
-      order,
-      page: pageString,
-      hhf: filterHHFString,
-      club: filterClubString,
-      filter: filterString,
-    } = req.query;
-    const page = Number(pageString) || 1;
-    const filterHHF = parseFloat(filterHHFString);
     const c = classifiers.find((cur) => cur.classifier === number);
 
     if (!c) {
       res.statusCode = 404;
-      return { info: null, runs: [] };
+      return { info: null };
     }
 
     const basic = basicInfoForClassifier(c);
-    const extended = await Classifier.findOne({
-      division,
-      classifier: number,
-    }).lean();
-    const { hhf, hhfs } = extended;
-
-    const allRuns = await _runs({
-      number,
-      division,
-      hhf,
-      hhfs,
-    });
-    let runsUnsorted = allRuns;
-    if (filterHHF) {
-      runsUnsorted = runsUnsorted.filter(
-        (run) => Math.abs(filterHHF - run.historicalHHF) <= 0.00015
-      );
-    }
-    if (filterString) {
-      runsUnsorted = runsUnsorted.filter((run) =>
-        [run.clubid, run.club_name, run.memberNumber, run.name]
-          .join("###")
-          .toLowerCase()
-          .includes(filterString.toLowerCase())
-      );
-    }
-    if (filterClubString) {
-      runsUnsorted = runsUnsorted.filter((run) => run.clubid === filterClubString).slice(0, 10);
-    }
-    const runs = multisort(runsUnsorted, sort?.split?.(","), order?.split?.(",")).map(
-      (run, index) => ({ ...run, index })
-    );
-
-    const recHHFInfo = await RecHHF.findOne({ classifier: number, division })
-      .select(["recHHF", "rec1HHF", "rec5HHF", "rec15HHF"])
-      .lean();
+    const [extended, recHHFInfo] = await Promise.all([
+      Classifier.findOne({ division, classifier: number }).lean(),
+      RecHHF.findOne({ classifier: number, division })
+        .select(["recHHF", "rec1HHF", "rec5HHF", "rec15HHF"])
+        .lean(),
+    ]);
 
     const result = {
       info: {
@@ -179,46 +171,42 @@ const classifiersRoutes = async (fastify, opts) => {
         recommendedHHF5: recHHFInfo?.rec5HHF || 0,
         recommendedHHF15: recHHFInfo?.rec15HHF || 0,
       },
-      runs: runs.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
-      runsTotal: runs.length,
-      runsPage: page,
     };
 
     return result;
   });
 
-  fastify.get("/download/:division/:number", async (req, res) => {
+  // TODO: move scores filtering & pagination to mongo
+  fastify.get("/scores/:division/:number", async (req, res) => {
     const { division, number } = req.params;
-    const c = classifiers.find((cur) => cur.classifier === number);
-
-    res.header(
-      "Content-Disposition",
-      `attachment; filename=classifiers.${division}.${number}.json`
-    );
-
-    if (!c) {
-      res.statusCode = 404;
-      return { info: null, runs: [] };
-    }
-
-    const basic = basicInfoForClassifier(c);
-    const extended = await Classifier.findOne({
-      division,
-      classifier: number,
-    }).lean();
+    const {
+      sort,
+      order,
+      page,
+      // hhf: filterHHFString,
+      club: filterClubString,
+      filter: filterString,
+    } = req.query;
+    // const filterHHF = parseFloat(filterHHFString);
+    const [extended, runsFromDB] = await Promise.all([
+      Classifier.findOne({ division, classifier: number }).lean(),
+      _runsAggregation({
+        classifier: number,
+        division,
+        filterString,
+        filterClubString,
+        sort,
+        order,
+        page,
+      }),
+    ]);
     const { hhf, hhfs } = extended;
 
     return {
-      info: {
-        ...basic,
-        ...extended,
-      },
-      runs: await _runs({
-        number,
-        division,
-        hhf,
-        hhfs,
-      }),
+      runs: _runsAdapter(number, division, runsFromDB, hhf, hhfs),
+      runsTotal: runsFromDB[0]?.total || 0,
+      runsTotalWithFilters: runsFromDB[0]?.totalWithFilters || 0,
+      runsPage: Number(page) || 1,
     };
   });
 

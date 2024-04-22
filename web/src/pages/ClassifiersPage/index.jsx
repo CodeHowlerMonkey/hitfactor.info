@@ -6,6 +6,7 @@ import ClassifiersTable from "./components/ClassifiersTable";
 import RunsTable, { useRunsTableData } from "../../components/RunsTable";
 import ClassifierInfoTable from "./components/ClassifierInfoTable";
 import { ProgressSpinner } from "primereact/progressspinner";
+import { useApi } from "../../utils/client";
 
 // TODO: shooters table for single classifier? # attempts, low HF, high HF, same for percent, same for curPercent
 // TODO: all classifiers total number of reshoots (non-uniqueness)
@@ -21,7 +22,8 @@ const ClassifiersPage = () => {
     () => navigate(`/classifiers/${division}`),
     [navigate, division]
   );
-  const onShooterSelection = (memberNumber) => navigate(`/shooters/${division}/${memberNumber}`);
+  const onShooterSelection = (memberNumber) =>
+    navigate(`/shooters/${division}/${memberNumber}`);
 
   const onClubSelection = (club) => navigate("/clubs/" + club);
 
@@ -47,6 +49,22 @@ const ClassifiersPage = () => {
   );
 };
 
+export const useClassifierInfo = ({ division, classifier }) => {
+  const apiEndpoint = !(division && classifier)
+    ? null
+    : `/classifiers/info/${division}/${classifier}`;
+  const { json: apiData, loading } = useApi(apiEndpoint);
+  const info = apiData?.info;
+  const { hhfs, clubs } = info || {};
+
+  return {
+    loading,
+    info,
+    clubs,
+    hhfs,
+  };
+};
+
 export const ClassifierRunsAndInfo = ({
   division,
   classifier,
@@ -54,14 +72,8 @@ export const ClassifierRunsAndInfo = ({
   onShooterSelection,
   onClubSelection,
 }) => {
-  const { loading, info, downloadUrl, ...useRunsTableDataResults } = useRunsTableData({
-    division,
-    classifier,
-  });
+  const { loading, info, clubs, hhfs } = useClassifierInfo({ classifier, division });
   const { code, name } = info || {};
-  if (!loading && info && (!code || !name)) {
-    return "Classifier Not Found";
-  }
 
   return (
     <>
@@ -86,23 +98,19 @@ export const ClassifierRunsAndInfo = ({
           />
         </a>
       </div>
-      {loading && <ProgressSpinner />}
-      {!loading && (
-        <>
-          <div className="flex" style={{ height: "35rem" }}>
-            <div className="w-full h-full bg-primary-reverse">
-              <ClassifierInfoTable {...{ division, classifier }} {...info} />
-            </div>
-          </div>
+      <div className="flex" style={{ height: "35rem" }}>
+        <div className="w-full h-full bg-primary-reverse">
+          <ClassifierInfoTable {...{ division, classifier }} {...info} />
+        </div>
+      </div>
 
-          <RunsTable
-            loading={loading}
-            {...useRunsTableDataResults}
-            onShooterSelection={onShooterSelection}
-            onClubSelection={onClubSelection}
-          />
-        </>
-      )}
+      <RunsTable
+        classifier={classifier}
+        division={division}
+        onShooterSelection={onShooterSelection}
+        onClubSelection={onClubSelection}
+        clubs={clubs}
+      />
     </>
   );
 };

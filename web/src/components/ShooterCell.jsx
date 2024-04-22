@@ -29,9 +29,7 @@ export const ShooterCell = ({ data, onClick }) => (
       <span style={{ marginRight: "4px" }}>{data.memberNumber}</span>
       <ClassTag
         value={data?.recClass ?? "?"}
-        tooltip={`Rec. classification: ${data?.reclassificationsRecPercentCurrent?.toFixed(
-          2
-        )}%`}
+        tooltip={`Rec. classification: ${data?.reclassificationsRecPercentCurrent?.toFixed(2)}%`}
       />
       <ClassTag
         value={data?.curHHFClass ?? "?"}
@@ -41,9 +39,9 @@ export const ShooterCell = ({ data, onClick }) => (
         )}%`}
       />
       <ClassTag
-        value={data?.class}
+        value={data?.hqClass}
         alpha={0.45}
-        tooltip={`HQ Classification: ${data?.current?.toFixed(2) ?? 0}%`}
+        tooltip={`HQ Classification: ${data?.hqCurrent?.toFixed(2) ?? 0}%`}
       />
     </div>
     <div style={{ fontSize: 14 }}>{data.name}</div>

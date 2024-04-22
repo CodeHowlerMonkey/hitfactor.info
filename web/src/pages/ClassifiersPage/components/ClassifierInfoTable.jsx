@@ -4,6 +4,7 @@ import ScoresChart from "../../../components/chart/ScoresChart";
 import { Tooltip } from "primereact/tooltip";
 
 export const ClassifierInfoTable = ({
+  loading,
   division,
   classifier,
   hhf,
@@ -14,6 +15,7 @@ export const ClassifierInfoTable = ({
   ...info
 }) => (
   <DataTable
+    loading={loading}
     scrollable={false}
     style={{ height: "100%" }}
     tableStyle={{ height: "100%" }}

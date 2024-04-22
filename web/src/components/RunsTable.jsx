@@ -73,13 +73,14 @@ export const useRunsTableData = ({ division, classifier }) => {
     initial: [{ field: "hf", order: -1 }],
   });
   const [filter, setFilter] = useState("");
-  const [filterHHF, setFilterHHF] = useState(undefined);
+  // const [filterHHF, setFilterHHF] = useState(undefined);
   const [filterClub, setFilterClub] = useState(undefined);
+  useEffect(() => resetPage(), [filter, filterClub]);
   //const [legacy, setLegacy] = useState(undefined);
   const filtersQuery = qs.stringify(
     {
       filter,
-      hhf: filterHHF,
+      //hhf: filterHHF,
       club: filterClub,
       //legacy: legacy ? 1 : undefined,
     },
@@ -89,12 +90,8 @@ export const useRunsTableData = ({ division, classifier }) => {
   const downloadUrl = `/api/classifiers/download/${division}/${classifier}`;
   const apiEndpoint = !(division && classifier)
     ? null
-    : `/classifiers/${division}/${classifier}?${query}&${pageQuery}&${filtersQuery}`;
+    : `/classifiers/scores/${division}/${classifier}?${query}&${pageQuery}&${filtersQuery}`;
   const { json: apiData, loading } = useApi(apiEndpoint);
-  const info = apiData?.info;
-  const { hhfs, clubs } = info || {};
-  // info bucket has total runs too for header, needs to be renamed
-  const runsTotal = apiData?.runsTotal;
 
   const data = (apiData?.runs ?? []).map((d) => ({
     ...d,
@@ -103,18 +100,15 @@ export const useRunsTableData = ({ division, classifier }) => {
 
   return {
     loading,
-    info,
     data,
-    runsTotal,
-    clubs,
-    hhfs,
+    runsTotal: apiData?.runsTotalWithFilters,
     query,
     sortProps,
     pageProps,
     filter,
     setFilter,
-    filterHHF,
-    setFilterHHF,
+    //filterHHF,
+    //setFilterHHF,
     //setLegacy,
     filterClub,
     setFilterClub,
@@ -122,20 +116,26 @@ export const useRunsTableData = ({ division, classifier }) => {
   };
 };
 
-const RunsTable = ({
-  loading,
-  data,
-  runsTotal,
-  clubs,
-  hhfs,
-  sortProps,
-  pageProps,
-  setFilter,
-  setFilterHHF,
-  setFilterClub,
-  //setLegacy,
-  onShooterSelection,
-}) => {
+const RunsTable = ({ classifier, division, clubs, onShooterSelection }) => {
+  const {
+    loading,
+    data,
+    runsTotal,
+    hhfs,
+    sortProps,
+    pageProps,
+    setFilter,
+    // setFilterHHF,
+    setFilterClub,
+    //setLegacy,
+  } = useRunsTableData({
+    division,
+    classifier,
+  });
+  if (!loading && !data) {
+    return "Classifier Not Found";
+  }
+
   return (
     <DataTable
       loading={loading}
@@ -162,7 +162,6 @@ const RunsTable = ({
       <Column
         field="index"
         header="#"
-        sortable
         headerTooltip="Index for the dataRow with current filters and sorting options applied. Can be used for manual counting of things. "
         headerTooltipOptions={headerTooltipOptions}
       />
