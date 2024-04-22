@@ -72,11 +72,18 @@ export const ShootersDistributionChart = ({ division, style }) => {
           tooltip: {
             callbacks: {
               label: ({
-                raw: { recPercent, curHHFPercent, curPercent, memberNumber, y },
+                raw: {
+                  brutalPercent,
+                  recPercent,
+                  curHHFPercent,
+                  curPercent,
+                  memberNumber,
+                  y,
+                },
               }) =>
                 `${memberNumber}; ${y.toFixed(
                   2
-                )}th, Rec: ${recPercent}%, curHHF: ${curHHFPercent}%, HQ: ${curPercent}%`,
+                )}th, Brutal: ${brutalPercent}%, Rec: ${recPercent}%, curHHF: ${curHHFPercent}%, HQ: ${curPercent}%`,
             },
           },
           annotation: { annotations: lines },

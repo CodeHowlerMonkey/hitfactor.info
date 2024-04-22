@@ -30,19 +30,19 @@ const cardRow = ({ classes, currents, ages, reclassifications }, div) => ({
   division: tableNameForDiv[div],
   hq: [classes[div], percentValueOrEmpty(currents[div])].filter(Boolean).join(" / "),
   curHHF: [
-    reclassifications.curPercent.classes[div],
+    reclassifications.curPercent?.classes?.[div],
     percentValueOrEmpty(reclassifications?.curPercent?.currents?.[div]),
   ]
     .filter(Boolean)
     .join(" / "),
   rec: [
-    reclassifications.recPercent.classes[div],
+    reclassifications.recPercent?.classes?.[div],
     percentValueOrEmpty(reclassifications?.recPercent?.currents?.[div]),
   ]
     .filter(Boolean)
     .join(" / "),
   brutal: [
-    reclassifications.brutalPercent.classes[div],
+    reclassifications.brutalPercent?.classes?.[div],
     percentValueOrEmpty(reclassifications?.brutalPercent?.currents?.[div]),
   ]
     .filter(Boolean)
