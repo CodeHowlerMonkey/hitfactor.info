@@ -78,7 +78,17 @@ export const statsByDivision = async (field) => {
   ]);
 
   dbResults.forEach(({ _id: [classLetter, division], count }) => {
-    byDiv[division][classLetter] = count;
+    if (division === "loco") {
+      return;
+    }
+    try {
+      byDiv[division][classLetter] = count;
+    } catch (err) {
+      console.error("error with stats:");
+      console.error(division);
+      console.error(classLetter);
+      console.error(err);
+    }
   });
 
   return byDiv;
@@ -153,7 +163,7 @@ export const statsByAll = async (field) => {
 
 const statsByDivAndAll = async (field) => {
   const all = await statsByAll(field);
-  const { loco, ...byDiv } = await statsByDivision(field);
+  const byDiv = await statsByDivision(field);
 
   return {
     all,

@@ -197,7 +197,7 @@ export const calculateUSPSAClassification = (
   now = new Date()
 ) => {
   const state = newClassificationCalculationState();
-  if (!classifiers.length) {
+  if (!classifiers?.length) {
     return state;
   }
 

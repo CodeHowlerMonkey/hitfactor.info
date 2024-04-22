@@ -3,25 +3,15 @@ import { divIdToShort } from "./divisions.js";
 import { HF } from "./numbers.js";
 import { loadJSON } from "../utils.js";
 
-export const divShortToHHFs = loadJSON("../../data/hhf.json").hhfs.reduce(
-  (acc, cur) => {
-    const divShortName = divIdToShort[cur.division];
-    const curArray = acc[divShortName] || [];
+export const divShortToHHFs = loadJSON("../../data/hhf.json").hhfs.reduce((acc, cur) => {
+  const divShortName = divIdToShort[cur.division];
+  const curArray = acc[divShortName] || [];
 
-    // TODO: merge HHF for LO/CO in a smart way
-    let extra = {};
-    if (divShortName === "lo") {
-      extra = { loco: [...curArray, cur] };
-    }
-
-    return {
-      ...acc,
-      [divShortName]: [...curArray, cur],
-      ...extra,
-    };
-  },
-  {}
-);
+  return {
+    ...acc,
+    [divShortName]: [...curArray, cur],
+  };
+}, {});
 
 export const curHHFForDivisionClassifier = ({ division, number }) => {
   if (!number) {
