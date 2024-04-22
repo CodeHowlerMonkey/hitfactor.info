@@ -1,174 +1,295 @@
+import uniqBy from "lodash.uniqby";
+
 import {
   basicInfoForClassifier,
   classifiers,
 } from "../../../dataUtil/classifiersData.js";
-
-import {
-  classifiersForDivision,
-  extendedInfoForClassifier,
-  runsForDivisionClassifier,
-  chartData,
-} from "../../../classifiers.api.js";
+import { HF, N, Percent, PositiveOrMinus1 } from "../../../dataUtil/numbers.js";
+import { curHHFForDivisionClassifier } from "../../../dataUtil/hhf.js";
+import { Score } from "../../../db/scores.js";
+import { Shooter } from "../../../db/shooters.js";
+import { Classifier } from "../../../db/classifiers.js";
 
 import { multisort } from "../../../../../shared/utils/sort.js";
 import { PAGE_SIZE } from "../../../../../shared/constants/pagination.js";
+import { RecHHF } from "../../../db/recHHF.js";
 import {
-  recommendedHHFByPercentileAndPercent,
-  recommendedHHFFor,
-} from "../../../dataUtil/recommendedHHF.js";
+  addPlaceAndPercentileAggregation,
+  addTotalCountAggregation,
+  multiSortAndPaginate,
+  percentAggregationOp,
+  textSearchMatch,
+} from "../../../db/utils.js";
+
+const _getShooterField = (field) => ({
+  $getField: {
+    input: { $arrayElemAt: ["$shooters", 0] },
+    field,
+  },
+});
+const _getRecHHFField = (field) => ({
+  $getField: {
+    input: { $arrayElemAt: ["$rechhfs", 0] },
+    field,
+  },
+});
+const _runsAggregation = async ({
+  classifier,
+  division,
+  sort,
+  order,
+  page,
+  filterString,
+  filterClubString,
+}) =>
+  Score.aggregate([
+    {
+      $project: {
+        _id: false,
+        _v: false,
+      },
+    },
+    { $match: { classifier, division, hf: { $gt: 0 } } },
+    {
+      $lookup: {
+        from: "shooters",
+        localField: "memberNumberDivision",
+        foreignField: "memberNumberDivision",
+        as: "shooters",
+      },
+    },
+    {
+      $lookup: {
+        from: "rechhfs",
+        localField: "classifierDivision",
+        foreignField: "classifierDivision",
+        as: "rechhfs",
+      },
+    },
+    {
+      $addFields: {
+        // score data for RunsTable
+        recHHF: _getRecHHFField("recHHF"),
+        curHHF: _getRecHHFField("curHHF"),
+
+        // shooter data for ShooterCell
+        hqClass: _getShooterField("class"),
+        hqCurrent: _getShooterField("current"),
+        name: _getShooterField("name"),
+        reclassifications: _getShooterField("reclassifications"),
+        recClass: _getShooterField("recClass"),
+        curHHFClass: _getShooterField("curHHFClass"),
+        reclassificationsCurPercentCurrent: _getShooterField(
+          "reclassificationsCurPercentCurrent"
+        ),
+        reclassificationsRecPercentCurrent: _getShooterField(
+          "reclassificationsRecPercentCurrent"
+        ),
+      },
+    },
+    {
+      $project: {
+        shooters: false,
+        rechhfs: false,
+        memberNumberDivision: false,
+        classifier: false,
+        division: false,
+      },
+    },
+    {
+      $addFields: {
+        recPercent: percentAggregationOp("$hf", "$recHHF", 4),
+        curPercent: percentAggregationOp("$hf", "$curHHF", 4),
+      },
+    },
+
+    ...addPlaceAndPercentileAggregation("hf"),
+    ...(!filterString
+      ? []
+      : [{ $match: textSearchMatch(["memberNumber", "name"], filterString) }]),
+    ...(!filterClubString ? [] : [{ $match: { clubid: filterClubString } }]),
+    ...addTotalCountAggregation("totalWithFilters"),
+    ...multiSortAndPaginate({ sort, order, page }),
+  ]);
+
+const _runsAdapter = (classifier, division, runs, hhf /*hhfs*/) =>
+  runs.map((run, index) => {
+    const percent = N(run.percent);
+    const curPercent = PositiveOrMinus1(run.curPercent);
+    const recPercent = PositiveOrMinus1(run.recPercent);
+    const percentMinusCurPercent = N(percent - curPercent);
+
+    //const findHistoricalHHF = hhfs.findLast((hhf) => hhf.date <= new Date(run.sd).getTime())?.hhf;
+    const recalcHistoricalHHF = HF((100 * run.hf) / run.percent);
+
+    run.sd = new Date(run.sd).toLocaleDateString("en-us", { timeZone: "UTC" });
+    run.historicalHHF = /*findHistoricalHHF ?? */ recalcHistoricalHHF;
+    run.percent = percent;
+    run.curPercent = curPercent;
+    run.recPercent = recPercent;
+    run.percentMinusCurPercent = percent >= 100 ? 0 : percentMinusCurPercent;
+    run.classifier = classifier;
+    run.division = division;
+    run.index = index;
+    return run;
+  });
 
 const classifiersRoutes = async (fastify, opts) => {
   fastify.get("/", (req, res) => classifiers.map(basicInfoForClassifier));
 
-  fastify.get("/:division", (req) =>
-    classifiersForDivision(req.params.division)
-  );
-
-  fastify.get("/download/:division", async (req, res) => {
+  fastify.get("/:division", async (req) => {
     const { division } = req.params;
-    res.header(
-      "Content-Disposition",
-      `attachment; filename=classifiers.${division}.json`
-    );
-    return classifiersForDivision(division);
+    return Classifier.find({ division });
   });
 
-  fastify.get("/:division/:number", async (req, res) => {
+  fastify.get("/info/:division/:number", async (req, res) => {
+    const { division, number } = req.params;
+    const c = classifiers.find((cur) => cur.classifier === number);
+
+    if (!c) {
+      res.statusCode = 404;
+      return { info: null };
+    }
+
+    const basic = basicInfoForClassifier(c);
+    const [extended, recHHFInfo] = await Promise.all([
+      Classifier.findOne({ division, classifier: number }).lean(),
+      RecHHF.findOne({ classifier: number, division })
+        .select(["recHHF", "rec1HHF", "rec5HHF", "rec15HHF"])
+        .lean(),
+    ]);
+
+    const result = {
+      info: {
+        ...basic,
+        ...extended,
+        recHHF: recHHFInfo?.recHHF || 0,
+        recommendedHHF1: recHHFInfo?.rec1HHF || 0,
+        recommendedHHF5: recHHFInfo?.rec5HHF || 0,
+        recommendedHHF15: recHHFInfo?.rec15HHF || 0,
+      },
+    };
+
+    return result;
+  });
+
+  // TODO: move scores filtering & pagination to mongo
+  fastify.get("/scores/:division/:number", async (req, res) => {
     const { division, number } = req.params;
     const {
       sort,
       order,
-      page: pageString,
-      //legacy,
-      hhf: filterHHFString,
+      page,
+      // hhf: filterHHFString,
       club: filterClubString,
       filter: filterString,
     } = req.query;
-    //const includeNoHF = Number(legacy) === 1;
-    const page = Number(pageString) || 1;
-    const filterHHF = parseFloat(filterHHFString);
-    const c = classifiers.find((cur) => cur.classifier === number);
-
-    if (!c) {
-      res.statusCode = 404;
-      return { info: null, runs: [] };
-    }
-
-    const basic = basicInfoForClassifier(c);
-    const extended = extendedInfoForClassifier(c, division);
-    const { hhf, hhfs } = extended;
-
-    const allRuns = runsForDivisionClassifier({
-      number,
-      division,
-      hhf,
-      includeNoHF: false,
-      hhfs,
-    });
-    let runsUnsorted = allRuns;
-    if (filterHHF) {
-      runsUnsorted = runsUnsorted.filter(
-        (run) => Math.abs(filterHHF - run.historicalHHF) <= 0.00015
-      );
-    }
-    if (filterString) {
-      runsUnsorted = runsUnsorted.filter((run) =>
-        [run.clubid, run.club_name, run.memberNumber, run.name]
-          .join("###")
-          .toLowerCase()
-          .includes(filterString.toLowerCase())
-      );
-    }
-    if (filterClubString) {
-      runsUnsorted = runsUnsorted
-        .filter((run) => run.clubid === filterClubString)
-        .slice(0, 10);
-    }
-    const runs = multisort(
-      runsUnsorted,
-      sort?.split?.(","),
-      order?.split?.(",")
-    ).map((run, index) => ({ ...run, index }));
-
-    // const extendedCalibrationTable = await getExtendedCalibrationShootersPercentileTable();
-
-    // Not using calculated percentiles, because it's all over the place in different divisions
-    // Closest to reality is curPercent in CO, and few good classifiers there, which show
-    // GM shooters start where they should. These classifiers are
-    // 99-07 Both Sides Now
-    // 03-03 Take em Down
-    // 06-01 Big Barricade
-    // 06-02 Big Barricade II
-    // 09-13 Table Stakes
-    // 19-02 Hi-Way Robbery
-    // So we're just gonna eye-ball percentiles for 3 recommendation algos based on these
-    // classifiers for now.
-    // It can always be adjusted later.
-
-    return {
-      info: {
-        ...basic,
-        ...extended,
-        recHHF: recommendedHHFFor({ division, number }),
-        recommendedHHF1: recommendedHHFByPercentileAndPercent(
-          allRuns,
-          0.9, // extendedCalibrationTable[division].pGM,
-          95
-        ),
-        recommendedHHF5: recommendedHHFByPercentileAndPercent(
-          allRuns,
-          5.1, // extendedCalibrationTable[division].pM,
-          85
-        ),
-        recommendedHHF15: recommendedHHFByPercentileAndPercent(
-          allRuns,
-          14.5, // extendedCalibrationTable[division].pA,
-          75
-        ),
-      },
-      runs: runs.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
-      runsTotal: runs.length,
-      runsPage: page,
-    };
-  });
-
-  fastify.get("/download/:division/:number", async (req, res) => {
-    const { division, number } = req.params;
-    const c = classifiers.find((cur) => cur.classifier === number);
-
-    res.header(
-      "Content-Disposition",
-      `attachment; filename=classifiers.${division}.${number}.json`
-    );
-
-    if (!c) {
-      res.statusCode = 404;
-      return { info: null, runs: [] };
-    }
-
-    const basic = basicInfoForClassifier(c);
-    const extended = extendedInfoForClassifier(c, division);
-    const { hhf, hhfs } = extended;
-
-    return {
-      info: {
-        ...basic,
-        ...extended,
-      },
-      runs: runsForDivisionClassifier({
-        number,
+    // const filterHHF = parseFloat(filterHHFString);
+    const [extended, runsFromDB] = await Promise.all([
+      Classifier.findOne({ division, classifier: number }).lean(),
+      _runsAggregation({
+        classifier: number,
         division,
-        hhf,
-        includeNoHF: false,
-        hhfs,
+        filterString,
+        filterClubString,
+        sort,
+        order,
+        page,
       }),
+    ]);
+    const { hhf, hhfs } = extended;
+
+    return {
+      runs: _runsAdapter(number, division, runsFromDB, hhf, hhfs),
+      runsTotal: runsFromDB[0]?.total || 0,
+      runsTotalWithFilters: runsFromDB[0]?.totalWithFilters || 0,
+      runsPage: Number(page) || 1,
     };
   });
 
   fastify.get("/:division/:number/chart", async (req, res) => {
     const { division, number } = req.params;
-    const { full } = req.query;
-    return chartData({ division, number, full });
+    const { full: fullString } = req.query;
+    const full = Number(fullString);
+
+    const runs = await Score.aggregate([
+      {
+        $project: {
+          hf: true,
+          memberNumber: true,
+          memberNumberDivision: true,
+          classifier: true,
+          division: true,
+          _id: false,
+        },
+      },
+      { $match: { classifier: number, division, hf: { $gt: 0 } } },
+      {
+        $lookup: {
+          from: "shooters",
+          localField: "memberNumberDivision",
+          foreignField: "memberNumberDivision",
+          as: "shooters",
+        },
+      },
+      {
+        $addFields: {
+          curPercent: {
+            $getField: {
+              input: { $arrayElemAt: ["$shooters", 0] },
+              field: "current",
+            },
+          },
+          curHHFPercent: {
+            $getField: {
+              input: { $arrayElemAt: ["$shooters", 0] },
+              field: "reclassificationsCurPercentCurrent",
+            },
+          },
+          recPercent: {
+            $getField: {
+              input: { $arrayElemAt: ["$shooters", 0] },
+              field: "reclassificationsRecPercentCurrent",
+            },
+          },
+        },
+      },
+      {
+        $project: {
+          shooters: false,
+          memberNumberDivision: false,
+          classifier: false,
+          division: false,
+        },
+      },
+      { $sort: { hf: -1 } },
+    ]);
+
+    const hhf = curHHFForDivisionClassifier({ number, division });
+    const allPoints = runs.map((run, index, allRuns) => ({
+      x: HF(run.hf),
+      y: PositiveOrMinus1(Percent(index, allRuns.length)),
+      memberNumber: run.memberNumber,
+      curPercent: run.curPercent || 0,
+      curHHFPercent: run.curHHFPercent || 0,
+      recPercent: run.recPercent || 0,
+    }));
+
+    // for zoomed in mode return all points
+    if (full === 1) {
+      return allPoints;
+    }
+
+    // always return top 100 points, and reduce by 0.5% grouping for other to make render easier
+    const first50 = allPoints.slice(0, 100);
+    const other = allPoints.slice(100, allPoints.length);
+    return [
+      ...first50,
+      ...uniqBy(
+        other,
+        ({ x }) => Math.floor((200 * x) / hhf) // 0.5% grouping for graph points reduction
+      ),
+    ];
   });
 };
 

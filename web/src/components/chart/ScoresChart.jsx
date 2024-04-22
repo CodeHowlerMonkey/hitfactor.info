@@ -39,42 +39,12 @@ const xLinesForHHF = (prefix, hhf) =>
   hhf <= 0
     ? {}
     : {
-        ...xLine(
-          prefix + "HHF",
-          hhf,
-          colorForPrefix(prefix, 1),
-          extraLabelOffsets[prefix]
-        ),
-        ...xLine(
-          prefix + "GM",
-          0.95 * hhf,
-          colorForPrefix(prefix, 0.7),
-          extraLabelOffsets[prefix]
-        ),
-        ...xLine(
-          prefix + "M",
-          0.85 * hhf,
-          colorForPrefix(prefix, 0.5),
-          extraLabelOffsets[prefix]
-        ),
-        ...xLine(
-          prefix + "A",
-          0.75 * hhf,
-          colorForPrefix(prefix, 0.4),
-          extraLabelOffsets[prefix]
-        ),
-        ...xLine(
-          prefix + "B",
-          0.6 * hhf,
-          colorForPrefix(prefix, 0.3),
-          extraLabelOffsets[prefix]
-        ),
-        ...xLine(
-          prefix + "C",
-          0.4 * hhf,
-          colorForPrefix(prefix, 0.2),
-          extraLabelOffsets[prefix]
-        ),
+        ...xLine(prefix + "HHF", hhf, colorForPrefix(prefix, 1), extraLabelOffsets[prefix]),
+        ...xLine(prefix + "GM", 0.95 * hhf, colorForPrefix(prefix, 0.7), extraLabelOffsets[prefix]),
+        ...xLine(prefix + "M", 0.85 * hhf, colorForPrefix(prefix, 0.5), extraLabelOffsets[prefix]),
+        ...xLine(prefix + "A", 0.75 * hhf, colorForPrefix(prefix, 0.4), extraLabelOffsets[prefix]),
+        ...xLine(prefix + "B", 0.6 * hhf, colorForPrefix(prefix, 0.3), extraLabelOffsets[prefix]),
+        ...xLine(prefix + "C", 0.4 * hhf, colorForPrefix(prefix, 0.2), extraLabelOffsets[prefix]),
         ...point(
           prefix + "GM/1",
           0.95 * hhf,
@@ -116,7 +86,6 @@ const xLinesForHHF = (prefix, hhf) =>
 const modeBucketForMode = (mode) =>
   ({
     Official: "curPercent",
-    "Historical CHHF": "historicalCurHHFPercent",
     "Current CHHF": "curHHFPercent",
     Recommended: "recPercent",
   }[mode]);
@@ -135,13 +104,13 @@ export const ScoresChart = ({
   recommendedHHF15,
 }) => {
   const [full, setFull] = useState(false);
-  const modes = ["Official", "Historical CHHF", "Current CHHF", "Recommended"];
+  const modes = ["Official", "Current CHHF", "Recommended"];
   const [mode, setMode] = useState(modes[0]);
-  const data = useApi(
+  const { json: data, loading } = useApi(
     `/classifiers/${division}/${classifier}/chart?full=${full ? 1 : 0}`
   );
 
-  if (!data?.length) {
+  if (loading) {
     return <ProgressSpinner />;
   }
 
@@ -174,9 +143,7 @@ export const ScoresChart = ({
           tooltip: {
             callbacks: {
               label: ({ raw, raw: { x, y, memberNumber } }) =>
-                `HF ${x}, Top ${y}%: ${memberNumber}(${raw[
-                  modeBucketForMode(mode)
-                ].toFixed(2)}%)`,
+                `HF ${x}, Top ${y}%: ${memberNumber}(${raw[modeBucketForMode(mode)].toFixed(2)}%)`,
             },
           },
           annotation: {
@@ -207,9 +174,8 @@ export const ScoresChart = ({
             pointBorderColor: "white",
             pointBorderWidth: 0,
             backgroundColor: "#ae9ef1",
-            pointBackgroundColor: data.map(
-              (c) =>
-                bgColorForClass[classForPercent(c[modeBucketForMode(mode)])]
+            pointBackgroundColor: data?.map(
+              (c) => bgColorForClass[classForPercent(c[modeBucketForMode(mode)])]
             ),
           },
         ],
@@ -238,6 +204,7 @@ export const ScoresChart = ({
           }}
         >
           <SelectButton
+            allowEmpty={false}
             options={modes}
             value={mode}
             onChange={(e) => setMode(e.value)}
@@ -257,6 +224,7 @@ export const ScoresChart = ({
     >
       <div className="flex justify-space-around">
         <SelectButton
+          allowEmpty={false}
           options={modes}
           value={mode}
           onChange={(e) => setMode(e.value)}

@@ -67,6 +67,11 @@ const singleFieldSort = (a, b, field, order) => {
   }
 };
 
+export const multisortObj = (fields, orders) =>
+  Object.fromEntries(
+    (fields || []).map((f, i) => [f, Number(orders?.[i] || 0) > 0 ? 1 : -1])
+  );
+
 // TODO: move this somewhere more useful, maybe refactor for
 // better more generalized sorting shit can be moved to sort utils too
 export const multisort = (data = [], fields, orders) =>
@@ -88,3 +93,14 @@ export const multisort = (data = [], fields, orders) =>
 
         return 0;
       });
+
+export const safeNumSort = (field) => (a, b) => {
+  // sort by current to calculate currentRank
+  // have to use Max and || 0 because U/X shooters need to be in the
+  // output here (used in shooter info head), but can't mess up the
+  // ranking due to null/-1/undefined values
+  // note: || is used instead of ?? to convert NaN to 0 as well
+  const aValue = field ? a[field] : a;
+  const bValue = field ? b[field] : b;
+  return Math.max(0, bValue || 0) - Math.max(0, aValue || 0);
+};

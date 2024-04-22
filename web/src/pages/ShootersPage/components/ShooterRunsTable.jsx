@@ -10,10 +10,13 @@ const ShooterRunsTable = ({
   classifiersPage,
   onClassifierSelection,
   onClubSelection,
+  loading,
 }) => (
   <DataTable
-    sortMode="multiple"
-    loading={!classifiers?.length}
+    className="sm:text-sm"
+    sortOrder={-1}
+    sortField="sdUnix"
+    loading={loading}
     stripedRows
     /*lazy*/
     value={(classifiers ?? []).map((c) => ({
@@ -41,7 +44,7 @@ const ShooterRunsTable = ({
       field="sdUnix"
       header="Date"
       sortable
-      body={(run) => new Date(run.sd).toLocaleDateString()}
+      body={(run) => new Date(run.sd).toLocaleDateString("en-us", { timeZone: "UTC" })}
     />
     <Column
       field="classifier"

@@ -4,6 +4,7 @@ import ScoresChart from "../../../components/chart/ScoresChart";
 import { Tooltip } from "primereact/tooltip";
 
 export const ClassifierInfoTable = ({
+  loading,
   division,
   classifier,
   hhf,
@@ -14,6 +15,7 @@ export const ClassifierInfoTable = ({
   ...info
 }) => (
   <DataTable
+    loading={loading}
     scrollable={false}
     style={{ height: "100%" }}
     tableStyle={{ height: "100%" }}
@@ -61,10 +63,7 @@ export const ClassifierInfoTable = ({
       header="Historical HHFs"
       bodyStyle={{ padding: 0, maxHeight: "26rem" }}
       body={() => (
-        <div
-          className="h-26 w-full"
-          style={{ overflowY: "scroll", maxHeight: "26rem" }}
-        >
+        <div className="h-26 w-full" style={{ overflowY: "scroll", maxHeight: "26rem" }}>
           <DataTable
             showHeaders={false}
             stripedRows
@@ -118,10 +117,7 @@ export const ClassifierInfoTable = ({
               tooltip={(c) => c.tooltip}
               body={(c) =>
                 c.label ? (
-                  <div
-                    className="recommendedHHFExplanation"
-                    data-pr-tooltip={c.tooltip}
-                  >
+                  <div className="recommendedHHFExplanation" data-pr-tooltip={c.tooltip}>
                     {c.label}
                     <i
                       style={{
@@ -135,7 +131,7 @@ export const ClassifierInfoTable = ({
                     />
                   </div>
                 ) : (
-                  new Date(c.date).toLocaleDateString()
+                  new Date(c.date).toLocaleDateString("en-us", { timeZone: "UTC" })
                 )
               }
             />

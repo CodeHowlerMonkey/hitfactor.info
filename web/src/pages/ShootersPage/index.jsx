@@ -8,6 +8,7 @@ import ShooterInfoTable from "./components/ShooterInfoTable";
 import { useApi } from "../../utils/client";
 import { divShortToLong } from "../../../../api/src/dataUtil/divisions";
 import ShooterRunsTable from "./components/ShooterRunsTable";
+import { Divider } from "primereact/divider";
 
 // TODO: shooters table for single classifier? # attempts, low HF, high HF, same for percent, same for curPercent
 // TODO: all classifiers total number of reshoots (non-uniqueness)
@@ -25,7 +26,7 @@ const ShootersPage = () => {
   );
 
   return (
-    <div className="mx-">
+    <div style={{ maxWidth: 1280, margin: "auto" }}>
       <DivisionNavigation onSelect={onDivisionSelect} />
       {division && !memberNumber && (
         <ShootersTable
@@ -48,19 +49,15 @@ const useShooterTableData = ({ division, memberNumber }) => {
   const apiEndpoint = !(division && memberNumber)
     ? null
     : `/shooters/${division}/${memberNumber}`;
-  const apiData = useApi(apiEndpoint);
+  const { json: apiData, loading } = useApi(apiEndpoint);
   const info = apiData?.info || {};
   const classifiers = apiData?.classifiers || [];
   const downloadUrl = `/api/shooters/download/${division}/${memberNumber}`;
 
-  return { ...apiData, info, classifiers, downloadUrl };
+  return { ...apiData, info, classifiers, downloadUrl, loading };
 };
 
-export const ShooterRunsAndInfo = ({
-  division,
-  memberNumber,
-  onBackToShooters,
-}) => {
+export const ShooterRunsAndInfo = ({ division, memberNumber, onBackToShooters }) => {
   const navigate = useNavigate();
   const { info, downloadUrl, ...tableShit } = useShooterTableData({
     division,
@@ -73,8 +70,8 @@ export const ShooterRunsAndInfo = ({
     <>
       <div className="flex justify-content-between">
         <Button
-          style={{ fontSize: "1.2rem", fontWeight: "bold" }}
-          icon="pi pi-chevron-left"
+          className="md:text-lg lg:text-xl font-bold px-0 md:px-2"
+          icon="pi pi-chevron-left md:text-lg lg:text-xl "
           rounded
           text
           aria-label="Back"
@@ -82,32 +79,24 @@ export const ShooterRunsAndInfo = ({
         >
           Shooters List
         </Button>
-        <h1 style={{ margin: "auto" }}>
+        <h1 className="m-auto sm:text-base text-base lg:text-lg">
           {memberNumber} - {name} - {divShortToLong[division]}
         </h1>
-        <a
-          href={downloadUrl}
-          download
-          className="px-5 py-2"
-          style={{ fontSize: "1.625rem" }}
-        >
+        {/*<a href={downloadUrl} download className="px-5 py-2" style={{ fontSize: "1.625rem" }}>
           <i
             className="pi pi-download"
             style={{ fontSize: "1.2rem", fontWeight: "bold", color: "#ae9ef1" }}
           />
-        </a>
+        </a>*/}
       </div>
-      <div className="flex" style={{ overflowY: "none", height: "38rem" }}>
-        <div className="w-full h-full bg-primary-reverse">
-          <ShooterInfoTable info={info} />
-        </div>
-      </div>
+      <ShooterInfoTable info={info} />
+
+      <Divider />
+      <h3 className="m-4 mb-2">Scores</h3>
 
       <ShooterRunsTable
         {...tableShit}
-        onClassifierSelection={(number) =>
-          navigate(`/classifiers/${division}/${number}`)
-        }
+        onClassifierSelection={(number) => navigate(`/classifiers/${division}/${number}`)}
         onClubSelection={(club) => navigate("/clubs/" + club)}
       />
     </>

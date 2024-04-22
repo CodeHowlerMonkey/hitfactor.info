@@ -11,51 +11,48 @@ export const dirPath = (...args) => path.join(__dirname, ...args);
 export const loadJSON = (path) =>
   JSON.parse(fs.readFileSync(dirPath(path), "utf8"));
 
-export const processImport = (dir, fileRegexp, forEachFileJSONCb) => {
+const filesToProcess = (dir, fileRegexp) => {
   const files = fs
     .readdirSync(dirPath(dir))
     .filter((file) => !!file.match(fileRegexp));
 
-  const filesToProcess = !process.env.QUICK_DEV
-    ? files
-    : files.slice(files.length - 4, files.length);
+  if (!process.env.QUICK_DEV) {
+    return files;
+  }
 
-  filesToProcess.forEach((file) => {
+  return files.filter((f) => f.includes(".24"));
+};
+
+export const processImport = (dir, fileRegexp, forEachFileJSONCb) => {
+  filesToProcess(dir, fileRegexp).forEach((file) => {
     const curJSON = loadJSON(dir + "/" + file);
     curJSON.forEach(forEachFileJSONCb);
   });
 };
 
-export const lazy = (resolver, cachePath) => {
+export const processImportAsync = async (
+  dir,
+  fileRegexp,
+  forEachFileJSONCb
+) => {
+  const files = filesToProcess(dir, fileRegexp);
+  for (const file of files) {
+    const curJSON = loadJSON(dir + "/" + file);
+    await Promise.all(curJSON.map(forEachFileJSONCb));
+  }
+};
+
+export const lazy = (resolver) => {
   let _result = null;
 
   return () => {
     if (_result) {
       return _result;
-    } /*else if (cachePath) {
-      try {
-        const cached = loadJSON(cachePath);
-        if (cached) {
-          console.log("using cached " + cachePath);
-          _result = cached;
-          return _result;
-        }
-      } catch (err) {
-        if (err.code !== "ENOENT") {
-          console.error(err);
-        }
-      }
-    }*/
+    }
 
-    /*
-    console.log("resolving new " + cachePath);
-    */
     _result = resolver();
-    /*
-    if (cachePath) {
-      console.log("saving cache " + cachePath);
-      saveJSON(cachePath, _result);
-    }*/
     return _result;
   };
 };
+
+export const escapeRegExp = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");

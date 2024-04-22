@@ -1,21 +1,16 @@
 import divisions from "../../../data/division.json" assert { type: "json" };
 
 /** ["opn", "ltd", "l10", "prod", "rev", "ss", "co", "lo", "pcc"] */
-export const divShortNames = divisions.divisions.map((c) =>
-  c.short_name.toLowerCase()
-);
+export const divShortNames = divisions.divisions.map((c) => c.short_name.toLowerCase());
 
 export const mapDivisions = (mapper) =>
   Object.fromEntries(divShortNames.map((div) => [div, mapper(div)]));
 
-export const mapDivisionsFlat = (mapper) =>
-  divShortNames.map((div) => mapper(div));
+export const mapDivisionsFlat = (mapper) => divShortNames.map((div) => mapper(div));
 
 export const mapDivisionsAsync = async (mapper) =>
   Object.fromEntries(
-    await Promise.all(
-      divShortNames.map(async (div) => [div, await mapper(div)])
-    )
+    await Promise.all(divShortNames.map(async (div) => [div, await mapper(div)]))
   );
 
 /** {opn: 2, ltd: 3, l10: 4, ... } */

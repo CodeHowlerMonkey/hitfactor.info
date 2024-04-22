@@ -3,8 +3,11 @@ import AutoLoad from "@fastify/autoload";
 import cors from "@fastify/cors";
 
 import { dirPath } from "./utils.js";
+import { connect } from "./db/index.js";
 
 const FastifyAppEntry = async (fastify, opts) => {
+  await connect();
+
   // global settings
   await fastify.register(cors, { origin: "*" }); // IDGAF who uses this from where
   const pathReact = dirPath("./../../web/dist/");
@@ -14,10 +17,12 @@ const FastifyAppEntry = async (fastify, opts) => {
     root: pathReact,
     prefix: "/",
   });
-  fastify.setNotFoundHandler((req, reply) => reply.sendFile("index.html"));
+  await fastify.setNotFoundHandler((req, reply) =>
+    reply.sendFile("index.html")
+  );
 
   // controllers
-  fastify.register(AutoLoad, {
+  await fastify.register(AutoLoad, {
     dir: dirPath("routes"),
     ignoreFilter: (path) => path.includes("/test/"),
     options: Object.assign({}, opts),

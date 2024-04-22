@@ -2,13 +2,7 @@ import { ProgressSpinner } from "primereact/progressspinner";
 import { Button } from "primereact/button";
 import { Dialog } from "primereact/dialog";
 
-import {
-  annotationColor,
-  r5annotationColor,
-  xLine,
-  yLine,
-  Scatter,
-} from "./common";
+import { annotationColor, r5annotationColor, xLine, yLine, Scatter } from "./common";
 import { useApi } from "../../utils/client";
 import { useState } from "react";
 import { classForPercent } from "../../../../shared/utils/classification";
@@ -28,21 +22,26 @@ const lines = {
   ...xLine("40%", 40, r5annotationColor(0.5), 2.5),
 };
 
-const modes = ["HQ", "Cur. HHF", "Recommended"];
+const modes = ["HQ", "Cur. HHF", "Recommended", "Brutal"];
 const fieldForMode = (mode) =>
   ({
     HQ: "curPercent",
     "Cur. HHF": "curHHFPercent",
     Recommended: "recPercent",
+    Brutal: "brutalPercent",
   }[mode]);
 
 export const ShootersDistributionChart = ({ division, style }) => {
   const [colorMode, setColorMode] = useState(modes[2]);
   const [xMode, setXMode] = useState(modes[2]);
-  const data = useApi(`/shooters/${division}/chart`);
+  const { json: data, loading } = useApi(`/shooters/${division}/chart`);
 
-  if (!data?.length) {
+  if (loading) {
     return <ProgressSpinner />;
+  }
+
+  if (!data) {
+    return null;
   }
 
   const graph = (
@@ -73,11 +72,18 @@ export const ShootersDistributionChart = ({ division, style }) => {
           tooltip: {
             callbacks: {
               label: ({
-                raw: { recPercent, curHHFPercent, curPercent, memberNumber, y },
+                raw: {
+                  brutalPercent,
+                  recPercent,
+                  curHHFPercent,
+                  curPercent,
+                  memberNumber,
+                  y,
+                },
               }) =>
                 `${memberNumber}; ${y.toFixed(
                   2
-                )}th, Rec: ${recPercent}%, curHHF: ${curHHFPercent}%, HQ: ${curPercent}%`,
+                )}th, Brutal: ${brutalPercent}%, Rec: ${recPercent}%, curHHF: ${curHHFPercent}%, HQ: ${curPercent}%`,
             },
           },
           annotation: { annotations: lines },
@@ -87,7 +93,7 @@ export const ShootersDistributionChart = ({ division, style }) => {
         datasets: [
           {
             label: "Classification / Percentile",
-            data: data.map((c) => ({
+            data: data?.map((c) => ({
               ...c,
               x: c[fieldForMode(xMode)],
               y: c[fieldForMode(xMode) + "Percentile"],
@@ -95,9 +101,8 @@ export const ShootersDistributionChart = ({ division, style }) => {
             pointBorderColor: "white",
             pointBorderWidth: 0,
             backgroundColor: "#ae9ef1",
-            pointBackgroundColor: data.map(
-              (c) =>
-                bgColorForClass[classForPercent(c[fieldForMode(colorMode)])]
+            pointBackgroundColor: data?.map(
+              (c) => bgColorForClass[classForPercent(c[fieldForMode(colorMode)])]
             ),
           },
         ],
@@ -114,6 +119,7 @@ export const ShootersDistributionChart = ({ division, style }) => {
         >
           <span className="text-xl mx-4">Color:</span>
           <SelectButton
+            allowEmpty={false}
             options={modes}
             value={colorMode}
             onChange={(e) => setColorMode(e.value)}
@@ -127,6 +133,7 @@ export const ShootersDistributionChart = ({ division, style }) => {
         >
           <span className="text-xl mx-4">Position:</span>
           <SelectButton
+            allowEmpty={false}
             options={modes}
             value={xMode}
             onChange={(e) => setXMode(e.value)}

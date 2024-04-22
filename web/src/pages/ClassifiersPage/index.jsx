@@ -5,6 +5,7 @@ import { Button } from "primereact/button";
 import ClassifiersTable from "./components/ClassifiersTable";
 import RunsTable, { useRunsTableData } from "../../components/RunsTable";
 import ClassifierInfoTable from "./components/ClassifierInfoTable";
+import { useApi } from "../../utils/client";
 
 // TODO: shooters table for single classifier? # attempts, low HF, high HF, same for percent, same for curPercent
 // TODO: all classifiers total number of reshoots (non-uniqueness)
@@ -26,14 +27,12 @@ const ClassifiersPage = () => {
   const onClubSelection = (club) => navigate("/clubs/" + club);
 
   return (
-    <div className="mx-">
+    <div style={{ maxWidth: 1280, margin: "auto" }}>
       <DivisionNavigation onSelect={onDivisionSelect} />
       {division && !classifier && (
         <ClassifiersTable
           division={division}
-          onClassifierSelection={(classifierCode) =>
-            navigate("./" + classifierCode)
-          }
+          onClassifierSelection={(classifierCode) => navigate("./" + classifierCode)}
         />
       )}
       {classifier && (
@@ -49,6 +48,22 @@ const ClassifiersPage = () => {
   );
 };
 
+export const useClassifierInfo = ({ division, classifier }) => {
+  const apiEndpoint = !(division && classifier)
+    ? null
+    : `/classifiers/info/${division}/${classifier}`;
+  const { json: apiData, loading } = useApi(apiEndpoint);
+  const info = apiData?.info;
+  const { hhfs, clubs } = info || {};
+
+  return {
+    loading,
+    info,
+    clubs,
+    hhfs,
+  };
+};
+
 export const ClassifierRunsAndInfo = ({
   division,
   classifier,
@@ -56,11 +71,8 @@ export const ClassifierRunsAndInfo = ({
   onShooterSelection,
   onClubSelection,
 }) => {
-  const { info, downloadUrl, ...useRunsTableDataResults } = useRunsTableData({
-    division,
-    classifier,
-  });
-  const { code, name } = info;
+  const { loading, info, clubs, hhfs } = useClassifierInfo({ classifier, division });
+  const { code, name } = info || {};
 
   return (
     <>
@@ -78,28 +90,25 @@ export const ClassifierRunsAndInfo = ({
         <h1 style={{ margin: "auto" }}>
           {code} {name}
         </h1>
-        <a
-          href={downloadUrl}
-          download
-          className="px-5 py-2"
-          style={{ fontSize: "1.625rem" }}
-        >
+        {/*<a href={downloadUrl} download className="px-5 py-2" style={{ fontSize: "1.625rem" }}>
           <i
             className="pi pi-download"
             style={{ fontSize: "1.2rem", fontWeight: "bold", color: "#ae9ef1" }}
           />
-        </a>
+        </a>*/}
       </div>
       <div className="flex" style={{ height: "35rem" }}>
         <div className="w-full h-full bg-primary-reverse">
-          <ClassifierInfoTable {...{ division, classifier }} {...info} />
+          <ClassifierInfoTable {...{ division, classifier, loading, hhfs }} {...info} />
         </div>
       </div>
 
       <RunsTable
-        {...useRunsTableDataResults}
+        classifier={classifier}
+        division={division}
         onShooterSelection={onShooterSelection}
         onClubSelection={onClubSelection}
+        clubs={clubs}
       />
     </>
   );

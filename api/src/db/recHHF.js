@@ -1,6 +1,9 @@
-import memoize from "memoize";
-import { HF, Percent, PositiveOrMinus1 } from "./numbers.js";
-import { selectClassifierDivisionScores } from "./classifiersSource.js";
+import mongoose from "mongoose";
+
+import { HF, Percent, PositiveOrMinus1 } from "../dataUtil/numbers.js";
+
+import { Score } from "./scores.js";
+import { curHHFForDivisionClassifier } from "../dataUtil/hhf.js";
 
 /**
  * Calculated recommended HHF by matching lower percent of the score to percentile of shooters
@@ -13,24 +16,18 @@ import { selectClassifierDivisionScores } from "./classifiersSource.js";
  *
  * @todo un-export
  */
-export const recommendedHHFByPercentileAndPercent = (
-  runs,
-  targetPercentile,
-  percent
-) => {
+export const recommendedHHFByPercentileAndPercent = (runs, targetPercentile, percent) => {
   const closestPercentileRun = runs.sort(
-    (a, b) =>
-      Math.abs(a.percentile - targetPercentile) -
-      Math.abs(b.percentile - targetPercentile)
+    (a, b) => Math.abs(a.percentile - targetPercentile) - Math.abs(b.percentile - targetPercentile)
   )[0];
+
   if (!closestPercentileRun) {
     return 0;
   }
 
   // if found percentile is higher (more people can achieve this result) than we need
   // to slightly increase the recommendation. If it's lower (less people) -- decrease it.
-  const missCorrection =
-    1 + (closestPercentileRun.percentile - targetPercentile) / 100;
+  const missCorrection = 1 + (closestPercentileRun.percentile - targetPercentile) / 100;
   const percentScale = 1 / (percent / 100.0);
 
   return HF(closestPercentileRun.hf * missCorrection * percentScale);
@@ -428,20 +425,142 @@ const recommendedHHFFunctionFor = ({ division, number }) => {
   return r1;
 };
 
-export const recommendedHHFFor = memoize(
-  ({ division, number }) => {
-    const runs = selectClassifierDivisionScores({
-      number,
-      division,
-      includeNoHF: false,
-    })
-      .sort((a, b) => b.hf - a.hf)
-      .map((run, index, allRuns) => ({
-        ...run,
-        percentile: PositiveOrMinus1(Percent(index, allRuns.length)),
-      }));
+const runsForRecs = async ({ division, number }) =>
+  (
+    await Score.find({ classifier: number, division, hf: { $gt: 0 } })
+      .sort({ hf: -1 })
+      .limit(0)
+      .lean()
+  ).map((run, index, allRuns) => ({
+    ...run,
+    percentile: PositiveOrMinus1(Percent(index, allRuns.length)),
+  }));
 
-    return recommendedHHFFunctionFor({ division, number })(runs);
-  },
-  ([{ division, number }]) => division + "/" + number
-);
+const runsForRecsMultiByClassifierDivision = async (classifiers) => {
+  const runs = await Score.find({
+    classifierDivision: { $in: classifiers.map((c) => [c.classifier, c.division].join(":")) },
+    hf: { $gt: 0 },
+  })
+    .select({ hf: true, _id: false, classifierDivision: true })
+    .sort({ hf: -1 })
+    .limit(0)
+    .lean();
+
+  const byCD = runs.reduce((acc, cur) => {
+    const curClassifierDivision = acc[cur.classifierDivision] ?? [];
+    curClassifierDivision.push(cur);
+    acc[cur.classifierDivision] = curClassifierDivision;
+    return acc;
+  }, {});
+
+  // mutate runs grouped by classifierDivision to add percentile
+  Object.keys(byCD).forEach((CD) => {
+    byCD[CD].forEach((run, runIndex, allRunsInCD) => {
+      run.percentile = PositiveOrMinus1(Percent(runIndex, allRunsInCD.length));
+    });
+  });
+
+  return byCD;
+};
+
+export const recommendedHHFFor = async ({ division, number }) =>
+  recommendedHHFFunctionFor({ division, number })(await runsForRecs({ division, number }));
+
+const RecHHFSchema = new mongoose.Schema({
+  classifier: String,
+  division: String,
+  curHHF: Number,
+  recHHF: Number,
+  rec1HHF: Number,
+  rec5HHF: Number,
+  rec15HHF: Number,
+  classifierDivision: String,
+});
+
+RecHHFSchema.index({ classifier: 1, division: 1 }, { unique: true });
+RecHHFSchema.index({ classifierDivision: 1 }, { unique: true });
+
+export const RecHHF = mongoose.model("RecHHF", RecHHFSchema);
+
+export const recHHFUpdate = (runs, division, classifier) => {
+  const recHHF = recommendedHHFFunctionFor({
+    division,
+    number: classifier,
+  })(runs);
+  const rec1HHF = r1(runs);
+  const rec5HHF = r5(runs);
+  const rec15HHF = r15(runs);
+  const curHHF = curHHFForDivisionClassifier({ division, number: classifier }) || -1;
+
+  return {
+    division,
+    classifier,
+    classifierDivision: [classifier, division].join(":"),
+    curHHF,
+    recHHF,
+    rec1HHF,
+    rec5HHF,
+    rec15HHF,
+  };
+};
+
+/**
+ * Upserts a single recHHF after calculating it from all available scores
+ * for the given division/classifier combo
+ *
+ * Used in initial hydration and to update recHHFs after an upload
+ */
+export const hydrateSingleRecHFF = async (division, classifier) => {
+  const allRuns = await runsForRecs({ division, number: classifier });
+  const update = recHHFUpdate(allRuns, division, classifier);
+
+  return RecHHF.findOneAndUpdate({ division, classifier }, { $set: update }, { upsert: true });
+};
+
+export const hydrateRecHHFsForClassifiers = async (classifiers) => {
+  const runsByClassifierDivision = await runsForRecsMultiByClassifierDivision(classifiers);
+  const updates = classifiers.map((c) =>
+    recHHFUpdate(
+      runsByClassifierDivision[[c.classifier, c.division].join(":")],
+      c.division,
+      c.classifier
+    )
+  );
+
+  return RecHHF.bulkWrite(
+    updates.map((update) => {
+      const { division, classifier, classifierDivision, ...setUpdate } = update;
+      return {
+        updateOne: {
+          filter: { division, classifier },
+          update: {
+            $setOnInsert: { division, classifier, classifierDivision },
+            $set: setUpdate,
+          },
+          upsert: true,
+        },
+      };
+    })
+  );
+};
+
+export const hydrateRecHHF = async () => {
+  await RecHHF.collection.drop();
+  console.log("hydrating recommended HHFs");
+  console.time("recHHFs");
+  const divisions = (await Score.find().distinct("division")).filter(Boolean);
+  const classifers = (await Score.find().distinct("classifier")).filter(Boolean);
+  console.log(`Divisions: ${divisions.length}, Classifiers: ${classifers.length}`);
+
+  let i = 1;
+  const total = divisions.length * classifers.length;
+  for (const division of divisions) {
+    for (const classifier of classifers) {
+      await hydrateSingleRecHFF(division, classifier);
+      process.stdout.write(`\r${i}/${total}`);
+      ++i;
+    }
+  }
+
+  console.timeEnd("recHHFs");
+};

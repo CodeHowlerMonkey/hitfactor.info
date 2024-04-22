@@ -1,157 +1,152 @@
-import {
-  getShootersTable,
-  getShootersTableByMemberNumber,
-  shooterChartData,
-  classifiersForDivisionForShooter,
-  shooterDistributionChartData,
-} from "../../../dataUtil/shooters.js";
-
 import { basicInfoForClassifierCode } from "../../../dataUtil/classifiersData.js";
 import {
-  classLetterSort,
   multisort,
+  multisortObj,
+  safeNumSort,
 } from "../../../../../shared/utils/sort.js";
 import { PAGE_SIZE } from "../../../../../shared/constants/pagination.js";
-import { classForPercent } from "../../../../../shared/utils/classification.js";
+import {
+  scoresForDivisionForShooter,
+  shooterScoresChartData,
+} from "../../../db/scores.js";
+import { Shooter } from "../../../db/shooters.js";
+import { textSearchMatch } from "../../../db/utils.js";
+
+// TODO: refactor to aggregation and use addPlaceAndPercentileAggregation
+// instead of JS logic, that is applied after filters
+const buildShootersQuery = (params, query) => {
+  const { division } = params;
+  const { filter: filterString, inconsistencies: inconString, classFilter } = query;
+  const shootersQuery = Shooter.where({
+    division,
+    reclassificationsCurPercentCurrent: { $gt: 0 },
+  });
+
+  if (classFilter) {
+    shootersQuery.where({ class: classFilter });
+  }
+
+  if (filterString) {
+    shootersQuery.where(textSearchMatch(["name", "memberNumber"], filterString));
+  }
+
+  if (inconString) {
+    const [inconsistencies, inconsistenciesMode] = inconString?.split("-");
+    const field = "$" + inconsistencies + "Rank";
+    const operator = inconsistenciesMode === "paper" ? "$lt" : "$gt";
+    shootersQuery.where({ $expr: { [operator]: [field, "$hqClassRank"] } });
+  }
+
+  return shootersQuery;
+};
 
 const shootersRoutes = async (fastify, opts) => {
-  fastify.get("/download/:division", async (req, res) => {
-    const { division } = req.params;
-
-    res.header(
-      "Content-Disposition",
-      `attachment; filename=shooters.${division}.json`
-    );
-    return getShootersTable()[division];
-  });
   fastify.get("/:division", async (req, res) => {
     const { division } = req.params;
-    const {
-      sort,
-      order,
-      page: pageString,
-      filter: filterString,
-      inconsistencies: inconString,
-      classFilter,
-    } = req.query;
+    const { sort, order, page: pageString } = req.query;
 
     const page = Number(pageString) || 1;
 
-    const shootersTable = getShootersTable()[division];
+    const shootersTotalWithoutFilters = await Shooter.where({
+      division,
+      reclassificationsCurPercentCurrent: { $gt: 0 },
+    }).countDocuments();
 
-    let data = multisort(
-      shootersTable.filter(
-        (c) =>
-          (c.class !== "U" && c.class !== "X") ||
-          c.reclassificationsCurPercentCurrent > 0
-      ),
-      sort?.split?.(","),
-      order?.split?.(",")
-    ).map(({ classifiers, ...run }, index) => ({
-      ...run,
-      index,
+    const shootersQuery = buildShootersQuery(req.params, req.query);
+    const skip = (page - 1) * PAGE_SIZE;
+    shootersQuery.sort(multisortObj(sort?.split(","), order?.split(","))).skip(skip);
+
+    const paginatedData = await shootersQuery.limit(PAGE_SIZE).lean().exec();
+    const withIndex = paginatedData.map((shooter, index) => ({
+      ...shooter,
+      index: skip + index,
     }));
-    const shootersTotalWithoutFilters = data.length;
 
-    if (classFilter) {
-      data = data.filter((shooter) => shooter.hqClass === classFilter);
-    }
-
-    // Special filter and sort for inconsistencies table
-    if (inconString) {
-      const [inconsistencies, inconsistenciesMode] = inconString?.split("-");
-      data = data.filter(
-        (shooter) => !!shooter.reclassificationsCurPercentCurrent
-      );
-      data = data.filter((shooter) => {
-        const order = classLetterSort(
-          shooter.hqClass,
-          shooter[inconsistencies],
-          undefined,
-          1
-        );
-        if (inconsistenciesMode === "paper") {
-          return order > 0;
-        } else {
-          return order < 0;
-        }
-      });
-      // uncomment to use autosort
-      // data = multisort(data, ["hqClass", inconsistencies], [-1, -1]);
-    }
-
-    if (filterString) {
-      data = data.filter((shooter) =>
-        [shooter.name, shooter.memberNumber]
-          .join("###")
-          .toLowerCase()
-          .includes(filterString.toLowerCase())
-      );
-    }
+    const count = await buildShootersQuery(req.params, req.query).countDocuments().exec();
 
     return {
-      shooters: data.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
-      shootersTotal: data.length,
+      shooters: withIndex,
+      shootersTotal: count,
       shootersTotalWithoutFilters,
       shootersPage: page,
     };
   });
 
-  fastify.get("/download/:division/:memberNumber", async (req, res) => {
-    const { division, memberNumber } = req.params;
-
-    const info =
-      getShootersTableByMemberNumber()[division]?.[memberNumber]?.[0] || {};
-    const data = classifiersForDivisionForShooter({
-      division,
-      memberNumber,
-    }).map((c) => ({
-      ...c,
-      classifierInfo: basicInfoForClassifierCode(c?.classifier),
-    }));
-
-    res.header(
-      "Content-Disposition",
-      `attachment; filename=shooters.${division}.${memberNumber}.json`
-    );
-
-    return {
-      info,
-      classifiers: data,
-    };
-  });
   fastify.get("/:division/:memberNumber", async (req, res) => {
     const { division, memberNumber } = req.params;
     const { sort, order, page: pageString } = req.query;
 
-    const info =
-      getShootersTableByMemberNumber()[division]?.[memberNumber]?.[0] || {};
-    const data = multisort(
-      classifiersForDivisionForShooter({ division, memberNumber }),
-      sort?.split?.(","),
-      order?.split?.(",")
-    ).map((c) => ({
-      ...c,
-      classifierInfo: basicInfoForClassifierCode(c?.classifier),
-    }));
+    const [info, scoresData] = await Promise.all([
+      Shooter.find({ division, memberNumber }).lean().limit(1),
+      scoresForDivisionForShooter({
+        division,
+        memberNumber,
+      }),
+    ]);
+
+    const data = multisort(scoresData, sort?.split?.(","), order?.split?.(",")).map(
+      (c) => ({
+        ...c,
+        classifierInfo: basicInfoForClassifierCode(c?.classifier),
+      })
+    );
 
     return {
-      info,
+      info: info?.[0] || {},
       classifiers: data,
-      // TODO: classifiers: data.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
-      // classifiersTotal: data.length,
-      // classifiersPage: page,
     };
   });
 
   fastify.get("/:division/:memberNumber/chart", async (req, res) => {
     const { division, memberNumber } = req.params;
-    return shooterChartData({ division, memberNumber });
+    return await shooterScoresChartData({ division, memberNumber });
   });
 
   fastify.get("/:division/chart", async (req, res) => {
     const { division } = req.params;
-    return shooterDistributionChartData({ division });
+    const shootersTable = await Shooter.find({
+      division,
+      current: { $gt: 0 },
+      reclassificationsCurPercentCurrent: { $gt: 0 },
+    })
+      .select([
+        "current",
+        "reclassificationsCurPercentCurrent",
+        "reclassificationsRecPercentCurrent",
+        "reclassificationsBrutalPercentCurrent",
+        "memberNumber",
+      ])
+      .lean()
+      .limit(0);
+
+    return shootersTable
+      .map((c) => ({
+        curPercent: c.current,
+        curHHFPercent: c.reclassificationsCurPercentCurrent,
+        recPercent: c.reclassificationsRecPercentCurrent,
+        brutalPercent: c.reclassificationsBrutalPercentCurrent,
+        memberNumber: c.memberNumber,
+      }))
+      .sort(safeNumSort("curPercent"))
+      .map((c, i, all) => ({
+        ...c,
+        curPercentPercentile: (100 * i) / (all.length - 1),
+      }))
+      .sort(safeNumSort("curHHFPercent"))
+      .map((c, i, all) => ({
+        ...c,
+        curHHFPercentPercentile: (100 * i) / (all.length - 1),
+      }))
+      .sort(safeNumSort("recPercent"))
+      .map((c, i, all) => ({
+        ...c,
+        recPercentPercentile: (100 * i) / (all.length - 1),
+      }))
+      .sort(safeNumSort("brutalPercent"))
+      .map((c, i, all) => ({
+        ...c,
+        brutalPercentPercentile: (100 * i) / (all.length - 1),
+      }));
   });
 };
 

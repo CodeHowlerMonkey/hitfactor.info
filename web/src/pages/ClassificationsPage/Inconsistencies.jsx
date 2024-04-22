@@ -34,6 +34,7 @@ const modeItems = [
 const ModeSelect = ({ value, setValue }) => (
   <div className="mx-2">
     <SelectButton
+      allowEmpty={false}
       value={value}
       onChange={(e) => setValue(e.value)}
       optionLabel="name"
@@ -45,11 +46,13 @@ const ModeSelect = ({ value, setValue }) => (
 const versusItems = [
   { name: "Cur. HHF", value: "curHHFClass" },
   { name: "Recommended", value: "recClass" },
+  { name: "Brutal", value: "brutalClass" },
 ];
 
 const VersusSelect = ({ value, setValue }) => (
   <div className="mx-2">
     <SelectButton
+      allowEmpty={false}
       value={value}
       onChange={(e) => setValue(e.value)}
       optionLabel="name"
@@ -78,11 +81,7 @@ const Inconsistencies = () => {
         <VersusSelect value={versus} setValue={setVersus} />
         <div className="flex-grow-1" />
         <ModeSelect value={mode} setValue={setMode} />
-        <ClassFilterSelect
-          value={classFilter}
-          setValue={setClassFilter}
-          mode={mode}
-        />
+        <ClassFilterSelect value={classFilter} setValue={setClassFilter} mode={mode} />
       </div>
       <DivisionNavigation onSelect={setDivision} />
       {division && (

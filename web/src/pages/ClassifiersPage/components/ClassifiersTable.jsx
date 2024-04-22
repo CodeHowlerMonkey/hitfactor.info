@@ -7,11 +7,7 @@ import { useApi } from "../../../utils/client";
 import useTableSort from "../../../components/Table/useTableSort";
 import { headerTooltipOptions } from "../../../components/Table/Table";
 
-import {
-  numSort,
-  dateSort,
-  classifierCodeSort,
-} from "../../../../../shared/utils/sort";
+import { numSort, dateSort, classifierCodeSort } from "../../../../../shared/utils/sort";
 import ClassifierCell from "../../../components/ClassifierCell";
 import { renderHFOrNA, renderPercent } from "../../../components/Table";
 
@@ -40,21 +36,17 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
   const sortState = sortProps;
 
   const downloadUrl = "/api/classifiers/download/" + division;
-  const data = (useApi("/classifiers/" + (division ?? "")) ?? [])
+  const { json: dataRaw, loading } = useApi("/classifiers/" + (division ?? ""));
+  const data = (dataRaw ?? [])
     .map((d) => ({
       ...d,
-      updated: new Date(d.updated).toLocaleDateString(),
+      updated: new Date(d.updated).toLocaleDateString("en-us", { timeZone: "UTC" }),
       recHHFChange: d.recHHF - d.hhf,
     }))
     .sort((a, b) => {
       switch (sortState.sortField) {
         case "code":
-          return classifierCodeSort(
-            a,
-            b,
-            sortState.sortField,
-            sortState.sortOrder
-          );
+          return classifierCodeSort(a, b, sortState.sortField, sortState.sortOrder);
 
         case "updated":
           return dateSort(a, b, sortState.sortField, sortState.sortOrder);
@@ -70,13 +62,12 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
     .filter(
       (cur) =>
         !filter ||
-        (cur.code + "###" + cur.name)
-          .toLowerCase()
-          .includes(filter.toLowerCase())
+        (cur.code + "###" + cur.name).toLowerCase().includes(filter.toLowerCase())
     );
 
   return (
     <DataTable
+      loading={loading}
       showGridlines
       size="small"
       selectionMode={"single"}
@@ -93,7 +84,7 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
               placeholder="Search"
             />
           </span>
-          <a href={downloadUrl} download className="px-5 py-2">
+          {/*<a href={downloadUrl} download className="px-5 py-2">
             <i
               className="pi pi-download"
               style={{
@@ -102,7 +93,7 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
                 color: "#ae9ef1",
               }}
             />
-          </a>
+          </a>*/}
         </div>
       }
       lazy

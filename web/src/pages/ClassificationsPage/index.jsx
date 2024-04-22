@@ -9,13 +9,7 @@ import { SelectButton } from "primereact/selectbutton";
 import Inconsistencies from "./Inconsistencies";
 import Distribution from "./Distribution";
 
-export const ClassificationsChart = ({
-  division,
-  includeU,
-  apiData,
-  bar,
-  alignBy,
-}) => {
+export const ClassificationsChart = ({ division, includeU, apiData, bar, alignBy }) => {
   const valueFor = (letter) => apiData?.[division]?.[letter] ?? 0;
   const totalInDivision =
     valueFor("GM") +
@@ -25,8 +19,7 @@ export const ClassificationsChart = ({
     valueFor("C") +
     valueFor("D") +
     (!includeU ? 0 : valueFor("U"));
-  const topA =
-    (100 * (valueFor("GM") + valueFor("M") + valueFor("A"))) / totalInDivision;
+  const topA = (100 * (valueFor("GM") + valueFor("M") + valueFor("A"))) / totalInDivision;
   const topM = (100 * (valueFor("GM") + valueFor("M"))) / totalInDivision;
   const data = [
     ...(!includeU && !!apiData
@@ -93,9 +86,7 @@ export const ClassificationsChart = ({
         ? 1
         : data
             .filter((v, index) => index <= alignBy)
-            .map((d) =>
-              Number(parseFloat((100.0 * d.value) / total).toFixed(2))
-            )
+            .map((d) => Number(parseFloat((100.0 * d.value) / total).toFixed(2)))
             .reduce((a, b) => a + b, 0);
 
     const shortName = {
@@ -147,8 +138,7 @@ export const ClassificationsChart = ({
       <PieChart
         data={data}
         style={{
-          fontFamily:
-            '"Nunito Sans", -apple-system, Helvetica, Arial, sans-serif',
+          fontFamily: '"Nunito Sans", -apple-system, Helvetica, Arial, sans-serif',
           fontSize: "3.0px",
           fontWeight: "bold",
         }}
@@ -169,6 +159,7 @@ export const ClassificationsChart = ({
 
 const ModeSwitch = ({ mode, setMode, modes }) => (
   <SelectButton
+    allowEmpty={false}
     options={modes}
     value={mode}
     onChange={(e) => setMode(e.value)}
@@ -188,12 +179,13 @@ export const ClassificationStats = () => {
     "By Percent",
     "By Cur.HHF Percent",
     "By Rec.HHF Percent",
+    "By Brutal Percent",
   ];
   const [mode, setMode] = useState(modes[0]);
   const modeSwitchProps = { modes, mode, setMode };
   const modeBucket = modeBucketForMode(mode);
   const [includeU, setChecked] = useState(false);
-  const apiData = useApi("/classifications");
+  const { json: apiData, loading } = useApi("/classifications");
   const [alignBy, setAlignBy] = useState(-1);
   const items = [
     { name: "D", value: -1 },
@@ -205,17 +197,14 @@ export const ClassificationStats = () => {
   ];
 
   return (
-    <TabView>
+    <TabView style={{ maxWidth: 1280, margin: "auto" }}>
       <TabPanel header="Pie Charts">
         <div className="card flex justify-content-center m-4">
           <ModeSwitch {...modeSwitchProps} />
         </div>
         <div className="card flex justify-content-center m-4">
           Include Unclassified
-          <Checkbox
-            onChange={(e) => setChecked(e.checked)}
-            checked={includeU}
-          />
+          <Checkbox onChange={(e) => setChecked(e.checked)} checked={includeU} />
         </div>
         <div>
           <Row height={400}>
@@ -410,7 +399,7 @@ export const ClassificationStats = () => {
         <Row>
           <ClassificationsChart
             division="Approx"
-            apiData={apiData?.[modeBucket]}
+            apiData={{ Approx: { GM: 1, M: 4, A: 10, B: 25, C: 45, D: 15 } }}
             bar
           />{" "}
         </Row>

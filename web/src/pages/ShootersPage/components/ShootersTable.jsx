@@ -39,16 +39,8 @@ const TableFilter = ({ placeholder, onFilterChange }) => {
   );
 };
 
-export const useShootersTableData = ({
-  division,
-  inconsistencies,
-  classFilter,
-}) => {
-  const {
-    query: pageQuery,
-    reset: resetPage,
-    ...pageProps
-  } = useTablePagination();
+export const useShootersTableData = ({ division, inconsistencies, classFilter }) => {
+  const { query: pageQuery, reset: resetPage, ...pageProps } = useTablePagination();
   const { query, ...sortProps } = useTableSort({
     mode: "multiple",
     onSortCallback: () => resetPage(),
@@ -64,7 +56,7 @@ export const useShootersTableData = ({
   const apiEndpoint = !division
     ? null
     : `/shooters/${division}?${query}&${pageQuery}&${filtersQuery}`;
-  const apiData = useApi(apiEndpoint);
+  const { json: apiData, loading } = useApi(apiEndpoint);
   const shootersTotal = apiData?.shootersTotal ?? 0;
   const shootersTotalWithoutFilters = apiData?.shootersTotalWithoutFilters ?? 0;
 
@@ -72,6 +64,7 @@ export const useShootersTableData = ({
 
   return {
     data,
+    loading,
     shootersTotal,
     shootersTotalWithoutFilters,
     query,
@@ -91,6 +84,7 @@ const ShootersTable = ({
 }) => {
   const {
     data,
+    loading,
     shootersTotal,
     query,
     sortProps,
@@ -102,7 +96,7 @@ const ShootersTable = ({
   } = useShootersTableData({ division, inconsistencies, classFilter });
   return (
     <DataTable
-      loading={!data?.length}
+      loading={loading}
       stripedRows
       lazy
       value={data ?? []}
@@ -117,7 +111,7 @@ const ShootersTable = ({
             placeholder="Filter by Club or Shooter"
             onFilterChange={(f) => setFilter(f)}
           />
-          <a href={downloadUrl} download className="px-5 py-2">
+          {/*<a href={downloadUrl} download className="px-5 py-2">
             <i
               className="pi pi-download"
               style={{
@@ -126,7 +120,7 @@ const ShootersTable = ({
                 color: "#ae9ef1",
               }}
             />
-          </a>
+          </a>*/}
         </>
       }
       totalRecords={shootersTotal}
@@ -162,13 +156,24 @@ const ShootersTable = ({
           />
         )}
       />
+      {/*
+      <Column field="brutalClass" header="Rec." {...classColumnProps} />
       <Column field="recClass" header="Rec." {...classColumnProps} />
       <Column field="curHHFClass" header="Cur.HHF" {...classColumnProps} />
       <Column field="hqClass" header="HQ" {...classColumnProps} />
+      */}
+      <Column
+        field="reclassificationsBrutalPercentCurrent"
+        header="Brutal %"
+        headerTooltip="Recommended classification percent of this shooter, using average score between duplicated. Major Matches results stay the same."
+        headerTooltipOptions={headerTooltipOptions}
+        sortable
+        body={renderPercent}
+      />
       <Column
         field="reclassificationsRecPercentCurrent"
-        header="Rec.HHFs %"
-        headerTooltip="Recommended classification percent of this shooter, if all their Y-flagged scores used the recommended HHFs for classifiers. Major Matches results stay the same."
+        header="Rec. %"
+        headerTooltip="Recommended classification percent of this shooter, using best 6 out of most revent 10 scores and recommended HHFs for classifiers. B/C flags are off, but duplicates are still allowed and only best duplicate is used. Major Matches results stay the same."
         headerTooltipOptions={headerTooltipOptions}
         sortable
         body={renderPercent}
@@ -183,9 +188,9 @@ const ShootersTable = ({
       />
       <Column field="current" header="HQ %" sortable body={renderPercent} />
       <Column
-        field="hqToCurHHFPercent"
-        header="HQ vs Cur.HHF %"
-        headerTooltip="Difference between official classification and current HHF classification percent."
+        field="hqToBrutalPercent"
+        header="HQ vs Brutal %"
+        headerTooltip="Difference between official and brutal classifications"
         headerTooltipOptions={headerTooltipOptions}
         sortable
         body={renderPercentDiff}
@@ -198,36 +203,14 @@ const ShootersTable = ({
         sortable
         body={renderPercentDiff}
       />
-      {/*
       <Column
-        field="high"
-        header="High %"
-        sortable
-        body={(c) => (c.high || 0).toFixed(2) + "%"}
-      />
-      <Column
-        field="currentRank"
-        header="Cur. Rank"
-        sortable
-        headerTooltip="TopXXX Rank of that Shooter baed on their Current Division Percentage"
+        field="hqToCurHHFPercent"
+        header="HQ vs Cur.HHF %"
+        headerTooltip="Difference between official classification and current HHF classification percent."
         headerTooltipOptions={headerTooltipOptions}
-      />
-      <Column
-        field="highRank"
-        header="High. Rank"
         sortable
-        headerTooltip="TopXXX Rank of that Shooter baed on their(and others) High Division Percentage"
-        headerTooltipOptions={headerTooltipOptions}
-        />*/}
-      {/* TODO: maybe merge # and percentile columns, move things aroung, Rec, Cur, HQ */}
-      {/*
-      <Column
-        field="highPercentile"
-        header="High Percentile"
-        sortable
-        body={(c) => "Top " + c.highPercentile.toFixed(2) + "%"}
+        body={renderPercentDiff}
       />
-      */}
       <Column
         field="age"
         header="Age"
