@@ -5,7 +5,6 @@ import { Button } from "primereact/button";
 import ClassifiersTable from "./components/ClassifiersTable";
 import RunsTable, { useRunsTableData } from "../../components/RunsTable";
 import ClassifierInfoTable from "./components/ClassifierInfoTable";
-import { ProgressSpinner } from "primereact/progressspinner";
 import { useApi } from "../../utils/client";
 
 // TODO: shooters table for single classifier? # attempts, low HF, high HF, same for percent, same for curPercent
@@ -28,7 +27,7 @@ const ClassifiersPage = () => {
   const onClubSelection = (club) => navigate("/clubs/" + club);
 
   return (
-    <div className="mx-">
+    <div style={{ maxWidth: 1280, margin: "auto" }}>
       <DivisionNavigation onSelect={onDivisionSelect} />
       {division && !classifier && (
         <ClassifiersTable

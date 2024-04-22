@@ -197,7 +197,7 @@ export const ClassificationStats = () => {
   ];
 
   return (
-    <TabView>
+    <TabView style={{ maxWidth: 1280, margin: "auto" }}>
       <TabPanel header="Pie Charts">
         <div className="card flex justify-content-center m-4">
           <ModeSwitch {...modeSwitchProps} />

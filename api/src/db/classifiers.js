@@ -61,7 +61,8 @@ const extendedInfoForClassifier = (c, division, hitFactorScores) => {
       hitFactorScores[Math.floor(x * 0.01 * hitFactorScores.length)]?.hf,
       hhf
     ),
-    [`top${x}PercentileHF`]: hitFactorScores[Math.floor(x * 0.01 * hitFactorScores.length)]?.hf,
+    [`top${x}PercentileHF`]:
+      hitFactorScores[Math.floor(x * 0.01 * hitFactorScores.length)]?.hf,
   });
 
   const inversePercentileStats = (xPercent) => ({
@@ -130,7 +131,11 @@ ClassifierSchema.index({ classifier: 1, division: 1 }, { unique: true });
 ClassifierSchema.index({ division: 1 });
 export const Classifier = mongoose.model("Classifier", ClassifierSchema);
 
-export const singleClassifierExtendedMetaDoc = async (division, classifier, recHHFReady) => {
+export const singleClassifierExtendedMetaDoc = async (
+  division,
+  classifier,
+  recHHFReady
+) => {
   const c = classifiersByNumber[classifier];
   const [recHHFQuery, hitFactorScores] = await Promise.all([
     recHHFReady ?? RecHHF.findOne({ division, classifier }).select("recHHF").lean(),
@@ -143,7 +148,9 @@ export const singleClassifierExtendedMetaDoc = async (division, classifier, recH
   const recHHF = recHHFQuery?.recHHF;
   const inverseRecPercentileStats = (xPercent) => ({
     [`inverse${xPercent}RecPercentPercentile`]: Percent(
-      recHHF > 0 ? hitFactorScores.findLastIndex((c) => (100 * c.hf) / recHHF >= xPercent) : -1,
+      recHHF > 0
+        ? hitFactorScores.findLastIndex((c) => (100 * c.hf) / recHHF >= xPercent)
+        : -1,
       hitFactorScores.length
     ),
   });

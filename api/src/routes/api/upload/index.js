@@ -21,7 +21,9 @@ const fetchPS = async (path) => {
 };
 
 const normalizeDivision = (shitShowDivisionNameCanBeAnythingWTFPS) => {
-  const lowercaseNoSpace = shitShowDivisionNameCanBeAnythingWTFPS.toLowerCase().replace(/\s/g, "");
+  const lowercaseNoSpace = shitShowDivisionNameCanBeAnythingWTFPS
+    .toLowerCase()
+    .replace(/\s/g, "");
   const anythingMap = {
     open: "opn",
 
@@ -118,7 +120,9 @@ const matchInfo = async (uuid) => {
 };
 
 const multimatchUploadResults = async (uuidsRaw) => {
-  const uuids = uuidsRaw.filter((maybeUUID) => uuidsFromUrlString(maybeUUID)?.length === 1);
+  const uuids = uuidsRaw.filter(
+    (maybeUUID) => uuidsFromUrlString(maybeUUID)?.length === 1
+  );
   if (!uuids?.length) {
     return [];
   }
@@ -148,7 +152,9 @@ const afterUpload = async (classifiers, shooters) => {
 
     // recalc classifier meta
     const recHHFs = await RecHHF.find({
-      classifierDivision: { $in: classifiers.map((c) => [c.classifer, c.division].join(":")) },
+      classifierDivision: {
+        $in: classifiers.map((c) => [c.classifer, c.division].join(":")),
+      },
     })
       .select({ recHHF: true, _id: false, classifierDivision: true })
       .lean();

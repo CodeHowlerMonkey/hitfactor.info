@@ -71,7 +71,9 @@ export const ShootersDistributionChart = ({ division, style }) => {
           },
           tooltip: {
             callbacks: {
-              label: ({ raw: { recPercent, curHHFPercent, curPercent, memberNumber, y } }) =>
+              label: ({
+                raw: { recPercent, curHHFPercent, curPercent, memberNumber, y },
+              }) =>
                 `${memberNumber}; ${y.toFixed(
                   2
                 )}th, Rec: ${recPercent}%, curHHF: ${curHHFPercent}%, HQ: ${curPercent}%`,
@@ -104,7 +106,10 @@ export const ShootersDistributionChart = ({ division, style }) => {
   return (
     <div style={style}>
       <div className="flex align-items-center mt-4 justify-content-between">
-        <div className="flex flex-row align-items-center" style={{ transform: "scale(0.65)" }}>
+        <div
+          className="flex flex-row align-items-center"
+          style={{ transform: "scale(0.65)" }}
+        >
           <span className="text-xl mx-4">Color:</span>
           <SelectButton
             options={modes}
@@ -114,7 +119,10 @@ export const ShootersDistributionChart = ({ division, style }) => {
           />
         </div>
         <div className="flex-grow-1" />
-        <div className="flex flex-row align-items-center" style={{ transform: "scale(0.65)" }}>
+        <div
+          className="flex flex-row align-items-center"
+          style={{ transform: "scale(0.65)" }}
+        >
           <span className="text-xl mx-4">Position:</span>
           <SelectButton
             options={modes}

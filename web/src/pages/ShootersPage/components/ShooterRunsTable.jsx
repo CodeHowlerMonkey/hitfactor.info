@@ -13,6 +13,7 @@ const ShooterRunsTable = ({
   loading,
 }) => (
   <DataTable
+    className="sm:text-sm"
     sortOrder={-1}
     sortField="sdUnix"
     loading={loading}

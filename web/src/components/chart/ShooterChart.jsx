@@ -32,7 +32,9 @@ export const ScoresChart = ({ division, memberNumber }) => {
   const [full, setFull] = useState(false);
   const [percentMode, setPercentMode] = useState(false);
   const { json: data, loading } = useApi(
-    `/shooters/${division}/${memberNumber}/chart?y=${percentMode ? "percent" : "curPercent"}`
+    `/shooters/${division}/${memberNumber}/chart?y=${
+      percentMode ? "percent" : "curPercent"
+    }`
   );
   if (loading) {
     return <ProgressSpinner />;
@@ -44,11 +46,12 @@ export const ScoresChart = ({ division, memberNumber }) => {
 
   const graph = (
     <Line
-      style={{ position: "relative" }}
+      style={{ width: "100%", height: "100%", position: "relative" }}
       adapters={null}
       options={{
+        responsive: true,
         // wanted false for rezize but annotations are bugged and draw HHF/GM lines wrong
-        maintainAspectRatio: !full,
+        maintainAspectRatio: false,
         scales: {
           x: {
             type: "time",

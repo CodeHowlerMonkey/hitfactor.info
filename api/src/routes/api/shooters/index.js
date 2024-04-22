@@ -1,7 +1,14 @@
 import { basicInfoForClassifierCode } from "../../../dataUtil/classifiersData.js";
-import { multisort, multisortObj, safeNumSort } from "../../../../../shared/utils/sort.js";
+import {
+  multisort,
+  multisortObj,
+  safeNumSort,
+} from "../../../../../shared/utils/sort.js";
 import { PAGE_SIZE } from "../../../../../shared/constants/pagination.js";
-import { scoresForDivisionForShooter, shooterScoresChartData } from "../../../db/scores.js";
+import {
+  scoresForDivisionForShooter,
+  shooterScoresChartData,
+} from "../../../db/scores.js";
 import { Shooter } from "../../../db/shooters.js";
 import { textSearchMatch } from "../../../db/utils.js";
 
@@ -77,10 +84,12 @@ const shootersRoutes = async (fastify, opts) => {
       }),
     ]);
 
-    const data = multisort(scoresData, sort?.split?.(","), order?.split?.(",")).map((c) => ({
-      ...c,
-      classifierInfo: basicInfoForClassifierCode(c?.classifier),
-    }));
+    const data = multisort(scoresData, sort?.split?.(","), order?.split?.(",")).map(
+      (c) => ({
+        ...c,
+        classifierInfo: basicInfoForClassifierCode(c?.classifier),
+      })
+    );
 
     return {
       info: info?.[0] || {},

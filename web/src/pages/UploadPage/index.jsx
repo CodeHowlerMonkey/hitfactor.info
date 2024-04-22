@@ -12,8 +12,10 @@ import { ToggleButton } from "primereact/togglebutton";
 import uniqBy from "lodash.uniqby";
 import { uuidsFromUrlString } from "../../../../shared/utils/uuid";
 
-const shooterHref = (memberNumber, division) => `/shooters/${division}/${memberNumber || ""}`;
-const classifierHref = (classifier, division) => `/classifiers/${division}/${classifier || ""}`;
+const shooterHref = (memberNumber, division) =>
+  `/shooters/${division}/${memberNumber || ""}`;
+const classifierHref = (classifier, division) =>
+  `/classifiers/${division}/${classifier || ""}`;
 
 const MatchSearchInput = forwardRef(({ placeholder, onChange }, ref) => {
   const inputRef = useRef();
@@ -190,9 +192,16 @@ const UploadResults = ({ result, loading, error }) => {
   return (
     <>
       {loading && <ProgressSpinner />}
-      {error && <Message severity="error" text={error.toString?.() || error} className="m-4" />}
+      {error && (
+        <Message severity="error" text={error.toString?.() || error} className="m-4" />
+      )}
       {result && (
-        <Message severity="success" text="Upload Complete!" icon="pi pi-check" className="m-4" />
+        <Message
+          severity="success"
+          text="Upload Complete!"
+          icon="pi pi-check"
+          className="m-4"
+        />
       )}
       {result && (
         <div className="flex justify-content-around sm: w-full lg:w-10 mt-4">
@@ -242,14 +251,16 @@ const OldUploadPage = () => {
             <a href="https://practiscore.com/results" target="_blank">
               PractiScore
             </a>{" "}
-            to obtain the Scores URLs. If you have Competitor app - you can also use "Open in
-            Browser" match option.
+            to obtain the Scores URLs. If you have Competitor app - you can also use "Open
+            in Browser" match option.
           </p>
           <p>
             Acceptable URLs must end in a UUID, and NOT a number.
             <br /> For example:
             {"  "}
-            <code>https://practiscore.com/results/new/4ef54927-f807-4450-ac4e-d3132f70b301</code>
+            <code>
+              https://practiscore.com/results/new/4ef54927-f807-4450-ac4e-d3132f70b301
+            </code>
             <br />
             If you have a number URL - you can scroll down and click "Html Results".
           </p>
@@ -257,8 +268,12 @@ const OldUploadPage = () => {
       )}
       <div className="m-4">
         {loading && <ProgressSpinner />}
-        {error && <Message severity="error" text={error.toString?.() || error} className="m-4" />}
-        {result && <Message severity="success" text="Upload Complete!" icon="pi pi-check" />}
+        {error && (
+          <Message severity="error" text={error.toString?.() || error} className="m-4" />
+        )}
+        {result && (
+          <Message severity="success" text="Upload Complete!" icon="pi pi-check" />
+        )}
       </div>
       {result && (
         <div className="flex justify-content-around sm: w-full lg:w-10 mt-4">
@@ -266,7 +281,7 @@ const OldUploadPage = () => {
             Classifiers:
             <ul>
               {result.classifiers?.map((c) => (
-                <li>
+                <li key={c.classifierDivision}>
                   <a href={classifierHref(c.classifier, c.division)} target="_blank">
                     {c.classifier} - {c.division}
                   </a>
@@ -278,7 +293,7 @@ const OldUploadPage = () => {
             Shooters:
             <ul>
               {result.shooters?.map((s) => (
-                <li>
+                <li key={s.memberNumberDivision}>
                   <a href={shooterHref(s.memberNumber, s.division)} target="_blank">
                     {s.memberNumber} - {s.division}
                   </a>
@@ -312,7 +327,9 @@ const OldUploadPage = () => {
           setError(null);
           setResult(null);
           try {
-            const apiResponse = await postApi("/upload", { uuids: uuidsFromUrlString(value) });
+            const apiResponse = await postApi("/upload", {
+              uuids: uuidsFromUrlString(value),
+            });
             if (apiResponse.error) {
               setError(apiResponse.error);
             } else {

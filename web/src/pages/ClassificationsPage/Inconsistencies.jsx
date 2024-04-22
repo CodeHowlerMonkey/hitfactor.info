@@ -79,11 +79,7 @@ const Inconsistencies = () => {
         <VersusSelect value={versus} setValue={setVersus} />
         <div className="flex-grow-1" />
         <ModeSelect value={mode} setValue={setMode} />
-        <ClassFilterSelect
-          value={classFilter}
-          setValue={setClassFilter}
-          mode={mode}
-        />
+        <ClassFilterSelect value={classFilter} setValue={setClassFilter} mode={mode} />
       </div>
       <DivisionNavigation onSelect={setDivision} />
       {division && (
