@@ -82,7 +82,7 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
               placeholder="Search"
             />
           </span>
-          <a href={downloadUrl} download className="px-5 py-2">
+          {/*<a href={downloadUrl} download className="px-5 py-2">
             <i
               className="pi pi-download"
               style={{
@@ -91,7 +91,7 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
                 color: "#ae9ef1",
               }}
             />
-          </a>
+          </a>*/}
         </div>
       }
       lazy

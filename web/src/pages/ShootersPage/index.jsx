@@ -79,12 +79,12 @@ export const ShooterRunsAndInfo = ({ division, memberNumber, onBackToShooters })
         <h1 style={{ margin: "auto" }}>
           {memberNumber} - {name} - {divShortToLong[division]}
         </h1>
-        <a href={downloadUrl} download className="px-5 py-2" style={{ fontSize: "1.625rem" }}>
+        {/*<a href={downloadUrl} download className="px-5 py-2" style={{ fontSize: "1.625rem" }}>
           <i
             className="pi pi-download"
             style={{ fontSize: "1.2rem", fontWeight: "bold", color: "#ae9ef1" }}
           />
-        </a>
+        </a>*/}
       </div>
       <div className="flex" style={{ overflowY: "none", height: "38rem" }}>
         <div className="w-full h-full bg-primary-reverse">

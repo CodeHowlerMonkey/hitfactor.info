@@ -106,7 +106,7 @@ const ShootersTable = ({ division, onShooterSelection, inconsistencies, classFil
             placeholder="Filter by Club or Shooter"
             onFilterChange={(f) => setFilter(f)}
           />
-          <a href={downloadUrl} download className="px-5 py-2">
+          {/*<a href={downloadUrl} download className="px-5 py-2">
             <i
               className="pi pi-download"
               style={{
@@ -115,7 +115,7 @@ const ShootersTable = ({ division, onShooterSelection, inconsistencies, classFil
                 color: "#ae9ef1",
               }}
             />
-          </a>
+          </a>*/}
         </>
       }
       totalRecords={shootersTotal}

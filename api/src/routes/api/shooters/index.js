@@ -41,17 +41,6 @@ const buildShootersQuery = (params, query) => {
 };
 
 const shootersRoutes = async (fastify, opts) => {
-  fastify.get("/download/:division", async (req, res) => {
-    const { division } = req.params;
-
-    res.header(
-      "Content-Disposition",
-      `attachment; filename=shooters.${division}.json`
-    );
-    // TODO: #47 fix downloads
-    return [];
-  });
-
   fastify.get("/:division", async (req, res) => {
     const { division } = req.params;
     const { sort, order, page: pageString } = req.query;
@@ -87,32 +76,6 @@ const shootersRoutes = async (fastify, opts) => {
     };
   });
 
-  fastify.get("/download/:division/:memberNumber", async (req, res) => {
-    const { division, memberNumber } = req.params;
-
-    const [info, scoresData] = await Promise.all([
-      Shooter.find({ division, memberNumber }).lean().limit(1),
-      scoresForDivisionForShooter({
-        division,
-        memberNumber,
-      }),
-    ]);
-
-    const data = scoresData.map((c) => ({
-      ...c,
-      classifierInfo: basicInfoForClassifierCode(c?.classifier),
-    }));
-
-    res.header(
-      "Content-Disposition",
-      `attachment; filename=shooters.${division}.${memberNumber}.json`
-    );
-
-    return {
-      info: info?.[0] || {},
-      classifiers: data,
-    };
-  });
   fastify.get("/:division/:memberNumber", async (req, res) => {
     const { division, memberNumber } = req.params;
     const { sort, order, page: pageString } = req.query;

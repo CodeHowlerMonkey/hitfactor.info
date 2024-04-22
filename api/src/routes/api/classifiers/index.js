@@ -139,12 +139,6 @@ const classifiersRoutes = async (fastify, opts) => {
     return Classifier.find({ division });
   });
 
-  fastify.get("/download/:division", async (req, res) => {
-    const { division } = req.params;
-    res.header("Content-Disposition", `attachment; filename=classifiers.${division}.json`);
-    return Classifier.find({ division });
-  });
-
   fastify.get("/info/:division/:number", async (req, res) => {
     const { division, number } = req.params;
     const c = classifiers.find((cur) => cur.classifier === number);

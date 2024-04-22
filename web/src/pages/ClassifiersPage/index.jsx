@@ -91,12 +91,12 @@ export const ClassifierRunsAndInfo = ({
         <h1 style={{ margin: "auto" }}>
           {code} {name}
         </h1>
-        <a href={downloadUrl} download className="px-5 py-2" style={{ fontSize: "1.625rem" }}>
+        {/*<a href={downloadUrl} download className="px-5 py-2" style={{ fontSize: "1.625rem" }}>
           <i
             className="pi pi-download"
             style={{ fontSize: "1.2rem", fontWeight: "bold", color: "#ae9ef1" }}
           />
-        </a>
+        </a>*/}
       </div>
       <div className="flex" style={{ height: "35rem" }}>
         <div className="w-full h-full bg-primary-reverse">
