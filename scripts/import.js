@@ -40,8 +40,8 @@ const fetchApiEndpoint = async (endpoint, tryNumber = 1, maxTries = 3) => {
     process.stdout.write(".");
     return fetched;
   } catch (err) {
-    if ( tryNumber <= maxRetry) {
-	    return await fetchApiEndpoint(endpoint, tryNumber +1, maxTries)
+    if (tryNumber <= maxTries) {
+      return await fetchApiEndpoint(endpoint, tryNumber + 1, maxTries);
     }
     console.log("err: " + endpoint);
     console.log(err);
