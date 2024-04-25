@@ -13,6 +13,12 @@ export const mapDivisionsAsync = async (mapper) =>
     await Promise.all(divShortNames.map(async (div) => [div, await mapper(div)]))
   );
 
+export const forEachDivisionSeq = async (cb) => {
+  for (const division of divShortNames) {
+    await cb(division);
+  }
+};
+
 /** {opn: 2, ltd: 3, l10: 4, ... } */
 export const divShortToId = divisions.divisions.reduce(
   (result, cur) => ({ ...result, [cur.short_name.toLowerCase()]: cur.id }),

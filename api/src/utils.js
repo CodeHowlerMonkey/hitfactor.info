@@ -42,6 +42,16 @@ export const processImportAsync = async (
   }
 };
 
+export const processImportAsyncSeq = async (dir, fileRegexp, forEachFileJSONCb) => {
+  const files = filesToProcess(dir, fileRegexp);
+  for (const file of files) {
+    const curJSON = loadJSON(dir + "/" + file);
+    for (const obj of curJSON) {
+      await forEachFileJSONCb(obj);
+    }
+  }
+};
+
 export const lazy = (resolver) => {
   let _result = null;
 
