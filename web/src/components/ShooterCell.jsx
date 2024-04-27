@@ -29,7 +29,7 @@ export const ShooterCell = ({ data, onClick }) => (
       <span style={{ marginRight: "4px" }}>{data.memberNumber}</span>
       <ClassTag
         value={data?.brutalClass ?? "?"}
-        tooltip={`Brutal. classification: ${data?.reclassificationsBrutalPercentCurrent?.toFixed(
+        tooltip={`Brutal classification: ${data?.reclassificationsBrutalPercentCurrent?.toFixed(
           2
         )}%`}
       />

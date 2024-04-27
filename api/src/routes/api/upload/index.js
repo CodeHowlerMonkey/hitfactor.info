@@ -296,7 +296,7 @@ const uploadRoutes = async (fastify, opts) => {
               // so to prevent dupes, don't filter by club on score upsert
               // clubid: s.clubid,
             },
-            update: { $set: s },
+            update: { $setOnInsert: s },
             upsert: true,
           },
         }))

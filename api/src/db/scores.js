@@ -2,9 +2,9 @@ import mongoose from "mongoose";
 
 import { UTCDate } from "../../../shared/utils/date.js";
 
-import { processImportAsync } from "../utils.js";
+import { processImportAsync, processImportAsyncSeq } from "../utils.js";
 import { divIdToShort } from "../dataUtil/divisions.js";
-import { curHHFForDivisionClassifier } from "../dataUtil/hhf.js";
+import { curHHFFor } from "../dataUtil/hhf.js";
 import { N, Percent, PositiveOrMinus1 } from "../dataUtil/numbers.js";
 
 const ScoreSchema = new mongoose.Schema(
@@ -67,72 +67,97 @@ const badScoresMap = {
   "125282=23-01=2/18/24=CCS08=15.9574": "CCB-shooter-158-percent",
 };
 
+const isMajor = (source) => source === "Major Match";
+
+const scoresFromClassifierFile = (fileObj) => {
+  const memberNumber = fileObj?.value?.member_data?.member_number;
+  const memberId = fileObj?.value?.member_data?.member_id;
+  const classifiers = fileObj?.value?.classifiers;
+
+  if (!memberNumber || !classifiers?.length) {
+    return [];
+  }
+  return classifiers
+    .map((divObj) => {
+      const division = divIdToShort[divObj?.division_id];
+      if (!division) {
+        // new imports have some weird division numbers (1, 10, etc) no idea what that is
+        // just skip for now
+        return [];
+      }
+
+      return divObj.division_classifiers
+        .filter(({ source }) => source !== "Legacy") // no point looking at scores without HF
+        .filter((o) => !badScoresMap[classifierScoreId(memberId, o)]) // ignore banned scores
+        .map(({ code, source, hf, percent, sd, clubid, club_name, classifier }) => ({
+          classifier,
+          division,
+          classifierDivision: [classifier, division].join(":"),
+
+          memberNumber,
+          memberNumberDivision: [memberNumber, division].join(":"),
+
+          sd: UTCDate(sd),
+          clubid,
+          club_name,
+          percent: Number(percent),
+          hf: Number(hf) || (isMajor(source) ? undefined : 0),
+          hhf: isMajor(source) ? -1 : curHHFFor({ division, classifier }),
+          code,
+          source,
+        }));
+    })
+    .filter(Boolean)
+    .flat();
+};
+
+const batchHydrateScores = async (letter) => {
+  let curBatch = [];
+  process.stdout.write("\n");
+  process.stdout.write(letter);
+  process.stdout.write(": ");
+  return processImportAsyncSeq(
+    "../../data/imported",
+    new RegExp(`classifiers\\.${letter}\\.\\d+\\.json`),
+    async (obj) => {
+      const curFileScores = scoresFromClassifierFile(obj);
+      curBatch = curBatch.concat(curFileScores);
+      process.stdout.write(".");
+      if (curBatch.length >= 512) {
+        await Score.bulkWrite(
+          curBatch.map((s) => ({
+            updateOne: {
+              filter: {
+                memberNumberDivision: s.memberNumberDivision,
+                classifierDivision: s.classifierDivision,
+                hf: s.hf,
+                sd: s.sd,
+                // some PS matches don't have club set, but all USPSA uploads do,
+                // so to prevent dupes, don't filter by club on score upsert
+                // clubid: s.clubid,
+              },
+              update: { $set: s },
+              upsert: true,
+            },
+          }))
+        );
+        process.stdout.write("⬆︎");
+        curBatch = [];
+      }
+    }
+  );
+};
+
 export const hydrateScores = async () => {
-  console.log("hydrating initial scores");
+  console.log("hydrating scores");
   console.time("scores");
-  await Score.collection.drop();
-  await processImportAsync("../../data/imported", /classifiers\.\d+\.json/, async (obj) => {
-    const memberNumber = obj?.value?.member_data?.member_number;
-    const memberId = obj?.value?.member_data?.member_id;
-    const classifiers = obj?.value?.classifiers;
-    return Promise.all(
-      classifiers.map((divObj) => {
-        const divShort = divIdToShort[divObj?.division_id];
-        if (!divShort) {
-          // new imports have some weird division numbers (1, 10, etc) no idea what that is
-          // just skip for now
-          return null;
-        }
 
-        const curFileScores = divObj.division_classifiers
-          .filter(({ source }) => source !== "Legacy") // saves RAM, no point looking at old
-          .filter((obj) => !badScoresMap[classifierScoreId(memberId, obj)]) // ignore banned scores
-          .map(
-            ({
-              code,
-              source,
-              hf: hfRaw,
-              percent: percentString,
-              sd,
-              clubid,
-              club_name,
-              classifier,
-            }) => {
-              const isMajor = source === "Major Match";
-              const hhf = isMajor
-                ? -1
-                : curHHFForDivisionClassifier({
-                    division: divShort,
-                    number: classifier,
-                  });
-              const percent = Number(percentString);
-              const hf = Number(hfRaw);
+  await batchHydrateScores("gm");
+  await batchHydrateScores("m");
+  await batchHydrateScores("a");
+  await batchHydrateScores("b");
+  // TODO: CDU when they are imported
 
-              return {
-                classifier,
-                division: divShort,
-                classifierDivision: [classifier, divShort].join(":"),
-
-                memberNumber,
-                memberNumberDivision: [memberNumber, divShort].join(":"),
-
-                sd: UTCDate(sd),
-                clubid,
-                club_name,
-                percent,
-                hf: !isNaN(hf) ? hf : undefined,
-                hhf,
-                code,
-                source,
-              };
-            }
-          );
-
-        process.stdout.write(".");
-        return Score.insertMany(curFileScores);
-      })
-    );
-  });
   console.timeEnd("scores");
 };
 

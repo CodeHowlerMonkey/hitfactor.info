@@ -35,3 +35,5 @@ export const curHHFForDivisionClassifier = ({ division, number }) => {
     return -1;
   }
 };
+export const curHHFFor = ({ division, classifier }) =>
+  curHHFForDivisionClassifier({ division, number: classifier });

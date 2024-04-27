@@ -77,7 +77,7 @@ const shootersRoutes = async (fastify, opts) => {
     const { sort, order, page: pageString } = req.query;
 
     const [info, scoresData] = await Promise.all([
-      Shooter.find({ division, memberNumber }).lean().limit(1),
+      Shooter.findOne({ division, memberNumber }).lean(),
       scoresForDivisionForShooter({
         division,
         memberNumber,
@@ -92,7 +92,7 @@ const shootersRoutes = async (fastify, opts) => {
     );
 
     return {
-      info: info?.[0] || {},
+      info: info || {},
       classifiers: data,
     };
   });
