@@ -205,27 +205,6 @@ const RunsTable = ({ classifier, division, clubs, onShooterSelection }) => {
       />
       <Column field="hf" header="HF" sortable />
       <Column
-        field="historicalHHF"
-        header="Historical HHF"
-        /*
-        sortable
-        showFilterMenu={false}
-        filter
-        filterElement={(options) => (
-          <DropdownFilter
-            filterOptions={uniqBy(hhfs, (c) => c.hhf)}
-            filterValueLabel="hhf"
-            filterValue={options?.value}
-            onFilter={(value) => {
-              setFilterHHF(value?.hhf);
-              options.filterApplyCallback(value);
-            }}
-          />
-        )}*/
-        headerTooltip="Calculated HHF based on HF and Percent. Shows historical HHF value during the time when this score was processed."
-        headerTooltipOptions={headerTooltipOptions}
-      />
-      <Column
         field="percent"
         header="Percent"
         sortable
