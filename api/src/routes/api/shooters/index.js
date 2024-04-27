@@ -92,7 +92,7 @@ const shootersRoutes = async (fastify, opts) => {
     );
 
     return {
-      info: info?.[0] || {},
+      info: info || {},
       classifiers: data,
     };
   });

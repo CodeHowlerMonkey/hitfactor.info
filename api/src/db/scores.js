@@ -101,7 +101,7 @@ const scoresFromClassifierFile = (fileObj) => {
           clubid,
           club_name,
           percent: Number(percent),
-          hf: Number(hf) || undefined,
+          hf: Number(hf) || (isMajor(source) ? undefined : 0),
           hhf: isMajor(source) ? -1 : curHHFFor({ division, classifier }),
           code,
           source,
