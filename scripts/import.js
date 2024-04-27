@@ -63,12 +63,12 @@ const fetchApiEndpoint = async (endpoint, tryNumber = 1, maxTries = 3) => {
         headers: {
           accept: "application/json",
           "uspsa-api": getUspsaApiKey(),
-          //"Uspsa-Api-Version": "1.1.3",
+          "Uspsa-Api-Version": "1.1.3",
           "Uspsa-Debug": "FALSE",
           "user-agent":
-            "Mozilla/5.0 (iPhone; CPU iPhone OS 17_4_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148",
-          //randOmShit: "letmein" + Math.random(), // there's no way cloudflare will fall for this
-          //Accept: "application/json",
+            "Mozilla/5.1 (iPhone; CPU iPhone OS 17_4_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148",
+          randOmShitAgainPlz: "letmein" + Math.random(), // there's no way cloudflare will fall for this
+          Accept: "application/json",
         },
       }
     );
@@ -134,20 +134,19 @@ const importEverything = async () => {
 
   // prepare member numbers to import + show stats
   const lastImportTime = new Date("2024-03-31");
-  const shooterObjects = shooterLines
-    .map((line) =>
-      Object.fromEntries(
-        line.split(",").map((value, index) => [fieldNameMap[fields[index]], value])
-      )
+  const unfilteredShooterObjects = shooterLines.map((line) =>
+    Object.fromEntries(
+      line.split(",").map((value, index) => [fieldNameMap[fields[index]], value])
     )
-    .filter((s) => {
-      const expiration = new Date(s.expires);
-      if (expiration.getTime() === NaN) {
-        return true; // badly formed expiration date for life membership
-      }
-      return expiration > lastImportTime;
-    });
-  const classifiedNumbers = shooterObjects
+  );
+  const shooterObjects = unfilteredShooterObjects.filter((s) => {
+    const expiration = new Date(s.expires);
+    if (expiration.getTime() === NaN) {
+      return true; // badly formed expiration date for life membership
+    }
+    return expiration > lastImportTime;
+  });
+  const classifiedNumbers = unfilteredShooterObjects
     .filter(hasAnyClassification)
     .map((s) => s.memberNumber);
   console.log("division stats:");
@@ -218,7 +217,10 @@ const importEverything = async () => {
   });
 
   console.log("writing meta");
-  fs.writeFileSync("./data/meta/all.json", JSON.stringify(shooterObjects, null, 2));
+  fs.writeFileSync(
+    "./data/meta/all.json",
+    JSON.stringify(unfilteredShooterObjects, null, 2)
+  );
   fs.writeFileSync(
     "./data/meta/classified.json",
     JSON.stringify(classifiedNumbers, null, 2)
@@ -226,7 +228,7 @@ const importEverything = async () => {
   fs.writeFileSync(
     "./data/meta/memberIdToNumber.json",
     JSON.stringify(
-      shooterObjects.reduce((acc, cur) => {
+      unfilteredShooterObjects.reduce((acc, cur) => {
         acc[cur.memberId] = cur.memberNumber;
         return acc;
       }, {}),
