@@ -253,6 +253,7 @@ const shooterObjectsFromClassificationFile = async (c) => {
         reclassifications: {
           curPercent: recalcDivCur,
           recPercent: recalcDivRec,
+          brutalPercent: recalcDivBrutal,
         },
 
         curHHFClass: recalcDivCur.class,
