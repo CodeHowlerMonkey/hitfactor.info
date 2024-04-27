@@ -171,14 +171,17 @@ export const hydrateClassifiersExtendedMeta = async () => {
   let i = 0;
   const total = _classifiers.length * 9;
   console.log("hydrating classifiers extended meta");
-  await Classifier.collection.drop();
   console.time("classifiers");
   for (const division of divShortNames) {
     for (const c of _classifiers) {
       ++i;
       const { classifier } = c;
       const doc = await singleClassifierExtendedMetaDoc(division, classifier);
-      await Classifier.create(doc);
+      await Classifier.updateOne(
+        { division, classifier },
+        { $set: doc },
+        { upsert: true }
+      );
       process.stdout.write(`\r${i}/${total}`);
     }
   }

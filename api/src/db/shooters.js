@@ -186,6 +186,9 @@ const reclassificationBreakdown = (reclassificationInfo, division) => ({
 });
 
 const shooterObjectsFromClassificationFile = async (c) => {
+  if (!c?.member_data) {
+    return [];
+  }
   const memberNumber = memberNumberFromMemberData(c.member_data);
   const [memberScores, brutalMemberScores] = await Promise.all([
     allDivisionsScores([memberNumber]),
@@ -278,6 +281,10 @@ const batchHydrateShooters = async (letter) => {
     new RegExp(`classification\\.${letter}\\.\\d+\\.json`),
     async (obj) => {
       const curFileShooters = await shooterObjectsFromClassificationFile(obj.value);
+      if (!curFileShooters.length) {
+        return;
+      }
+
       await Shooter.bulkWrite(
         curFileShooters.map((s) => ({
           updateOne: {
@@ -303,6 +310,7 @@ export const hydrateShooters = async () => {
   await batchHydrateShooters("m");
   await batchHydrateShooters("a");
   await batchHydrateShooters("b");
+  // TODO: CDU when they are imported
 
   console.timeEnd("shooters");
 };

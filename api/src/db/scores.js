@@ -156,6 +156,7 @@ export const hydrateScores = async () => {
   await batchHydrateScores("m");
   await batchHydrateScores("a");
   await batchHydrateScores("b");
+  // TODO: CDU when they are imported
 
   console.timeEnd("scores");
 };

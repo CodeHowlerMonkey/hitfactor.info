@@ -18,7 +18,9 @@ import { curHHFForDivisionClassifier } from "../dataUtil/hhf.js";
  */
 export const recommendedHHFByPercentileAndPercent = (runs, targetPercentile, percent) => {
   const closestPercentileRun = runs.sort(
-    (a, b) => Math.abs(a.percentile - targetPercentile) - Math.abs(b.percentile - targetPercentile)
+    (a, b) =>
+      Math.abs(a.percentile - targetPercentile) -
+      Math.abs(b.percentile - targetPercentile)
   )[0];
 
   if (!closestPercentileRun) {
@@ -438,7 +440,9 @@ const runsForRecs = async ({ division, number }) =>
 
 const runsForRecsMultiByClassifierDivision = async (classifiers) => {
   const runs = await Score.find({
-    classifierDivision: { $in: classifiers.map((c) => [c.classifier, c.division].join(":")) },
+    classifierDivision: {
+      $in: classifiers.map((c) => [c.classifier, c.division].join(":")),
+    },
     hf: { $gt: 0 },
   })
     .select({ hf: true, _id: false, classifierDivision: true })
@@ -464,7 +468,9 @@ const runsForRecsMultiByClassifierDivision = async (classifiers) => {
 };
 
 export const recommendedHHFFor = async ({ division, number }) =>
-  recommendedHHFFunctionFor({ division, number })(await runsForRecs({ division, number }));
+  recommendedHHFFunctionFor({ division, number })(
+    await runsForRecs({ division, number })
+  );
 
 const RecHHFSchema = new mongoose.Schema({
   classifier: String,
@@ -514,11 +520,13 @@ export const hydrateSingleRecHFF = async (division, classifier) => {
   const allRuns = await runsForRecs({ division, number: classifier });
   const update = recHHFUpdate(allRuns, division, classifier);
 
-  return RecHHF.findOneAndUpdate({ division, classifier }, { $set: update }, { upsert: true });
+  return RecHHF.updateOne({ division, classifier }, { $set: update }, { upsert: true });
 };
 
 export const hydrateRecHHFsForClassifiers = async (classifiers) => {
-  const runsByClassifierDivision = await runsForRecsMultiByClassifierDivision(classifiers);
+  const runsByClassifierDivision = await runsForRecsMultiByClassifierDivision(
+    classifiers
+  );
   const updates = classifiers.map((c) =>
     recHHFUpdate(
       runsByClassifierDivision[[c.classifier, c.division].join(":")],
@@ -545,7 +553,6 @@ export const hydrateRecHHFsForClassifiers = async (classifiers) => {
 };
 
 export const hydrateRecHHF = async () => {
-  await RecHHF.collection.drop();
   console.log("hydrating recommended HHFs");
   console.time("recHHFs");
   const divisions = (await Score.find().distinct("division")).filter(Boolean);

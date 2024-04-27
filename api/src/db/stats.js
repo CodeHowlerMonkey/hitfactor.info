@@ -167,14 +167,6 @@ const statsByDivAndAll = async (field) => {
   };
 };
 
-const allDivs = ["opn", "ltd", "l10", "prod", "ss", "rev", "co", "lo", "pcc"];
-const validClassifications = ["GM", "M", "A", "B", "C", "D"];
-const hasClassification = (shooterObj, div) =>
-  validClassifications.includes(shooterObj[div]);
-const hasAnyClassification = (shooterObj) =>
-  allDivs.some((div) => hasClassification(shooterObj, div));
-const hasNoClassifications = (shooterObj) => !hasAnyClassification(shooterObj);
-
 export const hydrateStats = async () => {
   console.log("hydrating stats");
   console.time("stats");
@@ -184,13 +176,18 @@ export const hydrateStats = async () => {
   const byRecHHFPercent = await statsByDivAndAll("recClass");
   const byBrutalPercent = await statsByDivAndAll("brutalClass");
 
-  await Stats.collection.drop();
-  await Stats.create({
-    byClass,
-    byPercent,
-    byCurHHFPercent,
-    byRecHHFPercent,
-    byBrutalPercent,
-  });
+  await Stats.updateOne(
+    {},
+    {
+      $set: {
+        byClass,
+        byPercent,
+        byCurHHFPercent,
+        byRecHHFPercent,
+        byBrutalPercent,
+      },
+    },
+    { upsert: true }
+  );
   console.timeEnd("stats");
 };

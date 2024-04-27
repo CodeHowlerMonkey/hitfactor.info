@@ -112,7 +112,7 @@ const _runsAggregation = async ({
     ...multiSortAndPaginate({ sort, order, page }),
   ]);
 
-const _runsAdapter = (classifier, division, runs, hhf /*hhfs*/) =>
+const _runsAdapter = (classifier, division, runs /*hhf, hhfs*/) =>
   runs.map((run, index) => {
     const percent = N(run.percent);
     const curPercent = PositiveOrMinus1(run.curPercent);
@@ -185,22 +185,18 @@ const classifiersRoutes = async (fastify, opts) => {
       filter: filterString,
     } = req.query;
     // const filterHHF = parseFloat(filterHHFString);
-    const [extended, runsFromDB] = await Promise.all([
-      Classifier.findOne({ division, classifier: number }).lean(),
-      _runsAggregation({
-        classifier: number,
-        division,
-        filterString,
-        filterClubString,
-        sort,
-        order,
-        page,
-      }),
-    ]);
-    const { hhf, hhfs } = extended;
+    const runsFromDB = await _runsAggregation({
+      classifier: number,
+      division,
+      filterString,
+      filterClubString,
+      sort,
+      order,
+      page,
+    });
 
     return {
-      runs: _runsAdapter(number, division, runsFromDB, hhf, hhfs),
+      runs: _runsAdapter(number, division, runsFromDB),
       runsTotal: runsFromDB[0]?.total || 0,
       runsTotalWithFilters: runsFromDB[0]?.totalWithFilters || 0,
       runsPage: Number(page) || 1,
