@@ -132,7 +132,15 @@ export const allDivisionsScoresForBrutalClassification = async (memberNumbers) =
     },
     // ensure classifier and classifierDivision fields for Majors
     {
-      $set: { classifier: { $ifNull: ["$classifier", { $toString: "$_id" }] } },
+      $set: {
+        classifier: {
+          $cond: {
+            if: { $eq: ["$source", "Major Match"] },
+            then: { $toString: "$_id" },
+            else: { $ifNull: ["$classifier", { $toString: "$_id" }] },
+          },
+        },
+      },
     },
     {
       $set: { classifierDivision: { $concat: ["$classifier", ":", "$division"] } },
