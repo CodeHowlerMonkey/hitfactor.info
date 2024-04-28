@@ -52,10 +52,6 @@ export const ShooterProgressChart = ({ division, memberNumber }) => {
               x: {
                 type: "time",
                 min: "auto",
-                /*time: {
-              parser: "MM/dd/yy",
-              unit: "month",
-            },*/
               },
             },
             elements: {
@@ -76,9 +72,9 @@ export const ShooterProgressChart = ({ division, memberNumber }) => {
                   label: ({ raw: { y } }) => y + "%",
                   title: ([
                     {
-                      raw: { y },
+                      raw: { x, y },
                     },
-                  ]) => y,
+                  ]) => x.toLocaleDateString(),
                 },
               },
             },
