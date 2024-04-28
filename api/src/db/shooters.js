@@ -96,8 +96,8 @@ export const reduceByDiv = (classifications, valueFn) =>
   );
 
 export const testBrutalClassification = async (memberNumber) => {
-  const scores = await allDivisionsScores([memberNumber]);
-  return calculateUSPSAClassification(scores, "brutalPercent");
+  const scores = await allDivisionsScoresForBrutalClassification([memberNumber]);
+  return calculateUSPSAClassification(scores, "recPercent");
 };
 
 export const allDivisionsScores = async (memberNumbers) => {
@@ -253,15 +253,17 @@ const shooterObjectsFromClassificationFile = async (c) => {
     return [];
   }
   const memberNumber = memberNumberFromMemberData(c.member_data);
-  const memberScores = await allDivisionsScores([memberNumber]);
-
+  const [memberScores, brutalMemberScores] = await Promise.all([
+    allDivisionsScores([memberNumber]),
+    allDivisionsScoresForBrutalClassification([memberNumber]),
+  ]);
   const hqClasses = reduceByDiv(c.classifications, (r) => r.class);
   const hqCurrents = reduceByDiv(c.classifications, (r) => Number(r.current_percent));
   const recalcByCurPercent = calculateUSPSAClassification(memberScores, "curPercent");
   const recalcByRecPercent = calculateUSPSAClassification(memberScores, "recPercent");
   const recalcByBrutalPercent = calculateUSPSAClassification(
-    memberScores,
-    "brutalPercent"
+    brutalMemberScores.sort((a, b) => dateSort(a, b, "sd", -1)),
+    "recPercent"
   );
   const ages = mapDivisions((div) => recalcByRecPercent?.[div]?.age);
   const age1s = mapDivisions((div) => recalcByRecPercent?.[div]?.age1);
@@ -382,8 +384,19 @@ export const reclassifyShooters = async (shooters) => {
     const memberNumbers = uniqBy(shooters, (s) => s.memberNumber).map(
       (s) => s.memberNumber
     );
-    const scores = await allDivisionsScores(memberNumbers);
+    const [scores, brutalScores] = await Promise.all([
+      allDivisionsScores(memberNumbers),
+      allDivisionsScoresForBrutalClassification(memberNumbers),
+    ]);
+
     const scoresByMemberNumber = scores.reduce((acc, cur) => {
+      let curMemberScores = acc[cur.memberNumber] ?? [];
+      curMemberScores.push(cur);
+      acc[cur.memberNumber] = curMemberScores;
+      return acc;
+    }, {});
+
+    const brutalScoresByMemberNumber = brutalScores.reduce((acc, cur) => {
       let curMemberScores = acc[cur.memberNumber] ?? [];
       curMemberScores.push(cur);
       acc[cur.memberNumber] = curMemberScores;
@@ -393,6 +406,7 @@ export const reclassifyShooters = async (shooters) => {
     const updates = shooters
       .map(({ memberNumber, division }) => {
         const memberScores = scoresByMemberNumber[memberNumber];
+        const brutalMemberScores = brutalScoresByMemberNumber[memberNumber];
         const recalcByCurPercent = calculateUSPSAClassification(
           memberScores,
           "curPercent"
@@ -402,8 +416,8 @@ export const reclassifyShooters = async (shooters) => {
           "recPercent"
         );
         const recalcByBrutalPercent = calculateUSPSAClassification(
-          memberScores,
-          "brutalPercent"
+          brutalMemberScores.sort((a, b) => dateSort(a, b, "sd", -1)),
+          "recPercent"
         );
 
         const recalcDivCur = reclassificationBreakdown(recalcByCurPercent, division);
