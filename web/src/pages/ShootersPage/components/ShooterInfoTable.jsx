@@ -2,6 +2,7 @@ import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import ShooterChart from "../../../components/chart/ShooterChart";
 import { useState } from "react";
+import { ShooterProgressChart } from "../../../components/chart/ShooterProgressChart";
 
 const tableNameForDiv = {
   opn: "Open",
@@ -114,6 +115,8 @@ export const ShooterInfoTable = ({ info }) => {
         <Column field="hq" header="HQ" />
         <Column field="age" header="Age" />
       </DataTable>
+      <h3 className="m-4 mb-2">Classification Progress</h3>
+      <ShooterProgressChart division={info.division} memberNumber={info.memberNumber} />
       <h3 className="m-4 mb-2">Scores Distribution</h3>
       <div className="relative h-32rem bg-primary-reverse">
         <ShooterChart division={info.division} memberNumber={info.memberNumber} />

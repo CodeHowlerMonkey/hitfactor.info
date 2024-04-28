@@ -9,7 +9,7 @@ import {
   scoresForDivisionForShooter,
   shooterScoresChartData,
 } from "../../../db/scores.js";
-import { Shooter } from "../../../db/shooters.js";
+import { Shooter, reclassificationForProgressMode } from "../../../db/shooters.js";
 import { textSearchMatch } from "../../../db/utils.js";
 
 // TODO: refactor to aggregation and use addPlaceAndPercentileAggregation
@@ -100,6 +100,12 @@ const shootersRoutes = async (fastify, opts) => {
   fastify.get("/:division/:memberNumber/chart", async (req, res) => {
     const { division, memberNumber } = req.params;
     return await shooterScoresChartData({ division, memberNumber });
+  });
+
+  fastify.get("/:division/:memberNumber/chart/progress/:mode", async (req, res) => {
+    const { division, memberNumber, mode } = req.params;
+    const reclass = await reclassificationForProgressMode(mode, memberNumber);
+    return reclass?.[division]?.percentWithDates || [];
   });
 
   fastify.get("/:division/chart", async (req, res) => {

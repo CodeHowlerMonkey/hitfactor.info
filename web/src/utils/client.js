@@ -3,11 +3,13 @@ import { useEffect, useState } from "react";
 const API_URL = "/api"; // react build served through node
 
 /* Mom, can we have tanstack query at home? */
-export const useApi = (endpoint) => {
+export const useApi = (endpoint, eraseDataBetweenLoads = true) => {
   const [json, setJson] = useState(null);
   const [loading, setLoading] = useState(false);
   useEffect(() => {
-    setJson(null);
+    if (eraseDataBetweenLoads) {
+      setJson(null);
+    }
     if (endpoint && !endpoint.includes("undefined")) {
       setLoading(true);
       window

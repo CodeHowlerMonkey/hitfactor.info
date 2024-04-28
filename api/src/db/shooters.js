@@ -521,7 +521,30 @@ export const reclassifyShooters = async (shooters) => {
   }
 };
 
-export const reclassifySingleShooter = async (memberNumber, division) => {};
+export const reclassificationForProgressMode = async (mode, memberNumber) => {
+  switch (mode) {
+    case "curPercent":
+      {
+        const scores = await allDivisionsScores([memberNumber]);
+        return calculateUSPSAClassification(scores, "curPercent");
+      }
+      break;
+
+    case "recPercent":
+      {
+        const scores = await allDivisionsScores([memberNumber]);
+        return calculateUSPSAClassification(scores, "recPercent");
+      }
+      break;
+
+    case "brutalPercent": {
+      const scores = await allDivisionsScoresForBrutalClassification([memberNumber]);
+      return calculateUSPSAClassification(scores, "recPercent");
+    }
+  }
+
+  return null;
+};
 
 const expiredShootersAggregate = [
   /*
