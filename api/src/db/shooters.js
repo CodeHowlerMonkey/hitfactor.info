@@ -206,7 +206,7 @@ export const allDivisionsScoresForBrutalClassification = async (memberNumbers) =
     {
       $project: {
         divMemberScores: {
-          $slice: [{ $sortArray: { input: "$divMemberScores", sortBy: { sd: -1 } } }, 10],
+          $sortArray: { input: "$divMemberScores", sortBy: { sd: -1 } },
         },
       },
     },
