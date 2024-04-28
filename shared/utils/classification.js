@@ -142,12 +142,41 @@ export const percentAndAgesForDivWindow = (
   div,
   state,
   percentField = "percent",
-  now = new Date()
+  now = new Date(),
+  mode
 ) => {
   const window = state[div].window.toSorted((a, b) => numSort(a, b, percentField, -1));
 
   //de-dupe needs to be done in reverse, because percent are sorted asc
-  const dFlagsApplied = uniqBy(window, (c) => c.classifier);
+  let dFlagsApplied = uniqBy(window, (c) => c.classifier);
+  if (mode === "brutalPercent") {
+    const classifiersByNumber = window.reduce((acc, cur, index) => {
+      const curClassifiers = acc[cur.classifier] || [];
+      curClassifiers.push(cur);
+      acc[cur.classifier] = curClassifiers;
+      return acc;
+    }, {});
+    const classifiersByNumberAvg = Object.fromEntries(
+      Object.entries(classifiersByNumber).map(([classifier, scores]) => {
+        return [
+          classifier,
+          scores.reduce(
+            (avg, value, _, { length }) => avg + value[percentField] / length,
+            0
+          ),
+        ];
+      })
+    );
+    dFlagsApplied = dFlagsApplied.map((c) => {
+      if (c.source === "Stage Score") {
+        return {
+          ...c,
+          [percentField]: classifiersByNumberAvg[c.classifier],
+        };
+      }
+      return c;
+    });
+  }
 
   // remove lowest 2
   const newLength = windowSizeForScore(dFlagsApplied.length);
@@ -195,9 +224,10 @@ export const addToCurWindow = (c, curWindow, targetWindowSize = 8) => {
 // TODO: minimal class as highest - 1
 export const calculateUSPSAClassification = (
   classifiers,
-  percentField = "percent",
+  mode = "percent",
   now = new Date()
 ) => {
+  const percentField = mode === "brutalPercent" ? "recPercent" : mode;
   const state = newClassificationCalculationState();
   if (!classifiers?.length) {
     return state;
@@ -242,7 +272,7 @@ export const calculateUSPSAClassification = (
         percent: newPercent,
         age,
         age1,
-      } = percentAndAgesForDivWindow(division, state, percentField, now);
+      } = percentAndAgesForDivWindow(division, state, percentField, now, mode);
 
       if (newPercent > oldHighPercent) {
         state[division].highPercent = newPercent;
@@ -258,7 +288,8 @@ export const calculateUSPSAClassification = (
 
   return mapDivisions((div) => {
     state[div].class = classForPercent(state[div].percent);
-    delete state[div].window;
+    //delete state[div].window;
+    delete state[div].percentWithDates;
     return state[div];
   });
 };
