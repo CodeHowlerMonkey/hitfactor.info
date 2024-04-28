@@ -184,11 +184,11 @@ export const allDivisionsScoresForBrutalClassification = async (memberNumbers) =
         },
       },
     },
-    // limit up to 10 div/memberNumber unique scores before applying dupe.avg
+    // limit up to 10 div/memberNumber unique scores before applying daily dupe.avg
     { $sort: { sd: -1, recPercent: -1 } },
     {
       $group: {
-        _id: ["$classifier", "$division", "$memberNumber"],
+        _id: ["$classifier", "$division", "$memberNumber", "$sd"],
         docs: { $push: "$$ROOT" },
         sd: { $first: "$sd" },
         classifier: { $first: "$classifier" },
@@ -215,10 +215,10 @@ export const allDivisionsScoresForBrutalClassification = async (memberNumbers) =
     { $unwind: { path: "$docs" } },
     { $replaceRoot: { newRoot: "$docs" } },
 
-    // use avg score for dupes and count them as one classifier in best 6 out of 10
+    // use avg score for dupes within the day and count them as one classifier in best 6 out of 10
     {
       $group: {
-        _id: ["$classifier", "$division", "$memberNumber"],
+        _id: ["$classifier", "$division", "$memberNumber", "$sd"],
         hf: { $avg: "$hf" },
         sd: { $first: "$sd" },
         memberNumber: { $first: "$memberNumber" },
