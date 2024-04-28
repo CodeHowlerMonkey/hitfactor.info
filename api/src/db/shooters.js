@@ -100,7 +100,7 @@ export const testBrutalClassification = async (memberNumber) => {
   return calculateUSPSAClassification(scores, "recPercent");
 };
 
-const allDivisionsScores = async (memberNumbers) => {
+export const allDivisionsScores = async (memberNumbers) => {
   const query = Score.find({ memberNumber: { $in: memberNumbers } })
     .populate("HHFs")
     .limit(0)
@@ -110,72 +110,127 @@ const allDivisionsScores = async (memberNumbers) => {
   return data.map((doc) => doc.toObject({ virtuals: true }));
 };
 
-const allDivisionsScoresForBrutalClassification = async (memberNumbers) => {
-  const [runs, majors] = await Promise.all([
-    Score.aggregate([
-      { $match: { memberNumber: { $in: memberNumbers }, hf: { $gt: 0 } } },
-      {
-        $project: {
-          _id: false,
-          hf: true,
-          division: true,
-          classifier: true,
-          classifierDivision: true,
-          sd: true,
-          memberNumber: true,
+export const allDivisionsScoresForBrutalClassification = async (memberNumbers) => {
+  return await Score.aggregate([
+    {
+      $match: {
+        memberNumber: { $in: memberNumbers },
+        $or: [{ hf: { $gt: 0 } }, { percent: { $gt: 0 } }],
+      },
+    },
+    {
+      $project: {
+        hf: true,
+        division: true,
+        classifier: true,
+        classifierDivision: true,
+        sd: true,
+        memberNumber: true,
+        percent: true,
+        source: true,
+      },
+    },
+    // ensure classifier and classifierDivision fields for Majors
+    {
+      $set: { classifier: { $ifNull: ["$classifier", { $toString: "$_id" }] } },
+    },
+    {
+      $set: { classifierDivision: { $concat: ["$classifier", ":", "$division"] } },
+    },
+    // calculate recPercent before sorting/deduping, so we can use it as secondary sort
+    {
+      $lookup: {
+        from: "rechhfs",
+        localField: "classifierDivision",
+        foreignField: "classifierDivision",
+        as: "HHFs",
+      },
+    },
+    {
+      $unwind: {
+        path: "$HHFs",
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $addFields: {
+        recHHF: "$HHFs.recHHF",
+        curHHF: "$HHFs.curHHF",
+      },
+    },
+    {
+      $addFields: {
+        recPercent: {
+          $cond: {
+            if: { $eq: ["$source", "Major Match"] },
+            then: "$percent",
+            else: percentAggregationOp("$hf", "$recHHF", 4),
+          },
+        },
+        curPercent: {
+          $cond: {
+            if: { $eq: ["$source", "Major Match"] },
+            then: "$percent",
+            else: percentAggregationOp("$hf", "$curHHF", 4),
+          },
         },
       },
-      // use avg score for dupes and count them as one classifier in best 6 out of 10
-      {
-        $group: {
-          _id: ["$classifier", "$division", "$memberNumber"],
-          hf: { $avg: "$hf" },
-          sd: { $first: "$sd" },
-          memberNumber: { $first: "$memberNumber" },
-          division: { $first: "$division" },
-          classifier: { $first: "$classifier" },
-          classifierDivision: { $first: "$classifierDivision" },
+    },
+    // limit up to 10 div/memberNumber unique scores before applying dupe.avg
+    { $sort: { sd: -1, recPercent: -1 } },
+    {
+      $group: {
+        _id: ["$classifier", "$division", "$memberNumber"],
+        docs: { $push: "$$ROOT" },
+        sd: { $first: "$sd" },
+        classifier: { $first: "$classifier" },
+        division: { $first: "$division" },
+        memberNumber: { $first: "$memberNumber" },
+      },
+    },
+    {
+      $group: {
+        _id: ["$division", "$memberNumber"],
+        divMemberScores: { $push: "$$ROOT" },
+        sd: { $first: "$sd" },
+      },
+    },
+    {
+      $project: {
+        divMemberScores: {
+          $slice: [{ $sortArray: { input: "$divMemberScores", sortBy: { sd: -1 } } }, 10],
         },
       },
-      {
-        $lookup: {
-          from: "rechhfs",
-          localField: "classifierDivision",
-          foreignField: "classifierDivision",
-          as: "HHFs",
-        },
+    },
+    { $unwind: { path: "$divMemberScores" } },
+    { $replaceRoot: { newRoot: "$divMemberScores" } },
+    { $unwind: { path: "$docs" } },
+    { $replaceRoot: { newRoot: "$docs" } },
+
+    // use avg score for dupes and count them as one classifier in best 6 out of 10
+    {
+      $group: {
+        _id: ["$classifier", "$division", "$memberNumber"],
+        hf: { $avg: "$hf" },
+        sd: { $first: "$sd" },
+        memberNumber: { $first: "$memberNumber" },
+        division: { $first: "$division" },
+        classifier: { $first: "$classifier" },
+        classifierDivision: { $first: "$classifierDivision" },
+        percent: { $avg: "$percent" },
+        curPercent: { $avg: "$curPercent" },
+        recPercent: { $avg: "$recPercent" },
+        source: { $first: "$source" },
       },
-      {
-        $unwind: {
-          path: "$HHFs",
-          preserveNullAndEmptyArrays: false,
-        },
+    },
+    {
+      $project: {
+        _id: false,
+        HHFs: false,
       },
-      {
-        $addFields: {
-          recHHF: "$HHFs.recHHF",
-          curHHF: "$HHFs.curHHF",
-          source: "Stage Score",
-        },
-      },
-      {
-        $addFields: {
-          recPercent: percentAggregationOp("$hf", "$recHHF", 4),
-          curPercent: percentAggregationOp("$hf", "$curHHF", 4),
-        },
-      },
-      {
-        $project: {
-          _id: false,
-          HHFs: false,
-        },
-      },
-    ]),
-    Score.find({ memberNumber: { $in: memberNumbers }, source: "Major Match" }).populate(
-      "HHFs"
-    ),
+    },
+    { $sort: { sd: -1, recPercent: -1 } },
   ]);
-  return [...runs, ...majors.map((m) => m.toObject({ virtuals: true }))];
 };
 
 const reclassificationBreakdown = (reclassificationInfo, division) => ({

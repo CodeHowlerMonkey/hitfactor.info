@@ -11,6 +11,7 @@ import { headerTooltipOptions } from "./Table/Table";
 import { Dropdown } from "primereact/dropdown";
 import { useDebounce } from "use-debounce";
 import ShooterCell from "./ShooterCell";
+import { renderPercent } from "./Table";
 
 const TableFilter = ({ placeholder, onFilterChange }) => {
   const [filter, setFilter] = useState("");
@@ -205,6 +206,7 @@ const RunsTable = ({ classifier, division, clubs, onShooterSelection }) => {
       />
       <Column field="hf" header="HF" sortable />
       <Column
+        body={renderPercent}
         field="percent"
         header="Percent"
         sortable
@@ -212,6 +214,7 @@ const RunsTable = ({ classifier, division, clubs, onShooterSelection }) => {
         headerTooltipOptions={headerTooltipOptions}
       />
       <Column
+        body={renderPercent}
         field="curPercent"
         header="Current Percent"
         sortable
@@ -219,6 +222,7 @@ const RunsTable = ({ classifier, division, clubs, onShooterSelection }) => {
         headerTooltipOptions={headerTooltipOptions}
       />
       <Column
+        body={renderPercent}
         field="recPercent"
         header="Rec. Percent"
         sortable

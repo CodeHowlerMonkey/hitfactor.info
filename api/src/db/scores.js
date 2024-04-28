@@ -39,11 +39,11 @@ ScoreSchema.virtual("recHHF").get(function () {
 });
 ScoreSchema.virtual("curPercent").get(function () {
   const curHHF = this.HHFs?.[0]?.curHHF || -1;
-  return this.isMajor ? this.percent : PositiveOrMinus1(Percent(this.hf, curHHF));
+  return this.isMajor ? this.percent : PositiveOrMinus1(Percent(this.hf, curHHF, 4));
 });
 ScoreSchema.virtual("recPercent").get(function () {
   const recHHF = this.HHFs?.[0]?.recHHF || -1;
-  return this.isMajor ? this.percent : PositiveOrMinus1(Percent(this.hf, recHHF));
+  return this.isMajor ? this.percent : PositiveOrMinus1(Percent(this.hf, recHHF, 4));
 });
 // TODO: get rid of percentMinusCurPercent
 ScoreSchema.virtual("percentMinusCurPercent").get(function () {
@@ -179,7 +179,10 @@ export const shooterScoresChartData = async ({ memberNumber, division }) => {
 };
 
 export const scoresForDivisionForShooter = async ({ division, memberNumber }) => {
-  const scores = await Score.find({ division, memberNumber }).populate("HHFs").limit(0);
+  const scores = await Score.find({ division, memberNumber })
+    .populate("HHFs")
+    .sort({ sd: -1, hf: -1 })
+    .limit(0);
   return scores.map((doc, index) => {
     const obj = doc.toObject({ virtuals: true });
     obj.index = index;

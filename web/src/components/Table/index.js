@@ -19,7 +19,7 @@ export const renderPercent = (c, { field }) => {
     return "—";
   }
 
-  return value.toFixed(2) + "%";
+  return parseFloat(value.toFixed(2)) + "%";
 };
 
 export const renderHFOrNA = (c, { field }) => {

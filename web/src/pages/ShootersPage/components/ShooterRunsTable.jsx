@@ -1,6 +1,6 @@
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
-import { headerTooltipOptions } from "../../../components/Table";
+import { headerTooltipOptions, renderPercent } from "../../../components/Table";
 import ClassifierCell from "../../../components/ClassifierCell";
 
 // TODO: historical HHF, percentile
@@ -65,6 +65,7 @@ const ShooterRunsTable = ({
     <Column field="clubid" header="Club" sortable showFilterMenu={false} />
     <Column field="hf" header="HF" sortable />
     <Column
+      body={renderPercent}
       field="percent"
       header="Percent"
       sortable
@@ -72,6 +73,7 @@ const ShooterRunsTable = ({
       headerTooltipOptions={headerTooltipOptions}
     />
     <Column
+      body={renderPercent}
       field="recPercent"
       header="Rec. Percent"
       sortable
@@ -79,6 +81,7 @@ const ShooterRunsTable = ({
       headerTooltipOptions={headerTooltipOptions}
     />
     <Column
+      body={renderPercent}
       field="curPercent"
       header="Current Percent"
       sortable
@@ -86,6 +89,7 @@ const ShooterRunsTable = ({
       headerTooltipOptions={headerTooltipOptions}
     />
     <Column
+      body={renderPercent}
       field="percentMinusCurPercent"
       header="Percent Change"
       sortable
