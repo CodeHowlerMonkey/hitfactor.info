@@ -1,5 +1,4 @@
 import uniqBy from "lodash.uniqby";
-import sortedUniqBy from "lodash.sorteduniqby";
 import transform from "lodash.transform";
 
 import { stringSort } from "../../../shared/utils/sort.js";
@@ -74,10 +73,10 @@ const extendedInfoForClassifier = (c, division, hitFactorScores) => {
   });
 
   // sik maf bro
-  // historical high hit factors, N(x, 2) uniqueness, cause maf is hard on
+  // historical high hit factors, Math.ceil(x * 100, 2) uniqueness, cause maf is hard on
   // computers and gets too much noise. If they changed HF <= 0.01 it doesn't
   // matter anyway, so toFixed(2)
-  const hhfs = sortedUniqBy(
+  const hhfs = uniqBy(
     hitFactorScores
       .filter((run) => run.percent !== 0 && run.percent !== 100)
       .map((run) => ({
@@ -86,7 +85,7 @@ const extendedInfoForClassifier = (c, division, hitFactorScores) => {
         hhf: HF((100 * run.hf) / run.percent),
       }))
       .sort((a, b) => a.date - b.date),
-    (hhfData) => N(hhfData.hhf, 2)
+    (hhfData) => Math.ceil(hhfData.hhf * 100)
   );
   const clubs = uniqBy(hitFactorScores, "clubid")
     .map(({ clubid: id, club_name: name }) => ({
