@@ -157,20 +157,6 @@ const ShootersTable = ({
           />
         )}
       />
-      {/*
-      <Column field="brutalClass" header="Rec." {...classColumnProps} />
-      <Column field="recClass" header="Rec." {...classColumnProps} />
-      <Column field="curHHFClass" header="Cur.HHF" {...classColumnProps} />
-      <Column field="hqClass" header="HQ" {...classColumnProps} />
-      */}
-      <Column
-        field="reclassificationsBrutalPercentCurrent"
-        header="Brutal %"
-        headerTooltip="Recommended classification percent of this shooter, using average score between duplicated. Major Matches results stay the same."
-        headerTooltipOptions={headerTooltipOptions}
-        sortable
-        body={renderPercent}
-      />
       <Column
         field="reclassificationsRecPercentCurrent"
         header="Rec. %"
@@ -188,14 +174,6 @@ const ShootersTable = ({
         body={renderPercent}
       />
       <Column field="current" header="HQ %" sortable body={renderPercent} />
-      <Column
-        field="hqToBrutalPercent"
-        header="HQ vs Brutal %"
-        headerTooltip="Difference between official and brutal classifications"
-        headerTooltipOptions={headerTooltipOptions}
-        sortable
-        body={renderPercentDiff}
-      />
       <Column
         field="hqToRecPercent"
         header="HQ vs Rec.HHF %"

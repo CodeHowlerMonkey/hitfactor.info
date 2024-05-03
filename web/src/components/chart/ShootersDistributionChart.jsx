@@ -22,13 +22,12 @@ const lines = {
   ...xLine("40%", 40, r5annotationColor(0.5), 2.5),
 };
 
-const modes = ["HQ", "Cur. HHF", "Recommended", "Brutal"];
+const modes = ["HQ", "Current HHF", "Recommended"];
 const fieldForMode = (mode) =>
   ({
     HQ: "curPercent",
-    "Cur. HHF": "curHHFPercent",
+    "Current HHF": "curHHFPercent",
     Recommended: "recPercent",
-    Brutal: "brutalPercent",
   }[mode]);
 
 export const ShootersDistributionChart = ({ division, style }) => {
@@ -72,18 +71,11 @@ export const ShootersDistributionChart = ({ division, style }) => {
           tooltip: {
             callbacks: {
               label: ({
-                raw: {
-                  brutalPercent,
-                  recPercent,
-                  curHHFPercent,
-                  curPercent,
-                  memberNumber,
-                  y,
-                },
+                raw: { recPercent, curHHFPercent, curPercent, memberNumber, y },
               }) =>
                 `${memberNumber}; ${y.toFixed(
                   2
-                )}th, Brutal: ${brutalPercent}%, Rec: ${recPercent}%, curHHF: ${curHHFPercent}%, HQ: ${curPercent}%`,
+                )}th, Rec: ${recPercent}%, curHHF: ${curHHFPercent}%, HQ: ${curPercent}%`,
             },
           },
           annotation: { annotations: lines },

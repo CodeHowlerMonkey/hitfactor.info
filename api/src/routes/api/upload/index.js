@@ -7,8 +7,12 @@ import { Score } from "../../../db/scores.js";
 import { RecHHF, hydrateRecHHFsForClassifiers } from "../../../db/recHHF.js";
 import { singleClassifierExtendedMetaDoc, Classifier } from "../../../db/classifiers.js";
 import { hydrateStats } from "../../../db/stats.js";
-import { reclassifyShooters, testBrutalClassification } from "../../../db/shooters.js";
+import {
+  scoresForRecommendedClassification,
+  reclassifyShooters,
+} from "../../../db/shooters.js";
 import { DQs } from "../../../db/dq.js";
+import { calculateUSPSAClassification } from "../../../../../shared/utils/classification.js";
 
 const fetchPS = async (path) => {
   const response = await fetch("https://s3.amazonaws.com/ps-scores/production/" + path, {
@@ -195,7 +199,8 @@ const uploadRoutes = async (fastify, opts) => {
 
   fastify.get("/test/:memberNumber", async (req, res) => {
     const { memberNumber } = req.params;
-    return testBrutalClassification(memberNumber);
+    const scores = await scoresForRecommendedClassification([memberNumber]);
+    return calculateUSPSAClassification(scores, "recPercent");
   });
 
   fastify.get("/searchMatches", async (req, res) => {

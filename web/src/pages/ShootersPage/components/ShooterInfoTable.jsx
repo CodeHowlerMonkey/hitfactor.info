@@ -42,12 +42,6 @@ const cardRow = ({ classes, currents, ages, reclassifications }, div) => ({
   ]
     .filter(Boolean)
     .join(" / "),
-  brutal: [
-    reclassifications.brutalPercent?.classes?.[div],
-    percentValueOrEmpty(reclassifications?.brutalPercent?.currents?.[div]),
-  ]
-    .filter(Boolean)
-    .join(" / "),
   age: toFixedWithSuffixValueOrPlaceholder(ages[div], 1, "mo"),
 });
 
@@ -109,7 +103,6 @@ export const ShooterInfoTable = ({ info }) => {
         }
       >
         <Column field="division" header="Div" />
-        <Column field="brutal" header="Brutal." />
         <Column field="rec" header="Rec." />
         <Column field="curHHF" header="Cur.HHF" />
         <Column field="hq" header="HQ" />

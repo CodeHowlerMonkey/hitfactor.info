@@ -77,7 +77,6 @@ const _runsAggregation = async ({
         hqCurrent: _getShooterField("current"),
         name: _getShooterField("name"),
         reclassifications: _getShooterField("reclassifications"),
-        brutalClass: _getShooterField("brutalClass"),
         recClass: _getShooterField("recClass"),
         curHHFClass: _getShooterField("curHHFClass"),
         reclassificationsCurPercentCurrent: _getShooterField(
@@ -85,9 +84,6 @@ const _runsAggregation = async ({
         ),
         reclassificationsRecPercentCurrent: _getShooterField(
           "reclassificationsRecPercentCurrent"
-        ),
-        reclassificationsBrutalPercentCurrent: _getShooterField(
-          "reclassificationsBrutalPercentCurrent"
         ),
       },
     },

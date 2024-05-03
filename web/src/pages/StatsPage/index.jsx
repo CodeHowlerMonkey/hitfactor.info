@@ -196,7 +196,6 @@ const modeMap = {
   "HQ Cur.": "byPercent",
   "Cur. HHF": "byCurHHFPercent",
   Recommended: "byRecHHFPercent",
-  Brutal: "byBrutalPercent",
 };
 const modes = Object.keys(modeMap);
 const modeBucketForMode = (mode) => modeMap[mode];

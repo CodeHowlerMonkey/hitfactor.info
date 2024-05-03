@@ -8,7 +8,6 @@ import { useState } from "react";
 import { SelectButton } from "primereact/selectbutton";
 
 const modesMap = {
-  Brutal: "brutalPercent",
   Recommended: "recPercent",
   "Cur. HHF": "curPercent",
 };

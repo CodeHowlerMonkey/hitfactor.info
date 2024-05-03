@@ -174,7 +174,6 @@ export const hydrateStats = async () => {
   const byPercent = await statsByDivAndAll("curClass");
   const byCurHHFPercent = await statsByDivAndAll("curHHFClass");
   const byRecHHFPercent = await statsByDivAndAll("recClass");
-  const byBrutalPercent = await statsByDivAndAll("brutalClass");
 
   await Stats.updateOne(
     {},
@@ -184,7 +183,6 @@ export const hydrateStats = async () => {
         byPercent,
         byCurHHFPercent,
         byRecHHFPercent,
-        byBrutalPercent,
       },
     },
     { upsert: true }

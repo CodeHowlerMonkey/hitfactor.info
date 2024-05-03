@@ -24,31 +24,21 @@ const ClassTag = ({ value, alpha, tooltip }) =>
   );
 
 export const ShooterCell = ({ data, onClick }) => (
-  <div style={{ cursor: "pointer", minWidth: "12em" }} onClick={onClick}>
+  <div style={{ cursor: "pointer", minWidth: "9em" }} onClick={onClick}>
     <div>
       <ClassTag
-        value={data?.brutalClass ?? "?"}
-        tooltip={`Brutal classification: ${data?.reclassificationsBrutalPercentCurrent?.toFixed(
-          2
-        )}%`}
-      />
-      <ClassTag
         value={data?.recClass ?? "?"}
-        tooltip={`Rec. classification: ${data?.reclassificationsRecPercentCurrent?.toFixed(
-          2
-        )}%`}
+        tooltip={`Recommended: ${data?.reclassificationsRecPercentCurrent?.toFixed(2)}%`}
       />
       <ClassTag
         value={data?.curHHFClass ?? "?"}
         alpha={0.65}
-        tooltip={`Cur. HHF classification: ${data?.reclassificationsCurPercentCurrent?.toFixed(
-          2
-        )}%`}
+        tooltip={`Current HHF: ${data?.reclassificationsCurPercentCurrent?.toFixed(2)}%`}
       />
       <ClassTag
         value={data?.hqClass}
         alpha={0.45}
-        tooltip={`HQ Classification: ${data?.current?.toFixed(2) ?? 0}%`}
+        tooltip={`HQ: ${data?.current?.toFixed(2) ?? 0}%`}
       />
     </div>
     <div style={{ position: "relative" }}>
