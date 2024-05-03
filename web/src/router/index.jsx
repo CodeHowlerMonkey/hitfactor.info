@@ -7,7 +7,7 @@ const config = [
   {
     label: "Stats",
     icon: "pi pi-chart-pie",
-    path: "/classifications",
+    path: "/stats",
   },
   {
     label: "Classifiers",
@@ -79,7 +79,7 @@ const router = createBrowserRouter([
     ),
     children: [
       {
-        path: "classifications",
+        path: "stats",
         Component: React.lazy(() => import("../pages/StatsPage")),
       },
       {
