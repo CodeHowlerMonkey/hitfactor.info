@@ -253,10 +253,8 @@ const shooterObjectsFromClassificationFile = async (c) => {
     return [];
   }
   const memberNumber = memberNumberFromMemberData(c.member_data);
-  const [memberScores, brutalMemberScores] = await Promise.all([
-    allDivisionsScores([memberNumber]),
-    allDivisionsScoresForBrutalClassification([memberNumber]),
-  ]);
+  const memberScores = await allDivisionsScoresForBrutalClassification([memberNumber]);
+  const brutalMemberScores = memberScores; //< TODO: cleanup dupes
   const hqClasses = reduceByDiv(c.classifications, (r) => r.class);
   const hqCurrents = reduceByDiv(c.classifications, (r) => Number(r.current_percent));
   const recalcByCurPercent = calculateUSPSAClassification(memberScores, "curPercent");
@@ -384,11 +382,9 @@ export const reclassifyShooters = async (shooters) => {
     const memberNumbers = uniqBy(shooters, (s) => s.memberNumber).map(
       (s) => s.memberNumber
     );
-    const [scores, brutalScores] = await Promise.all([
-      allDivisionsScores(memberNumbers),
-      allDivisionsScoresForBrutalClassification(memberNumbers),
-    ]);
-
+    // TODO: cleanup duplicate scores/brutalScores
+    const brutalScores = await allDivisionsScoresForBrutalClassification(memberNumbers);
+    const scores = brutalScores;
     const scoresByMemberNumber = scores.reduce((acc, cur) => {
       let curMemberScores = acc[cur.memberNumber] ?? [];
       curMemberScores.push(cur);
@@ -532,7 +528,7 @@ export const reclassificationForProgressMode = async (mode, memberNumber) => {
 
     case "recPercent":
       {
-        const scores = await allDivisionsScores([memberNumber]);
+        const scores = await allDivisionsScoresForBrutalClassification([memberNumber]);
         return calculateUSPSAClassification(scores, "recPercent");
       }
       break;
