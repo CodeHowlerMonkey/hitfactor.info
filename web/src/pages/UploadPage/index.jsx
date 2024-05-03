@@ -67,6 +67,9 @@ const MatchSearchInput = forwardRef(({ placeholder, onChange }, ref) => {
   );
 });
 
+// TODO: 2 tabs, USPSA / PractiScore
+// PS is current UploadPage, USPSA if login/password form
+// upload shooter from USPSA with memberNumber/password
 const UploadPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);

@@ -191,6 +191,8 @@ const afterUpload = async (classifiers, shooters) => {
 };
 
 const uploadRoutes = async (fastify, opts) => {
+  // TODO: upload shooter from USPSA with memberNumber/password
+
   fastify.get("/test/:memberNumber", async (req, res) => {
     const { memberNumber } = req.params;
     return testBrutalClassification(memberNumber);
