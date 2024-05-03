@@ -21,6 +21,7 @@ import testData, {
   csOpenClassifiers,
   noCurPercentButExpected,
 } from "./testData.js";
+import { dateSort } from "../../../../../../shared/utils/sort.js";
 
 test("lets make sure this works first", (t) => {
   assert.strictEqual(1, 1);
@@ -214,12 +215,20 @@ test("getDivToClass", (t) => {
   });
 });
 
-const makeClassifier = ({ classifier, percent, division, sd, curPercent } = {}) => ({
+const makeClassifier = ({
+  classifier,
+  percent,
+  division,
+  sd,
+  curPercent,
+  recPercent,
+} = {}) => ({
   classifier: classifier ?? "99-11",
   sd: sd ?? "1/01/23",
   percent: percent ?? 74.999,
   division: division ?? "ss",
   curPercent: curPercent ?? 0,
+  recPercent: recPercent ?? 0,
 });
 
 test("canBeInserted", (t) => {
@@ -437,6 +446,35 @@ test("percentAndAgesForDivWindow + percentField", (t) => {
     percentAndAgesForDivWindow("ss", state, "curPercent").percent,
     (100 + 97 + 95 + 90 + 75 + 65) / 6
   );
+});
+
+test("percentAndAgesForDivWindow + recPercent = one latest dupe", (t) => {
+  const state = newClassificationCalculationState();
+  state.ss.window.push(makeClassifier({ recPercent: 75, sd: "12/01/01" }));
+  state.ss.window.push(makeClassifier({ recpercent: 85, sd: "11/01/01" }));
+  state.ss.window.push(makeClassifier({ recPercent: 95, sd: "10/01/01" }));
+  state.ss.window.push(makeClassifier({ recPercent: 97, sd: "09/01/01" }));
+  state.ss.window.push(makeClassifier({ recPercent: 97, sd: "09/01/01" }));
+  state.ss.window.push(
+    makeClassifier({ classifier: "01-01", recPercent: 75, sd: "09/01/01" })
+  );
+  state.ss.window.push(
+    makeClassifier({ classifier: "01-02", recPercent: 75, sd: "09/01/01" })
+  );
+  state.ss.window.push(
+    makeClassifier({ classifier: "01-03", recPercent: 75, sd: "09/01/01" })
+  );
+  state.ss.window.push(
+    makeClassifier({ classifier: "01-04", recPercent: 75, sd: "09/01/01" })
+  );
+  state.ss.window.push(
+    makeClassifier({ classifier: "01-05", recPercent: 75, sd: "09/01/01" })
+  );
+  state.ss.window.sort((a, b) => dateSort(a, b, "sd", -1));
+  assert.strictEqual(percentAndAgesForDivWindow("ss", state, "recPercent").percent, 75);
+  state.ss.window.push(makeClassifier({ recPercent: 45, sd: "12/12/12" }));
+  state.ss.window.sort((a, b) => dateSort(a, b, "sd", -1));
+  assert.strictEqual(percentAndAgesForDivWindow("ss", state, "recPercent").percent, 70);
 });
 
 test("numberOfDuplicates", (t) => {

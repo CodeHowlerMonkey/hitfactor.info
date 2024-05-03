@@ -144,14 +144,19 @@ export const percentAndAgesForDivWindow = (
   percentField = "percent",
   now = new Date()
 ) => {
-  const window = state[div].window.toSorted((a, b) => numSort(a, b, percentField, -1));
-
   //de-dupe needs to be done in reverse, because percent are sorted asc
+  let window = state[div].window;
+  if (percentField !== "recPercent") {
+    // don't use best dupe for recommended, only most recent one
+    window = window.toSorted((a, b) => numSort(a, b, percentField, -1));
+  }
   const dFlagsApplied = uniqBy(window, (c) => c.classifier);
 
   // remove lowest 2
   const newLength = windowSizeForScore(dFlagsApplied.length);
-  const fFlagsApplied = dFlagsApplied.slice(0, newLength);
+  const fFlagsApplied = dFlagsApplied
+    .toSorted((a, b) => numSort(a, b, percentField, -1))
+    .slice(0, newLength);
   const percent = fFlagsApplied.reduce(
     (acc, curValue, curIndex, allInWindow) =>
       acc + Math.min(100, curValue[percentField]) / allInWindow.length,
