@@ -3,12 +3,9 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { divisions } from "../../../data/division.json";
 
-const divisionForIndex = (index) =>
-  divisions[index]?.short_name?.toLowerCase?.();
+const divisionForIndex = (index) => divisions[index]?.short_name?.toLowerCase?.();
 const indexForDivision = (division) =>
-  divisions.findIndex(
-    (c) => c?.short_name?.toLowerCase() === (division || "invalid")
-  );
+  divisions.findIndex((c) => c?.short_name?.toLowerCase() === (division || "invalid"));
 
 export const DivisionNavigation = ({ onSelect }) => {
   const { division } = useParams();
@@ -22,7 +19,7 @@ export const DivisionNavigation = ({ onSelect }) => {
   return (
     <div>
       <TabView
-        panelContainerStyle={{ padding: 0 }}
+        panelContainerClassName="p-0 md:px-8"
         activeIndex={activeIndex}
         onTabChange={({ index }) => {
           onSelect?.(divisionForIndex(index));
@@ -30,7 +27,11 @@ export const DivisionNavigation = ({ onSelect }) => {
         }}
       >
         {divisions.map((division) => (
-          <TabPanel key={division.id} header={division.long_name} />
+          <TabPanel
+            key={division.id}
+            header={division.long_name}
+            className="p-0 text-sm md:text-md"
+          />
         ))}
       </TabView>
       {activeIndex < 0 && (

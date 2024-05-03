@@ -82,12 +82,6 @@ export const ShooterRunsAndInfo = ({ division, memberNumber, onBackToShooters })
         <h1 className="m-auto sm:text-base text-base lg:text-lg">
           {memberNumber} - {name} - {divShortToLong[division]}
         </h1>
-        {/*<a href={downloadUrl} download className="px-5 py-2" style={{ fontSize: "1.625rem" }}>
-          <i
-            className="pi pi-download"
-            style={{ fontSize: "1.2rem", fontWeight: "bold", color: "#ae9ef1" }}
-          />
-        </a>*/}
       </div>
       <ShooterInfoTable info={info} />
 

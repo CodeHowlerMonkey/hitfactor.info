@@ -13,10 +13,10 @@ const ClassTag = ({ value, alpha, tooltip }) =>
         style={{
           backgroundColor: bgColorForClass[value],
           color: fgColorForClass[value],
-          padding: "1px 4px",
-          fontSize: "11px",
-          margin: "0 1px",
-          minWidth: "18px",
+          padding: "0.0715em 0.285em",
+          fontSize: "0.785em",
+          margin: "0 0.0715em",
+          minWidth: "1.285em",
           opacity: alpha,
         }}
       />
@@ -24,9 +24,8 @@ const ClassTag = ({ value, alpha, tooltip }) =>
   );
 
 export const ShooterCell = ({ data, onClick }) => (
-  <div style={{ cursor: "pointer" }} onClick={onClick}>
-    <div style={{ position: "relative" }}>
-      <span style={{ marginRight: "4px" }}>{data.memberNumber}</span>
+  <div style={{ cursor: "pointer", minWidth: "12em" }} onClick={onClick}>
+    <div>
       <ClassTag
         value={data?.brutalClass ?? "?"}
         tooltip={`Brutal classification: ${data?.reclassificationsBrutalPercentCurrent?.toFixed(
@@ -52,7 +51,10 @@ export const ShooterCell = ({ data, onClick }) => (
         tooltip={`HQ Classification: ${data?.current?.toFixed(2) ?? 0}%`}
       />
     </div>
-    <div style={{ fontSize: 14 }}>{data.name}</div>
+    <div style={{ position: "relative" }}>
+      <span style={{ marginRight: "4px" }}>{data.memberNumber}</span>
+    </div>
+    <div style={{ fontSize: "1.125em" }}>{data.name}</div>
   </div>
 );
 

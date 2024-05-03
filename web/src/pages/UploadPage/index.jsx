@@ -207,7 +207,7 @@ const UploadResults = ({ result, loading, error }) => {
         />
       )}
       {result && (
-        <div className="flex justify-content-around sm: w-full lg:w-10 mt-4">
+        <div className="flex justify-content-around sm:w-full lg:w-10 mt-4">
           <div>
             Classifiers:
             <ul>
@@ -279,7 +279,7 @@ const OldUploadPage = () => {
         )}
       </div>
       {result && (
-        <div className="flex justify-content-around sm: w-full lg:w-10 mt-4">
+        <div className="flex justify-content-around sm:w-full lg:w-10 mt-4">
           <div>
             Classifiers:
             <ul>

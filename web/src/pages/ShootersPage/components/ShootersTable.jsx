@@ -28,9 +28,10 @@ const TableFilter = ({ placeholder, onFilterChange }) => {
   useEffect(() => onFilterChange?.(debouncedFilter), [debouncedFilter]);
 
   return (
-    <span className="p-input-icon-left">
+    <span className="p-input-icon-left w-12">
       <i className="pi pi-search" />
       <InputText
+        className="w-12"
         value={filter}
         onChange={(e) => setFilter(e.target.value)}
         placeholder={placeholder}
@@ -104,11 +105,11 @@ const ShootersTable = ({
       {...sortProps}
       {...pageProps}
       paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink"
-      paginatorLeft={<h2>Shooters</h2>}
+      paginatorLeft={<div />}
       paginatorRight={
         <>
           <TableFilter
-            placeholder="Filter by Club or Shooter"
+            placeholder="Filter by Name or Number"
             onFilterChange={(f) => setFilter(f)}
           />
           {/*<a href={downloadUrl} download className="px-5 py-2">

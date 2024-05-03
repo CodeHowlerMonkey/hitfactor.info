@@ -1,16 +1,11 @@
 import React, { useState, Suspense, useEffect } from "react";
 import { TabMenu } from "primereact/tabmenu";
 import { ProgressSpinner } from "primereact/progressspinner";
-import {
-  createBrowserRouter,
-  Outlet,
-  useNavigate,
-  useLocation,
-} from "react-router-dom";
+import { createBrowserRouter, Outlet, useNavigate, useLocation } from "react-router-dom";
 
 const config = [
   {
-    label: "Classification Stats",
+    label: "Stats",
     icon: "pi pi-chart-pie",
     path: "/classifications",
   },
@@ -37,9 +32,7 @@ const config = [
 ];
 
 const activeIndexForPathname = (pathname) =>
-  config
-    .map((c) => c.path)
-    .findIndex((curPath) => pathname?.startsWith(curPath));
+  config.map((c) => c.path).findIndex((curPath) => pathname?.startsWith(curPath));
 
 const Menu = () => {
   const navigate = useNavigate();
@@ -50,7 +43,7 @@ const Menu = () => {
 
   return (
     <TabMenu
-      style={{ fontSize: "1.25rem" }}
+      className="text-md md:text-xl"
       model={config.map((c) => ({ ...c, command: () => navigate(c.path) }))}
       activeIndex={activeIndex}
       onTabChange={(e) => setActiveIndex(e.index)}
@@ -81,15 +74,13 @@ const router = createBrowserRouter([
       <div className="card">
         <Menu />
         <h2>Sent It A Bit Too Hard, Bud!</h2>
-        <h3 style={{ fontStyle: "italic" }}>
-          404 Not Found (or crash? I dunno)
-        </h3>
+        <h3 style={{ fontStyle: "italic" }}>404 Not Found (or crash? I dunno)</h3>
       </div>
     ),
     children: [
       {
         path: "classifications",
-        Component: React.lazy(() => import("../pages/ClassificationsPage")),
+        Component: React.lazy(() => import("../pages/StatsPage")),
       },
       {
         path: "classifiers/:division?/:classifier?",

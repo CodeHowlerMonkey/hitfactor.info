@@ -20,6 +20,52 @@
   height: 100%
 }
 
+.p-selectbutton.p-buttonset.p-component {
+  font-size: 1em;
+}
+.p-selectbutton .p-button {
+  font-size: 1em;
+}
+
+.compact .p-button.p-component {
+  padding: 10px 10px;
+}
+.less-compact .p-button.p-component {
+  padding: 10px 14px;
+}
+
+.p-0 a.p-tabview-nav-link {
+  padding-left: 1.0em;
+  padding-right: 1.0em;
+/*  padding: 1.2em 2em;*/
+}
+
+.p-paginator.p-component {
+  padding: 0;
+  font-size: 1em;
+  justify-content: space-around;
+}
+
+.p-paginator.p-component .p-link {
+  font-size: 1em;
+}
+
+.p-paginator .p-paginator-pages .p-paginator-page ,
+.p-paginator .p-paginator-prev.p-paginator-element ,
+.p-paginator .p-paginator-next.p-paginator-element ,
+.p-paginator .p-paginator-first.p-paginator-element ,
+.p-paginator .p-paginator-last.p-paginator-element {
+  margin: 1em 0.125em;
+  max-width: 3rem;
+  max-height: 3rem;
+
+  min-width: unset;
+  width: 9vw;
+  height: 9vw;
+
+}
+
+
 /*
 a {
   font-weight: 500;

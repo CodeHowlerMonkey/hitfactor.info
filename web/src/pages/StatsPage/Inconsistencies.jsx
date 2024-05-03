@@ -16,8 +16,9 @@ const classFilterItems = (mode) =>
   ].filter(Boolean);
 
 const ClassFilterSelect = ({ mode, value, setValue }) => (
-  <div className="mx-2">
+  <div className="m-2 mx-auto">
     <SelectButton
+      className="less-compact"
       value={value}
       onChange={(e) => setValue(e.value)}
       optionLabel="name"
@@ -32,8 +33,9 @@ const modeItems = [
 ];
 
 const ModeSelect = ({ value, setValue }) => (
-  <div className="mx-2">
+  <div className="m-2 mx-auto">
     <SelectButton
+      className="compact"
       allowEmpty={false}
       value={value}
       onChange={(e) => setValue(e.value)}
@@ -50,8 +52,9 @@ const versusItems = [
 ];
 
 const VersusSelect = ({ value, setValue }) => (
-  <div className="mx-2">
+  <div className="m-2 mx-auto">
     <SelectButton
+      className="compact"
       allowEmpty={false}
       value={value}
       onChange={(e) => setValue(e.value)}
@@ -77,9 +80,8 @@ const Inconsistencies = () => {
 
   return (
     <div>
-      <div className="flex flex-row justify-content-between mx-4 my-2">
+      <div className="flex flex-row flex-wrap justify-content-around mx-4 my-2">
         <VersusSelect value={versus} setValue={setVersus} />
-        <div className="flex-grow-1" />
         <ModeSelect value={mode} setValue={setMode} />
         <ClassFilterSelect value={classFilter} setValue={setClassFilter} mode={mode} />
       </div>
