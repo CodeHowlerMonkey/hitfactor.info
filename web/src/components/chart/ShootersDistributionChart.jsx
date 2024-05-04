@@ -22,13 +22,13 @@ const lines = {
   ...xLine("40%", 40, r5annotationColor(0.5), 2.5),
 };
 
-const modes = ["HQ", "Current HHF", "Recommended"];
-const fieldForMode = (mode) =>
-  ({
-    HQ: "curPercent",
-    "Current HHF": "curHHFPercent",
-    Recommended: "recPercent",
-  }[mode]);
+const fieldModeMap = {
+  HQ: "curPercent",
+  "Cur.HHF": "curHHFPercent",
+  "Rec.": "recPercent",
+};
+const fieldForMode = (mode) => fieldModeMap[mode];
+const modes = Object.keys(fieldModeMap);
 
 export const ShootersDistributionChart = ({ division, style }) => {
   const [colorMode, setColorMode] = useState(modes[2]);
@@ -45,9 +45,8 @@ export const ShootersDistributionChart = ({ division, style }) => {
 
   const graph = (
     <Scatter
-      style={{ position: "relative", width: "100%", height: "100%" }}
       options={{
-        maintainAspectRatio: true,
+        maintainAspectRatio: false,
         scales: { y: { reverse: true } },
         elements: {
           point: {
@@ -104,36 +103,31 @@ export const ShootersDistributionChart = ({ division, style }) => {
 
   return (
     <div style={style}>
-      <div className="flex align-items-center mt-4 justify-content-between">
-        <div
-          className="flex flex-row align-items-center"
-          style={{ transform: "scale(0.65)" }}
-        >
-          <span className="text-xl mx-4">Color:</span>
+      <div className="flex mt-4 justify-content-around text-md lg:text-xl">
+        <div className="flex flex-row flex-wrap justify-content-center gap-2">
+          <span className="mx-4">Color:</span>
           <SelectButton
+            className="compact"
             allowEmpty={false}
             options={modes}
             value={colorMode}
             onChange={(e) => setColorMode(e.value)}
-            style={{ transforms: "scale(0.65)" }}
           />
         </div>
-        <div className="flex-grow-1" />
-        <div
-          className="flex flex-row align-items-center"
-          style={{ transform: "scale(0.65)" }}
-        >
-          <span className="text-xl mx-4">Position:</span>
+        <div className="flex flex-row flex-wrap justify-content-center gap-2">
+          <span className="mx-4">Position:</span>
           <SelectButton
+            className="compact"
             allowEmpty={false}
             options={modes}
             value={xMode}
             onChange={(e) => setXMode(e.value)}
-            style={{ transforms: "scale(0.65)" }}
           />
         </div>
       </div>
-      {graph}
+      <div style={{ maxWidth: "100%", height: "calc(100vh - 420px)", minHeight: 360 }}>
+        {graph}
+      </div>
     </div>
   );
 };
