@@ -1,9 +1,28 @@
 import React, { useState, Suspense, useEffect } from "react";
 import { TabMenu } from "primereact/tabmenu";
 import { ProgressSpinner } from "primereact/progressspinner";
-import { createBrowserRouter, Outlet, useNavigate, useLocation } from "react-router-dom";
+import {
+  createBrowserRouter,
+  Outlet,
+  useNavigate,
+  useLocation,
+  Link,
+} from "react-router-dom";
 
 const config = [
+  {
+    label: "Howler Monkey Classifiers",
+    template: (item) => (
+      <Link className="flex p-menuitem-link" to={item.href}>
+        <img
+          alt="Howler Monkey Classifiers"
+          src="logo.png"
+          style={{ maxWidth: "calc(min(12vw, 64px))" }}
+        />
+      </Link>
+    ),
+    path: "/",
+  },
   {
     label: "Stats",
     icon: "pi pi-chart-pie",
@@ -29,22 +48,48 @@ const config = [
     icon: "pi pi-upload",
     path: "/upload",
   },
+  {
+    className: "flex-grow-1",
+    separator: true,
+    disabled: true,
+    style: { opacity: 1 },
+  },
+  {
+    template: () => (
+      <Link
+        className="flex p-menuitem-link no-highlight"
+        to="https://github.com/CodeHowlerMonkey/hitfactor.info"
+        target="_blank"
+      >
+        {" "}
+        <span className="pi pi-github text-2xl" />
+      </Link>
+    ),
+  },
 ];
 
 const activeIndexForPathname = (pathname) =>
-  config.map((c) => c.path).findIndex((curPath) => pathname?.startsWith(curPath));
+  config.map((c) => c.path).findLastIndex((curPath) => pathname?.startsWith(curPath));
 
 const Menu = () => {
   const navigate = useNavigate();
   const { pathname } = useLocation();
-  const [activeIndex, setActiveIndex] = useState(activeIndexForPathname);
+  let [activeIndex, setActiveIndex] = useState(0);
 
   useEffect(() => setActiveIndex(activeIndexForPathname(pathname)), [pathname]);
+
+  // Don't stay on github link, just go back, so it works like a button
+  if (activeIndex === config.length - 1) {
+    activeIndex = activeIndexForPathname(pathname);
+  }
 
   return (
     <TabMenu
       className="text-md md:text-xl"
-      model={config.map((c) => ({ ...c, command: () => navigate(c.path) }))}
+      model={config.map((c) => ({
+        ...c,
+        command: () => navigate(c.path),
+      }))}
       activeIndex={activeIndex}
       onTabChange={(e) => setActiveIndex(e.index)}
     />

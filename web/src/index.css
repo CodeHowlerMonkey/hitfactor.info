@@ -65,6 +65,10 @@
 
 }
 
+.p-tabmenu .p-tabmenu-nav .p-tabmenuitem:not(.p-highlight) .p-menuitem-link.no-highlight ,
+.p-tabmenu .p-tabmenu-nav .p-tabmenuitem:not(.p-highlight):not(.p-disabled):hover .p-menuitem-link.no-highlight {
+  border-color: #3e4053;
+}
 
 /*
 a {
