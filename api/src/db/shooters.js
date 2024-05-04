@@ -76,6 +76,23 @@ ShooterSchema.index({
   reclassificationsRecPercentCurrent: -1,
   reclassificationsCurPercentCurrent: 1,
 });
+ShooterSchema.index({
+  class: 1,
+  division: 1,
+  reclassificationsRecPercentCurrent: -1,
+  reclassificationsCurPercentCurrent: 1,
+});
+ShooterSchema.index({
+  class: 1,
+  division: 1,
+  hqToRecPercent: 1,
+  reclassificationsCurPercentCurrent: 1,
+});
+ShooterSchema.index({
+  class: 1,
+  division: 1,
+  reclassificationsCurPercentCurrent: 1,
+});
 
 export const Shooter = mongoose.model("Shooter", ShooterSchema);
 
