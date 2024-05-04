@@ -103,7 +103,7 @@ export const ShootersDistributionChart = ({ division, style }) => {
 
   return (
     <div style={style}>
-      <div className="flex mt-4 justify-content-around text-md lg:text-xl">
+      <div className="flex mt-4 justify-content-around text-base lg:text-xl">
         <div className="flex flex-row flex-wrap justify-content-center gap-2">
           <span className="mx-4">Color:</span>
           <SelectButton

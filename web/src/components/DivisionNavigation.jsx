@@ -30,7 +30,7 @@ export const DivisionNavigation = ({ onSelect }) => {
           <TabPanel
             key={division.id}
             header={division.long_name}
-            className="p-0 text-sm md:text-md"
+            className="p-0 text-sm md:text-base"
           />
         ))}
       </TabView>

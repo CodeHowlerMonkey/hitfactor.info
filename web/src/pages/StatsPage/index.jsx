@@ -222,7 +222,7 @@ export const StatsPage = () => {
   return (
     <div className="p-0 md:px-4">
       <TabView panelContainerClassName="p-0 md:px-4">
-        <TabPanel header="Pie Charts" className="p-0 text-sm md:text-md">
+        <TabPanel header="Pie Charts" className="p-0 text-sm md:text-base">
           <ModeSwitch {...modeSwitchProps} />
           <div className="card flex justify-content-center m-0">
             Include Unclassified
@@ -332,7 +332,7 @@ export const StatsPage = () => {
           </div>
         </TabPanel>
 
-        <TabPanel header="Alignment" className="p-0 text-sm md:text-md">
+        <TabPanel header="Alignment" className="p-0 text-sm md:text-base">
           <ModeSwitch {...modeSwitchProps} />
           <div style={{ width: "100%", overflowX: "auto" }}>
             <div
@@ -436,10 +436,10 @@ export const StatsPage = () => {
             />
           </div>
         </TabPanel>
-        <TabPanel header="Inconsistencies" className="p-0 text-sm md:text-md">
+        <TabPanel header="Inconsistencies" className="p-0 text-sm md:text-base">
           <Inconsistencies />
         </TabPanel>
-        <TabPanel header="Distribution" className="p-0 text-sm md:text-md">
+        <TabPanel header="Distribution" className="p-0 text-sm md:text-base">
           <Distribution />
         </TabPanel>
       </TabView>

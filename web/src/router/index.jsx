@@ -16,7 +16,7 @@ const config = [
       <Link className="flex p-menuitem-link" to={item.href}>
         <img
           alt="Howler Monkey Classifiers"
-          src="logo.png"
+          src="/logo.png"
           style={{ maxWidth: "calc(min(12vw, 64px))" }}
         />
       </Link>

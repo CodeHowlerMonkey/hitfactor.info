@@ -105,7 +105,7 @@ const ShootersTable = ({
       {...sortProps}
       {...pageProps}
       paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink"
-      paginatorLeft={<div />}
+      paginatorClassName="shooters-table-paginator pb-4 md:pb-0 justify-content-around "
       paginatorRight={
         <>
           <TableFilter
@@ -125,7 +125,6 @@ const ShootersTable = ({
         </>
       }
       totalRecords={shootersTotal}
-      filterDisplay="row"
     >
       <Column
         field="index"
@@ -159,7 +158,7 @@ const ShootersTable = ({
       />
       <Column
         field="reclassificationsRecPercentCurrent"
-        header="Rec. %"
+        header="Rec."
         headerTooltip="Recommended classification percent of this shooter, using best 6 out of most revent 10 scores and recommended HHFs for classifiers. B/C flags are off, but duplicates are still allowed and only best duplicate is used. Major Matches results stay the same."
         headerTooltipOptions={headerTooltipOptions}
         sortable
@@ -167,13 +166,13 @@ const ShootersTable = ({
       />
       <Column
         field="reclassificationsCurPercentCurrent"
-        header="Cur.HHFs %"
+        header="Cur."
         headerTooltip="Current HHF classification percent of this shooter, if all their classifier scores would use the most recent HHFs. Major Matches results stay the same."
         headerTooltipOptions={headerTooltipOptions}
         sortable
         body={renderPercent}
       />
-      <Column field="current" header="HQ %" sortable body={renderPercent} />
+      <Column field="current" header="HQ" sortable body={renderPercent} />
       <Column
         field="hqToRecPercent"
         header="HQ vs Rec.HHF %"
