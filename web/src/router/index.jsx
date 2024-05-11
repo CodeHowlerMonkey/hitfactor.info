@@ -85,7 +85,7 @@ const Menu = () => {
 
   return (
     <TabMenu
-      className="text-md md:text-xl"
+      className="text-base md:text-xl"
       model={config.map((c) => ({
         ...c,
         command: () => navigate(c.path),

@@ -8,7 +8,7 @@ import { HF, N, Percent, PositiveOrMinus1 } from "../../../dataUtil/numbers.js";
 import { curHHFForDivisionClassifier } from "../../../dataUtil/hhf.js";
 import { Score } from "../../../db/scores.js";
 import { Shooter } from "../../../db/shooters.js";
-import { Classifier } from "../../../db/classifiers.js";
+import { Classifier, allDivisionClassifiersQuality } from "../../../db/classifiers.js";
 
 import { multisort } from "../../../../../shared/utils/sort.js";
 import { PAGE_SIZE } from "../../../../../shared/constants/pagination.js";
@@ -139,7 +139,15 @@ const classifiersRoutes = async (fastify, opts) => {
 
   fastify.get("/:division", async (req) => {
     const { division } = req.params;
-    return Classifier.find({ division });
+    const [classifiers, classifiersAllDivQuality] = await Promise.all([
+      Classifier.find({ division }),
+      allDivisionClassifiersQuality(),
+    ]);
+    return classifiers.map((c) => {
+      const cur = c.toObject({ virtuals: true });
+      cur.allDivQuality = classifiersAllDivQuality[cur.classifier];
+      return cur;
+    });
   });
 
   fastify.get("/info/:division/:number", async (req, res) => {

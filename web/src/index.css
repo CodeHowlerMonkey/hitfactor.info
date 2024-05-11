@@ -95,5 +95,10 @@ white-space:nowrap;
   padding: 0.4em 0.4em;
   max-width: max-content;
   max-width:100%;
-white-space:nowrap;
+  white-space:nowrap;
+}
+
+.p-datatable.p-datatable-sm .p-datatable-header {
+  padding: 0.5rem 0;
+  border: none;
 }

@@ -127,6 +127,29 @@ const extendedInfoForClassifier = (c, division, hitFactorScores) => {
 };
 
 const ClassifierSchema = new mongoose.Schema({}, { strict: false });
+const WORST_QUALITY_DISTANCE_FROM_TARGET = 100;
+ClassifierSchema.virtual("quality").get(function () {
+  return Percent(
+    WORST_QUALITY_DISTANCE_FROM_TARGET -
+      (10.0 * Math.abs(1 - this.inverse95RecPercentPercentile) +
+        4.0 * Math.abs(5 - this.inverse85RecPercentPercentile) +
+        1.0 * Math.abs(15 - this.inverse75RecPercentPercentile) +
+        0.5 * Math.abs(45 - this.inverse60RecPercentPercentile) +
+        0.3 * Math.abs(85 - this.inverse40RecPercentPercentile)),
+    WORST_QUALITY_DISTANCE_FROM_TARGET
+  );
+});
+ClassifierSchema.virtual("hqQuality").get(function () {
+  return Percent(
+    WORST_QUALITY_DISTANCE_FROM_TARGET -
+      (10.0 * Math.abs(1 - this.inverse95CurPercentPercentile) +
+        4.0 * Math.abs(5 - this.inverse85CurPercentPercentile) +
+        1.0 * Math.abs(15 - this.inverse75CurPercentPercentile) +
+        0.5 * Math.abs(45 - this.inverse60CurPercentPercentile) +
+        0.3 * Math.abs(85 - this.inverse40CurPercentPercentile)),
+    WORST_QUALITY_DISTANCE_FROM_TARGET
+  );
+});
 ClassifierSchema.index({ classifier: 1, division: 1 }, { unique: true });
 ClassifierSchema.index({ division: 1 });
 export const Classifier = mongoose.model("Classifier", ClassifierSchema);
@@ -139,7 +162,7 @@ export const singleClassifierExtendedMetaDoc = async (
   const c = classifiersByNumber[classifier];
   const [recHHFQuery, hitFactorScores] = await Promise.all([
     recHHFReady ?? RecHHF.findOne({ division, classifier }).select("recHHF").lean(),
-    Score.find({ division, classifier, hf: { $gte: 0 } })
+    Score.find({ division, classifier, hf: { $gte: 0 }, bad: { $exists: false } })
       .sort({ hf: -1 })
       .limit(0)
       .lean(),
@@ -163,6 +186,8 @@ export const singleClassifierExtendedMetaDoc = async (
     ...inverseRecPercentileStats(95),
     ...inverseRecPercentileStats(85),
     ...inverseRecPercentileStats(75),
+    ...inverseRecPercentileStats(60),
+    ...inverseRecPercentileStats(40),
   };
 };
 
@@ -185,4 +210,45 @@ export const hydrateClassifiersExtendedMeta = async () => {
     }
   }
   console.timeEnd("classifiers");
+};
+
+// TODO: classifier quality score, maybe dependent on number of scores, but most importantly:
+// 10* percentDiffFromGMTarget 4*fromM 1*fromA
+let _allDivQuality = null;
+export const allDivisionClassifiersQuality = async () => {
+  if (_allDivQuality) {
+    return _allDivQuality;
+  }
+
+  let [co, opn, ltd, pcc] = await Promise.all([
+    Classifier.find({ division: "co" }),
+    Classifier.find({ division: "opn" }),
+    Classifier.find({ division: "ltd" }),
+    Classifier.find({ division: "pcc" }),
+  ]);
+
+  co = co.map((c) => c.toObject({ virtuals: true }));
+  opn = opn.map((c) => c.toObject({ virtuals: true }));
+  opn = opn.reduce((acc, cur) => {
+    acc[cur.classifier] = cur;
+    return acc;
+  }, {});
+  ltd = ltd.map((c) => c.toObject({ virtuals: true }));
+  ltd = ltd.reduce((acc, cur) => {
+    acc[cur.classifier] = cur;
+    return acc;
+  }, {});
+  pcc = pcc.map((c) => c.toObject({ virtuals: true }));
+  pcc = pcc.reduce((acc, cur) => {
+    acc[cur.classifier] = cur;
+    return acc;
+  }, {});
+
+  _allDivQuality = co.reduce((acc, c) => {
+    const id = c.classifier;
+    acc[id] = (c.quality + opn[id].quality + ltd[id].quality + pcc[id].quality) / 4;
+    return acc;
+  }, {});
+
+  return _allDivQuality;
 };

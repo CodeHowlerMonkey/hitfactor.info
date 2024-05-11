@@ -2,7 +2,7 @@ import { Textfit } from "react-textfit";
 
 export const ClassifierCell = ({ code, name, scoring, onClick }) => (
   <div
-    className="flex flex-column w-12rem"
+    className="flex flex-column w-8rem md:w-12rem"
     style={onClick ? { cursor: "pointer" } : {}}
     onClick={onClick}
   >
@@ -11,7 +11,7 @@ export const ClassifierCell = ({ code, name, scoring, onClick }) => (
       <div className="text-xs text-color-secondary">{scoring}</div>
     </div>
     <div className="text-color">
-      <Textfit max={16} mode="single">
+      <Textfit max={16} mode="multi">
         {name}
       </Textfit>
     </div>
