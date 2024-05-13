@@ -97,6 +97,7 @@ const ShootersTable = ({
   } = useShootersTableData({ division, inconsistencies, classFilter });
   return (
     <DataTable
+      className="text-xs md:text-base"
       loading={loading}
       stripedRows
       lazy
@@ -148,6 +149,7 @@ const ShootersTable = ({
       <Column
         field="memberNumber"
         header="Shooter"
+        maxWidth="fit-content"
         sortable
         body={(shooter) => (
           <ShooterCell

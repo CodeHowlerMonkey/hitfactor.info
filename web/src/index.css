@@ -83,12 +83,16 @@
   padding: 1em 1em;
 }
 
+.p-datatable.p-datatable-sm .p-datatable-tbody > tr > td {
+  padding: 0.5em 0.5em;
+}
+
 
 .compact.p-datatable .p-datatable-thead > tr > th{
   padding: 0 0.4em;
   max-width: max-content;
   max-width:100%;
-white-space:nowrap;
+  white-space:nowrap;
 }
 
 .compact.p-datatable .p-datatable-tbody > tr > td {

@@ -19,9 +19,10 @@ const TableFilter = ({ placeholder, onFilterChange }) => {
   useEffect(() => onFilterChange?.(debouncedFilter), [debouncedFilter]);
 
   return (
-    <span className="p-input-icon-left">
+    <span className="p-input-icon-left w-12">
       <i className="pi pi-search" />
       <InputText
+        className="w-12"
         value={filter}
         onChange={(e) => setFilter(e.target.value)}
         placeholder={placeholder}
@@ -140,6 +141,7 @@ const RunsTable = ({ classifier, division, clubs, onShooterSelection }) => {
 
   return (
     <DataTable
+      className="text-xs md:text-base"
       loading={loading}
       stripedRows
       lazy
@@ -148,36 +150,39 @@ const RunsTable = ({ classifier, division, clubs, onShooterSelection }) => {
       {...sortProps}
       {...pageProps}
       paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink"
-      paginatorLeft={<h2>Scores</h2>}
+      paginatorClassName="shooters-table-paginator pb-4 md:pb-0 justify-content-around"
       paginatorRight={
-        <div className="flex flex-row align-items-center">
-          {/*<LegacyCheckbox onChange={(v) => setLegacy(!!v)} />*/}
-          <TableFilter
-            placeholder="Filter by Club or Shooter"
-            onFilterChange={(f) => setFilter(f)}
-          />
-        </div>
+        <TableFilter
+          placeholder="Filter by Club or Shooter"
+          onFilterChange={(f) => setFilter(f)}
+        />
       }
       totalRecords={runsTotal}
       filterDisplay="row"
     >
-      <Column
+      {/*<Column
         field="index"
         header="#"
         headerTooltip="Index for the dataRow with current filters and sorting options applied. Can be used for manual counting of things. "
         headerTooltipOptions={headerTooltipOptions}
-      />
       <Column
         field="place"
-        header="Place"
-        sortable
+        //header="Place"
+        header="# / Perc."
         headerTooltip="Record place for this score. Stays the same unless someone beats this score."
+        headerTooltipOptions={headerTooltipOptions}
+        body={(c) => [c.place, c.percentile].join(" / ")}
+      />
+    />*/}
+      <Column
+        field="percentile"
+        header="Perc."
+        headerTooltip="Percentile for this score. Shows how many percent of scores are higher than this one."
         headerTooltipOptions={headerTooltipOptions}
       />
       <Column
         field="memberNumber"
         header="Shooter"
-        sortable
         body={(run) => (
           <ShooterCell
             data={run}
@@ -185,6 +190,38 @@ const RunsTable = ({ classifier, division, clubs, onShooterSelection }) => {
           />
         )}
       />
+      <Column field="hf" header="HF" sortable />
+      <Column
+        body={renderPercent}
+        field="recPercent"
+        header="Rec. %"
+        sortable
+        headerTooltip="What classifier percentage this score SHOULD earn if Recommended HHFs are used."
+        headerTooltipOptions={headerTooltipOptions}
+      />
+      <Column
+        body={renderPercent}
+        field="curPercent"
+        header="Cur. %"
+        sortable
+        headerTooltip="What classifier percentage this score would've earned if it was submitted today, with Current HHFs."
+        headerTooltipOptions={headerTooltipOptions}
+      />
+      <Column
+        body={renderPercent}
+        field="percent"
+        header="HQ %"
+        sortable
+        headerTooltip="Classifier percentage for this score during the time that it was processed by USPSA. Maxes out at 100%."
+        headerTooltipOptions={headerTooltipOptions}
+      />
+      {/*<Column
+        field="percentMinusCurPercent"
+        header="Percent Change"
+        sortable
+        headerTooltip="Difference between calculated percent when run was submitted and what it would've been with current High Hit-Factor. \n Positive values mean classifier became harder, negative - easier."
+        headerTooltipOptions={headerTooltipOptions}
+       />*/}
       <Column
         field="clubid"
         header="Club"
@@ -204,39 +241,6 @@ const RunsTable = ({ classifier, division, clubs, onShooterSelection }) => {
           />
         )}
       />
-      <Column field="hf" header="HF" sortable />
-      <Column
-        body={renderPercent}
-        field="percent"
-        header="Percent"
-        sortable
-        headerTooltip="Classifier percentage for this score during the time that it was processed by USPSA. Maxes out at 100%."
-        headerTooltipOptions={headerTooltipOptions}
-      />
-      <Column
-        body={renderPercent}
-        field="curPercent"
-        header="Current Percent"
-        sortable
-        headerTooltip="What classifier percentage this score would've earned if it was submitted today, with Current HHFs."
-        headerTooltipOptions={headerTooltipOptions}
-      />
-      <Column
-        body={renderPercent}
-        field="recPercent"
-        header="Rec. Percent"
-        sortable
-        headerTooltip="What classifier percentage this score SHOULD earn if Recommended HHFs are used."
-        headerTooltipOptions={headerTooltipOptions}
-      />
-      {/*<Column
-        field="percentMinusCurPercent"
-        header="Percent Change"
-        sortable
-        headerTooltip="Difference between calculated percent when run was submitted and what it would've been with current High Hit-Factor. \n Positive values mean classifier became harder, negative - easier."
-        headerTooltipOptions={headerTooltipOptions}
-       />*/}
-      <Column field="percentile" header="Percentile" sortable />
       <Column field="sd" header="Date" sortable />
     </DataTable>
   );

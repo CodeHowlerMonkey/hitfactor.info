@@ -53,9 +53,13 @@ export const renderPercent = (c, { field }) => {
 };
 
 export const renderHFOrNA = (c, { field }) => {
-  const value = c[field];
-  if (value <= 0) {
+  let value = c[field];
+  if (value <= 0 || value === undefined) {
     return "—";
+  }
+
+  if (typeof value !== "number") {
+    value = Number(value);
   }
 
   return value.toFixed(4);

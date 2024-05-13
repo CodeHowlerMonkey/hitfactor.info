@@ -26,21 +26,23 @@ const ShootersPage = () => {
   );
 
   return (
-    <div style={{ maxWidth: 1280, margin: "auto" }}>
+    <div>
       <DivisionNavigation onSelect={onDivisionSelect} />
-      {division && !memberNumber && (
-        <ShootersTable
-          division={division}
-          onShooterSelection={(memberNumber) => navigate("./" + memberNumber)}
-        />
-      )}
-      {memberNumber && (
-        <ShooterRunsAndInfo
-          division={division}
-          memberNumber={memberNumber}
-          onBackToShooters={onBackToShooters}
-        />
-      )}
+      <div style={{ maxWidth: 1280, margin: "auto" }}>
+        {division && !memberNumber && (
+          <ShootersTable
+            division={division}
+            onShooterSelection={(memberNumber) => navigate("./" + memberNumber)}
+          />
+        )}
+        {memberNumber && (
+          <ShooterRunsAndInfo
+            division={division}
+            memberNumber={memberNumber}
+            onBackToShooters={onBackToShooters}
+          />
+        )}
+      </div>
     </div>
   );
 };
@@ -68,10 +70,10 @@ export const ShooterRunsAndInfo = ({ division, memberNumber, onBackToShooters })
 
   return (
     <>
-      <div className="flex justify-content-between">
+      <div className="flex justify-content-between flex-wrap">
         <Button
-          className="md:text-lg lg:text-xl font-bold px-0 md:px-2"
-          icon="pi pi-chevron-left md:text-lg lg:text-xl "
+          className="text-sm md:text-lg lg:text-xl font-bold px-0 md:px-2"
+          icon="pi pi-chevron-left text-sm md:text-lg lg:text-xl "
           rounded
           text
           aria-label="Back"
@@ -79,14 +81,14 @@ export const ShooterRunsAndInfo = ({ division, memberNumber, onBackToShooters })
         >
           Shooters List
         </Button>
-        <h1 className="m-auto sm:text-base text-base lg:text-lg">
+        <h4 className="m-auto md:hidden">
           {memberNumber} - {name} - {divShortToLong[division]}
-        </h1>
+        </h4>
       </div>
-      <ShooterInfoTable info={info} />
+      <ShooterInfoTable info={info} division={division} memberNumber={memberNumber} />
 
       <Divider />
-      <h3 className="m-4 mb-2">Scores</h3>
+      <h4 className="md:text-lg lg:text-xl">Scores</h4>
 
       <ShooterRunsTable
         {...tableShit}

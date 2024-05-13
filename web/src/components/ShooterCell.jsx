@@ -24,8 +24,8 @@ const ClassTag = ({ value, alpha, tooltip }) =>
   );
 
 export const ShooterCell = ({ data, onClick }) => (
-  <div style={{ cursor: "pointer", minWidth: "9em" }} onClick={onClick}>
-    <div>
+  <div style={{ cursor: "pointer" }} className="max-w-max" onClick={onClick}>
+    <div className="max-w-max">
       <ClassTag
         value={data?.recClass ?? "?"}
         tooltip={`Recommended: ${data?.reclassificationsRecPercentCurrent?.toFixed(2)}%`}
@@ -41,9 +41,7 @@ export const ShooterCell = ({ data, onClick }) => (
         tooltip={`HQ: ${data?.current?.toFixed(2) ?? 0}%`}
       />
     </div>
-    <div style={{ position: "relative" }}>
-      <span style={{ marginRight: "4px" }}>{data.memberNumber}</span>
-    </div>
+    <div className="max-w-max">{data.memberNumber}</div>
     <div style={{ fontSize: "1.125em" }}>{data.name}</div>
   </div>
 );

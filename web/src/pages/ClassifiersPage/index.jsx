@@ -27,23 +27,25 @@ const ClassifiersPage = () => {
   const onClubSelection = (club) => navigate("/clubs/" + club);
 
   return (
-    <div style={{ maxWidth: 1280, margin: "auto" }}>
+    <div>
       <DivisionNavigation onSelect={onDivisionSelect} />
-      {division && !classifier && (
-        <ClassifiersTable
-          division={division}
-          onClassifierSelection={(classifierCode) => navigate("./" + classifierCode)}
-        />
-      )}
-      {classifier && (
-        <ClassifierRunsAndInfo
-          division={division}
-          classifier={classifier}
-          onBackToClassifiers={onBackToClassifiers}
-          onShooterSelection={onShooterSelection}
-          onClubSelection={onClubSelection}
-        />
-      )}
+      <div style={{ maxWidth: 1280, margin: "auto" }}>
+        {division && !classifier && (
+          <ClassifiersTable
+            division={division}
+            onClassifierSelection={(classifierCode) => navigate("./" + classifierCode)}
+          />
+        )}
+        {classifier && (
+          <ClassifierRunsAndInfo
+            division={division}
+            classifier={classifier}
+            onBackToClassifiers={onBackToClassifiers}
+            onShooterSelection={onShooterSelection}
+            onClubSelection={onClubSelection}
+          />
+        )}
+      </div>
     </div>
   );
 };
@@ -78,7 +80,7 @@ export const ClassifierRunsAndInfo = ({
     <>
       <div className="flex justify-content-between">
         <Button
-          style={{ fontSize: "1.2rem", fontWeight: "bold" }}
+          className="text-sm md:text-lg lg:text-xl font-bold px-0 md:px-2"
           icon="pi pi-chevron-left"
           rounded
           text
@@ -87,9 +89,9 @@ export const ClassifierRunsAndInfo = ({
         >
           Classifiers List
         </Button>
-        <h1 style={{ margin: "auto" }}>
+        <h2 className="mx-auto md:text-xl lg:text-xxl w-max">
           {code} {name}
-        </h1>
+        </h2>
         {/*<a href={downloadUrl} download className="px-5 py-2" style={{ fontSize: "1.625rem" }}>
           <i
             className="pi pi-download"
@@ -97,11 +99,7 @@ export const ClassifierRunsAndInfo = ({
           />
         </a>*/}
       </div>
-      <div className="flex" style={{ height: "35rem" }}>
-        <div className="w-full h-full bg-primary-reverse">
-          <ClassifierInfoTable {...{ division, classifier, loading, hhfs }} {...info} />
-        </div>
-      </div>
+      <ClassifierInfoTable {...{ division, classifier, loading, hhfs }} {...info} />
 
       <RunsTable
         classifier={classifier}
