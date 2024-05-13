@@ -39,12 +39,42 @@ const xLinesForHHF = (prefix, hhf) =>
   hhf <= 0
     ? {}
     : {
-        ...xLine(prefix + "HHF", hhf, colorForPrefix(prefix, 1), extraLabelOffsets[prefix]),
-        ...xLine(prefix + "GM", 0.95 * hhf, colorForPrefix(prefix, 0.7), extraLabelOffsets[prefix]),
-        ...xLine(prefix + "M", 0.85 * hhf, colorForPrefix(prefix, 0.5), extraLabelOffsets[prefix]),
-        ...xLine(prefix + "A", 0.75 * hhf, colorForPrefix(prefix, 0.4), extraLabelOffsets[prefix]),
-        ...xLine(prefix + "B", 0.6 * hhf, colorForPrefix(prefix, 0.3), extraLabelOffsets[prefix]),
-        ...xLine(prefix + "C", 0.4 * hhf, colorForPrefix(prefix, 0.2), extraLabelOffsets[prefix]),
+        ...xLine(
+          prefix + "HHF",
+          hhf,
+          colorForPrefix(prefix, 1),
+          extraLabelOffsets[prefix]
+        ),
+        ...xLine(
+          prefix + "GM",
+          0.95 * hhf,
+          colorForPrefix(prefix, 0.7),
+          extraLabelOffsets[prefix]
+        ),
+        ...xLine(
+          prefix + "M",
+          0.85 * hhf,
+          colorForPrefix(prefix, 0.5),
+          extraLabelOffsets[prefix]
+        ),
+        ...xLine(
+          prefix + "A",
+          0.75 * hhf,
+          colorForPrefix(prefix, 0.4),
+          extraLabelOffsets[prefix]
+        ),
+        ...xLine(
+          prefix + "B",
+          0.6 * hhf,
+          colorForPrefix(prefix, 0.3),
+          extraLabelOffsets[prefix]
+        ),
+        ...xLine(
+          prefix + "C",
+          0.4 * hhf,
+          colorForPrefix(prefix, 0.2),
+          extraLabelOffsets[prefix]
+        ),
         ...point(
           prefix + "GM/1",
           0.95 * hhf,
@@ -118,8 +148,9 @@ export const ScoresChart = ({
     <Scatter
       style={{ position: "relative" }}
       options={{
+        responsive: true,
         // wanted false for rezize but annotations are bugged and draw HHF/GM lines wrong
-        maintainAspectRatio: !full,
+        maintainAspectRatio: false,
         scales: { y: { reverse: true } },
         elements: {
           point: {
@@ -143,7 +174,9 @@ export const ScoresChart = ({
           tooltip: {
             callbacks: {
               label: ({ raw, raw: { x, y, memberNumber } }) =>
-                `HF ${x}, Top ${y}%: ${memberNumber}(${raw[modeBucketForMode(mode)].toFixed(2)}%)`,
+                `HF ${x}, Top ${y}%: ${memberNumber}(${raw[
+                  modeBucketForMode(mode)
+                ].toFixed(2)}%)`,
             },
           },
           annotation: {
@@ -194,16 +227,17 @@ export const ScoresChart = ({
         <div
           style={{
             position: "absolute",
-            top: "24px",
+            top: "52px",
             display: "flex",
             justifyContent: "space-between",
             left: 0,
             right: 0,
             margin: "auto",
-            width: "50%",
+            zIndex: 1,
           }}
         >
           <SelectButton
+            className="compact text-xs md:text-base"
             allowEmpty={false}
             options={modes}
             value={mode}
@@ -217,18 +251,15 @@ export const ScoresChart = ({
   }
 
   return (
-    <div
-      style={{
-        maxHeight: "100%",
-      }}
-    >
-      <div className="flex justify-space-around">
+    <div className="relative h-full" style={{ margin: -2 }}>
+      <div className="absolute" style={{ zIndex: 1, left: 0 }}>
         <SelectButton
+          className="compact text-xs md:text-base"
           allowEmpty={false}
           options={modes}
           value={mode}
           onChange={(e) => setMode(e.value)}
-          style={{ margin: "auto", transform: "scale(0.65)" }}
+          style={{ transform: "scale(0.65)" }}
         />
       </div>
       {graph}

@@ -162,7 +162,7 @@ export const hydrateScores = async () => {
 };
 
 export const shooterScoresChartData = async ({ memberNumber, division }) => {
-  const scores = await Score.find({ memberNumber, division })
+  const scores = await Score.find({ memberNumber, division, bad: { $exists: false } })
     .populate("HHFs")
     .limit(0)
     .sort({ sd: -1 });
@@ -179,7 +179,7 @@ export const shooterScoresChartData = async ({ memberNumber, division }) => {
 };
 
 export const scoresForDivisionForShooter = async ({ division, memberNumber }) => {
-  const scores = await Score.find({ division, memberNumber })
+  const scores = await Score.find({ division, memberNumber, bad: { $exists: false } })
     .populate("HHFs")
     .sort({ sd: -1, hf: -1 })
     .limit(0);
@@ -188,4 +188,53 @@ export const scoresForDivisionForShooter = async ({ division, memberNumber }) =>
     obj.index = index;
     return obj;
   });
+};
+
+export const divisionsPopularity = async (year = 0) => {
+  const after = 365 * (year + 1);
+  const before = 365 * year;
+
+  return Score.aggregate([
+    {
+      $project: {
+        division: true,
+        sd: true,
+        age: {
+          $dateDiff: {
+            startDate: "$sd",
+            endDate: "$$NOW",
+            unit: "day",
+          },
+        },
+      },
+    },
+    { $match: { age: { $lte: after, $gte: before } } },
+    {
+      $group: {
+        _id: "$division",
+        scores: {
+          $sum: 1,
+        },
+      },
+    },
+    {
+      $addFields: {
+        start: {
+          $dateSubtract: {
+            startDate: "$$NOW",
+            unit: "day",
+            amount: after,
+          },
+        },
+        end: {
+          $dateSubtract: {
+            startDate: "$$NOW",
+            unit: "day",
+            amount: before,
+          },
+        },
+      },
+    },
+    { $sort: { scores: -1 } },
+  ]);
 };

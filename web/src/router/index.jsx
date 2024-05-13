@@ -38,11 +38,11 @@ const config = [
     icon: "pi pi-users",
     path: "/shooters",
   },
-  {
+  /*{
     label: "Clubs",
     icon: "pi pi-sitemap",
     path: "/clubs",
-  },
+  },*/
   {
     label: "Upload",
     icon: "pi pi-upload",
@@ -85,7 +85,7 @@ const Menu = () => {
 
   return (
     <TabMenu
-      className="text-md md:text-xl"
+      className="text-base md:text-xl"
       model={config.map((c) => ({
         ...c,
         command: () => navigate(c.path),

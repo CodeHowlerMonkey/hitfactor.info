@@ -36,7 +36,7 @@ const memberNumberFromMemberData = (memberData) => {
 
 const scoresAgeAggr = async (memberNumber, division, maxScores) => {
   await Score.aggregate([
-    { $match: { memberNumber, division } },
+    { $match: { memberNumber, division, bad: { $exists: false } } },
     {
       $project: {
         sd: true,
@@ -76,6 +76,23 @@ ShooterSchema.index({
   reclassificationsRecPercentCurrent: -1,
   reclassificationsCurPercentCurrent: 1,
 });
+ShooterSchema.index({
+  class: 1,
+  division: 1,
+  reclassificationsRecPercentCurrent: -1,
+  reclassificationsCurPercentCurrent: 1,
+});
+ShooterSchema.index({
+  class: 1,
+  division: 1,
+  hqToRecPercent: 1,
+  reclassificationsCurPercentCurrent: 1,
+});
+ShooterSchema.index({
+  class: 1,
+  division: 1,
+  reclassificationsCurPercentCurrent: 1,
+});
 
 export const Shooter = mongoose.model("Shooter", ShooterSchema);
 
@@ -89,7 +106,10 @@ export const reduceByDiv = (classifications, valueFn) =>
   );
 
 export const allDivisionsScores = async (memberNumbers) => {
-  const query = Score.find({ memberNumber: { $in: memberNumbers } })
+  const query = Score.find({
+    memberNumber: { $in: memberNumbers },
+    bad: { $exists: false },
+  })
     .populate("HHFs")
     .limit(0)
     .sort({ sd: -1 });
@@ -102,6 +122,7 @@ export const scoresForRecommendedClassification = (memberNumbers) =>
   Score.aggregate([
     {
       $match: {
+        bad: { $exists: false },
         memberNumber: { $in: memberNumbers },
         $or: [{ hf: { $gt: 0 } }, { percent: { $gt: 0 } }],
       },

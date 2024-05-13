@@ -17,7 +17,7 @@ export const DivisionNavigation = ({ onSelect }) => {
   }, [division, setActiveIndex]);
 
   return (
-    <div>
+    <div className="p-0 md:px-4">
       <TabView
         panelContainerClassName="p-0 md:px-8"
         activeIndex={activeIndex}

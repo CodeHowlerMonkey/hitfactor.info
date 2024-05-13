@@ -30,17 +30,7 @@ export const ShooterProgressChart = ({ division, memberNumber }) => {
 
   return (
     <>
-      <div className="flex justify-space-around">
-        <SelectButton
-          allowEmpty={false}
-          options={modes}
-          value={mode}
-          onChange={(e) => setMode(e.value)}
-          size={10}
-          style={{ margin: "auto", transform: "scale(0.65)" }}
-        />
-      </div>
-      <div className="relative h-32rem bg-primary-reverse">
+      <div className="relative bg-primary-reverse flex-grow-1">
         <Line
           style={{ width: "100%", height: "100%", position: "relative" }}
           adapters={null}
@@ -104,6 +94,17 @@ export const ShooterProgressChart = ({ division, memberNumber }) => {
             }}
           />
         )}
+        <div className="flex justify-space-around absolute right-0 left-0 top-0">
+          <SelectButton
+            className="compact"
+            allowEmpty={false}
+            options={modes}
+            value={mode}
+            onChange={(e) => setMode(e.value)}
+            size={10}
+            style={{ margin: "auto", transform: "scale(0.65)" }}
+          />
+        </div>
       </div>
     </>
   );

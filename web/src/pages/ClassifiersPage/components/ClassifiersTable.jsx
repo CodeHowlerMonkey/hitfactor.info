@@ -9,7 +9,11 @@ import { headerTooltipOptions } from "../../../components/Table/Table";
 
 import { numSort, dateSort, classifierCodeSort } from "../../../../../shared/utils/sort";
 import ClassifierCell from "../../../components/ClassifierCell";
-import { renderHFOrNA, renderPercent } from "../../../components/Table";
+import {
+  renderHFOrNA,
+  renderPercent,
+  letterRatingForPercent,
+} from "../../../components/Table";
 
 const compactPercentColumnStyle = {
   headerStyle: { width: "64px", padding: "16px 4px", fontSize: "0.8rem" },
@@ -36,6 +40,7 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
   const sortState = sortProps;
 
   const downloadUrl = "/api/classifiers/download/" + division;
+  //division = null;
   const { json: dataRaw, loading } = useApi("/classifiers/" + (division ?? ""));
   const data = (dataRaw ?? [])
     .map((d) => ({
@@ -67,18 +72,21 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
 
   return (
     <DataTable
+      size="small"
+      style={{ maxWidth: "800px", margin: "auto" }}
       loading={loading}
       showGridlines
-      size="small"
       selectionMode={"single"}
       selection={null}
       onSelectionChange={({ value }) => onClassifierSelection(value.code)}
       stripedRows
       header={
-        <div className="flex justify-content-end">
-          <span className="p-input-icon-left">
+        <div className="flex">
+          <div className="md:flex-grow-1" />
+          <span className="w-12 md:w-16rem p-input-icon-left">
             <i className="pi pi-search" />
             <InputText
+              className="w-12"
               value={filter}
               onChange={(e) => setFilter(e.target.value)}
               placeholder="Search"
@@ -98,21 +106,76 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
       }
       lazy
       value={data ?? []}
-      tableStyle={{ minWidth: "50rem" }}
       removableSort
       {...sortProps}
     >
       <Column
-        bodyStyle={{ width: "12rem" }}
         field="code"
         header="Classifier"
         sortable
-        body={(c) => <ClassifierCell {...c} />}
+        body={(c) => <ClassifierCell info={c} />}
       />
-      <Column field="hhf" header="HHF" sortable />
-      <Column field="prevHHF" header="Prev. HHF" sortable />
-      <Column field="recHHF" header="Rec. HHF" sortable body={renderHFOrNA} />
       <Column
+        field="quality"
+        header="Division Quality"
+        sortable
+        style={{ width: "140px", minWidth: "140px" }}
+        body={(c, { field }) => {
+          return (
+            <div className="flex gap-2 text-sm">
+              <div className="flex flex-column">
+                <div style={{ fontSize: "1.5em", textAlign: "center" }}>
+                  {letterRatingForPercent(c[field])}
+                </div>
+                <div>{renderPercent(c, { field })}</div>
+              </div>
+              <div
+                style={{ fontSize: "0.65em" }}
+                className="flex flex-column justify-content-between"
+              >
+                <div>G {c.inverse95RecPercentPercentile}%</div>
+                <div>M {c.inverse85RecPercentPercentile}%</div>
+                <div>A {c.inverse75RecPercentPercentile}%</div>
+              </div>
+            </div>
+          );
+        }}
+      />
+      <Column
+        field="allDivQuality"
+        header="Overall Quality"
+        sortable
+        style={{ width: "90px" }}
+        body={(c, { field }) => {
+          return (
+            <div className="flex gap-2 justify-content-center text-xs">
+              <div className="flex flex-column">
+                <div style={{ fontSize: "1.5em", textAlign: "center" }}>
+                  {letterRatingForPercent(c[field])}
+                </div>
+                <div>{renderPercent(c, { field })}</div>
+              </div>
+            </div>
+          );
+        }}
+      />
+      <Column
+        field="runs"
+        header="Scores"
+        sortable
+        style={{ width: "100px" }}
+        bodyStyle={{ textAlign: "center" }}
+      />
+      <Column
+        field="recHHF"
+        header="Rec. HHF"
+        sortable
+        body={renderHFOrNA}
+        style={{ width: "100px" }}
+      />
+      <Column field="hhf" header="HQ HHF" sortable style={{ width: "100px" }} />
+      {/*<Column field="prevHHF" header="Prev. HHF" sortable />*/}
+      {/*<Column
         field="recHHFChange"
         header="Rec. HHF Change"
         sortable
@@ -129,9 +192,8 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
 
           return `${hfDifference} (${percentDifference}%)`;
         }}
-      />
-      <Column field="updated" header="Updated" sortable />
-      <Column field="runs" header="Scores" sortable />
+      />*/}
+      {/*<Column field="updated" header="Updated" sortable />*/}
       {/*<Column
         field="runsLegacy"
         header="Legacy Scores"
@@ -140,6 +202,7 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
         headerTooltipOptions={headerTooltipOptions}
       />*/}
 
+      {/*
       <Column
         field="inverse100CurPercentPercentile"
         {...compactPercentColumnStyle}
@@ -213,7 +276,7 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
         headerTooltip="Total percentage of scores that are equal or higher to the 75% of the recommended HHF."
         headerTooltipOptions={headerTooltipOptions}
       />
-      {/*<Column
+      <Column
         field="inverse60CurPercentPercentile"
         {...compactPercentColumnStyle}
         header="B+ Scores%"

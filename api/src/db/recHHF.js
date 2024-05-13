@@ -314,7 +314,7 @@ const decidedHHFFunctions = {
     "03-08": r1,
     "03-09": r1,
     "03-11": r5,
-    "03-12": r5,
+    "03-12": r15,
     "03-14": r15,
     "03-18": r5,
 
@@ -330,12 +330,12 @@ const decidedHHFFunctions = {
     "08-02": r5,
     "08-03": r1,
 
-    "09-01": r5,
+    "09-01": r15,
     "09-02": r1,
     "09-03": r1,
     "09-04": r1,
     "09-07": r1,
-    "09-08": r5,
+    "09-08": r1,
     "09-09": r5, // TODO: double checked, still closest is r1
     "09-10": r5,
     "09-13": r5,
@@ -366,7 +366,7 @@ const decidedHHFFunctions = {
     "19-04": r5,
 
     "20-01": r1,
-    "20-02": r5,
+    "20-02": r1,
     "20-03": r15,
 
     "21-01": r5,
@@ -429,7 +429,12 @@ const recommendedHHFFunctionFor = ({ division, number }) => {
 
 const runsForRecs = async ({ division, number }) =>
   (
-    await Score.find({ classifier: number, division, hf: { $gt: 0 } })
+    await Score.find({
+      classifier: number,
+      division,
+      hf: { $gt: 0 },
+      bad: { $exists: false },
+    })
       .sort({ hf: -1 })
       .limit(0)
       .lean()
@@ -440,6 +445,7 @@ const runsForRecs = async ({ division, number }) =>
 
 const runsForRecsMultiByClassifierDivision = async (classifiers) => {
   const runs = await Score.find({
+    bad: { $exists: false },
     classifierDivision: {
       $in: classifiers.map((c) => [c.classifier, c.division].join(":")),
     },

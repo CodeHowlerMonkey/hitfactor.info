@@ -1,9 +1,12 @@
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
-import { headerTooltipOptions, renderPercent } from "../../../components/Table";
+import {
+  headerTooltipOptions,
+  renderHFOrNA,
+  renderPercent,
+} from "../../../components/Table";
 import ClassifierCell from "../../../components/ClassifierCell";
 
-// TODO: historical HHF, percentile
 const ShooterRunsTable = ({
   classifiers,
   classifiersTotal,
@@ -13,7 +16,7 @@ const ShooterRunsTable = ({
   loading,
 }) => (
   <DataTable
-    className="sm:text-sm"
+    className="text-xs md:text-base"
     sortOrder={-1}
     sortField="sdUnix"
     loading={loading}
@@ -51,41 +54,37 @@ const ShooterRunsTable = ({
       header="Classifier"
       sortable
       bodyStyle={{ width: "12rem" }}
-      body={(run) =>
-        run.classifier ? (
-          <ClassifierCell
-            {...run.classifierInfo}
-            onClick={() => onClassifierSelection?.(run.classifier)}
-          />
-        ) : (
-          run.club_name
-        )
-      }
+      body={(run) => (
+        <ClassifierCell
+          info={run.classifierInfo}
+          fallback={run.club_name}
+          onClick={() => onClassifierSelection?.(run.classifier)}
+        />
+      )}
     />
-    <Column field="clubid" header="Club" sortable showFilterMenu={false} />
-    <Column field="hf" header="HF" sortable />
+    <Column field="hf" header="HF" sortable body={renderHFOrNA} />
+    <Column
+      body={renderPercent}
+      field="recPercent"
+      header="Rec. %"
+      sortable
+      headerTooltip="Recommended classifier percentage for this score."
+      headerTooltipOptions={headerTooltipOptions}
+    />
+    <Column
+      body={renderPercent}
+      field="curPercent"
+      header="Cur. %"
+      sortable
+      headerTooltip="What classifier percentage this score would've earned if it was submitted today, with Current HHFs."
+      headerTooltipOptions={headerTooltipOptions}
+    />
     <Column
       body={renderPercent}
       field="percent"
       header="Percent"
       sortable
       headerTooltip="Classifier percentage for this score during the time that it was processed by USPSA. Maxes out at 100%."
-      headerTooltipOptions={headerTooltipOptions}
-    />
-    <Column
-      body={renderPercent}
-      field="recPercent"
-      header="Rec. Percent"
-      sortable
-      headerTooltip="Recommended classifier percentage for this score. "
-      headerTooltipOptions={headerTooltipOptions}
-    />
-    <Column
-      body={renderPercent}
-      field="curPercent"
-      header="Current Percent"
-      sortable
-      headerTooltip="What classifier percentage this score would've earned if it was submitted today, with Current HHFs."
       headerTooltipOptions={headerTooltipOptions}
     />
     <Column
@@ -97,6 +96,7 @@ const ShooterRunsTable = ({
       headerTooltipOptions={headerTooltipOptions}
     />
     <Column field="code" header="Flag" sortable />
+    <Column field="clubid" header="Club" sortable showFilterMenu={false} />
     <Column field="source" header="Source" sortable />
     {/* TODO: <Column field="percentile" header="Percentile" sortable={false} /> */}
   </DataTable>
