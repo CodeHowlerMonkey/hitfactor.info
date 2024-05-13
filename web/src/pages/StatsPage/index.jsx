@@ -200,6 +200,84 @@ const modeMap = {
 const modes = Object.keys(modeMap);
 const modeBucketForMode = (mode) => modeMap[mode];
 
+const colorForDivision = {
+  opn: "#faaf18",
+  ltd: "#b2ba35",
+  l10: "#e6e7f7",
+  prod: "#c7c9f4",
+  ss: "#d7d9f6",
+  rev: "#73e3e0",
+  co: "#f04d43",
+  lo: "#f68235",
+  pcc: "#2ea8c7",
+};
+
+const formatDate = (d) => {
+  if (!d) {
+    return "";
+  }
+
+  const formatter = new Intl.DateTimeFormat(navigator.language, {
+    month: "long",
+    year: "numeric",
+  });
+  return formatter.format(new Date(d));
+};
+
+const DivisionsChart = ({ year }) => {
+  const { json: apiData, loading } = useApi(`/stats/divisions?year=${year}`);
+  if (!apiData) {
+    return null;
+  }
+
+  const data = apiData.data.map(({ _id: title, scores: value, percent, start, end }) => ({
+    title,
+    value,
+    color: colorForDivision[title] || "grey",
+    percent,
+    start,
+    end,
+  }));
+
+  return (
+    <div
+      style={{ cursor: "pointer" }}
+      className="min-w-20rem max-w-30rem flex-grow-1 mx-auto my-4"
+    >
+      <div>
+        <PieChart
+          data={data}
+          style={{
+            fontFamily: '"Nunito Sans", -apple-system, Helvetica, Arial, sans-serif',
+            fontSize: "3.0px",
+            fontWeight: "bold",
+          }}
+          lineWidth={60}
+          label={({ dataEntry: { title, percent } }) => `${title}: ${percent}%`}
+          totalValue={apiData.total}
+          labelPosition={72}
+          labelStyle={(dataIndex) => ({
+            fill: data[dataIndex].title === "GM" ? "red" : "#000",
+            opacity: 0.75,
+            pointerEvents: "none",
+          })}
+        />
+      </div>
+      <div className="text-lg text-center">
+        {formatDate(data[0].start)} — {formatDate(data[0].end)}
+      </div>
+    </div>
+  );
+};
+
+const Divisions = () => (
+  <div className="flex gap-2 flex-wrap">
+    <DivisionsChart year={0} />
+    <DivisionsChart year={1} />
+    <DivisionsChart year={2} />
+  </div>
+);
+
 // main "page" of this file
 export const StatsPage = () => {
   const [mode, setMode] = useState(modes[0]);
@@ -441,6 +519,9 @@ export const StatsPage = () => {
         </TabPanel>
         <TabPanel header="Distribution" className="p-0 text-sm md:text-base">
           <Distribution />
+        </TabPanel>
+        <TabPanel header="Divisions" className="p-0 text-sm md:text-base">
+          <Divisions />
         </TabPanel>
       </TabView>
     </div>

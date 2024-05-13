@@ -189,3 +189,52 @@ export const scoresForDivisionForShooter = async ({ division, memberNumber }) =>
     return obj;
   });
 };
+
+export const divisionsPopularity = async (year = 0) => {
+  const after = 365 * (year + 1);
+  const before = 365 * year;
+
+  return Score.aggregate([
+    {
+      $project: {
+        division: true,
+        sd: true,
+        age: {
+          $dateDiff: {
+            startDate: "$sd",
+            endDate: "$$NOW",
+            unit: "day",
+          },
+        },
+      },
+    },
+    { $match: { age: { $lte: after, $gte: before } } },
+    {
+      $group: {
+        _id: "$division",
+        scores: {
+          $sum: 1,
+        },
+      },
+    },
+    {
+      $addFields: {
+        start: {
+          $dateSubtract: {
+            startDate: "$$NOW",
+            unit: "day",
+            amount: after,
+          },
+        },
+        end: {
+          $dateSubtract: {
+            startDate: "$$NOW",
+            unit: "day",
+            amount: before,
+          },
+        },
+      },
+    },
+    { $sort: { scores: -1 } },
+  ]);
+};
