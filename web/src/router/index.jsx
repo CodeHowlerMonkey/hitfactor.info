@@ -38,11 +38,11 @@ const config = [
     icon: "pi pi-users",
     path: "/shooters",
   },
-  {
+  /*{
     label: "Clubs",
     icon: "pi pi-sitemap",
     path: "/clubs",
-  },
+  },*/
   {
     label: "Upload",
     icon: "pi pi-upload",
