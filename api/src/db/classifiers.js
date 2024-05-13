@@ -127,27 +127,48 @@ const extendedInfoForClassifier = (c, division, hitFactorScores) => {
 };
 
 const ClassifierSchema = new mongoose.Schema({}, { strict: false });
+
 const WORST_QUALITY_DISTANCE_FROM_TARGET = 100;
+const scoresCountOffset = (runsCount) => {
+  if (runsCount < 200) {
+    return -40;
+  } else if (runsCount < 400) {
+    return -20;
+  } else if (runsCount < 750) {
+    return -10;
+  } else if (runsCount < 1400) {
+    return -5;
+  }
+
+  return 0;
+};
+
 ClassifierSchema.virtual("quality").get(function () {
-  return Percent(
-    WORST_QUALITY_DISTANCE_FROM_TARGET -
-      (10.0 * Math.abs(1 - this.inverse95RecPercentPercentile) +
-        4.0 * Math.abs(5 - this.inverse85RecPercentPercentile) +
-        1.0 * Math.abs(15 - this.inverse75RecPercentPercentile) +
-        0.5 * Math.abs(45 - this.inverse60RecPercentPercentile) +
-        0.3 * Math.abs(85 - this.inverse40RecPercentPercentile)),
-    WORST_QUALITY_DISTANCE_FROM_TARGET
+  return (
+    scoresCountOffset(this.runs) +
+    Percent(
+      WORST_QUALITY_DISTANCE_FROM_TARGET -
+        (10.0 * Math.abs(1 - this.inverse95RecPercentPercentile) +
+          4.0 * Math.abs(5 - this.inverse85RecPercentPercentile) +
+          1.0 * Math.abs(15 - this.inverse75RecPercentPercentile) +
+          0.5 * Math.abs(45 - this.inverse60RecPercentPercentile) +
+          0.3 * Math.abs(85 - this.inverse40RecPercentPercentile)),
+      WORST_QUALITY_DISTANCE_FROM_TARGET
+    )
   );
 });
 ClassifierSchema.virtual("hqQuality").get(function () {
-  return Percent(
-    WORST_QUALITY_DISTANCE_FROM_TARGET -
-      (10.0 * Math.abs(1 - this.inverse95CurPercentPercentile) +
-        4.0 * Math.abs(5 - this.inverse85CurPercentPercentile) +
-        1.0 * Math.abs(15 - this.inverse75CurPercentPercentile) +
-        0.5 * Math.abs(45 - this.inverse60CurPercentPercentile) +
-        0.3 * Math.abs(85 - this.inverse40CurPercentPercentile)),
-    WORST_QUALITY_DISTANCE_FROM_TARGET
+  return (
+    scoresCountOffset(this.runs) +
+    Percent(
+      WORST_QUALITY_DISTANCE_FROM_TARGET -
+        (10.0 * Math.abs(1 - this.inverse95CurPercentPercentile) +
+          4.0 * Math.abs(5 - this.inverse85CurPercentPercentile) +
+          1.0 * Math.abs(15 - this.inverse75CurPercentPercentile) +
+          0.5 * Math.abs(45 - this.inverse60CurPercentPercentile) +
+          0.3 * Math.abs(85 - this.inverse40CurPercentPercentile)),
+      WORST_QUALITY_DISTANCE_FROM_TARGET
+    )
   );
 });
 ClassifierSchema.index({ classifier: 1, division: 1 }, { unique: true });
