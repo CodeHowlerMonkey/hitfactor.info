@@ -162,7 +162,7 @@ export const hydrateScores = async () => {
 };
 
 export const shooterScoresChartData = async ({ memberNumber, division }) => {
-  const scores = await Score.find({ memberNumber, division })
+  const scores = await Score.find({ memberNumber, division, bad: { $exists: false } })
     .populate("HHFs")
     .limit(0)
     .sort({ sd: -1 });
@@ -179,7 +179,7 @@ export const shooterScoresChartData = async ({ memberNumber, division }) => {
 };
 
 export const scoresForDivisionForShooter = async ({ division, memberNumber }) => {
-  const scores = await Score.find({ division, memberNumber })
+  const scores = await Score.find({ division, memberNumber, bad: { $exists: false } })
     .populate("HHFs")
     .sort({ sd: -1, hf: -1 })
     .limit(0);

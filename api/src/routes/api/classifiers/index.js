@@ -49,7 +49,7 @@ const _runsAggregation = async ({
         _v: false,
       },
     },
-    { $match: { classifier, division, hf: { $gt: 0 } } },
+    { $match: { classifier, division, hf: { $gt: 0 }, bad: { $exists: false } } },
     {
       $lookup: {
         from: "shooters",
@@ -224,10 +224,13 @@ const classifiersRoutes = async (fastify, opts) => {
           memberNumberDivision: true,
           classifier: true,
           division: true,
+          bad: true,
           _id: false,
         },
       },
-      { $match: { classifier: number, division, hf: { $gt: 0 } } },
+      {
+        $match: { classifier: number, division, hf: { $gt: 0 }, bad: { $exists: false } },
+      },
       {
         $lookup: {
           from: "shooters",

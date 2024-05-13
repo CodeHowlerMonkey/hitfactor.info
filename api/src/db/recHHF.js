@@ -429,7 +429,12 @@ const recommendedHHFFunctionFor = ({ division, number }) => {
 
 const runsForRecs = async ({ division, number }) =>
   (
-    await Score.find({ classifier: number, division, hf: { $gt: 0 } })
+    await Score.find({
+      classifier: number,
+      division,
+      hf: { $gt: 0 },
+      bad: { $exists: false },
+    })
       .sort({ hf: -1 })
       .limit(0)
       .lean()
@@ -440,6 +445,7 @@ const runsForRecs = async ({ division, number }) =>
 
 const runsForRecsMultiByClassifierDivision = async (classifiers) => {
   const runs = await Score.find({
+    bad: { $exists: false },
     classifierDivision: {
       $in: classifiers.map((c) => [c.classifier, c.division].join(":")),
     },
