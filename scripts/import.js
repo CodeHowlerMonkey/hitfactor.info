@@ -38,6 +38,11 @@ const quickRandomDelay = () => {
   return delay(ms);
 };
 
+const retryDelay = (retry) => {
+  const quickRandom = Math.ceil(32 + 40 * Math.random());
+  return delay(retry * 1200 + quickRandom);
+};
+
 let keyIndex = 0;
 // TODO: add more keys using login script
 const keys = [process.env.USPSA_API_KEY];
@@ -50,11 +55,12 @@ const getUspsaApiKey = () => {
   return key;
 };
 
+let successfulRequests = 0;
 const errors = [];
-const fetchApiEndpoint = async (endpoint, tryNumber = 1, maxTries = 3) => {
+const fetchApiEndpoint = async (endpoint, tryNumber = 1, maxTries = 7) => {
   let response = null;
   try {
-    await quickRandomDelay();
+    // await quickRandomDelay();
     //const { data: fetched } = await client.get(
     response = await fetch(
       `https://api.uspsa.org/api/app/${endpoint}`,
@@ -64,23 +70,27 @@ const fetchApiEndpoint = async (endpoint, tryNumber = 1, maxTries = 3) => {
           accept: "application/json",
           "uspsa-api": getUspsaApiKey(),
           "Uspsa-Api-Version": "1.1.3",
-          "Uspsa-Debug": "FALSE",
+          "Uspsa-Debug": "TRUE",
           "user-agent":
-            "Mozilla/5.1 (iPhone; CPU iPhone OS 17_4_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148",
-          randOmShitAgainPlz: "letmein" + Math.random(), // there's no way cloudflare will fall for this
+            "HowlerMonkey/5.7 (BrainPhone; CPU BigBrain 18_2_2 like WTF) AppleShitKit/607.2.19 (KTHXBYE, like Lizard) Alakablam/90210",
+          "Access-Code": "letmein" + Math.random(), // there's no way cloudflare will fall for this
           Accept: "application/json",
         },
       }
     );
     const fetched = await response.json();
+    delete fetched.debug;
     process.stdout.write(".");
+    successfulRequests++;
     return fetched;
   } catch (err) {
     if (tryNumber <= maxTries) {
       process.stdout.write("o");
+      await retryDelay(tryNumber);
       return await fetchApiEndpoint(endpoint, tryNumber + 1, maxTries);
     }
 
+    console.log("successfulRequests: " + successfulRequests);
     process.stdout.write("X");
     errors.push(endpoint);
     return null;
@@ -140,6 +150,7 @@ const importEverything = async () => {
     )
   );
   const shooterObjects = unfilteredShooterObjects.filter((s) => {
+    return true;
     const expiration = new Date(s.expires);
     if (expiration.getTime() === NaN) {
       return true; // badly formed expiration date for life membership
@@ -324,6 +335,9 @@ const importEverything = async () => {
   console.log("done");
 
   console.log("All Done!");
+
+  console.log("Error URLS:");
+  console.log(JSON.stringify(errors, null, 2));
 };
 
 importEverything();
