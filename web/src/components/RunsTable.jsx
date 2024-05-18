@@ -40,6 +40,7 @@ const DropdownFilter = ({
   filter,
 }) => (
   <Dropdown
+    className="hidden md:flex max-w-min"
     options={filterOptions}
     value={filterValue}
     optionLabel={filterValueLabel}
