@@ -1,5 +1,5 @@
 import qs from "query-string";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useMemo } from "react";
 import { DataTable } from "primereact/datatable";
 import { Checkbox } from "primereact/checkbox";
 import { InputText } from "primereact/inputtext";
@@ -12,6 +12,9 @@ import { Dropdown } from "primereact/dropdown";
 import { useDebounce } from "use-debounce";
 import ShooterCell from "./ShooterCell";
 import { renderPercent } from "./Table";
+import { Button } from "primereact/button";
+import { Toast } from "primereact/toast";
+import { ConfirmDialog, confirmDialog } from "primereact/confirmdialog";
 
 const TableFilter = ({ placeholder, onFilterChange }) => {
   const [filter, setFilter] = useState("");
@@ -120,6 +123,65 @@ export const useRunsTableData = ({ division, classifier }) => {
   };
 };
 
+const useReportDialog = () => {
+  const toast = useRef(null);
+
+  const accept = useCallback(() => {
+    toast.current.show({
+      severity: "info",
+      summary: "Confirmed",
+      detail: "You have accepted",
+      life: 3000,
+    });
+  }, [toast]);
+
+  const reject = useCallback(() => {
+    toast.current.show({
+      severity: "warn",
+      summary: "Rejected",
+      detail: "You have rejected",
+      life: 3000,
+    });
+  }, [toast]);
+
+  const showReportDialog = useCallback(() => {
+    confirmDialog({
+      group: "templating",
+      header: "Confirmation",
+      message: (
+        <div className="flex flex-column align-items-center w-full gap-3 border-bottom-1 surface-border">
+          <i className="pi pi-exclamation-circle text-6xl text-primary-500"></i>
+          <span>Please confirm to proceed moving forward.</span>
+        </div>
+      ),
+      accept,
+      reject,
+    });
+  }, []);
+
+  const modals = useMemo(
+    () => (
+      <>
+        <Toast ref={toast} />
+        <ConfirmDialog group="templating" />
+      </>
+    ),
+    []
+  );
+
+  return { showReportDialog, modals };
+};
+
+const ReportButton = ({ onClick }) => (
+  <Button
+    icon="pi pi-flag text-xs md:text-base"
+    size="small"
+    style={{ width: "1em" }}
+    onClick={onClick}
+    text
+  />
+);
+
 const RunsTable = ({ classifier, division, clubs, onShooterSelection }) => {
   const {
     loading,
@@ -140,28 +202,32 @@ const RunsTable = ({ classifier, division, clubs, onShooterSelection }) => {
     return "Classifier Not Found";
   }
 
+  const { showReportDialog, modals } = useReportDialog();
+
   return (
-    <DataTable
-      className="text-xs md:text-base"
-      loading={loading}
-      stripedRows
-      lazy
-      value={data ?? []}
-      tableStyle={{ minWidth: "50rem" }}
-      {...sortProps}
-      {...pageProps}
-      paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink"
-      paginatorClassName="shooters-table-paginator pb-4 md:pb-0 justify-content-around"
-      paginatorRight={
-        <TableFilter
-          placeholder="Filter by Club or Shooter"
-          onFilterChange={(f) => setFilter(f)}
-        />
-      }
-      totalRecords={runsTotal}
-      filterDisplay="row"
-    >
-      {/*<Column
+    <>
+      {modals}
+      <DataTable
+        className="text-xs md:text-base"
+        loading={loading}
+        stripedRows
+        lazy
+        value={data ?? []}
+        tableStyle={{ minWidth: "50rem" }}
+        {...sortProps}
+        {...pageProps}
+        paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink"
+        paginatorClassName="shooters-table-paginator pb-4 md:pb-0 justify-content-around"
+        paginatorRight={
+          <TableFilter
+            placeholder="Filter by Club or Shooter"
+            onFilterChange={(f) => setFilter(f)}
+          />
+        }
+        totalRecords={runsTotal}
+        filterDisplay="row"
+      >
+        {/*<Column
         field="index"
         header="#"
         headerTooltip="Index for the dataRow with current filters and sorting options applied. Can be used for manual counting of things. "
@@ -175,75 +241,78 @@ const RunsTable = ({ classifier, division, clubs, onShooterSelection }) => {
         body={(c) => [c.place, c.percentile].join(" / ")}
       />
     />*/}
-      <Column
-        field="percentile"
-        header="Perc."
-        headerTooltip="Percentile for this score. Shows how many percent of scores are higher than this one."
-        headerTooltipOptions={headerTooltipOptions}
-      />
-      <Column
-        field="memberNumber"
-        header="Shooter"
-        body={(run) => (
-          <ShooterCell
-            data={run}
-            onClick={() => onShooterSelection?.(run.memberNumber)}
-          />
-        )}
-      />
-      <Column field="hf" header="HF" sortable />
-      <Column
-        body={renderPercent}
-        field="recPercent"
-        header="Rec. %"
-        sortable
-        headerTooltip="What classifier percentage this score SHOULD earn if Recommended HHFs are used."
-        headerTooltipOptions={headerTooltipOptions}
-      />
-      <Column
-        body={renderPercent}
-        field="curPercent"
-        header="Cur. %"
-        sortable
-        headerTooltip="What classifier percentage this score would've earned if it was submitted today, with Current HHFs."
-        headerTooltipOptions={headerTooltipOptions}
-      />
-      <Column
-        body={renderPercent}
-        field="percent"
-        header="HQ %"
-        sortable
-        headerTooltip="Classifier percentage for this score during the time that it was processed by USPSA. Maxes out at 100%."
-        headerTooltipOptions={headerTooltipOptions}
-      />
-      {/*<Column
+        <Column
+          field="percentile"
+          header="Perc."
+          headerTooltip="Percentile for this score. Shows how many percent of scores are higher than this one."
+          headerTooltipOptions={headerTooltipOptions}
+        />
+        <Column
+          field="memberNumber"
+          header="Shooter"
+          body={(run) => (
+            <ShooterCell
+              data={run}
+              onClick={() => onShooterSelection?.(run.memberNumber)}
+            />
+          )}
+        />
+        <Column field="hf" header="HF" sortable />
+        <Column
+          body={renderPercent}
+          field="recPercent"
+          header="Rec. %"
+          sortable
+          headerTooltip="What classifier percentage this score SHOULD earn if Recommended HHFs are used."
+          headerTooltipOptions={headerTooltipOptions}
+        />
+        <Column
+          body={renderPercent}
+          field="curPercent"
+          header="Cur. %"
+          sortable
+          headerTooltip="What classifier percentage this score would've earned if it was submitted today, with Current HHFs."
+          headerTooltipOptions={headerTooltipOptions}
+        />
+        <Column
+          body={renderPercent}
+          field="percent"
+          header="HQ %"
+          sortable
+          headerTooltip="Classifier percentage for this score during the time that it was processed by USPSA. Maxes out at 100%."
+          headerTooltipOptions={headerTooltipOptions}
+        />
+        {/*<Column
         field="percentMinusCurPercent"
         header="Percent Change"
         sortable
         headerTooltip="Difference between calculated percent when run was submitted and what it would've been with current High Hit-Factor. \n Positive values mean classifier became harder, negative - easier."
         headerTooltipOptions={headerTooltipOptions}
        />*/}
-      <Column
-        field="clubid"
-        header="Club"
-        sortable
-        showFilterMenu={false}
-        filter
-        filterElement={(options) => (
-          <DropdownFilter
-            filter
-            filterOptions={clubs}
-            filterValueLabel="label"
-            filterValue={options?.value}
-            onFilter={(value) => {
-              setFilterClub(value?.id);
-              options.filterApplyCallback(value);
-            }}
-          />
-        )}
-      />
-      <Column field="sd" header="Date" sortable />
-    </DataTable>
+        <Column
+          field="clubid"
+          header="Club"
+          sortable
+          showFilterMenu={false}
+          filter
+          filterElement={(options) => (
+            <DropdownFilter
+              filter
+              filterOptions={clubs}
+              filterValueLabel="label"
+              filterValue={options?.value}
+              onFilter={(value) => {
+                setFilterClub(value?.id);
+                options.filterApplyCallback(value);
+              }}
+            />
+          )}
+        />
+        <Column field="sd" header="Date" sortable />
+        <Column field="sd" header="Date" sortable />
+        <Column body={() => <ReportButton onClick={showReportDialog} />} />
+      </DataTable>
+    </>
   );
 };
 
