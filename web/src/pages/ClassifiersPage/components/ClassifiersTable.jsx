@@ -73,6 +73,7 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
   return (
     <DataTable
       size="small"
+      className="text-xs md:text-base"
       style={{ maxWidth: "800px", margin: "auto" }}
       loading={loading}
       showGridlines
@@ -117,9 +118,9 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
       />
       <Column
         field="quality"
-        header="Division Quality"
+        header="Div. Qual."
         sortable
-        style={{ width: "140px", minWidth: "140px" }}
+        style={{ width: "9em", minWidth: "9em" }}
         body={(c, { field }) => {
           return (
             <div className="flex gap-2 text-sm">
@@ -143,9 +144,9 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
       />
       <Column
         field="allDivQuality"
-        header="Overall Quality"
+        header="OA Qual."
         sortable
-        style={{ width: "90px" }}
+        style={{ width: "7em" }}
         body={(c, { field }) => {
           return (
             <div className="flex gap-2 justify-content-center text-xs">
