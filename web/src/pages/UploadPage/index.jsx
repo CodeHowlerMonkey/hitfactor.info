@@ -59,6 +59,7 @@ const MatchSearchInput = forwardRef(({ placeholder, onChange }, ref) => {
           cursor: "pointer",
           fontSize: "1.25rem",
           marginRight: "14px",
+          color: "rgba(255, 255, 255, 0.6)",
         }}
       >
         &#10005;
