@@ -365,7 +365,8 @@ export const hydrateShooters = async () => {
   await batchHydrateShooters("m");
   await batchHydrateShooters("a");
   await batchHydrateShooters("b");
-  // TODO: CDU when they are imported
+  await batchHydrateShooters("c");
+  await batchHydrateShooters("d");
 
   console.timeEnd("shooters");
 };
