@@ -494,7 +494,10 @@ RecHHFSchema.index({ classifierDivision: 1 }, { unique: true });
 
 export const RecHHF = mongoose.model("RecHHF", RecHHFSchema);
 
-export const recHHFUpdate = (runs, division, classifier) => {
+const recHHFUpdate = (runs, division, classifier) => {
+  if (!runs) {
+    return null;
+  }
   const recHHF = recommendedHHFFunctionFor({
     division,
     number: classifier,
@@ -526,20 +529,25 @@ export const hydrateSingleRecHFF = async (division, classifier) => {
   const allRuns = await runsForRecs({ division, number: classifier });
   const update = recHHFUpdate(allRuns, division, classifier);
 
-  return RecHHF.updateOne({ division, classifier }, { $set: update }, { upsert: true });
+  if (update) {
+    return RecHHF.updateOne({ division, classifier }, { $set: update }, { upsert: true });
+  }
+  return null;
 };
 
 export const hydrateRecHHFsForClassifiers = async (classifiers) => {
   const runsByClassifierDivision = await runsForRecsMultiByClassifierDivision(
     classifiers
   );
-  const updates = classifiers.map((c) =>
-    recHHFUpdate(
-      runsByClassifierDivision[[c.classifier, c.division].join(":")],
-      c.division,
-      c.classifier
+  const updates = classifiers
+    .map((c) =>
+      recHHFUpdate(
+        runsByClassifierDivision[[c.classifier, c.division].join(":")],
+        c.division,
+        c.classifier
+      )
     )
-  );
+    .filter(Boolean);
 
   return RecHHF.bulkWrite(
     updates.map((update) => {

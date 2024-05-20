@@ -81,7 +81,7 @@ const classifiersAndShootersFromScores = (scores) => {
       division,
     })),
     (s) => s.classifierDivision
-  );
+  ).filter((c) => !!c.classifier);
   const shooters = uniqBy(
     scores.map(({ memberNumberDivision, memberNumber, division }) => ({
       memberNumberDivision,
@@ -89,7 +89,7 @@ const classifiersAndShootersFromScores = (scores) => {
       division,
     })),
     (s) => s.memberNumberDivision
-  );
+  ).filter((c) => !!c.memberNumber);
   return { classifiers, shooters };
 };
 
