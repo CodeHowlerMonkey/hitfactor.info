@@ -1,3 +1,5 @@
+import FormData from "form-data";
+import { ZenRows } from "zenrows";
 import uniqBy from "lodash.uniqby";
 import { UTCDate } from "../../../../../shared/utils/date.js";
 import { uuidsFromUrlString } from "../../../../../shared/utils/uuid.js";
@@ -25,27 +27,28 @@ const retryDelay = (retry) => {
   return delay(retry * 312 + quickRandom);
 };
 
-const fetchUSPSAEndpoint = async (sessionKey, endpoint, tryNumber = 1, maxTries = 7) => {
-  let response = null;
+const fetchUSPSAEndpoint = async (sessionKey, endpoint, tryNumber = 1, maxTries = 3) => {
   try {
-    response = await fetch(
+    const client = new ZenRows(process.env.ZENROWS_API_KEY);
+    // const response = await fetch(
+    const { data } = await client.get(
       `https://api.uspsa.org/api/app/${endpoint}`,
-      //{ custom_headers: true },
+      { custom_headers: true },
       {
         headers: {
           accept: "application/json",
           "uspsa-api": sessionKey,
           "Uspsa-Api-Version": "1.1.3",
           "Uspsa-Debug": "FALSE",
+          "user-agent":
+            "Mozilla/5.0 (iPhone; CPU iPhone OS 16_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148",
           Accept: "application/json",
         },
       }
     );
-    return await response.json();
+    return data;
+    // return await response.json();
   } catch (err) {
-    console.error(endpoint);
-    console.error(err);
-    return null;
     if (tryNumber <= maxTries) {
       await retryDelay(tryNumber);
       return await fetchUSPSAEndpoint(sessionKey, endpoint, tryNumber + 1, maxTries);
@@ -56,21 +59,34 @@ const fetchUSPSAEndpoint = async (sessionKey, endpoint, tryNumber = 1, maxTries 
 };
 
 const loginToUSPSA = async (username, password) => {
-  const formData = new FormData();
-  formData.append("username", username);
-  formData.append("password", password);
+  try {
+    const client = new ZenRows(process.env.ZENROWS_API_KEY);
+    const formData = new FormData();
+    formData.append("username", username);
+    formData.append("password", password);
 
-  const response = await fetch("https://api.uspsa.org/api/app/login", {
-    headers: {
-      accept: "application/json, text/plain, */*",
-      "uspsa-api-version": "1.1.3",
-      "uspsa-debug": "FALSE",
-    },
-    credentials: "omit",
-    body: formData,
-    method: "POST",
-  });
-  return await response.json();
+    //const response = await fetch("https://api.uspsa.org/api/app/login", {
+    const { data } = await client.post(
+      "https://api.uspsa.org/api/app/login",
+      { custom_headers: true },
+      {
+        headers: {
+          "uspsa-api-version": "1.1.3",
+          "uspsa-debug": "FALSE",
+          "user-agent":
+            "Mozilla/5.0 (iPhone; CPU iPhone OS 16_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148",
+          ...formData.getHeaders(),
+        },
+        data: formData,
+      }
+    );
+    //return await response.json();
+    return data;
+  } catch (err) {
+    console.error("loginToUSPSA error");
+    console.error(err);
+  }
+  return null;
 };
 
 const classifiersAndShootersFromScores = (scores) => {
@@ -322,6 +338,11 @@ const uploadRoutes = async (fastify, opts) => {
     const { memberNumber, password } = req.body;
 
     const loginResult = await loginToUSPSA(memberNumber, password);
+    if (!loginResult) {
+      return {
+        error: "Can't login to USPSA",
+      };
+    }
     if (!loginResult?.success) {
       return {
         error: loginResult?.message || loginResult,
