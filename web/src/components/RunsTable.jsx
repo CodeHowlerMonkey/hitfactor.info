@@ -1,5 +1,5 @@
 import qs from "query-string";
-import { useCallback, useEffect, useRef, useState, useMemo } from "react";
+import { useEffect, useRef, useState } from "react";
 import { DataTable } from "primereact/datatable";
 import { Checkbox } from "primereact/checkbox";
 import { InputText } from "primereact/inputtext";
@@ -12,9 +12,7 @@ import { Dropdown } from "primereact/dropdown";
 import { useDebounce } from "use-debounce";
 import ShooterCell from "./ShooterCell";
 import { renderPercent } from "./Table";
-import { Button } from "primereact/button";
-import { Toast } from "primereact/toast";
-import { ConfirmDialog, confirmDialog } from "primereact/confirmdialog";
+import ReportDialog from "./ReportDialog";
 
 const TableFilter = ({ placeholder, onFilterChange }) => {
   const [filter, setFilter] = useState("");
@@ -123,65 +121,6 @@ export const useRunsTableData = ({ division, classifier }) => {
   };
 };
 
-const useReportDialog = () => {
-  const toast = useRef(null);
-
-  const accept = useCallback(() => {
-    toast.current.show({
-      severity: "info",
-      summary: "Confirmed",
-      detail: "You have accepted",
-      life: 3000,
-    });
-  }, [toast]);
-
-  const reject = useCallback(() => {
-    toast.current.show({
-      severity: "warn",
-      summary: "Rejected",
-      detail: "You have rejected",
-      life: 3000,
-    });
-  }, [toast]);
-
-  const showReportDialog = useCallback(() => {
-    confirmDialog({
-      group: "templating",
-      header: "Confirmation",
-      message: (
-        <div className="flex flex-column align-items-center w-full gap-3 border-bottom-1 surface-border">
-          <i className="pi pi-exclamation-circle text-6xl text-primary-500"></i>
-          <span>Please confirm to proceed moving forward.</span>
-        </div>
-      ),
-      accept,
-      reject,
-    });
-  }, []);
-
-  const modals = useMemo(
-    () => (
-      <>
-        <Toast ref={toast} />
-        <ConfirmDialog group="templating" />
-      </>
-    ),
-    []
-  );
-
-  return { showReportDialog, modals };
-};
-
-const ReportButton = ({ onClick }) => (
-  <Button
-    icon="pi pi-flag text-xs md:text-base"
-    size="small"
-    style={{ width: "1em" }}
-    onClick={onClick}
-    text
-  />
-);
-
 const RunsTable = ({ classifier, division, clubs, onShooterSelection }) => {
   const {
     loading,
@@ -202,11 +141,11 @@ const RunsTable = ({ classifier, division, clubs, onShooterSelection }) => {
     return "Classifier Not Found";
   }
 
-  const { showReportDialog, modals } = useReportDialog();
+  const reportDialogRef = useRef(null);
 
   return (
     <>
-      {modals}
+      <ReportDialog type="Score" ref={reportDialogRef} />
       <DataTable
         className="text-xs md:text-base"
         loading={loading}
@@ -309,8 +248,11 @@ const RunsTable = ({ classifier, division, clubs, onShooterSelection }) => {
           )}
         />
         <Column field="sd" header="Date" sortable />
-        <Column field="sd" header="Date" sortable />
-        <Column body={() => <ReportButton onClick={showReportDialog} />} />
+        <Column
+          body={(c) => (
+            <ReportDialog.Button onClick={() => reportDialogRef.current.startReport(c)} />
+          )}
+        />
       </DataTable>
     </>
   );
