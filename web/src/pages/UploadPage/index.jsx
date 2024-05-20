@@ -1,5 +1,6 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { Button } from "primereact/button";
+import { TabView, TabPanel } from "primereact/tabview";
 import { InputTextarea } from "primereact/inputtextarea";
 import { ProgressSpinner } from "primereact/progressspinner";
 import { getApi, postApi } from "../../utils/client";
@@ -11,6 +12,8 @@ import { Column } from "primereact/column";
 import { ToggleButton } from "primereact/togglebutton";
 import uniqBy from "lodash.uniqby";
 import { uuidsFromUrlString } from "../../../../shared/utils/uuid";
+import USPSAUpload from "./USPSAUpload";
+import UploadResults from "./UploadResults";
 
 const shooterHref = (memberNumber, division) =>
   `/shooters/${division}/${memberNumber || ""}`;
@@ -95,147 +98,111 @@ const UploadPage = () => {
   }));
 
   return (
-    <div className="flex flex-column flex align-items-center mt-2">
-      <div className="flex flex-column" style={{ width: "min(48rem, 90vw)" }}>
-        <MatchSearchInput
-          placeholder="Search Matches"
-          onChange={updateSearchResults}
-          ref={searchRef}
-        />
-        {tableData.length > 0 && (
-          <DataTable
-            stripedRows
-            rowGroupMode="subheader"
-            groupRowsBy="upload"
-            value={tableData}
-            size="small"
-            totalRecords={tableData.length}
-            sortField="upload"
-            sortOrder={1}
-            rowGroupHeaderTemplate={(data) => {
-              if (data.upload) {
-                return "To Upload";
-              }
-              return "Search Results";
-            }}
-          >
-            <Column field="date" header="Date" />
-            <Column field="state" header="State" />
-            <Column field="name" header="Match Name" />
-            <Column
-              header="Upload?"
-              body={(match) => (
-                <ToggleButton
-                  className="p-2"
+    <div className="p-0 md:px-4">
+      <TabView panelContainerClassName="p-0 md:px-4">
+        <TabPanel header="PractiScore" className="p-0 text-sm md:text-base">
+          <div className="flex flex-column flex align-items-center mt-2">
+            <div className="flex flex-column" style={{ width: "min(48rem, 90vw)" }}>
+              <MatchSearchInput
+                placeholder="Search Matches"
+                onChange={updateSearchResults}
+                ref={searchRef}
+              />
+              {tableData.length > 0 && (
+                <DataTable
+                  stripedRows
+                  rowGroupMode="subheader"
+                  groupRowsBy="upload"
+                  value={tableData}
                   size="small"
-                  onIcon="pi pi-check"
-                  offIcon="pi pi-times"
-                  checked={toUploadIds.includes(match.uuid)}
-                  onChange={(e) =>
-                    setToUpload((existing) => {
-                      const shouldBeUploaded = e.value;
-                      if (shouldBeUploaded) {
-                        return [...existing, match];
-                      } else {
-                        const index = existing.findIndex((c) => c.uuid === match.uuid);
-                        if (index >= 0) {
-                          const newArray = [...existing];
-                          newArray.splice(index, 1);
-                          return newArray;
+                  totalRecords={tableData.length}
+                  sortField="upload"
+                  sortOrder={1}
+                  rowGroupHeaderTemplate={(data) => {
+                    if (data.upload) {
+                      return "To Upload";
+                    }
+                    return "Search Results";
+                  }}
+                >
+                  <Column field="date" header="Date" />
+                  <Column field="state" header="State" />
+                  <Column field="name" header="Match Name" />
+                  <Column
+                    header="Upload?"
+                    body={(match) => (
+                      <ToggleButton
+                        className="p-2"
+                        size="small"
+                        onIcon="pi pi-check"
+                        offIcon="pi pi-times"
+                        checked={toUploadIds.includes(match.uuid)}
+                        onChange={(e) =>
+                          setToUpload((existing) => {
+                            const shouldBeUploaded = e.value;
+                            if (shouldBeUploaded) {
+                              return [...existing, match];
+                            } else {
+                              const index = existing.findIndex(
+                                (c) => c.uuid === match.uuid
+                              );
+                              if (index >= 0) {
+                                const newArray = [...existing];
+                                newArray.splice(index, 1);
+                                return newArray;
+                              }
+                            }
+                            return existing;
+                          })
                         }
-                      }
-                      return existing;
-                    })
-                  }
-                />
+                      />
+                    )}
+                  />
+                </DataTable>
               )}
-            />
-          </DataTable>
-        )}
-        {toUploadIds.length > 0 && (
-          <div className="flex flex-grow-1 justify-content-center">
-            <Button
-              size="large"
-              className="m-4 md:text-4xl lg:text-base"
-              label="Upload  "
-              icon="pi pi-upload md:text-4xl md:pl-3 lg:text-base lg:p-0"
-              iconPos="right"
-              loading={loading}
-              onClick={async () => {
-                setLoading(true);
-                setError(null);
-                setResult(null);
-                try {
-                  const apiResponse = await postApi("/upload", {
-                    uuids: toUploadIds,
-                  });
-                  if (apiResponse.error) {
-                    setError(apiResponse.error);
-                  } else {
-                    setResult(apiResponse);
-                    searchRef.current?.setValue("");
-                    setToUpload([]);
-                    setSearchResults([]);
-                  }
-                  console.log(apiResponse);
-                } catch (e) {
-                  setError(e);
-                }
-                setLoading(false);
-              }}
-            />
+              {toUploadIds.length > 0 && (
+                <div className="flex flex-grow-1 justify-content-center">
+                  <Button
+                    size="large"
+                    className="m-4 md:text-4xl lg:text-base"
+                    label="Upload  "
+                    icon="pi pi-upload md:text-4xl md:pl-3 lg:text-base lg:p-0"
+                    iconPos="right"
+                    loading={loading}
+                    onClick={async () => {
+                      setLoading(true);
+                      setError(null);
+                      setResult(null);
+                      try {
+                        const apiResponse = await postApi("/upload", {
+                          uuids: toUploadIds,
+                        });
+                        if (apiResponse.error) {
+                          setError(apiResponse.error);
+                        } else {
+                          setResult(apiResponse);
+                          searchRef.current?.setValue("");
+                          setToUpload([]);
+                          setSearchResults([]);
+                        }
+                        console.log(apiResponse);
+                      } catch (e) {
+                        setError(e);
+                      }
+                      setLoading(false);
+                    }}
+                  />
+                </div>
+              )}
+              <UploadResults {...{ error, result, loading }} />
+            </div>
           </div>
-        )}
-        <UploadResults {...{ error, result, loading }} />
-      </div>
+        </TabPanel>
+        <TabPanel header="USPSA" className="p-0 text-sm md:text-base">
+          <USPSAUpload />
+        </TabPanel>
+      </TabView>
     </div>
-  );
-};
-
-const UploadResults = ({ result, loading, error }) => {
-  return (
-    <>
-      {loading && <ProgressSpinner />}
-      {error && (
-        <Message severity="error" text={error.toString?.() || error} className="m-4" />
-      )}
-      {result && (
-        <Message
-          severity="success"
-          text="Upload Complete!"
-          icon="pi pi-check"
-          className="m-4"
-        />
-      )}
-      {result && (
-        <div className="flex justify-content-around sm:w-full lg:w-10 mt-4">
-          <div>
-            Classifiers:
-            <ul>
-              {result.classifiers?.map((c) => (
-                <li>
-                  <a href={classifierHref(c.classifier, c.division)} target="_blank">
-                    {c.classifier} - {c.division}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div>
-            Shooters:
-            <ul>
-              {result.shooters?.map((s) => (
-                <li>
-                  <a href={shooterHref(s.memberNumber, s.division)} target="_blank">
-                    {s.memberNumber} - {s.division}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-      )}
-    </>
   );
 };
 

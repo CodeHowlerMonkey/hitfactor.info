@@ -69,7 +69,7 @@ const badScoresMap = {
 
 const isMajor = (source) => source === "Major Match";
 
-const scoresFromClassifierFile = (fileObj) => {
+export const scoresFromClassifierFile = (fileObj) => {
   const memberNumber = fileObj?.value?.member_data?.member_number;
   const memberId = fileObj?.value?.member_data?.member_id;
   const classifiers = fileObj?.value?.classifiers;

@@ -3,16 +3,95 @@ import { UTCDate } from "../../../../../shared/utils/date.js";
 import { uuidsFromUrlString } from "../../../../../shared/utils/uuid.js";
 import { curHHFForDivisionClassifier } from "../../../dataUtil/hhf.js";
 import { HF, Percent } from "../../../dataUtil/numbers.js";
-import { Score } from "../../../db/scores.js";
+import { Score, scoresFromClassifierFile } from "../../../db/scores.js";
 import { RecHHF, hydrateRecHHFsForClassifiers } from "../../../db/recHHF.js";
 import { singleClassifierExtendedMetaDoc, Classifier } from "../../../db/classifiers.js";
 import { hydrateStats } from "../../../db/stats.js";
 import {
   scoresForRecommendedClassification,
   reclassifyShooters,
+  shooterObjectsFromClassificationFile,
+  Shooter,
 } from "../../../db/shooters.js";
 import { DQs } from "../../../db/dq.js";
 import { calculateUSPSAClassification } from "../../../../../shared/utils/classification.js";
+
+const delay = (ms) => {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+};
+
+const retryDelay = (retry) => {
+  const quickRandom = Math.ceil(32 + 40 * Math.random());
+  return delay(retry * 312 + quickRandom);
+};
+
+const fetchUSPSAEndpoint = async (sessionKey, endpoint, tryNumber = 1, maxTries = 7) => {
+  let response = null;
+  try {
+    response = await fetch(
+      `https://api.uspsa.org/api/app/${endpoint}`,
+      //{ custom_headers: true },
+      {
+        headers: {
+          accept: "application/json",
+          "uspsa-api": sessionKey,
+          "Uspsa-Api-Version": "1.1.3",
+          "Uspsa-Debug": "FALSE",
+          Accept: "application/json",
+        },
+      }
+    );
+    return await response.json();
+  } catch (err) {
+    console.error(endpoint);
+    console.error(err);
+    return null;
+    if (tryNumber <= maxTries) {
+      await retryDelay(tryNumber);
+      return await fetchUSPSAEndpoint(sessionKey, endpoint, tryNumber + 1, maxTries);
+    }
+
+    return null;
+  }
+};
+
+const loginToUSPSA = async (username, password) => {
+  const formData = new FormData();
+  formData.append("username", username);
+  formData.append("password", password);
+
+  const response = await fetch("https://api.uspsa.org/api/app/login", {
+    headers: {
+      accept: "application/json, text/plain, */*",
+      "uspsa-api-version": "1.1.3",
+      "uspsa-debug": "FALSE",
+    },
+    credentials: "omit",
+    body: formData,
+    method: "POST",
+  });
+  return await response.json();
+};
+
+const classifiersAndShootersFromScores = (scores) => {
+  const classifiers = uniqBy(
+    scores.map(({ classifierDivision, classifier, division }) => ({
+      classifierDivision,
+      classifier,
+      division,
+    })),
+    (s) => s.classifierDivision
+  );
+  const shooters = uniqBy(
+    scores.map(({ memberNumberDivision, memberNumber, division }) => ({
+      memberNumberDivision,
+      memberNumber,
+      division,
+    })),
+    (s) => s.memberNumberDivision
+  );
+  return { classifiers, shooters };
+};
 
 const fetchPS = async (path) => {
   const response = await fetch("https://s3.amazonaws.com/ps-scores/production/" + path, {
@@ -239,6 +318,78 @@ const uploadRoutes = async (fastify, opts) => {
     return matchInfo(uuid, true);
   });
 
+  fastify.post("/uspsa", async (req, res) => {
+    const { memberNumber, password } = req.body;
+
+    const loginResult = await loginToUSPSA(memberNumber, password);
+    if (!loginResult?.success) {
+      return {
+        error: loginResult?.message || loginResult,
+      };
+    }
+
+    const { session_key, member_number } = loginResult?.member_data || {};
+    if (!session_key || !member_number) {
+      return { error: "Unexpected Login Response" };
+    }
+    const [uspsaClassifiers, uspsaClassification] = await Promise.all([
+      fetchUSPSAEndpoint(session_key, `classifiers/${member_number}`),
+      fetchUSPSAEndpoint(session_key, `classification/${member_number}`),
+    ]);
+    if (!uspsaClassifiers && !uspsaClassification) {
+      return { error: "Can't fetch data from USPSA" };
+    }
+
+    try {
+      const scores = scoresFromClassifierFile({ value: uspsaClassifiers });
+      await Score.bulkWrite(
+        scores.map((s) => ({
+          updateOne: {
+            filter: {
+              memberNumberDivision: s.memberNumberDivision,
+              classifierDivision: s.classifierDivision,
+              hf: s.hf,
+              sd: s.sd,
+              // some PS matches don't have club set, but all USPSA uploads do,
+              // so to prevent dupes, don't filter by club on score upsert
+              // clubid: s.clubid,
+            },
+            update: { $set: s },
+            upsert: true,
+          },
+        }))
+      );
+      const shooterObjs = await shooterObjectsFromClassificationFile(uspsaClassification);
+      await Shooter.bulkWrite(
+        shooterObjs
+          .filter((s) => !!s.memberNumber)
+          .map((s) => ({
+            updateOne: {
+              filter: {
+                memberNumber: s.memberNumber,
+                division: s.division,
+              },
+              update: { $set: s },
+              upsert: true,
+            },
+          }))
+      );
+
+      const { classifiers, shooters } = classifiersAndShootersFromScores(scores);
+      afterUpload(classifiers, shooters);
+
+      return {
+        result: {
+          classifiers,
+          shooters,
+        },
+      };
+    } catch (e) {
+      console.error(e);
+      return { error: "Can't parse USPSA data" };
+    }
+  });
+
   fastify.post("/", async (req, res) => {
     try {
       const { uuids } = req.body;
@@ -309,23 +460,7 @@ const uploadRoutes = async (fastify, opts) => {
         }))
       );
 
-      const classifiers = uniqBy(
-        scores.map(({ classifierDivision, classifier, division }) => ({
-          classifierDivision,
-          classifier,
-          division,
-        })),
-        (s) => s.classifierDivision
-      );
-      const shooters = uniqBy(
-        scores.map(({ memberNumberDivision, memberNumber, division }) => ({
-          memberNumberDivision,
-          memberNumber,
-          division,
-        })),
-        (s) => s.memberNumberDivision
-      );
-
+      const { classifiers, shooters } = classifiersAndShootersFromScores(scores);
       afterUpload(classifiers, shooters);
 
       return {

@@ -256,7 +256,7 @@ const reclassificationBreakdown = (reclassificationInfo, division) => ({
   classes: mapDivisions((div) => classForPercent(reclassificationInfo?.[div]?.percent)),
 });
 
-const shooterObjectsFromClassificationFile = async (c) => {
+export const shooterObjectsFromClassificationFile = async (c) => {
   if (!c?.member_data) {
     return [];
   }
