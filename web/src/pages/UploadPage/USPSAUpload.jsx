@@ -1,12 +1,10 @@
-import { useRef, useState } from "react";
-import { Toast } from "primereact/toast";
+import { useState } from "react";
 import { Button } from "primereact/button";
 import { InputText } from "primereact/inputtext";
 import { postApi } from "../../utils/client";
 import UploadResults from "./UploadResults";
 
 const USPSAUpload = () => {
-  const toast = useRef(null);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
   const [memberNumber, setMemberNumber] = useState("");
@@ -14,7 +12,6 @@ const USPSAUpload = () => {
   const [loading, setLoading] = useState(false);
   return (
     <div className="card p-2 w-full md:w-24rem m-auto">
-      <Toast ref={toast} />
       <div className="text-center mb-3">
         <div className="text-700 text-2xl font-medium mb-2">Import from USPSA</div>
         <span className="text-600 font-medium text-sm">
@@ -60,21 +57,9 @@ const USPSAUpload = () => {
               setMemberNumber("");
               setPassword("");
               setResult(apiResponse.result);
-              toast.current.show({
-                severity: "success",
-                summary: "Import Complete",
-                detail: apiResponse?.result?.message,
-                life: 3000,
-              });
             } else {
               setError(apiResponse.error);
               setPassword("");
-              toast.current.show({
-                severity: "error",
-                summary: "Import Failed",
-                detail: apiResponse?.error?.message,
-                life: 5000,
-              });
             }
           }}
         />
