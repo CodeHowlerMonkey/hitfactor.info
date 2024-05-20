@@ -19,7 +19,7 @@ const USPSAUpload = () => {
         </span>
       </div>
 
-      <div>
+      <form onSubmit={(e) => e.preventDefault()}>
         <InputText
           id="memberNumber"
           type="text"
@@ -36,6 +36,7 @@ const USPSAUpload = () => {
           onChange={(e) => setPassword(e.target.value)}
         />
         <Button
+          type="submit"
           label="Import"
           icon="pi pi-download md:text-4xl md:pl-3 lg:text-base lg:p-0"
           className="w-full"
@@ -63,7 +64,7 @@ const USPSAUpload = () => {
             }
           }}
         />
-      </div>
+      </form>
       <div className="flex flex-column">
         <UploadResults
           {...{ error, result, loading }}
