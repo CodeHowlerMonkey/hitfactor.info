@@ -341,16 +341,18 @@ const batchHydrateShooters = async (letter) => {
       }
 
       await Shooter.bulkWrite(
-        curFileShooters.map((s) => ({
-          updateOne: {
-            filter: {
-              memberNumber: s.memberNumber,
-              division: s.division,
+        curFileShooters
+          .filter((s) => !!s.memberNumber)
+          .map((s) => ({
+            updateOne: {
+              filter: {
+                memberNumber: s.memberNumber,
+                division: s.division,
+              },
+              update: { $set: s },
+              upsert: true,
             },
-            update: { $set: s },
-            upsert: true,
-          },
-        }))
+          }))
       );
       process.stdout.write(".");
     }
@@ -386,6 +388,9 @@ export const reclassifyShooters = async (shooters) => {
 
     const updates = shooters
       .map(({ memberNumber, division }) => {
+        if (!memberNumber) {
+          return [];
+        }
         const memberScores = scoresByMemberNumber[memberNumber];
         const recalcByCurPercent = calculateUSPSAClassification(
           memberScores,
@@ -477,7 +482,7 @@ export const reclassifyShooters = async (shooters) => {
         ];
       })
       .flat();
-    await Shooter.bulkWrite(updates);
+    await Shooter.bulkWrite(updates.filter(Boolean));
   } catch (error) {
     console.log("reclassifyShooters error:");
     console.log(error);
