@@ -166,6 +166,7 @@ const RunsTable = ({ classifier, division, clubs, onShooterSelection }) => {
         totalRecords={runsTotal}
         filterDisplay="row"
       >
+        <Column field="place" header="#" align="center" style={{ maxWidth: "4em" }} />
         {/*<Column
         field="index"
         header="#"
@@ -185,6 +186,7 @@ const RunsTable = ({ classifier, division, clubs, onShooterSelection }) => {
           header="Perc."
           headerTooltip="Percentile for this score. Shows how many percent of scores are higher than this one."
           headerTooltipOptions={headerTooltipOptions}
+          body={(c) => c.percentile + "%"}
         />
         <Column
           field="memberNumber"

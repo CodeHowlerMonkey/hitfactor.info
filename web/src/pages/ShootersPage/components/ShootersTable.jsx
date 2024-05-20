@@ -135,7 +135,7 @@ const ShootersTable = ({
           field="index"
           header="#"
           align="center"
-          style={{ maxWidth: "4rem" }}
+          style={{ maxWidth: "4em" }}
           headerTooltip="Shooter's rank / index in the current sort mode."
           headerTooltipOptions={headerTooltipOptions}
         />
