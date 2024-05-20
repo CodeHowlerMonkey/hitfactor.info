@@ -1,24 +1,43 @@
 import { useEffect, useState } from "react";
+import useAsyncEffect from "./useAsyncEffect";
 
 const API_URL = "/api"; // react build served through node
 
-/* Mom, can we have tanstack query at home? */
+/* Mom, can we have tanstack query? No we have tanstack query at home */
+const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const fetchJSON = async (endpoint, attempt = 1, maxAttempts = 3) => {
+  try {
+    const response = await window.fetch(API_URL + endpoint);
+    const json = await response.json();
+    if (json) {
+      return json;
+    }
+  } catch (e) {
+    if (attempt > maxAttempts) {
+      throw e;
+    }
+  }
+
+  if (attempt <= maxAttempts) {
+    await delay(300 * attempt);
+    return await fetchJSON(endpoint, attempt + 1, maxAttempts);
+  }
+
+  return null;
+};
+
 export const useApi = (endpoint, eraseDataBetweenLoads = true) => {
   const [json, setJson] = useState(null);
   const [loading, setLoading] = useState(false);
-  useEffect(() => {
+  useAsyncEffect(async () => {
     if (eraseDataBetweenLoads) {
       setJson(null);
     }
     if (endpoint && !endpoint.includes("undefined")) {
       setLoading(true);
-      window
-        .fetch(API_URL + endpoint)
-        .then((r) => {
-          setLoading(false);
-          return r.json();
-        })
-        .then((j) => setJson(j));
+      const json = await fetchJSON(endpoint);
+      setJson(json);
+      setLoading(false);
     }
   }, [endpoint]);
 
