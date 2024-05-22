@@ -45,16 +45,20 @@ export const letterRatingForPercent = (p) => {
 
 export const renderPercent = (c, { field }) => {
   const value = c[field];
-  if (!value || value < 0) {
+  if (value < 0 || value === undefined) {
     return "—";
   }
 
-  return parseFloat(value.toFixed(2)) + "%";
+  if (typeof value !== "number") {
+    value = Number(value);
+  }
+
+  return value.toFixed(2) + "%";
 };
 
 export const renderHFOrNA = (c, { field }) => {
   let value = c[field];
-  if (value <= 0 || value === undefined) {
+  if (value < 0 || value === undefined) {
     return "—";
   }
 
