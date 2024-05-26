@@ -97,8 +97,13 @@ const fetchApiEndpoint = async (endpoint, tryNumber = 1, maxTries = 7) => {
   }
 };
 
-const fetchFullNumberPageApi = async (memberNumberString, what = "classifiers") =>
-  fetchApiEndpoint(`${what}/${memberNumberString}`);
+const fetchFullNumberPageApi = async (memberNumberString, what = "classifiers") => {
+  const result = await fetchApiEndpoint(`${what}/${memberNumberString}`);
+  if (result?.member_data && !result?.member_data?.member_number) {
+    result.member_data.member_number = memberNumberString;
+  }
+  return result;
+};
 
 const fetchAndSaveSlice = async (
   curSlice,
