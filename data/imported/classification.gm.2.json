@@ -14842,12 +14842,12 @@
         "suffix": "",
         "salutation": "",
         "joined_date": "2005-06-21 00:00:00",
-        "expiration_date": "2024-07-06 00:00:00",
+        "expiration_date": "2025-07-07 00:00:00",
         "life_member": "0",
         "privacy": "0"
       },
       "nroi_certification": {
-        "id": "74786",
+        "id": "81473",
         "member_id": "46803",
         "prev_cert_type": "1",
         "cert_type": "1",
@@ -14857,9 +14857,9 @@
         "sc_cert": "1",
         "legacy": "0",
         "active": "1",
-        "updated_date": "2023-05-23 12:19:37",
-        "certified_date": "2023-05-23 12:19:37",
-        "expiration_date": "2024-06-30 00:00:00",
+        "updated_date": "2024-05-22 11:48:35",
+        "certified_date": "2024-05-22 11:48:35",
+        "expiration_date": "2025-06-30 00:00:00",
         "certification_date": "2008-06-10 07:00:00",
         "type_name": "RO"
       },
@@ -14946,7 +14946,7 @@
       "status": 200,
       "member_data": {
         "member_id": null,
-        "member_number": null,
+        "member_number": "L3988",
         "first_name": null,
         "middle_name": null,
         "last_name": null,

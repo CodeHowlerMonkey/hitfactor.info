@@ -1954,6 +1954,24 @@
           "division_id": 7,
           "division_classifiers": [
             {
+              "defindx": "385395",
+              "classifier": "09-04",
+              "sd": "5/18/24",
+              "ed": "5/19/24",
+              "clubid": "IL09",
+              "club_name": "Pike-adams Sportsmen's Alliance",
+              "percent": "18.5978",
+              "code": "F",
+              "dindx": "7",
+              "source": "Stage Score",
+              "hf": "2.1401",
+              "noab": "0",
+              "pending_a_flag": "0",
+              "verified": "1",
+              "paid_status": "1",
+              "calculated": "1"
+            },
+            {
               "defindx": "382334",
               "classifier": "23-02",
               "sd": "4/21/24",
@@ -2085,7 +2103,7 @@
               "clubid": "IL09",
               "club_name": "Pike-adams Sportsmen's Alliance",
               "percent": "27.5875",
-              "code": "F",
+              "code": "Y",
               "dindx": "7",
               "source": "Stage Score",
               "hf": "3.1322",
@@ -2103,7 +2121,7 @@
               "clubid": "IL12",
               "club_name": "CAPS",
               "percent": "33.1575",
-              "code": "Y",
+              "code": "E",
               "dindx": "7",
               "source": "Stage Score",
               "hf": "1.9608",
@@ -43928,6 +43946,24 @@
         {
           "division_id": 35,
           "division_classifiers": [
+            {
+              "defindx": "386114",
+              "classifier": "13-02",
+              "sd": "5/25/24",
+              "ed": "5/25/24",
+              "clubid": "UT05",
+              "club_name": "Cache Practical Shooters",
+              "percent": "43.8419",
+              "code": "P",
+              "dindx": "35",
+              "source": "Stage Score",
+              "hf": "5.814",
+              "noab": "0",
+              "pending_a_flag": "0",
+              "verified": "1",
+              "paid_status": "1",
+              "calculated": "1"
+            },
             {
               "defindx": "383087",
               "classifier": "19-01",

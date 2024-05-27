@@ -7192,7 +7192,7 @@
           "division_id": "3",
           "division": "Limited",
           "class": "C",
-          "current_percent": "44.9297",
+          "current_percent": "45.1208",
           "high_percent": "45.3280"
         },
         {
@@ -15145,7 +15145,7 @@
         "privacy": "0"
       },
       "nroi_certification": {
-        "id": "81392",
+        "id": "81491",
         "member_id": "46739",
         "prev_cert_type": "1",
         "cert_type": "1",
@@ -15155,9 +15155,9 @@
         "sc_cert": "0",
         "legacy": "0",
         "active": "1",
-        "updated_date": "2024-05-17 11:53:55",
-        "certified_date": "2024-05-17 11:53:55",
-        "expiration_date": "2024-05-31 00:00:00",
+        "updated_date": "2024-05-24 07:21:12",
+        "certified_date": "2024-05-17 00:00:00",
+        "expiration_date": "2025-05-31 00:00:00",
         "certification_date": "2005-11-09 08:00:00",
         "type_name": "RO"
       },
@@ -16052,7 +16052,7 @@
       "status": 200,
       "member_data": {
         "member_id": null,
-        "member_number": null,
+        "member_number": "TY54221",
         "first_name": null,
         "middle_name": null,
         "last_name": null,
@@ -21655,7 +21655,7 @@
           "division_id": "38",
           "division": "PCC",
           "class": "C",
-          "current_percent": "59.5804",
+          "current_percent": "58.9098",
           "high_percent": "59.5804"
         },
         {

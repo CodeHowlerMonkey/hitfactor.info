@@ -318,7 +318,7 @@
         "privacy": "0"
       },
       "nroi_certification": {
-        "id": "74257",
+        "id": "81440",
         "member_id": "10848",
         "prev_cert_type": "2",
         "cert_type": "2",
@@ -328,9 +328,9 @@
         "sc_cert": "0",
         "legacy": "0",
         "active": "1",
-        "updated_date": "2023-04-24 15:08:46",
-        "certified_date": "2023-04-24 15:08:46",
-        "expiration_date": "2024-06-03 00:00:00",
+        "updated_date": "2024-05-20 16:43:24",
+        "certified_date": "2024-05-20 16:43:24",
+        "expiration_date": "2025-06-03 00:00:00",
         "certification_date": "1997-01-11 08:00:00",
         "type_name": "CRO"
       },
@@ -26283,8 +26283,8 @@
           "division_id": "41",
           "division": "Limited Optics",
           "class": "B",
-          "current_percent": "66.4153",
-          "high_percent": "66.4153"
+          "current_percent": "70.0291",
+          "high_percent": "70.0291"
         }
       ]
     }
@@ -26307,7 +26307,7 @@
         "privacy": "0"
       },
       "nroi_certification": {
-        "id": "74116",
+        "id": "81447",
         "member_id": "17482",
         "prev_cert_type": "1",
         "cert_type": "1",
@@ -26317,9 +26317,9 @@
         "sc_cert": "0",
         "legacy": "0",
         "active": "1",
-        "updated_date": "2023-04-17 10:51:22",
-        "certified_date": "2023-04-17 10:51:22",
-        "expiration_date": "2024-05-31 07:00:00",
+        "updated_date": "2024-05-20 23:11:50",
+        "certified_date": "2024-05-20 23:11:50",
+        "expiration_date": "2025-05-31 07:00:00",
         "certification_date": "1995-04-29 07:00:00",
         "type_name": "RO"
       },

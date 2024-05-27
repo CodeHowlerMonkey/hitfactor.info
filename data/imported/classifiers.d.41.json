@@ -10685,10 +10685,10 @@
           "division_id": 38,
           "division_classifiers": [
             {
-              "defindx": "385146",
+              "defindx": "385503",
               "classifier": "99-48",
               "sd": "5/18/24",
-              "ed": "0/00/00",
+              "ed": "5/20/24",
               "clubid": "MI20",
               "club_name": "Antrim Sand Pit Shooters (asps)",
               "percent": "37.1891",
@@ -10699,14 +10699,14 @@
               "noab": "0",
               "pending_a_flag": "0",
               "verified": "1",
-              "paid_status": "0",
+              "paid_status": "1",
               "calculated": "1"
             },
             {
-              "defindx": "385147",
+              "defindx": "385504",
               "classifier": "03-04",
               "sd": "5/18/24",
-              "ed": "0/00/00",
+              "ed": "5/20/24",
               "clubid": "MI20",
               "club_name": "Antrim Sand Pit Shooters (asps)",
               "percent": "28.4382",
@@ -10717,7 +10717,7 @@
               "noab": "0",
               "pending_a_flag": "0",
               "verified": "1",
-              "paid_status": "0",
+              "paid_status": "1",
               "calculated": "1"
             }
           ]

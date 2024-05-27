@@ -33538,6 +33538,24 @@
           "division_id": 6,
           "division_classifiers": [
             {
+              "defindx": "385376",
+              "classifier": "23-01",
+              "sd": "5/11/24",
+              "ed": "5/19/24",
+              "clubid": "CCS04",
+              "club_name": "SLOSA",
+              "percent": "28.7749",
+              "code": "Y",
+              "dindx": "6",
+              "source": "Stage Score",
+              "hf": "2.0141",
+              "noab": "0",
+              "pending_a_flag": "0",
+              "verified": "1",
+              "paid_status": "1",
+              "calculated": "1"
+            },
+            {
               "defindx": "152675",
               "classifier": "99-11",
               "sd": "11/11/17",
@@ -33599,7 +33617,7 @@
               "clubid": "CN15",
               "club_name": "San Luis Action Pistol",
               "percent": "19.7155",
-              "code": "Y",
+              "code": "F",
               "dindx": "6",
               "source": "Legacy",
               "hf": -1,

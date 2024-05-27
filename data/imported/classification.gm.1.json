@@ -5740,7 +5740,7 @@
       "status": 200,
       "member_data": {
         "member_id": null,
-        "member_number": null,
+        "member_number": "L2135",
         "first_name": null,
         "middle_name": null,
         "last_name": null,
@@ -8694,7 +8694,7 @@
         "suffix": "",
         "salutation": "",
         "joined_date": "1985-09-18 00:00:00",
-        "expiration_date": "2024-06-02 00:00:00",
+        "expiration_date": "2027-06-03 00:00:00",
         "life_member": "0",
         "privacy": "0"
       },
@@ -13254,7 +13254,7 @@
           "division_id": "2",
           "division": "Open",
           "class": "GM",
-          "current_percent": "95.6266",
+          "current_percent": "95.8304",
           "high_percent": "95.9416"
         },
         {
@@ -13742,7 +13742,7 @@
       "status": 200,
       "member_data": {
         "member_id": null,
-        "member_number": null,
+        "member_number": "L2485",
         "first_name": null,
         "middle_name": null,
         "last_name": null,
@@ -15267,8 +15267,8 @@
           "division_id": "35",
           "division": "Carry Optics",
           "class": "GM",
-          "current_percent": "95.9054",
-          "high_percent": "95.9054"
+          "current_percent": "96.8974",
+          "high_percent": "96.8974"
         },
         {
           "id": "151440",
@@ -15283,7 +15283,7 @@
           "division_id": "41",
           "division": "Limited Optics",
           "class": "GM",
-          "current_percent": "96.3609",
+          "current_percent": "91.7603",
           "high_percent": "96.3609"
         }
       ]

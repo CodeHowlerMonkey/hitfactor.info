@@ -43608,6 +43608,24 @@
           "division_id": 2,
           "division_classifiers": [
             {
+              "defindx": "385876",
+              "classifier": "22-06",
+              "sd": "5/19/24",
+              "ed": "5/22/24",
+              "clubid": "AZR03",
+              "club_name": "Rio Salado Practical Pistol",
+              "percent": "37.8221",
+              "code": "D",
+              "dindx": "2",
+              "source": "Stage Score",
+              "hf": "5.1233",
+              "noab": "0",
+              "pending_a_flag": "0",
+              "verified": "1",
+              "paid_status": "1",
+              "calculated": "1"
+            },
+            {
               "defindx": "380609",
               "classifier": "18-09",
               "sd": "3/02/24",
@@ -58224,6 +58242,42 @@
         {
           "division_id": 35,
           "division_classifiers": [
+            {
+              "defindx": "386269",
+              "classifier": "21-01",
+              "sd": "5/25/24",
+              "ed": "0/00/00",
+              "clubid": "NC07",
+              "club_name": "Pitt County Wildlife Club",
+              "percent": "36.9825",
+              "code": "P",
+              "dindx": "35",
+              "source": "Stage Score",
+              "hf": "5.9172",
+              "noab": "0",
+              "pending_a_flag": "0",
+              "verified": "0",
+              "paid_status": "0",
+              "calculated": "1"
+            },
+            {
+              "defindx": "386240",
+              "classifier": "21-01",
+              "sd": "5/25/24",
+              "ed": "0/00/00",
+              "clubid": "NC07",
+              "club_name": "Pitt County Wildlife Club",
+              "percent": "36.9825",
+              "code": "P",
+              "dindx": "35",
+              "source": "Stage Score",
+              "hf": "5.9172",
+              "noab": "0",
+              "pending_a_flag": "0",
+              "verified": "0",
+              "paid_status": "0",
+              "calculated": "1"
+            },
             {
               "defindx": "383619",
               "classifier": "23-02",

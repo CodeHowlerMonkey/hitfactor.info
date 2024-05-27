@@ -50300,6 +50300,24 @@
           "division_id": 3,
           "division_classifiers": [
             {
+              "defindx": "385815",
+              "classifier": "22-02",
+              "sd": "5/17/24",
+              "ed": "5/19/24",
+              "clubid": "UT01",
+              "club_name": "Salt Lake Practical Shooting Assn.",
+              "percent": "16.7488",
+              "code": "D",
+              "dindx": "3",
+              "source": "Stage Score",
+              "hf": "1.3399",
+              "noab": "0",
+              "pending_a_flag": "0",
+              "verified": "1",
+              "paid_status": "1",
+              "calculated": "1"
+            },
+            {
               "defindx": "381471",
               "classifier": "18-03",
               "sd": "4/12/24",

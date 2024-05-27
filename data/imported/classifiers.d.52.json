@@ -63605,6 +63605,24 @@
           "division_id": 35,
           "division_classifiers": [
             {
+              "defindx": "385502",
+              "classifier": "22-06",
+              "sd": "5/18/24",
+              "ed": "5/20/24",
+              "clubid": "NE25",
+              "club_name": "Sig Sauer Academy",
+              "percent": "35.7784",
+              "code": "Y",
+              "dindx": "35",
+              "source": "Stage Score",
+              "hf": "4.4723",
+              "noab": "0",
+              "pending_a_flag": "0",
+              "verified": "1",
+              "paid_status": "1",
+              "calculated": "1"
+            },
+            {
               "defindx": "383059",
               "classifier": "99-28",
               "sd": "4/28/24",
@@ -63666,7 +63684,7 @@
               "clubid": "NE24",
               "club_name": "Boston Urban Action Shooters",
               "percent": "28.1296",
-              "code": "Y",
+              "code": "D",
               "dindx": "35",
               "source": "Stage Score",
               "hf": "3.5162",
@@ -65424,6 +65442,24 @@
         {
           "division_id": 38,
           "division_classifiers": [
+            {
+              "defindx": "385857",
+              "classifier": "13-02",
+              "sd": "5/21/24",
+              "ed": "5/22/24",
+              "clubid": "ECO22",
+              "club_name": "The Gallery Shooting Range",
+              "percent": "24.4698",
+              "code": "P",
+              "dindx": "38",
+              "source": "Stage Score",
+              "hf": "4.0636",
+              "noab": "0",
+              "pending_a_flag": "0",
+              "verified": "1",
+              "paid_status": "1",
+              "calculated": "1"
+            },
             {
               "defindx": "382800",
               "classifier": "13-05",

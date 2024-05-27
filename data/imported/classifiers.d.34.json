@@ -46991,6 +46991,24 @@
           "division_id": 35,
           "division_classifiers": [
             {
+              "defindx": "385360",
+              "classifier": "03-04",
+              "sd": "5/18/24",
+              "ed": "5/19/24",
+              "clubid": "HI10",
+              "club_name": "United Shooters Association Hawaii",
+              "percent": "38.8882",
+              "code": "Y",
+              "dindx": "35",
+              "source": "Stage Score",
+              "hf": "3.6749",
+              "noab": "0",
+              "pending_a_flag": "0",
+              "verified": "1",
+              "paid_status": "1",
+              "calculated": "1"
+            },
+            {
               "defindx": "380845",
               "classifier": "18-07",
               "sd": "4/06/24",

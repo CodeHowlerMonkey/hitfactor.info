@@ -12009,6 +12009,29 @@
               "calculated": "1"
             }
           ]
+        },
+        {
+          "division_id": 41,
+          "division_classifiers": [
+            {
+              "defindx": "385567",
+              "classifier": "22-04",
+              "sd": "5/17/24",
+              "ed": "5/22/24",
+              "clubid": "NV12",
+              "club_name": "Stillwater Firearms Association",
+              "percent": "6.6229",
+              "code": "P",
+              "dindx": "41",
+              "source": "Stage Score",
+              "hf": "0.7167",
+              "noab": "0",
+              "pending_a_flag": "0",
+              "verified": "1",
+              "paid_status": "1",
+              "calculated": "1"
+            }
+          ]
         }
       ]
     }

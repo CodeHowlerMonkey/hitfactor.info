@@ -48,7 +48,7 @@
           "division_id": "5",
           "division": "Production",
           "class": "C",
-          "current_percent": "53.3898",
+          "current_percent": "52.3577",
           "high_percent": "57.7702"
         },
         {
@@ -11469,7 +11469,7 @@
         "suffix": "",
         "salutation": "",
         "joined_date": "1990-03-20 00:00:00",
-        "expiration_date": "2024-06-05 00:00:00",
+        "expiration_date": "2025-06-06 00:00:00",
         "life_member": "0",
         "privacy": "0"
       },
@@ -18387,7 +18387,7 @@
       "status": 200,
       "member_data": {
         "member_id": null,
-        "member_number": null,
+        "member_number": "L2323",
         "first_name": null,
         "middle_name": null,
         "last_name": null,

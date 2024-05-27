@@ -38027,6 +38027,24 @@
           "division_id": 3,
           "division_classifiers": [
             {
+              "defindx": "386014",
+              "classifier": "22-01",
+              "sd": "5/19/24",
+              "ed": "5/24/24",
+              "clubid": "IPSC13",
+              "club_name": "Green Mountain Practical Shooters",
+              "percent": "53.1469",
+              "code": "P",
+              "dindx": "3",
+              "source": "Stage Score",
+              "hf": "4.5144",
+              "noab": "0",
+              "pending_a_flag": "0",
+              "verified": "1",
+              "paid_status": "1",
+              "calculated": "1"
+            },
+            {
               "defindx": "143215",
               "classifier": "09-10",
               "sd": "8/23/17",
@@ -47687,6 +47705,24 @@
           "division_id": 3,
           "division_classifiers": [
             {
+              "defindx": "385686",
+              "classifier": "08-02",
+              "sd": "5/19/24",
+              "ed": "5/20/24",
+              "clubid": "CCS08",
+              "club_name": "Oakdale Sportsmans Club",
+              "percent": "23.2390",
+              "code": "Y",
+              "dindx": "3",
+              "source": "Stage Score",
+              "hf": "1.6835",
+              "noab": "0",
+              "pending_a_flag": "0",
+              "verified": "1",
+              "paid_status": "1",
+              "calculated": "1"
+            },
+            {
               "defindx": "382894",
               "classifier": "22-04",
               "sd": "4/21/24",
@@ -47838,7 +47874,7 @@
               "clubid": "CCS08",
               "club_name": "Oakdale Sportsmans Club",
               "percent": "42.1244",
-              "code": "Y",
+              "code": "E",
               "dindx": "3",
               "source": "Stage Score",
               "hf": "6.4286",
@@ -48825,6 +48861,24 @@
         {
           "division_id": 7,
           "division_classifiers": [
+            {
+              "defindx": "385676",
+              "classifier": "03-08",
+              "sd": "5/05/24",
+              "ed": "5/20/24",
+              "clubid": "CCS08",
+              "club_name": "Oakdale Sportsmans Club",
+              "percent": "8.8879",
+              "code": "F",
+              "dindx": "7",
+              "source": "Stage Score",
+              "hf": "0.838",
+              "noab": "0",
+              "pending_a_flag": "0",
+              "verified": "1",
+              "paid_status": "1",
+              "calculated": "1"
+            },
             {
               "defindx": "290526",
               "classifier": "09-03",

@@ -17053,7 +17053,7 @@
           "division_id": "3",
           "division": "Limited",
           "class": "M",
-          "current_percent": "92.1488",
+          "current_percent": "91.4964",
           "high_percent": "94.0550"
         },
         {
@@ -21260,9 +21260,9 @@
           "id": "1253513",
           "division_id": "41",
           "division": "Limited Optics",
-          "class": "U",
-          "current_percent": "0.0000",
-          "high_percent": "0.0000"
+          "class": "M",
+          "current_percent": "87.5054",
+          "high_percent": "87.5054"
         }
       ]
     }
@@ -25976,7 +25976,7 @@
         "privacy": "0"
       },
       "nroi_certification": {
-        "id": "74639",
+        "id": "81449",
         "member_id": "66766",
         "prev_cert_type": "1",
         "cert_type": "1",
@@ -25986,9 +25986,9 @@
         "sc_cert": "0",
         "legacy": "0",
         "active": "1",
-        "updated_date": "2023-05-16 06:11:38",
-        "certified_date": "2023-05-16 06:11:38",
-        "expiration_date": "2024-05-31 07:00:00",
+        "updated_date": "2024-05-21 07:42:54",
+        "certified_date": "2024-05-21 07:42:54",
+        "expiration_date": "2025-05-31 07:00:00",
         "certification_date": "2017-05-15 07:00:00",
         "type_name": "RO"
       },

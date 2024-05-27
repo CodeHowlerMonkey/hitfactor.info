@@ -7095,7 +7095,7 @@
         "suffix": "",
         "salutation": "",
         "joined_date": "2004-11-30 00:00:00",
-        "expiration_date": "2024-04-26 00:00:00",
+        "expiration_date": "2025-04-27 00:00:00",
         "life_member": "0",
         "privacy": "0"
       },
@@ -7962,9 +7962,9 @@
           "id": "367303",
           "division_id": "35",
           "division": "Carry Optics",
-          "class": "U",
-          "current_percent": "0.0000",
-          "high_percent": "0.0000"
+          "class": "C",
+          "current_percent": "56.9286",
+          "high_percent": "56.9286"
         },
         {
           "id": "367304",
@@ -23600,8 +23600,8 @@
           "division_id": "41",
           "division": "Limited Optics",
           "class": "C",
-          "current_percent": "47.7337",
-          "high_percent": "47.7337"
+          "current_percent": "48.9872",
+          "high_percent": "48.9872"
         }
       ]
     }

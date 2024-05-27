@@ -5186,7 +5186,7 @@
       "status": 200,
       "member_data": {
         "member_id": null,
-        "member_number": null,
+        "member_number": "TY5203",
         "first_name": null,
         "middle_name": null,
         "last_name": null,
@@ -9102,9 +9102,9 @@
           "id": "1192593",
           "division_id": "41",
           "division": "Limited Optics",
-          "class": "U",
-          "current_percent": "0.0000",
-          "high_percent": "0.0000"
+          "class": "A",
+          "current_percent": "74.5776",
+          "high_percent": "74.5776"
         }
       ]
     }
@@ -25598,9 +25598,9 @@
           "id": "100679",
           "division_id": "35",
           "division": "Carry Optics",
-          "class": "U",
-          "current_percent": "0.0000",
-          "high_percent": "0.0000"
+          "class": "A",
+          "current_percent": "72.1788",
+          "high_percent": "72.1788"
         },
         {
           "id": "100680",

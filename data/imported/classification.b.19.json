@@ -12,7 +12,7 @@
         "suffix": "",
         "salutation": "",
         "joined_date": "2003-05-21 00:00:00",
-        "expiration_date": "2024-06-06 00:00:00",
+        "expiration_date": "2025-06-07 00:00:00",
         "life_member": "0",
         "privacy": "0"
       },
@@ -1248,7 +1248,7 @@
         "suffix": "",
         "salutation": "",
         "joined_date": "2003-05-21 00:00:00",
-        "expiration_date": "2024-06-06 00:00:00",
+        "expiration_date": "2025-06-07 00:00:00",
         "life_member": "0",
         "privacy": "0"
       },
@@ -2330,7 +2330,7 @@
           "division_id": "7",
           "division": "Single Stack",
           "class": "C",
-          "current_percent": "56.6310",
+          "current_percent": "56.4393",
           "high_percent": "56.6310"
         },
         {
@@ -7416,9 +7416,9 @@
         "privacy": "0"
       },
       "nroi_certification": {
-        "id": "75295",
+        "id": "81450",
         "member_id": "42651",
-        "prev_cert_type": "0",
+        "prev_cert_type": "1",
         "cert_type": "1",
         "instructor_id": "43762",
         "legacy_instructor": null,
@@ -7426,9 +7426,9 @@
         "sc_cert": "0",
         "legacy": "0",
         "active": "1",
-        "updated_date": "2023-06-23 16:00:18",
-        "certified_date": "2023-06-23 16:00:18",
-        "expiration_date": "2024-06-23 00:00:00",
+        "updated_date": "2024-05-21 08:02:08",
+        "certified_date": "2024-05-21 08:02:08",
+        "expiration_date": "2025-06-23 00:00:00",
         "certification_date": "2023-06-23 16:00:18",
         "type_name": "RO"
       },
@@ -16083,8 +16083,8 @@
           "division_id": "7",
           "division": "Single Stack",
           "class": "C",
-          "current_percent": "54.1710",
-          "high_percent": "54.1710"
+          "current_percent": "54.8813",
+          "high_percent": "54.8813"
         },
         {
           "id": "353631",
@@ -22760,7 +22760,7 @@
           "division_id": "35",
           "division": "Carry Optics",
           "class": "C",
-          "current_percent": "30.6464",
+          "current_percent": "28.7276",
           "high_percent": "30.6464"
         },
         {

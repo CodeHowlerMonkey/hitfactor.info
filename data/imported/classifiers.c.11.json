@@ -100794,6 +100794,24 @@
           "division_id": 6,
           "division_classifiers": [
             {
+              "defindx": "385977",
+              "classifier": "06-03",
+              "sd": "5/19/24",
+              "ed": "5/23/24",
+              "clubid": "EL04",
+              "club_name": "Pathfinder Practical Shooters",
+              "percent": "36.7363",
+              "code": "P",
+              "dindx": "6",
+              "source": "Stage Score",
+              "hf": "4.1998",
+              "noab": "0",
+              "pending_a_flag": "0",
+              "verified": "1",
+              "paid_status": "1",
+              "calculated": "1"
+            },
+            {
               "defindx": "383301",
               "classifier": "21-01",
               "sd": "4/28/24",

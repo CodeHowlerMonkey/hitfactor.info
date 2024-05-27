@@ -1,6 +1,7 @@
 import fs from "fs";
 import { ZenRows } from "zenrows";
-// const client = new ZenRows(process.env.ZENROWS_API_KEY);
+const client = new ZenRows(process.env.ZENROWS_API_KEY);
+
 const fieldNameMap = {
   USPSA: "memberNumber",
   PersonNumber: "memberId",
@@ -55,39 +56,58 @@ const getUspsaApiKey = () => {
   return key;
 };
 
+const _fetch = async (url, useZenRows = false) => {
+  const headers = {
+    accept: "application/json",
+    "uspsa-api": getUspsaApiKey(),
+    "Uspsa-Api-Version": "1.1.3",
+    "Uspsa-Debug": "TRUE",
+    "user-agent":
+      "HowlerMonkey/5.7 (BrainPhone; CPU BigBrain 18_2_2 like WTF) AppleShitKit/607.2.19 (KTHXBYE, like Lizard) Alakablam/90210",
+    "Access-Code": "letmein" + Math.random(), // there's no way cloudflare will fall for this
+    Accept: "application/json",
+  };
+  if (useZenRows) {
+    const { data } = await client.get(url, { custom_headers: true }, { headers });
+    return data;
+  }
+
+  const response = await fetch(url, { headers });
+  const data = await response.json();
+
+  return data;
+};
+
 let successfulRequests = 0;
 const errors = [];
-const fetchApiEndpoint = async (endpoint, tryNumber = 1, maxTries = 7) => {
-  let response = null;
+const fetchApiEndpoint = async (
+  endpoint,
+  tryNumber = 1,
+  maxTries = 7,
+  useZenRows = false
+) => {
   try {
-    // await quickRandomDelay();
-    //const { data: fetched } = await client.get(
-    response = await fetch(
-      `https://api.uspsa.org/api/app/${endpoint}`,
-      //{ custom_headers: true },
-      {
-        headers: {
-          accept: "application/json",
-          "uspsa-api": getUspsaApiKey(),
-          "Uspsa-Api-Version": "1.1.3",
-          "Uspsa-Debug": "TRUE",
-          "user-agent":
-            "HowlerMonkey/5.7 (BrainPhone; CPU BigBrain 18_2_2 like WTF) AppleShitKit/607.2.19 (KTHXBYE, like Lizard) Alakablam/90210",
-          "Access-Code": "letmein" + Math.random(), // there's no way cloudflare will fall for this
-          Accept: "application/json",
-        },
-      }
-    );
-    const fetched = await response.json();
+    const fetched = await _fetch(`https://api.uspsa.org/api/app/${endpoint}`, useZenRows);
     delete fetched.debug;
-    process.stdout.write(".");
+    if (!useZenRows) {
+      process.stdout.write(".");
+    } else {
+      process.stdout.write("⚀");
+    }
     successfulRequests++;
     return fetched;
   } catch (err) {
     if (tryNumber <= maxTries) {
-      process.stdout.write("o");
+      if (!useZenRows) {
+        process.stdout.write("o");
+      } else {
+        process.stdout.write("⚬");
+      }
       await retryDelay(tryNumber);
-      return await fetchApiEndpoint(endpoint, tryNumber + 1, maxTries);
+      return await fetchApiEndpoint(endpoint, tryNumber + 1, maxTries, useZenRows);
+    } else if (!useZenRows) {
+      // try twice with zenRows if normal fetch with retries failed
+      return await fetchApiEndpoint(endpoint, 1, 2, true);
     }
 
     console.log("successfulRequests: " + successfulRequests);
@@ -99,8 +119,11 @@ const fetchApiEndpoint = async (endpoint, tryNumber = 1, maxTries = 7) => {
 
 const fetchFullNumberPageApi = async (memberNumberString, what = "classifiers") => {
   const result = await fetchApiEndpoint(`${what}/${memberNumberString}`);
-  if (result?.member_data && !result?.member_data?.member_number) {
-    result.member_data.member_number = memberNumberString;
+  if (result?.member_data) {
+    const resultMemberNumber = result?.member_data?.member_number;
+    if (!resultMemberNumber || resultMemberNumber === "Private") {
+      result.member_data.member_number = memberNumberString;
+    }
   }
   return result;
 };

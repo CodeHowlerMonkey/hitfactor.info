@@ -8471,8 +8471,8 @@
           "division_id": "35",
           "division": "Carry Optics",
           "class": "B",
-          "current_percent": "64.2154",
-          "high_percent": "64.2154"
+          "current_percent": "66.8661",
+          "high_percent": "66.8661"
         },
         {
           "id": "280880",
@@ -13154,7 +13154,7 @@
           "division_id": "7",
           "division": "Single Stack",
           "class": "A",
-          "current_percent": "77.0871",
+          "current_percent": "76.6340",
           "high_percent": "77.7701"
         },
         {
@@ -14675,7 +14675,7 @@
           "division_id": "38",
           "division": "PCC",
           "class": "B",
-          "current_percent": "72.8564",
+          "current_percent": "69.2801",
           "high_percent": "74.4607"
         },
         {
@@ -24125,14 +24125,14 @@
       "status": 200,
       "member_data": {
         "member_id": "37964",
-        "member_number": "FY45419",
+        "member_number": "A45419",
         "first_name": "Todd",
         "middle_name": "",
         "last_name": "Haller",
         "suffix": "",
         "salutation": "",
         "joined_date": "2001-06-14 00:00:00",
-        "expiration_date": "2024-06-01 00:00:00",
+        "expiration_date": "2025-06-02 00:00:00",
         "life_member": "0",
         "privacy": "0"
       },
@@ -24227,7 +24227,7 @@
         "suffix": "",
         "salutation": "",
         "joined_date": "2001-06-14 00:00:00",
-        "expiration_date": "2024-04-28 16:04:57",
+        "expiration_date": "2025-04-29 00:00:00",
         "life_member": "0",
         "privacy": "1"
       },
@@ -26236,7 +26236,7 @@
           "division_id": "2",
           "division": "Open",
           "class": "A",
-          "current_percent": "74.5341",
+          "current_percent": "73.8007",
           "high_percent": "78.8559"
         },
         {
