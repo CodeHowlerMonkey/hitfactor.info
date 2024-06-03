@@ -8,6 +8,9 @@ import {
 } from "../../../components/Table";
 import ClassifierCell from "../../../components/ClassifierCell";
 import ReportDialog from "../../../components/ReportDialog";
+import { Button } from "primereact/button";
+import { InputNumber } from "primereact/inputnumber";
+import ClassifierDropdown from "../../../components/ClassifierDropdown";
 
 const ShooterRunsTable = ({
   classifiers,
@@ -16,6 +19,7 @@ const ShooterRunsTable = ({
   onClassifierSelection,
   onClubSelection,
   loading,
+  updateWhatIfs,
 }) => {
   const reportDialogRef = useRef(null);
   return (
@@ -54,7 +58,9 @@ const ShooterRunsTable = ({
           header="Date"
           sortable
           body={(run) =>
-            new Date(run.sd).toLocaleDateString("en-us", { timeZone: "UTC" })
+            !run.whatIf
+              ? new Date(run.sd).toLocaleDateString("en-us", { timeZone: "UTC" })
+              : "What If"
           }
         />
         <Column
@@ -62,15 +68,41 @@ const ShooterRunsTable = ({
           header="Classifier"
           sortable
           bodyStyle={{ width: "12rem" }}
-          body={(run) => (
-            <ClassifierCell
-              info={run.classifierInfo}
-              fallback={run.club_name}
-              onClick={() => onClassifierSelection?.(run.classifier)}
-            />
-          )}
+          body={(c) =>
+            c.whatIf ? (
+              <ClassifierDropdown onChange={(v) => console.log(v)} />
+            ) : (
+              <ClassifierCell
+                info={c.classifierInfo}
+                fallback={c.club_name}
+                onClick={() => onClassifierSelection?.(c.classifier)}
+              />
+            )
+          }
         />
-        <Column field="hf" header="HF" sortable body={renderHFOrNA} />
+        <Column
+          field="hf"
+          header="HF"
+          style={{ maxWidth: "9.3em" }}
+          sortable
+          body={(c, { field }) => {
+            if (c.whatIf) {
+              return (
+                <InputNumber
+                  className="max-w-full"
+                  inputClassName="max-w-full"
+                  placeholder="HitFactor"
+                  minFractionDigits={4}
+                  maxFractionDigits={4}
+                  onChange={({ value }) => {
+                    updateWhatIfs(c.whatIf, { hf: value });
+                  }}
+                />
+              );
+            }
+            return renderHFOrNA(c, { field });
+          }}
+        />
         <Column
           body={renderPercent}
           field="recPercent"
@@ -107,9 +139,21 @@ const ShooterRunsTable = ({
         <Column field="clubid" header="Club" sortable showFilterMenu={false} />
         <Column field="source" header="Source" sortable />
         <Column
-          body={(c) => (
-            <ReportDialog.Button onClick={() => reportDialogRef.current.startReport(c)} />
-          )}
+          body={(c) =>
+            !c.whatIf ? (
+              <ReportDialog.Button
+                onClick={() => reportDialogRef.current.startReport(c)}
+              />
+            ) : (
+              <Button
+                icon="pi pi-trash text-xs md:text-base text-red-400"
+                size="small"
+                style={{ width: "1em" }}
+                onClick={() => updateWhatIfs(c.whatIf, { delete: true })}
+                text
+              />
+            )
+          }
         />
         {/* TODO: <Column field="percentile" header="Percentile" sortable={false} /> */}
       </DataTable>

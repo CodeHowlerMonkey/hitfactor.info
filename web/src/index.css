@@ -78,10 +78,17 @@
 
 
 .p-datatable .p-datatable-thead > tr > th,
-.p-datatable .p-datatable-tbody > tr > td {
+.p-datatable .p-datatable-tbody > tr > td,
+.p-datatable .p-datatable-tbody > tr > td .p-inputtext ,
+.p-datatable .p-datatable-tbody > tr > td .p-inputtext::placeholder {
   font-size: 1em;
   padding: 1em 1em;
 }
+
+.p-datatable .p-datatable-tbody .p-component {
+  font-size: 1em;
+}
+
 
 .p-datatable.p-datatable-sm .p-datatable-tbody > tr > td {
   padding: 0.5em 0.5em;
@@ -105,4 +112,7 @@
 .p-datatable.p-datatable-sm .p-datatable-header {
   padding: 0.5rem 0;
   border: none;
+}
+
+.classifier-dropdown ul.p-dropdown-items li.p-dropdown-item {
 }

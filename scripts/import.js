@@ -1,5 +1,6 @@
 import fs from "fs";
 import { ZenRows } from "zenrows";
+import uniqBy from "lodash.uniqby";
 const client = new ZenRows(process.env.ZENROWS_API_KEY);
 
 const fieldNameMap = {
@@ -185,6 +186,37 @@ const importEverything = async () => {
     }
     return expiration > lastImportTime;
   });
+
+  const memberIdToNumber = unfilteredShooterObjects.reduce((acc, cur) => {
+    acc[cur.memberId] = cur.memberNumber;
+    return acc;
+  }, {});
+  const memberNumberToId = Object.fromEntries(
+    Object.entries(memberIdToNumber).map(([k, v]) => [v, k])
+  );
+  const usedMemberNumbers = uniqBy(
+    Object.values(memberIdToNumber)
+      .map((memberNumber) => memberNumber.replace(/[a-zA-Z]/g, ""))
+      .filter(Boolean),
+    (c) => c
+  );
+  const usedMemberNumbersMap = usedMemberNumbers.reduce((acc, cur) => {
+    acc[cur] = true;
+    return acc;
+  }, {});
+  console.log(Object.keys(usedMemberNumbersMap)[150999]);
+  const lastUsedNumber = Number(usedMemberNumbers[usedMemberNumbers.length - 1]);
+  console.log(lastUsedNumber);
+  const monkeyNumbers = [];
+  for (let i = 1111; i <= lastUsedNumber; ++i) {
+    if (!usedMemberNumbersMap[i]) {
+      monkeyNumbers.push(i);
+    }
+  }
+  fs.writeFileSync(
+    "./data/meta/monkeyNumbers.json",
+    JSON.stringify(monkeyNumbers, null, 2)
+  );
   const classifiedNumbers = unfilteredShooterObjects
     .filter(hasAnyClassification)
     .map((s) => s.memberNumber);
@@ -266,15 +298,13 @@ const importEverything = async () => {
   );
   fs.writeFileSync(
     "./data/meta/memberIdToNumber.json",
-    JSON.stringify(
-      unfilteredShooterObjects.reduce((acc, cur) => {
-        acc[cur.memberId] = cur.memberNumber;
-        return acc;
-      }, {}),
-      null,
-      2
-    )
+    JSON.stringify(memberIdToNumber, null, 2)
   );
+  fs.writeFileSync(
+    "./data/meta/memberNumberToId.json",
+    JSON.stringify(memberNumberToId, null, 2)
+  );
+
   allDivs.forEach((div) => {
     fs.writeFileSync(
       "./data/meta/classified." + div + ".json",

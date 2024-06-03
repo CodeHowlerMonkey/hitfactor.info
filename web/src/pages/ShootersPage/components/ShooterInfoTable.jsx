@@ -29,27 +29,26 @@ const percentValueOrEmpty = (value) =>
 
 const cardRow = ({ classes, currents, ages, reclassifications }, div) => ({
   division: tableNameForDiv[div],
-  hq: [classes[div], percentValueOrEmpty(currents[div])].filter(Boolean).join(" / "),
+  hq: [classes?.[div], percentValueOrEmpty(currents?.[div])].filter(Boolean).join(" / "),
   curHHF: [
-    reclassifications.curPercent?.classes?.[div],
+    reclassifications?.curPercent?.classes?.[div],
     percentValueOrEmpty(reclassifications?.curPercent?.currents?.[div]),
   ]
     .filter(Boolean)
     .join(" / "),
   rec: [
-    reclassifications.recPercent?.classes?.[div],
+    reclassifications?.recPercent?.classes?.[div],
     percentValueOrEmpty(reclassifications?.recPercent?.currents?.[div]),
   ]
     .filter(Boolean)
     .join(" / "),
-  age: toFixedWithSuffixValueOrPlaceholder(ages[div], 1, "mo"),
+  age: toFixedWithSuffixValueOrPlaceholder(ages?.[div], 1, "mo"),
 });
 
 const dateValue = (value) =>
   !value ? "" : new Date(value).toLocaleDateString("en-us", { timeZone: "UTC" });
 
-export const ShooterInfoTable = ({ info, division, memberNumber }) => {
-  const loading = !info?.data?.member_id;
+export const ShooterInfoTable = ({ info, division, memberNumber, loading }) => {
   const { name } = info;
 
   return (
@@ -59,11 +58,12 @@ export const ShooterInfoTable = ({ info, division, memberNumber }) => {
           {memberNumber} - {name} - {divShortToLong[division]}
         </h4>
         <DataTable
+          loading={loading}
           className="text-xs md:text-base"
           size="small"
           showHeaders={false}
           value={
-            loading
+            loading || !info
               ? []
               : [
                   {

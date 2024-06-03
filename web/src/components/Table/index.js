@@ -44,7 +44,7 @@ export const letterRatingForPercent = (p) => {
 };
 
 export const renderPercent = (c, { field }) => {
-  const value = c[field];
+  let value = c[field];
   if (value < 0 || value === undefined) {
     return "—";
   }
