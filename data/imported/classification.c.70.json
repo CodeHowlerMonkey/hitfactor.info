@@ -4648,9 +4648,9 @@
           "id": "1282329",
           "division_id": "41",
           "division": "Limited Optics",
-          "class": "U",
-          "current_percent": "0.0000",
-          "high_percent": "0.0000"
+          "class": "C",
+          "current_percent": "41.4193",
+          "high_percent": "41.4193"
         }
       ]
     }
@@ -5140,8 +5140,8 @@
           "division_id": "35",
           "division": "Carry Optics",
           "class": "C",
-          "current_percent": "48.7721",
-          "high_percent": "48.7721"
+          "current_percent": "49.9912",
+          "high_percent": "49.9912"
         },
         {
           "id": "775464",
@@ -20475,7 +20475,7 @@
         "suffix": "",
         "salutation": "",
         "joined_date": "2016-12-19 00:00:00",
-        "expiration_date": "2024-04-17 22:44:25",
+        "expiration_date": "2025-04-18 00:00:00",
         "life_member": "0",
         "privacy": "0"
       },

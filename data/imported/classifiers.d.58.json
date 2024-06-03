@@ -34795,6 +34795,24 @@
           "division_id": 38,
           "division_classifiers": [
             {
+              "defindx": "386784",
+              "classifier": "23-02",
+              "sd": "5/11/24",
+              "ed": "0/00/00",
+              "clubid": "MO15",
+              "club_name": "Gateway Action Shooters",
+              "percent": "0.0000",
+              "code": "P",
+              "dindx": "38",
+              "source": "Stage Score",
+              "hf": "0",
+              "noab": "0",
+              "pending_a_flag": "0",
+              "verified": "1",
+              "paid_status": "0",
+              "calculated": "1"
+            },
+            {
               "defindx": "325455",
               "classifier": "03-09",
               "sd": "9/10/22",
@@ -36992,7 +37010,7 @@
         "suffix": null,
         "salutation": null,
         "joined_date": "2020-05-28 18:21:24",
-        "expiration_date": "2024-05-31 00:00:00",
+        "expiration_date": "2025-06-01 00:00:00",
         "life_member": "0",
         "privacy": 0
       },

@@ -4,6 +4,339 @@
     "value": {
       "status": 200,
       "member_data": {
+        "member_id": "81276",
+        "member_number": "A83383",
+        "first_name": "John",
+        "middle_name": "",
+        "last_name": "Maclean",
+        "suffix": "",
+        "salutation": "",
+        "joined_date": "2013-11-19 00:00:00",
+        "expiration_date": "2024-12-07 00:00:00",
+        "life_member": "0",
+        "privacy": "0"
+      },
+      "nroi_certification": {
+        "id": "80893",
+        "member_id": "81276",
+        "prev_cert_type": "1",
+        "cert_type": "1",
+        "instructor_id": "1841",
+        "legacy_instructor": null,
+        "mg_cert": "0",
+        "sc_cert": "1",
+        "legacy": "0",
+        "active": "1",
+        "updated_date": "2024-04-19 20:35:00",
+        "certified_date": "2024-04-19 20:35:00",
+        "expiration_date": "2025-03-03 00:00:00",
+        "certification_date": "2020-03-03 17:41:06",
+        "type_name": "RO"
+      },
+      "success": true,
+      "classifications": [
+        {
+          "id": "608193",
+          "division_id": "2",
+          "division": "Open",
+          "class": "U",
+          "current_percent": "0.0000",
+          "high_percent": "0.0000"
+        },
+        {
+          "id": "608194",
+          "division_id": "3",
+          "division": "Limited",
+          "class": "U",
+          "current_percent": "0.0000",
+          "high_percent": "0.0000"
+        },
+        {
+          "id": "608195",
+          "division_id": "4",
+          "division": "Limited 10",
+          "class": "U",
+          "current_percent": "0.0000",
+          "high_percent": "0.0000"
+        },
+        {
+          "id": "608196",
+          "division_id": "5",
+          "division": "Production",
+          "class": "A",
+          "current_percent": "77.7215",
+          "high_percent": "80.6236"
+        },
+        {
+          "id": "608197",
+          "division_id": "6",
+          "division": "Revolver",
+          "class": "B",
+          "current_percent": "74.3890",
+          "high_percent": "74.3890"
+        },
+        {
+          "id": "608198",
+          "division_id": "7",
+          "division": "Single Stack",
+          "class": "U",
+          "current_percent": "0.0000",
+          "high_percent": "0.0000"
+        },
+        {
+          "id": "608199",
+          "division_id": "35",
+          "division": "Carry Optics",
+          "class": "A",
+          "current_percent": "76.9006",
+          "high_percent": "80.4084"
+        },
+        {
+          "id": "608200",
+          "division_id": "38",
+          "division": "PCC",
+          "class": "U",
+          "current_percent": "0.0000",
+          "high_percent": "0.0000"
+        },
+        {
+          "id": "1266435",
+          "division_id": "41",
+          "division": "Limited Optics",
+          "class": "U",
+          "current_percent": "0.0000",
+          "high_percent": "0.0000"
+        }
+      ]
+    }
+  },
+  {
+    "status": "fulfilled",
+    "value": {
+      "status": 200,
+      "member_data": {
+        "member_id": "81284",
+        "member_number": "A83391",
+        "first_name": "Brian",
+        "middle_name": "C",
+        "last_name": "Boehringer",
+        "suffix": "",
+        "salutation": "",
+        "joined_date": "2013-11-19 00:00:00",
+        "expiration_date": "2024-12-05 00:00:00",
+        "life_member": "0",
+        "privacy": "0"
+      },
+      "nroi_certification": {
+        "id": "77445",
+        "member_id": "81284",
+        "prev_cert_type": "2",
+        "cert_type": "2",
+        "instructor_id": "1841",
+        "legacy_instructor": null,
+        "mg_cert": "0",
+        "sc_cert": "1",
+        "legacy": "0",
+        "active": "1",
+        "updated_date": "2023-11-18 09:50:59",
+        "certified_date": "2023-11-18 09:50:59",
+        "expiration_date": "2024-11-30 08:00:00",
+        "certification_date": "2014-10-06 07:00:00",
+        "type_name": "CRO"
+      },
+      "success": true,
+      "classifications": [
+        {
+          "id": "608257",
+          "division_id": "2",
+          "division": "Open",
+          "class": "B",
+          "current_percent": "71.1669",
+          "high_percent": "72.9583"
+        },
+        {
+          "id": "608258",
+          "division_id": "3",
+          "division": "Limited",
+          "class": "U",
+          "current_percent": "0.0000",
+          "high_percent": "0.0000"
+        },
+        {
+          "id": "608259",
+          "division_id": "4",
+          "division": "Limited 10",
+          "class": "B",
+          "current_percent": "46.3535",
+          "high_percent": "46.3535"
+        },
+        {
+          "id": "608260",
+          "division_id": "5",
+          "division": "Production",
+          "class": "B",
+          "current_percent": "62.2730",
+          "high_percent": "62.7416"
+        },
+        {
+          "id": "608261",
+          "division_id": "6",
+          "division": "Revolver",
+          "class": "U",
+          "current_percent": "0.0000",
+          "high_percent": "0.0000"
+        },
+        {
+          "id": "608262",
+          "division_id": "7",
+          "division": "Single Stack",
+          "class": "U",
+          "current_percent": "0.0000",
+          "high_percent": "0.0000"
+        },
+        {
+          "id": "608263",
+          "division_id": "35",
+          "division": "Carry Optics",
+          "class": "A",
+          "current_percent": "77.4054",
+          "high_percent": "77.7392"
+        },
+        {
+          "id": "608264",
+          "division_id": "38",
+          "division": "PCC",
+          "class": "U",
+          "current_percent": "0.0000",
+          "high_percent": "0.0000"
+        },
+        {
+          "id": "1266443",
+          "division_id": "41",
+          "division": "Limited Optics",
+          "class": "U",
+          "current_percent": "0.0000",
+          "high_percent": "0.0000"
+        }
+      ]
+    }
+  },
+  {
+    "status": "fulfilled",
+    "value": {
+      "status": 200,
+      "member_data": {
+        "member_id": "81285",
+        "member_number": "TY83392",
+        "first_name": "Jon",
+        "middle_name": "T",
+        "last_name": "Barrett",
+        "suffix": "",
+        "salutation": "",
+        "joined_date": "2013-11-19 00:00:00",
+        "expiration_date": "2025-01-02 00:00:00",
+        "life_member": "0",
+        "privacy": "0"
+      },
+      "nroi_certification": {
+        "id": "70105",
+        "member_id": "81285",
+        "prev_cert_type": "1",
+        "cert_type": "1",
+        "instructor_id": "28765",
+        "legacy_instructor": null,
+        "mg_cert": "0",
+        "sc_cert": "0",
+        "legacy": "0",
+        "active": "1",
+        "updated_date": "2022-10-05 20:53:25",
+        "certified_date": "2022-10-05 20:53:25",
+        "expiration_date": "2023-10-05 00:00:00",
+        "certification_date": "2018-10-05 19:43:16",
+        "type_name": "RO"
+      },
+      "success": true,
+      "classifications": [
+        {
+          "id": "608265",
+          "division_id": "2",
+          "division": "Open",
+          "class": "B",
+          "current_percent": "51.9889",
+          "high_percent": "60.4716"
+        },
+        {
+          "id": "608266",
+          "division_id": "3",
+          "division": "Limited",
+          "class": "A",
+          "current_percent": "74.6875",
+          "high_percent": "84.0969"
+        },
+        {
+          "id": "608267",
+          "division_id": "4",
+          "division": "Limited 10",
+          "class": "B",
+          "current_percent": "57.4532",
+          "high_percent": "67.5535"
+        },
+        {
+          "id": "608268",
+          "division_id": "5",
+          "division": "Production",
+          "class": "B",
+          "current_percent": "70.2420",
+          "high_percent": "70.2420"
+        },
+        {
+          "id": "608269",
+          "division_id": "6",
+          "division": "Revolver",
+          "class": "U",
+          "current_percent": "0.0000",
+          "high_percent": "0.0000"
+        },
+        {
+          "id": "608270",
+          "division_id": "7",
+          "division": "Single Stack",
+          "class": "B",
+          "current_percent": "71.9477",
+          "high_percent": "71.9477"
+        },
+        {
+          "id": "608271",
+          "division_id": "35",
+          "division": "Carry Optics",
+          "class": "B",
+          "current_percent": "59.8007",
+          "high_percent": "59.8007"
+        },
+        {
+          "id": "608272",
+          "division_id": "38",
+          "division": "PCC",
+          "class": "B",
+          "current_percent": "70.9898",
+          "high_percent": "73.1769"
+        },
+        {
+          "id": "1266444",
+          "division_id": "41",
+          "division": "Limited Optics",
+          "class": "U",
+          "current_percent": "0.0000",
+          "high_percent": "0.0000"
+        }
+      ]
+    }
+  },
+  {
+    "status": "fulfilled",
+    "value": {
+      "status": 200,
+      "member_data": {
         "member_id": "81291",
         "member_number": "A83398",
         "first_name": "Christopher",
@@ -598,7 +931,7 @@
         "suffix": "",
         "salutation": "",
         "joined_date": "2013-11-26 00:00:00",
-        "expiration_date": "2021-02-02 23:34:19",
+        "expiration_date": "2025-05-31 19:02:45",
         "life_member": "0",
         "privacy": "0"
       },
@@ -609,73 +942,73 @@
           "id": "608849",
           "division_id": "2",
           "division": "Open",
-          "class": "X",
-          "current_percent": "X",
-          "high_percent": "X"
+          "class": "U",
+          "current_percent": "0.0000",
+          "high_percent": "0.0000"
         },
         {
           "id": "608850",
           "division_id": "3",
           "division": "Limited",
-          "class": "X",
-          "current_percent": "X",
-          "high_percent": "X"
+          "class": "B",
+          "current_percent": "73.1220",
+          "high_percent": "73.6538"
         },
         {
           "id": "608851",
           "division_id": "4",
           "division": "Limited 10",
-          "class": "X",
-          "current_percent": "X",
-          "high_percent": "X"
+          "class": "A",
+          "current_percent": "82.2639",
+          "high_percent": "82.2639"
         },
         {
           "id": "608852",
           "division_id": "5",
           "division": "Production",
-          "class": "X",
-          "current_percent": "X",
-          "high_percent": "X"
+          "class": "U",
+          "current_percent": "0.0000",
+          "high_percent": "0.0000"
         },
         {
           "id": "608853",
           "division_id": "6",
           "division": "Revolver",
-          "class": "X",
-          "current_percent": "X",
-          "high_percent": "X"
+          "class": "U",
+          "current_percent": "0.0000",
+          "high_percent": "0.0000"
         },
         {
           "id": "608854",
           "division_id": "7",
           "division": "Single Stack",
-          "class": "X",
-          "current_percent": "X",
-          "high_percent": "X"
+          "class": "U",
+          "current_percent": "0.0000",
+          "high_percent": "0.0000"
         },
         {
           "id": "608855",
           "division_id": "35",
           "division": "Carry Optics",
-          "class": "X",
-          "current_percent": "X",
-          "high_percent": "X"
+          "class": "U",
+          "current_percent": "0.0000",
+          "high_percent": "0.0000"
         },
         {
           "id": "608856",
           "division_id": "38",
           "division": "PCC",
-          "class": "X",
-          "current_percent": "X",
-          "high_percent": "X"
+          "class": "U",
+          "current_percent": "0.0000",
+          "high_percent": "0.0000"
         },
         {
           "id": "1266517",
           "division_id": "41",
           "division": "Limited Optics",
-          "class": "X",
-          "current_percent": "X",
-          "high_percent": "X"
+          "class": "U",
+          "current_percent": "0.0000",
+          "high_percent": "0.0000"
         }
       ]
     }
@@ -4334,7 +4667,7 @@
           "division_id": "35",
           "division": "Carry Optics",
           "class": "A",
-          "current_percent": "80.2602",
+          "current_percent": "78.9247",
           "high_percent": "83.4607"
         },
         {
@@ -4457,7 +4790,7 @@
       "status": 200,
       "member_data": {
         "member_id": "82429",
-        "member_number": "Private",
+        "member_number": "L6001",
         "first_name": "Private",
         "middle_name": "",
         "last_name": "",
@@ -13412,8 +13745,8 @@
           "division_id": "41",
           "division": "Limited Optics",
           "class": "B",
-          "current_percent": "67.2625",
-          "high_percent": "67.2625"
+          "current_percent": "69.6357",
+          "high_percent": "69.6357"
         }
       ]
     }
@@ -13729,8 +14062,8 @@
           "division_id": "35",
           "division": "Carry Optics",
           "class": "B",
-          "current_percent": "63.9982",
-          "high_percent": "63.9982"
+          "current_percent": "65.0570",
+          "high_percent": "65.0570"
         },
         {
           "id": "636216",
@@ -14109,7 +14442,7 @@
           "division_id": "2",
           "division": "Open",
           "class": "A",
-          "current_percent": "78.1090",
+          "current_percent": "77.1878",
           "high_percent": "79.7968"
         },
         {
@@ -14185,7 +14518,7 @@
       "status": 200,
       "member_data": {
         "member_id": "84957",
-        "member_number": "Private",
+        "member_number": "A86980",
         "first_name": "Private",
         "middle_name": "W",
         "last_name": "",
@@ -15199,7 +15532,7 @@
       "status": 200,
       "member_data": {
         "member_id": "85189",
-        "member_number": "Private",
+        "member_number": "L3944",
         "first_name": "Private",
         "middle_name": "D",
         "last_name": "",
@@ -16014,7 +16347,7 @@
         "suffix": "",
         "salutation": "",
         "joined_date": "2014-08-21 00:00:00",
-        "expiration_date": "2024-06-15 00:00:00",
+        "expiration_date": "2025-06-16 00:00:00",
         "life_member": "0",
         "privacy": "0"
       },
@@ -22092,7 +22425,7 @@
       "status": 200,
       "member_data": {
         "member_id": "86890",
-        "member_number": "Private",
+        "member_number": "L4774",
         "first_name": "Private",
         "middle_name": "",
         "last_name": "",
@@ -22678,7 +23011,7 @@
       "status": 200,
       "member_data": {
         "member_id": "86970",
-        "member_number": "Private",
+        "member_number": "A88984",
         "first_name": "Private",
         "middle_name": "P",
         "last_name": "",
@@ -23878,7 +24211,7 @@
         "privacy": "0"
       },
       "nroi_certification": {
-        "id": "74914",
+        "id": "81526",
         "member_id": "87169",
         "prev_cert_type": "1",
         "cert_type": "1",
@@ -23888,9 +24221,9 @@
         "sc_cert": "0",
         "legacy": "0",
         "active": "1",
-        "updated_date": "2023-05-30 20:18:53",
-        "certified_date": "2023-05-30 20:18:53",
-        "expiration_date": "2024-05-31 07:00:00",
+        "updated_date": "2024-05-26 19:37:45",
+        "certified_date": "2024-05-26 19:37:45",
+        "expiration_date": "2025-05-31 07:00:00",
         "certification_date": "2017-05-15 07:00:00",
         "type_name": "RO"
       },
@@ -24567,7 +24900,7 @@
           "division_id": "35",
           "division": "Carry Optics",
           "class": "A",
-          "current_percent": "76.6704",
+          "current_percent": "76.6190",
           "high_percent": "81.0924"
         },
         {
@@ -25710,307 +26043,6 @@
           "class": "U",
           "current_percent": "0.0000",
           "high_percent": "0.0000"
-        }
-      ]
-    }
-  },
-  {
-    "status": "fulfilled",
-    "value": {
-      "status": 200,
-      "member_data": {
-        "member_id": "87701",
-        "member_number": "TY89709",
-        "first_name": "Brian",
-        "middle_name": "C",
-        "last_name": "Smith",
-        "suffix": "",
-        "salutation": "",
-        "joined_date": "2015-02-24 00:00:00",
-        "expiration_date": "2022-02-02 00:00:00",
-        "life_member": "0",
-        "privacy": "0"
-      },
-      "nroi_certification": {
-        "id": "53069",
-        "member_id": "87701",
-        "prev_cert_type": "1",
-        "cert_type": "1",
-        "instructor_id": "7170",
-        "legacy_instructor": null,
-        "mg_cert": "0",
-        "sc_cert": "0",
-        "legacy": "0",
-        "active": "1",
-        "updated_date": "2019-12-18 15:12:37",
-        "certified_date": "2019-12-18 15:12:37",
-        "expiration_date": "2020-12-31 08:00:00",
-        "certification_date": "2016-12-28 08:00:00",
-        "type_name": "RO"
-      },
-      "success": true,
-      "classifications": [
-        {
-          "id": "658481",
-          "division_id": "2",
-          "division": "Open",
-          "class": "X",
-          "current_percent": "X",
-          "high_percent": "X"
-        },
-        {
-          "id": "658482",
-          "division_id": "3",
-          "division": "Limited",
-          "class": "X",
-          "current_percent": "X",
-          "high_percent": "X"
-        },
-        {
-          "id": "658483",
-          "division_id": "4",
-          "division": "Limited 10",
-          "class": "X",
-          "current_percent": "X",
-          "high_percent": "X"
-        },
-        {
-          "id": "658484",
-          "division_id": "5",
-          "division": "Production",
-          "class": "X",
-          "current_percent": "X",
-          "high_percent": "X"
-        },
-        {
-          "id": "658485",
-          "division_id": "6",
-          "division": "Revolver",
-          "class": "X",
-          "current_percent": "X",
-          "high_percent": "X"
-        },
-        {
-          "id": "658486",
-          "division_id": "7",
-          "division": "Single Stack",
-          "class": "X",
-          "current_percent": "X",
-          "high_percent": "X"
-        },
-        {
-          "id": "658487",
-          "division_id": "35",
-          "division": "Carry Optics",
-          "class": "X",
-          "current_percent": "X",
-          "high_percent": "X"
-        },
-        {
-          "id": "658488",
-          "division_id": "38",
-          "division": "PCC",
-          "class": "X",
-          "current_percent": "X",
-          "high_percent": "X"
-        },
-        {
-          "id": "1272791",
-          "division_id": "41",
-          "division": "Limited Optics",
-          "class": "X",
-          "current_percent": "X",
-          "high_percent": "X"
-        }
-      ]
-    }
-  },
-  {
-    "status": "fulfilled",
-    "value": {
-      "status": 200,
-      "member_data": {
-        "member_id": "87754",
-        "member_number": "A89762",
-        "first_name": "Nicholas",
-        "middle_name": "",
-        "last_name": "Cummings",
-        "suffix": "",
-        "salutation": "",
-        "joined_date": "2015-02-26 00:00:00",
-        "expiration_date": "2018-02-28 00:00:00",
-        "life_member": "0",
-        "privacy": "0"
-      },
-      "nroi_certification": [],
-      "success": true,
-      "classifications": [
-        {
-          "id": "658905",
-          "division_id": "2",
-          "division": "Open",
-          "class": "X",
-          "current_percent": "X",
-          "high_percent": "X"
-        },
-        {
-          "id": "658906",
-          "division_id": "3",
-          "division": "Limited",
-          "class": "X",
-          "current_percent": "X",
-          "high_percent": "X"
-        },
-        {
-          "id": "658907",
-          "division_id": "4",
-          "division": "Limited 10",
-          "class": "X",
-          "current_percent": "X",
-          "high_percent": "X"
-        },
-        {
-          "id": "658908",
-          "division_id": "5",
-          "division": "Production",
-          "class": "X",
-          "current_percent": "X",
-          "high_percent": "X"
-        },
-        {
-          "id": "658909",
-          "division_id": "6",
-          "division": "Revolver",
-          "class": "X",
-          "current_percent": "X",
-          "high_percent": "X"
-        },
-        {
-          "id": "658910",
-          "division_id": "7",
-          "division": "Single Stack",
-          "class": "X",
-          "current_percent": "X",
-          "high_percent": "X"
-        },
-        {
-          "id": "658911",
-          "division_id": "35",
-          "division": "Carry Optics",
-          "class": "X",
-          "current_percent": "X",
-          "high_percent": "X"
-        },
-        {
-          "id": "658912",
-          "division_id": "38",
-          "division": "PCC",
-          "class": "X",
-          "current_percent": "X",
-          "high_percent": "X"
-        },
-        {
-          "id": "1272844",
-          "division_id": "41",
-          "division": "Limited Optics",
-          "class": "X",
-          "current_percent": "X",
-          "high_percent": "X"
-        }
-      ]
-    }
-  },
-  {
-    "status": "fulfilled",
-    "value": {
-      "status": 200,
-      "member_data": {
-        "member_id": "87765",
-        "member_number": "A89773",
-        "first_name": "Adam",
-        "middle_name": "J",
-        "last_name": "Marshall",
-        "suffix": "",
-        "salutation": "",
-        "joined_date": "2015-02-26 00:00:00",
-        "expiration_date": "2021-06-03 00:00:00",
-        "life_member": "0",
-        "privacy": "0"
-      },
-      "nroi_certification": [],
-      "success": true,
-      "classifications": [
-        {
-          "id": "658993",
-          "division_id": "2",
-          "division": "Open",
-          "class": "X",
-          "current_percent": "X",
-          "high_percent": "X"
-        },
-        {
-          "id": "658994",
-          "division_id": "3",
-          "division": "Limited",
-          "class": "X",
-          "current_percent": "X",
-          "high_percent": "X"
-        },
-        {
-          "id": "658995",
-          "division_id": "4",
-          "division": "Limited 10",
-          "class": "X",
-          "current_percent": "X",
-          "high_percent": "X"
-        },
-        {
-          "id": "658996",
-          "division_id": "5",
-          "division": "Production",
-          "class": "X",
-          "current_percent": "X",
-          "high_percent": "X"
-        },
-        {
-          "id": "658997",
-          "division_id": "6",
-          "division": "Revolver",
-          "class": "X",
-          "current_percent": "X",
-          "high_percent": "X"
-        },
-        {
-          "id": "658998",
-          "division_id": "7",
-          "division": "Single Stack",
-          "class": "X",
-          "current_percent": "X",
-          "high_percent": "X"
-        },
-        {
-          "id": "658999",
-          "division_id": "35",
-          "division": "Carry Optics",
-          "class": "X",
-          "current_percent": "X",
-          "high_percent": "X"
-        },
-        {
-          "id": "659000",
-          "division_id": "38",
-          "division": "PCC",
-          "class": "X",
-          "current_percent": "X",
-          "high_percent": "X"
-        },
-        {
-          "id": "1272855",
-          "division_id": "41",
-          "division": "Limited Optics",
-          "class": "X",
-          "current_percent": "X",
-          "high_percent": "X"
         }
       ]
     }

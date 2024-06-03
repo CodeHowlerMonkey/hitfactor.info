@@ -46991,6 +46991,24 @@
           "division_id": 35,
           "division_classifiers": [
             {
+              "defindx": "386957",
+              "classifier": "99-22",
+              "sd": "6/01/24",
+              "ed": "6/01/24",
+              "clubid": "HI02",
+              "club_name": "Mid Pacific Pistol League",
+              "percent": "41.5318",
+              "code": "P",
+              "dindx": "35",
+              "source": "Stage Score",
+              "hf": "4.2693",
+              "noab": "0",
+              "pending_a_flag": "0",
+              "verified": "1",
+              "paid_status": "1",
+              "calculated": "1"
+            },
+            {
               "defindx": "385360",
               "classifier": "03-04",
               "sd": "5/18/24",

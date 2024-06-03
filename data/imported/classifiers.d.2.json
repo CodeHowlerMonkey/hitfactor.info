@@ -25606,6 +25606,24 @@
           "division_id": 3,
           "division_classifiers": [
             {
+              "defindx": "386294",
+              "classifier": "99-47",
+              "sd": "5/26/24",
+              "ed": "0/00/00",
+              "clubid": "CN16",
+              "club_name": "North Coast Pistol League",
+              "percent": "0.5053",
+              "code": "X",
+              "dindx": "3",
+              "source": "Stage Score",
+              "hf": "0.0335",
+              "noab": "0",
+              "pending_a_flag": "0",
+              "verified": "1",
+              "paid_status": "0",
+              "calculated": "1"
+            },
+            {
               "defindx": "365034",
               "classifier": "99-61",
               "sd": "9/23/23",

@@ -7559,7 +7559,7 @@
         "privacy": "0"
       },
       "nroi_certification": {
-        "id": "74124",
+        "id": "81578",
         "member_id": "13115",
         "prev_cert_type": "2",
         "cert_type": "2",
@@ -7569,9 +7569,9 @@
         "sc_cert": "0",
         "legacy": "0",
         "active": "1",
-        "updated_date": "2023-04-17 13:34:31",
-        "certified_date": "2023-04-17 13:34:31",
-        "expiration_date": "2024-05-31 07:00:00",
+        "updated_date": "2024-05-30 11:39:17",
+        "certified_date": "2024-05-30 11:39:17",
+        "expiration_date": "2025-05-31 07:00:00",
         "certification_date": "1999-04-11 07:00:00",
         "type_name": "CRO"
       },
@@ -10284,7 +10284,7 @@
           "division_id": "7",
           "division": "Single Stack",
           "class": "C",
-          "current_percent": "52.7566",
+          "current_percent": "52.8871",
           "high_percent": "59.1099"
         },
         {
@@ -12835,7 +12835,7 @@
         "privacy": "0"
       },
       "nroi_certification": {
-        "id": "75391",
+        "id": "81630",
         "member_id": "13651",
         "prev_cert_type": "1",
         "cert_type": "1",
@@ -12845,9 +12845,9 @@
         "sc_cert": "0",
         "legacy": "0",
         "active": "1",
-        "updated_date": "2023-06-29 20:08:39",
-        "certified_date": "2023-06-29 20:08:39",
-        "expiration_date": "2024-05-31 07:00:00",
+        "updated_date": "2024-06-02 14:41:49",
+        "certified_date": "2024-06-02 14:41:49",
+        "expiration_date": "2025-05-31 07:00:00",
         "certification_date": "1993-02-01 08:00:00",
         "type_name": "RO"
       },

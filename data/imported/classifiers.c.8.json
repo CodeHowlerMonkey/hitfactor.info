@@ -29,7 +29,7 @@
               "clubid": "MN07",
               "club_name": "Oakdale Practical Pistol",
               "percent": "0.0000",
-              "code": "P",
+              "code": "B",
               "dindx": "3",
               "source": "Stage Score",
               "hf": "0",
@@ -2564,6 +2564,24 @@
         {
           "division_id": 5,
           "division_classifiers": [
+            {
+              "defindx": "386757",
+              "classifier": "18-04",
+              "sd": "5/30/24",
+              "ed": "5/31/24",
+              "clubid": "MN07",
+              "club_name": "Oakdale Practical Pistol",
+              "percent": "39.6318",
+              "code": "P",
+              "dindx": "5",
+              "source": "Stage Score",
+              "hf": "2.4194",
+              "noab": "0",
+              "pending_a_flag": "0",
+              "verified": "1",
+              "paid_status": "1",
+              "calculated": "1"
+            },
             {
               "defindx": "174048",
               "classifier": "99-23",
@@ -82929,6 +82947,24 @@
         {
           "division_id": 3,
           "division_classifiers": [
+            {
+              "defindx": "387113",
+              "classifier": "03-02",
+              "sd": "6/02/24",
+              "ed": "6/02/24",
+              "clubid": "WI18",
+              "club_name": "Ripon Gun Club",
+              "percent": "0.0000",
+              "code": "X",
+              "dindx": "3",
+              "source": "Stage Score",
+              "hf": "0",
+              "noab": "0",
+              "pending_a_flag": "0",
+              "verified": "1",
+              "paid_status": "1",
+              "calculated": "1"
+            },
             {
               "defindx": "384009",
               "classifier": "99-23",

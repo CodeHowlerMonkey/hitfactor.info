@@ -43626,6 +43626,24 @@
               "calculated": "1"
             },
             {
+              "defindx": "386465",
+              "classifier": "23-01",
+              "sd": "5/12/24",
+              "ed": "5/28/24",
+              "clubid": "AZR03",
+              "club_name": "Rio Salado Practical Pistol",
+              "percent": "38.2421",
+              "code": "Y",
+              "dindx": "2",
+              "source": "Stage Score",
+              "hf": "3.8862",
+              "noab": "0",
+              "pending_a_flag": "0",
+              "verified": "1",
+              "paid_status": "1",
+              "calculated": "1"
+            },
+            {
               "defindx": "380609",
               "classifier": "18-09",
               "sd": "3/02/24",
@@ -43795,7 +43813,7 @@
               "clubid": "AZR03",
               "club_name": "Rio Salado Practical Pistol",
               "percent": "30.6703",
-              "code": "Y",
+              "code": "E",
               "dindx": "2",
               "source": "Stage Score",
               "hf": "4.6683",
@@ -51161,7 +51179,7 @@
         "suffix": "",
         "salutation": "",
         "joined_date": "2016-05-05 00:00:00",
-        "expiration_date": "2024-06-06 00:00:00",
+        "expiration_date": "2025-06-07 00:00:00",
         "life_member": "0",
         "privacy": 0
       },
@@ -58243,10 +58261,10 @@
           "division_id": 35,
           "division_classifiers": [
             {
-              "defindx": "386269",
+              "defindx": "386636",
               "classifier": "21-01",
               "sd": "5/25/24",
-              "ed": "0/00/00",
+              "ed": "5/29/24",
               "clubid": "NC07",
               "club_name": "Pitt County Wildlife Club",
               "percent": "36.9825",
@@ -58256,8 +58274,8 @@
               "hf": "5.9172",
               "noab": "0",
               "pending_a_flag": "0",
-              "verified": "0",
-              "paid_status": "0",
+              "verified": "1",
+              "paid_status": "1",
               "calculated": "1"
             },
             {

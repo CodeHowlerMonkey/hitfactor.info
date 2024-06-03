@@ -48757,6 +48757,24 @@
           "division_id": 35,
           "division_classifiers": [
             {
+              "defindx": "386961",
+              "classifier": "13-08",
+              "sd": "6/01/24",
+              "ed": "6/02/24",
+              "clubid": "MID05",
+              "club_name": "Shongum Practical Shooters",
+              "percent": "0.0000",
+              "code": "P",
+              "dindx": "35",
+              "source": "Stage Score",
+              "hf": "0",
+              "noab": "0",
+              "pending_a_flag": "0",
+              "verified": "1",
+              "paid_status": "1",
+              "calculated": "1"
+            },
+            {
               "defindx": "371959",
               "classifier": "99-62",
               "sd": "12/02/23",

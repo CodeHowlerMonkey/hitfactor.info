@@ -2448,8 +2448,8 @@
           "division_id": "41",
           "division": "Limited Optics",
           "class": "C",
-          "current_percent": "46.5178",
-          "high_percent": "46.5178"
+          "current_percent": "47.1426",
+          "high_percent": "47.1426"
         }
       ]
     }
@@ -6800,7 +6800,7 @@
       "status": 200,
       "member_data": {
         "member_id": "69853",
-        "member_number": "Private",
+        "member_number": "A74571",
         "first_name": "Private",
         "middle_name": "",
         "last_name": "",
@@ -11616,19 +11616,19 @@
       "status": 200,
       "member_data": {
         "member_id": "70154",
-        "member_number": "TY74818",
+        "member_number": "A74818",
         "first_name": "Steven",
         "middle_name": "L",
         "last_name": "Clagg",
         "suffix": "",
         "salutation": "",
         "joined_date": "2011-12-20 00:00:00",
-        "expiration_date": "2026-05-12 18:59:01",
+        "expiration_date": "2027-05-13 00:00:00",
         "life_member": "0",
         "privacy": "0"
       },
       "nroi_certification": {
-        "id": "74811",
+        "id": "81623",
         "member_id": "70154",
         "prev_cert_type": "1",
         "cert_type": "1",
@@ -11638,9 +11638,9 @@
         "sc_cert": "0",
         "legacy": "0",
         "active": "1",
-        "updated_date": "2023-05-25 06:39:59",
-        "certified_date": "2023-05-25 06:39:59",
-        "expiration_date": "2024-05-25 06:39:59",
+        "updated_date": "2024-06-02 03:46:02",
+        "certified_date": "2024-06-02 03:46:02",
+        "expiration_date": "2025-05-25 06:39:59",
         "certification_date": "2014-02-11 08:00:00",
         "type_name": "RO"
       },
@@ -14721,7 +14721,7 @@
       "status": 200,
       "member_data": {
         "member_id": "70371",
-        "member_number": "Private",
+        "member_number": "A74986",
         "first_name": "Private",
         "middle_name": "M",
         "last_name": "",
@@ -15228,7 +15228,7 @@
       "status": 200,
       "member_data": {
         "member_id": "70412",
-        "member_number": "Private",
+        "member_number": "A75008",
         "first_name": "Private",
         "middle_name": "J",
         "last_name": "",
@@ -18277,7 +18277,7 @@
         "suffix": "",
         "salutation": "",
         "joined_date": "2012-01-19 00:00:00",
-        "expiration_date": "2024-07-04 00:00:00",
+        "expiration_date": "2025-07-05 00:00:00",
         "life_member": "0",
         "privacy": "0"
       },
@@ -24375,7 +24375,7 @@
         "suffix": "Jr",
         "salutation": "",
         "joined_date": "2012-02-09 00:00:00",
-        "expiration_date": "2024-04-05 00:00:00",
+        "expiration_date": "2025-04-06 00:00:00",
         "life_member": "0",
         "privacy": "0"
       },
@@ -24443,8 +24443,8 @@
           "division_id": "38",
           "division": "PCC",
           "class": "C",
-          "current_percent": "57.0208",
-          "high_percent": "57.0208"
+          "current_percent": "57.6423",
+          "high_percent": "57.6423"
         },
         {
           "id": "1258471",
@@ -24887,7 +24887,7 @@
         "privacy": "0"
       },
       "nroi_certification": {
-        "id": "74942",
+        "id": "81595",
         "member_id": "71025",
         "prev_cert_type": "2",
         "cert_type": "2",
@@ -24897,9 +24897,9 @@
         "sc_cert": "0",
         "legacy": "0",
         "active": "1",
-        "updated_date": "2023-05-31 19:22:58",
-        "certified_date": "2023-05-31 19:22:58",
-        "expiration_date": "2024-05-31 07:00:00",
+        "updated_date": "2024-05-31 09:11:06",
+        "certified_date": "2024-05-31 09:11:06",
+        "expiration_date": "2025-05-31 07:00:00",
         "certification_date": "2012-04-10 07:00:00",
         "type_name": "CRO"
       },

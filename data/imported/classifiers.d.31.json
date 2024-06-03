@@ -23669,6 +23669,24 @@
           "division_id": 3,
           "division_classifiers": [
             {
+              "defindx": "386850",
+              "classifier": "22-02",
+              "sd": "6/01/24",
+              "ed": "6/01/24",
+              "clubid": "CFL07",
+              "club_name": "Williston Practical Shooters Club",
+              "percent": "49.4987",
+              "code": "P",
+              "dindx": "3",
+              "source": "Stage Score",
+              "hf": "3.9599",
+              "noab": "0",
+              "pending_a_flag": "0",
+              "verified": "1",
+              "paid_status": "1",
+              "calculated": "1"
+            },
+            {
               "defindx": -1,
               "classifier": "99-16",
               "sd": "5/29/11",

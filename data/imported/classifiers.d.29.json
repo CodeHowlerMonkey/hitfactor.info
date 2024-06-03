@@ -21600,6 +21600,24 @@
           "division_id": 35,
           "division_classifiers": [
             {
+              "defindx": "386864",
+              "classifier": "21-01",
+              "sd": "6/01/24",
+              "ed": "6/01/24",
+              "clubid": "OK11",
+              "club_name": "Oklahoma City Gun Club",
+              "percent": "35.5250",
+              "code": "P",
+              "dindx": "35",
+              "source": "Stage Score",
+              "hf": "5.684",
+              "noab": "0",
+              "pending_a_flag": "0",
+              "verified": "1",
+              "paid_status": "1",
+              "calculated": "1"
+            },
+            {
               "defindx": "383703",
               "classifier": "23-02",
               "sd": "5/04/24",
@@ -51566,15 +51584,15 @@
       "status": 200,
       "member_data": {
         "member_id": "60470",
-        "member_number": "A67115",
+        "member_number": "L6382",
         "first_name": "Adam",
         "middle_name": "W",
         "last_name": "Puyear",
         "suffix": "",
         "salutation": "",
         "joined_date": "2010-01-06 00:00:00",
-        "expiration_date": "2020-03-26 07:27:37",
-        "life_member": "0",
+        "expiration_date": "2124-06-02 11:58:42",
+        "life_member": "1",
         "privacy": 0
       },
       "success": true,

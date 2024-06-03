@@ -12199,7 +12199,7 @@
         "privacy": "0"
       },
       "nroi_certification": {
-        "id": "74905",
+        "id": "81593",
         "member_id": "40618",
         "prev_cert_type": "1",
         "cert_type": "1",
@@ -12209,9 +12209,9 @@
         "sc_cert": "0",
         "legacy": "0",
         "active": "1",
-        "updated_date": "2023-05-30 14:13:07",
-        "certified_date": "2023-05-30 14:13:07",
-        "expiration_date": "2024-06-30 00:00:00",
+        "updated_date": "2024-05-31 07:35:23",
+        "certified_date": "2024-05-31 07:35:23",
+        "expiration_date": "2025-06-30 00:00:00",
         "certification_date": "2009-05-04 07:00:00",
         "type_name": "RO"
       },
@@ -13296,7 +13296,7 @@
       "status": 200,
       "member_data": {
         "member_id": "40681",
-        "member_number": "Private",
+        "member_number": "FY48120",
         "first_name": "Private",
         "middle_name": "C",
         "last_name": "",

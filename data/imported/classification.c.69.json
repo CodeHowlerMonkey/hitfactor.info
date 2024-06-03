@@ -1205,7 +1205,7 @@
         "privacy": "0"
       },
       "nroi_certification": {
-        "id": "74763",
+        "id": "81560",
         "member_id": "95769",
         "prev_cert_type": "2",
         "cert_type": "2",
@@ -1215,9 +1215,9 @@
         "sc_cert": "1",
         "legacy": "0",
         "active": "1",
-        "updated_date": "2023-05-22 10:00:00",
-        "certified_date": "2023-05-22 10:00:00",
-        "expiration_date": "2024-05-29 00:00:00",
+        "updated_date": "2024-05-29 07:10:50",
+        "certified_date": "2024-05-29 07:10:50",
+        "expiration_date": "2025-05-29 00:00:00",
         "certification_date": "2017-02-06 08:00:00",
         "type_name": "CRO"
       },
@@ -7339,7 +7339,7 @@
       "status": 200,
       "member_data": {
         "member_id": "96057",
-        "member_number": "Private",
+        "member_number": "A98006",
         "first_name": "Private",
         "middle_name": "",
         "last_name": "",
@@ -10459,7 +10459,7 @@
       "status": 200,
       "member_data": {
         "member_id": "96222",
-        "member_number": "Private",
+        "member_number": "TY98168",
         "first_name": "Private",
         "middle_name": "M",
         "last_name": "",
@@ -10542,8 +10542,8 @@
           "division_id": "41",
           "division": "Limited Optics",
           "class": "C",
-          "current_percent": "44.3317",
-          "high_percent": "44.3317"
+          "current_percent": "46.0804",
+          "high_percent": "46.0804"
         }
       ]
     }
@@ -10637,8 +10637,8 @@
           "division_id": "35",
           "division": "Carry Optics",
           "class": "C",
-          "current_percent": "58.2431",
-          "high_percent": "58.5348"
+          "current_percent": "58.9081",
+          "high_percent": "58.9081"
         },
         {
           "id": "726032",
@@ -13025,7 +13025,7 @@
       "status": 200,
       "member_data": {
         "member_id": "96410",
-        "member_number": "Private",
+        "member_number": "A98356",
         "first_name": "Private",
         "middle_name": "D",
         "last_name": "",
@@ -14419,7 +14419,7 @@
       "status": 200,
       "member_data": {
         "member_id": "96501",
-        "member_number": "Private",
+        "member_number": "A98446",
         "first_name": "Private",
         "middle_name": "O",
         "last_name": "",

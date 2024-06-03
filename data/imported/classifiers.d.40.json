@@ -2909,7 +2909,7 @@
         "suffix": "",
         "salutation": "",
         "joined_date": "2014-05-01 00:00:00",
-        "expiration_date": "2024-06-06 00:00:00",
+        "expiration_date": "2025-06-07 00:00:00",
         "life_member": "0",
         "privacy": 0
       },
@@ -7600,6 +7600,24 @@
         {
           "division_id": 41,
           "division_classifiers": [
+            {
+              "defindx": "387037",
+              "classifier": "99-19",
+              "sd": "5/18/24",
+              "ed": "6/02/24",
+              "clubid": "VA26",
+              "club_name": "Greater Richmond Blasters",
+              "percent": "25.2801",
+              "code": "P",
+              "dindx": "41",
+              "source": "Stage Score",
+              "hf": "1.7464",
+              "noab": "0",
+              "pending_a_flag": "0",
+              "verified": "1",
+              "paid_status": "1",
+              "calculated": "1"
+            },
             {
               "defindx": "375913",
               "classifier": "99-11",
@@ -49375,6 +49393,24 @@
         {
           "division_id": 5,
           "division_classifiers": [
+            {
+              "defindx": "387086",
+              "classifier": "22-06",
+              "sd": "6/01/24",
+              "ed": "0/00/00",
+              "clubid": "FL28",
+              "club_name": "Tallahassee Practical Shooters",
+              "percent": "29.0930",
+              "code": "P",
+              "dindx": "5",
+              "source": "Stage Score",
+              "hf": "3.5067",
+              "noab": "0",
+              "pending_a_flag": "0",
+              "verified": "1",
+              "paid_status": "0",
+              "calculated": "1"
+            },
             {
               "defindx": "383842",
               "classifier": "22-02",

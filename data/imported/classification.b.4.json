@@ -5666,8 +5666,8 @@
           "division_id": "41",
           "division": "Limited Optics",
           "class": "B",
-          "current_percent": "65.0683",
-          "high_percent": "65.6005"
+          "current_percent": "67.0855",
+          "high_percent": "67.0855"
         }
       ]
     }
@@ -9148,7 +9148,7 @@
       "status": 200,
       "member_data": {
         "member_id": "8237",
-        "member_number": "Private",
+        "member_number": "TY17215",
         "first_name": "Private",
         "middle_name": "E",
         "last_name": "",
@@ -11196,7 +11196,7 @@
           "division_id": "35",
           "division": "Carry Optics",
           "class": "C",
-          "current_percent": "53.8994",
+          "current_percent": "55.0802",
           "high_percent": "58.3587"
         },
         {
@@ -23575,7 +23575,7 @@
         "suffix": "",
         "salutation": "",
         "joined_date": "1991-10-28 00:00:00",
-        "expiration_date": "2024-05-12 00:00:00",
+        "expiration_date": "2025-05-13 00:00:00",
         "life_member": "0",
         "privacy": "0"
       },
@@ -25387,7 +25387,7 @@
         "privacy": "0"
       },
       "nroi_certification": {
-        "id": "74192",
+        "id": "81573",
         "member_id": "9738",
         "prev_cert_type": "2",
         "cert_type": "2",
@@ -25397,9 +25397,9 @@
         "sc_cert": "0",
         "legacy": "0",
         "active": "1",
-        "updated_date": "2023-04-20 16:29:25",
-        "certified_date": "2023-04-20 16:29:25",
-        "expiration_date": "2024-05-31 07:00:00",
+        "updated_date": "2024-05-30 08:49:41",
+        "certified_date": "2024-05-30 08:49:41",
+        "expiration_date": "2025-05-31 07:00:00",
         "certification_date": "1988-07-31 07:00:00",
         "type_name": "CRO"
       },

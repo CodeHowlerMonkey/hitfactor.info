@@ -17186,6 +17186,24 @@
           "division_id": 7,
           "division_classifiers": [
             {
+              "defindx": "387050",
+              "classifier": "09-09",
+              "sd": "6/01/24",
+              "ed": "6/02/24",
+              "clubid": "IN20",
+              "club_name": "Porter County Poppers",
+              "percent": "23.7248",
+              "code": "P",
+              "dindx": "7",
+              "source": "Stage Score",
+              "hf": "20",
+              "noab": "0",
+              "pending_a_flag": "0",
+              "verified": "1",
+              "paid_status": "1",
+              "calculated": "1"
+            },
+            {
               "defindx": "385313",
               "classifier": "03-08",
               "sd": "5/19/24",

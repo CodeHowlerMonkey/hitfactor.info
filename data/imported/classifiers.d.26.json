@@ -35820,7 +35820,7 @@
         "suffix": "",
         "salutation": "",
         "joined_date": "2008-05-27 00:00:00",
-        "expiration_date": "2024-06-04 00:00:00",
+        "expiration_date": "2025-06-05 00:00:00",
         "life_member": "0",
         "privacy": 0
       },
@@ -49848,6 +49848,24 @@
         {
           "division_id": 35,
           "division_classifiers": [
+            {
+              "defindx": "386608",
+              "classifier": "22-04",
+              "sd": "5/14/24",
+              "ed": "5/29/24",
+              "clubid": "VA28",
+              "club_name": "Fairfax Practical Shooters",
+              "percent": "27.7163",
+              "code": "X",
+              "dindx": "35",
+              "source": "Stage Score",
+              "hf": "2.9795",
+              "noab": "0",
+              "pending_a_flag": "0",
+              "verified": "1",
+              "paid_status": "1",
+              "calculated": "1"
+            },
             {
               "defindx": "382052",
               "classifier": "09-07",

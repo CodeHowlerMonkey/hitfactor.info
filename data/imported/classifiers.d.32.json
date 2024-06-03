@@ -9360,6 +9360,29 @@
               "calculated": 1
             }
           ]
+        },
+        {
+          "division_id": 41,
+          "division_classifiers": [
+            {
+              "defindx": "387221",
+              "classifier": "13-05",
+              "sd": "6/02/24",
+              "ed": "0/00/00",
+              "clubid": "KS13",
+              "club_name": "Bone Creek Smokin' Aces",
+              "percent": "26.5688",
+              "code": "X",
+              "dindx": "41",
+              "source": "Stage Score",
+              "hf": "2.9718",
+              "noab": "0",
+              "pending_a_flag": "0",
+              "verified": "0",
+              "paid_status": "0",
+              "calculated": "1"
+            }
+          ]
         }
       ]
     }
@@ -12021,7 +12044,7 @@
               "clubid": "NV12",
               "club_name": "Stillwater Firearms Association",
               "percent": "6.6229",
-              "code": "P",
+              "code": "Y",
               "dindx": "41",
               "source": "Stage Score",
               "hf": "0.7167",

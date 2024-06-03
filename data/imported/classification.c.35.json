@@ -4695,7 +4695,7 @@
       "status": 200,
       "member_data": {
         "member_id": "47581",
-        "member_number": "Private",
+        "member_number": "A55020",
         "first_name": "Private",
         "middle_name": "",
         "last_name": "",
@@ -13915,14 +13915,14 @@
       "status": 200,
       "member_data": {
         "member_id": "48043",
-        "member_number": "TY55481",
+        "member_number": "A55481",
         "first_name": "David",
         "middle_name": "",
         "last_name": "Nater",
         "suffix": "",
         "salutation": "",
         "joined_date": "2006-01-11 00:00:00",
-        "expiration_date": "2024-06-01 00:00:00",
+        "expiration_date": "2025-06-02 00:00:00",
         "life_member": "0",
         "privacy": "0"
       },
@@ -23172,7 +23172,7 @@
         "suffix": "",
         "salutation": "",
         "joined_date": "2006-02-23 00:00:00",
-        "expiration_date": "2024-02-16 09:58:49",
+        "expiration_date": "2025-06-01 08:37:22",
         "life_member": "0",
         "privacy": "0"
       },
@@ -23183,73 +23183,73 @@
           "id": "392233",
           "division_id": "2",
           "division": "Open",
-          "class": "X",
-          "current_percent": "X",
-          "high_percent": "X"
+          "class": "U",
+          "current_percent": "0.0000",
+          "high_percent": "0.0000"
         },
         {
           "id": "392234",
           "division_id": "3",
           "division": "Limited",
-          "class": "X",
-          "current_percent": "X",
-          "high_percent": "X"
+          "class": "D",
+          "current_percent": "33.7227",
+          "high_percent": "33.7227"
         },
         {
           "id": "392235",
           "division_id": "4",
           "division": "Limited 10",
-          "class": "X",
-          "current_percent": "X",
-          "high_percent": "X"
+          "class": "U",
+          "current_percent": "0.0000",
+          "high_percent": "0.0000"
         },
         {
           "id": "392236",
           "division_id": "5",
           "division": "Production",
-          "class": "X",
-          "current_percent": "X",
-          "high_percent": "X"
+          "class": "C",
+          "current_percent": "47.9069",
+          "high_percent": "52.4907"
         },
         {
           "id": "392237",
           "division_id": "6",
           "division": "Revolver",
-          "class": "X",
-          "current_percent": "X",
-          "high_percent": "X"
+          "class": "U",
+          "current_percent": "0.0000",
+          "high_percent": "0.0000"
         },
         {
           "id": "392238",
           "division_id": "7",
           "division": "Single Stack",
-          "class": "X",
-          "current_percent": "X",
-          "high_percent": "X"
+          "class": "C",
+          "current_percent": "41.1377",
+          "high_percent": "41.1377"
         },
         {
           "id": "392239",
           "division_id": "35",
           "division": "Carry Optics",
-          "class": "X",
-          "current_percent": "X",
-          "high_percent": "X"
+          "class": "U",
+          "current_percent": "0.0000",
+          "high_percent": "0.0000"
         },
         {
           "id": "392240",
           "division_id": "38",
           "division": "PCC",
-          "class": "X",
-          "current_percent": "X",
-          "high_percent": "X"
+          "class": "U",
+          "current_percent": "0.0000",
+          "high_percent": "0.0000"
         },
         {
           "id": "1238778",
           "division_id": "41",
           "division": "Limited Optics",
-          "class": "X",
-          "current_percent": "X",
-          "high_percent": "X"
+          "class": "U",
+          "current_percent": "0.0000",
+          "high_percent": "0.0000"
         }
       ]
     }
@@ -25176,7 +25176,7 @@
       "status": 200,
       "member_data": {
         "member_id": "48525",
-        "member_number": "Private",
+        "member_number": "A55959",
         "first_name": "Private",
         "middle_name": "",
         "last_name": "",

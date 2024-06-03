@@ -734,7 +734,7 @@
       "status": 200,
       "member_data": {
         "member_id": "4481",
-        "member_number": "Private",
+        "member_number": "L1271",
         "first_name": "Private",
         "middle_name": "",
         "last_name": "",
@@ -2821,7 +2821,7 @@
         "privacy": "0"
       },
       "nroi_certification": {
-        "id": "74869",
+        "id": "81572",
         "member_id": "4687",
         "prev_cert_type": "1",
         "cert_type": "1",
@@ -2831,9 +2831,9 @@
         "sc_cert": "0",
         "legacy": "0",
         "active": "1",
-        "updated_date": "2023-05-28 19:12:28",
-        "certified_date": "2023-05-28 19:12:28",
-        "expiration_date": "2024-05-31 07:00:00",
+        "updated_date": "2024-05-30 07:56:48",
+        "certified_date": "2024-05-30 07:56:48",
+        "expiration_date": "2025-05-31 07:00:00",
         "certification_date": "1990-11-30 08:00:00",
         "type_name": "RO"
       },
@@ -3597,7 +3597,7 @@
           "division_id": "7",
           "division": "Single Stack",
           "class": "B",
-          "current_percent": "64.1553",
+          "current_percent": "62.4143",
           "high_percent": "64.8299"
         },
         {
@@ -3645,7 +3645,7 @@
         "privacy": "0"
       },
       "nroi_certification": {
-        "id": "74846",
+        "id": "81609",
         "member_id": "4776",
         "prev_cert_type": "2",
         "cert_type": "2",
@@ -3655,9 +3655,9 @@
         "sc_cert": "0",
         "legacy": "0",
         "active": "1",
-        "updated_date": "2023-05-27 07:57:31",
-        "certified_date": "2023-05-27 07:57:31",
-        "expiration_date": "2024-06-30 07:00:00",
+        "updated_date": "2024-05-31 20:18:16",
+        "certified_date": "2024-05-31 20:18:16",
+        "expiration_date": "2025-06-30 07:00:00",
         "certification_date": "2006-03-09 08:00:00",
         "type_name": "CRO"
       },
@@ -23203,7 +23203,7 @@
       "status": 200,
       "member_data": {
         "member_id": "7075",
-        "member_number": "Private",
+        "member_number": "L2428",
         "first_name": "Private",
         "middle_name": "",
         "last_name": "",
@@ -25100,7 +25100,23 @@
         "life_member": "0",
         "privacy": "0"
       },
-      "nroi_certification": [],
+      "nroi_certification": {
+        "id": "81527",
+        "member_id": "7210",
+        "prev_cert_type": "0",
+        "cert_type": "1",
+        "instructor_id": "10850",
+        "legacy_instructor": null,
+        "mg_cert": "0",
+        "sc_cert": "0",
+        "legacy": "0",
+        "active": "1",
+        "updated_date": "2024-05-26 20:34:13",
+        "certified_date": "2024-05-26 20:34:13",
+        "expiration_date": "2025-05-26 00:00:00",
+        "certification_date": "2024-05-26 20:34:13",
+        "type_name": "RO"
+      },
       "success": true,
       "classifications": [
         {

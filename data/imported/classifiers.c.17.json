@@ -5491,6 +5491,24 @@
           "division_id": 2,
           "division_classifiers": [
             {
+              "defindx": "386747",
+              "classifier": "13-06",
+              "sd": "5/25/24",
+              "ed": "5/27/24",
+              "clubid": "VA38",
+              "club_name": "Thurmont Conservation and Sportsmen Club",
+              "percent": "32.5628",
+              "code": "P",
+              "dindx": "2",
+              "source": "Stage Score",
+              "hf": "3.4046",
+              "noab": "0",
+              "pending_a_flag": "0",
+              "verified": "1",
+              "paid_status": "1",
+              "calculated": "1"
+            },
+            {
               "defindx": "385733",
               "classifier": "23-01",
               "sd": "5/19/24",

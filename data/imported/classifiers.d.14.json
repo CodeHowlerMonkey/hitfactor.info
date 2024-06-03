@@ -45956,6 +45956,24 @@
           "division_id": 3,
           "division_classifiers": [
             {
+              "defindx": "386369",
+              "classifier": "20-03",
+              "sd": "5/26/24",
+              "ed": "5/27/24",
+              "clubid": "SWPL01",
+              "club_name": "Gopher Flats / Swpl",
+              "percent": "39.5344",
+              "code": "Y",
+              "dindx": "3",
+              "source": "Stage Score",
+              "hf": "4.1406",
+              "noab": "0",
+              "pending_a_flag": "0",
+              "verified": "1",
+              "paid_status": "1",
+              "calculated": "1"
+            },
+            {
               "defindx": "383287",
               "classifier": "18-06",
               "sd": "4/28/24",
@@ -56454,7 +56472,7 @@
         "suffix": "",
         "salutation": "",
         "joined_date": "2000-09-27 00:00:00",
-        "expiration_date": "2024-06-03 00:00:00",
+        "expiration_date": "2025-06-04 00:00:00",
         "life_member": "0",
         "privacy": 0
       },
