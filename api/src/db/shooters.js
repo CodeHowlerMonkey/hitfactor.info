@@ -118,6 +118,16 @@ export const allDivisionsScores = async (memberNumbers) => {
   return data.map((doc) => doc.toObject({ virtuals: true }));
 };
 
+export const allDivisionsScoresByMemberNumber = async (memberNumbers) => {
+  const scores = await allDivisionsScores(memberNumbers);
+  return scores.reduce((acc, cur) => {
+    let curMemberScores = acc[cur.memberNumber] ?? [];
+    curMemberScores.push(cur);
+    acc[cur.memberNumber] = curMemberScores;
+    return acc;
+  }, {});
+};
+
 export const scoresForRecommendedClassification = (memberNumbers) =>
   Score.aggregate([
     {
@@ -249,6 +259,16 @@ export const scoresForRecommendedClassification = (memberNumbers) =>
     { $sort: { sd: -1, recPercent: -1 } },
   ]);
 
+export const scoresForRecommendedClassificationByMemberNumber = async (memberNumbers) => {
+  const scores = await scoresForRecommendedClassification(memberNumbers);
+  return scores.reduce((acc, cur) => {
+    let curMemberScores = acc[cur.memberNumber] ?? [];
+    curMemberScores.push(cur);
+    acc[cur.memberNumber] = curMemberScores;
+    return acc;
+  }, {});
+};
+
 const reclassificationBreakdown = (reclassificationInfo, division) => ({
   current: reclassificationInfo?.[division]?.percent,
   currents: mapDivisions((div) => reclassificationInfo?.[div]?.percent),
@@ -262,10 +282,19 @@ export const shooterObjectsFromClassificationFile = async (c) => {
   }
   const memberNumber = memberNumberFromMemberData(c.member_data);
   const memberScores = await scoresForRecommendedClassification([memberNumber]);
+
+  return shooterObjectsForMemberNumber(c, memberScores);
+};
+
+const shooterObjectsForMemberNumber = (c, recMemberScores, curMemberScores) => {
+  if (!c?.member_data) {
+    return [];
+  }
+  const memberNumber = memberNumberFromMemberData(c.member_data);
   const hqClasses = reduceByDiv(c.classifications, (r) => r.class);
   const hqCurrents = reduceByDiv(c.classifications, (r) => Number(r.current_percent));
-  const recalcByCurPercent = calculateUSPSAClassification(memberScores, "curPercent");
-  const recalcByRecPercent = calculateUSPSAClassification(memberScores, "recPercent");
+  const recalcByCurPercent = calculateUSPSAClassification(curMemberScores, "curPercent");
+  const recalcByRecPercent = calculateUSPSAClassification(recMemberScores, "recPercent");
   const ages = mapDivisions((div) => recalcByRecPercent?.[div]?.age);
   const age1s = mapDivisions((div) => recalcByRecPercent?.[div]?.age1);
 
@@ -327,36 +356,63 @@ export const shooterObjectsFromClassificationFile = async (c) => {
   );
 };
 
+const processBatchHydrateShooters = async (batch) => {
+  batch = batch.filter((c) => !!c?.member_data);
+  const memberNumbers = batch.map((c) => memberNumberFromMemberData(c.member_data));
+  const [recScoresByMemberNumber, curScoresByMemberNumber] = await Promise.all([
+    scoresForRecommendedClassificationByMemberNumber(memberNumbers),
+    allDivisionsScoresByMemberNumber(memberNumbers),
+  ]);
+
+  const shooterObjects = batch
+    .map((c) => {
+      const memberNumber = memberNumberFromMemberData(c.member_data);
+      return shooterObjectsForMemberNumber(
+        c,
+        recScoresByMemberNumber[memberNumber],
+        curScoresByMemberNumber[memberNumber]
+      );
+    })
+    .flat();
+
+  await Shooter.bulkWrite(
+    shooterObjects.map((s) => ({
+      updateOne: {
+        filter: {
+          memberNumber: s.memberNumber,
+          division: s.division,
+        },
+        update: { $set: s },
+        upsert: true,
+      },
+    }))
+  );
+  process.stdout.write(".");
+};
+
 const batchHydrateShooters = async (letter) => {
   process.stdout.write("\n");
   process.stdout.write(letter);
   process.stdout.write(": ");
-  return processImportAsyncSeq(
+
+  let curBatch = [];
+
+  await processImportAsyncSeq(
     "../../data/imported",
     new RegExp(`classification\\.${letter}\\.\\d+\\.json`),
     async (obj) => {
-      const curFileShooters = await shooterObjectsFromClassificationFile(obj.value);
-      if (!curFileShooters.length) {
-        return;
+      curBatch.push(obj.value);
+      if (curBatch.length >= 128) {
+        await processBatchHydrateShooters(curBatch);
+        curBatch = [];
       }
-
-      await Shooter.bulkWrite(
-        curFileShooters
-          .filter((s) => !!s.memberNumber)
-          .map((s) => ({
-            updateOne: {
-              filter: {
-                memberNumber: s.memberNumber,
-                division: s.division,
-              },
-              update: { $set: s },
-              upsert: true,
-            },
-          }))
-      );
-      process.stdout.write(".");
     }
   );
+
+  // final batch that isn't big enough to be processed before
+  if (curBatch.length) {
+    await processBatchHydrateShooters(curBatch);
+  }
 };
 
 export const hydrateShooters = async () => {
@@ -378,20 +434,9 @@ export const reclassifyShooters = async (shooters) => {
     const memberNumbers = uniqBy(shooters, (s) => s.memberNumber).map(
       (s) => s.memberNumber
     );
-    const recScores = await scoresForRecommendedClassification(memberNumbers);
-    const recScoresByMemberNumber = recScores.reduce((acc, cur) => {
-      let curMemberScores = acc[cur.memberNumber] ?? [];
-      curMemberScores.push(cur);
-      acc[cur.memberNumber] = curMemberScores;
-      return acc;
-    }, {});
-    const curScores = await allDivisionsScores(memberNumbers);
-    const curScoresByMemberNumber = curScores.reduce((acc, cur) => {
-      let curMemberScores = acc[cur.memberNumber] ?? [];
-      curMemberScores.push(cur);
-      acc[cur.memberNumber] = curMemberScores;
-      return acc;
-    }, {});
+    const recScoresByMemberNumber =
+      await scoresForRecommendedClassificationByMemberNumber(memberNumbers);
+    const curScoresByMemberNumber = await allDivisionsScoresByMemberNumber(memberNumbers);
 
     const updates = shooters
       .map(({ memberNumber, division }) => {
