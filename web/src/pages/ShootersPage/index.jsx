@@ -6,11 +6,12 @@ import { Button } from "primereact/button";
 import ShootersTable from "./components/ShootersTable";
 // import RunsTable, { useRunsTableData } from "../../components/ShootersTable";
 import ShooterInfoTable from "./components/ShooterInfoTable";
-import { useApi } from "../../utils/client";
+import { postApi, useApi } from "../../utils/client";
 import { divShortToLong } from "../../../../api/src/dataUtil/divisions";
 import ShooterRunsTable from "./components/ShooterRunsTable";
 import { Divider } from "primereact/divider";
 import { useDebouncedCallback } from "use-debounce";
+import { renderPercent } from "../../components/Table";
 
 // TODO: shooters table for single classifier? # attempts, low HF, high HF, same for percent, same for curPercent
 // TODO: all classifiers total number of reshoots (non-uniqueness)
@@ -56,46 +57,78 @@ const useShooterTableData = ({ division, memberNumber }) => {
   const { json: apiData, loading } = useApi(apiEndpoint);
   const info = apiData?.info || {};
   const [classifiers, setClassifiers] = useState([]);
-  useEffect(() => setClassifiers(apiData?.classifiers || []), [apiData?.classifiers]);
+  const [lastFetchedClassifiers, setLastFetchedClassifiers] = useState([]);
+  useEffect(() => {
+    const classifiersFromApiData = apiData?.classifiers || [];
+    setClassifiers(classifiersFromApiData);
+    setLastFetchedClassifiers(classifiersFromApiData);
+  }, [apiData?.classifiers]);
+
   const downloadUrl = `/api/shooters/download/${division}/${memberNumber}`;
 
-  const refetchWhatIfs = (whatIfs) => {
-    const canRefetch = whatIfs.length > 0 && whatIfs.every((c) => c.classifier && c.hf);
+  const refetchWhatIfs = async (whatIfs) => {
+    const canRefetch =
+      whatIfs.length > 0 && whatIfs.every((c) => !c.whatIf || (c.classifier && c.hf));
     if (canRefetch) {
-      console.log(JSON.stringify(whatIfs, null, 2));
+      const result = await postApi("/upload/whatif", {
+        scores: whatIfs,
+        division,
+        memberNumber,
+      });
+      setClassifiers(result.scores);
+      setWhatIf(result.whatIf);
+      // console.log(JSON.stringify({ result }, null, 2));
     }
   };
   const debouncedRefetchWhatIfs = useDebouncedCallback(refetchWhatIfs, 750);
 
+  const [whatIf, setWhatIf] = useState(null);
+  const resetWhatIfs = useCallback(() => {
+    setWhatIf(null);
+    setClassifiers(lastFetchedClassifiers);
+  }, [setWhatIf, setClassifiers, lastFetchedClassifiers]);
+
+  useEffect(() => {
+    setWhatIf(null);
+  }, [division, memberNumber]);
+
   const addWhatIf = useCallback(() => {
-    setClassifiers((existing) => [{ whatIf: randomUUID() }, ...existing]);
+    setWhatIf(
+      (prevWhatIf) =>
+        prevWhatIf ?? {
+          recPercent: info?.reclassifications?.recPercent?.current || -1,
+          curPercent: info?.reclassifications?.curPercent?.current || -1,
+        }
+    );
+    setClassifiers((existing) => {
+      const result = [
+        { _id: randomUUID(), whatIf: true, sd: new Date().toISOString() },
+        ...existing,
+      ];
+      return result;
+    });
   });
 
   const updateWhatIfs = useCallback(
     (id, changes = {}) => {
       let isDelete = false;
       const whatIfClassifiers = classifiers
-        .filter((c) => c.whatIf)
         .map((c) => {
-          if (c.whatIf === id) {
+          if (c._id === id) {
             c = { ...c, ...changes };
-          }
 
-          if (c.delete) {
-            isDelete = true;
-            return null;
+            if (c.delete) {
+              isDelete = true;
+              return null;
+            }
           }
 
           return c;
         })
         .filter(Boolean);
 
-      if (isDelete) {
-        setClassifiers([...whatIfClassifiers, ...(apiData?.classifiers || [])]);
-        refetchWhatIfs(whatIfClassifiers);
-      } else {
-        debouncedRefetchWhatIfs(whatIfClassifiers);
-      }
+      setClassifiers(whatIfClassifiers);
+      debouncedRefetchWhatIfs(whatIfClassifiers);
     },
     [classifiers]
   );
@@ -106,18 +139,21 @@ const useShooterTableData = ({ division, memberNumber }) => {
     classifiers,
     downloadUrl,
     loading,
+    whatIf,
     addWhatIf,
     updateWhatIfs,
+    resetWhatIfs,
   };
 };
 
 export const ShooterRunsAndInfo = ({ division, memberNumber, onBackToShooters }) => {
   const navigate = useNavigate();
-  const { info, downloadUrl, addWhatIf, ...tableShit } = useShooterTableData({
-    division,
-    memberNumber,
-  });
-  const { loading } = tableShit;
+  const { info, downloadUrl, addWhatIf, resetWhatIfs, ...tableShit } =
+    useShooterTableData({
+      division,
+      memberNumber,
+    });
+  const { loading, whatIf } = tableShit;
   const { name } = info;
 
   return (
@@ -147,14 +183,36 @@ export const ShooterRunsAndInfo = ({ division, memberNumber, onBackToShooters })
       <Divider />
       <div className="flex justify-content-between">
         <h4 className="block md:text-lg lg:text-xl">Scores</h4>
-        <Button
-          className="px-2 my-3 text-sm"
-          label="What If"
-          size="small"
-          iconPos="left"
-          icon="pi pi-plus-circle"
-          onClick={addWhatIf}
-        />
+        {whatIf && (
+          <div className="m-auto">
+            <h5 className="inline mr-4">
+              Recommended: {renderPercent(whatIf, { field: "recPercent" })}
+            </h5>
+            <h5 className="inline">
+              Current HHF: {renderPercent(whatIf, { field: "curPercent" })}
+            </h5>
+          </div>
+        )}
+        <div>
+          {whatIf && (
+            <Button
+              className="px-2 my-3 mr-2 text-sm"
+              label="Reset"
+              size="small"
+              iconPos="left"
+              icon="pi pi-refresh"
+              onClick={resetWhatIfs}
+            />
+          )}
+          <Button
+            className="px-2 my-3 text-sm"
+            label="What If"
+            size="small"
+            iconPos="left"
+            icon="pi pi-plus-circle"
+            onClick={addWhatIf}
+          />
+        </div>
       </div>
 
       <ShooterRunsTable

@@ -1,3 +1,4 @@
+import { v4 as randomUUID } from "uuid";
 import FormData from "form-data";
 import { ZenRows } from "zenrows";
 import uniqBy from "lodash.uniqby";
@@ -14,6 +15,7 @@ import {
   reclassifyShooters,
   shooterObjectsFromClassificationFile,
   Shooter,
+  allDivisionsScores,
 } from "../../../db/shooters.js";
 import { DQs } from "../../../db/dq.js";
 import { calculateUSPSAClassification } from "../../../../../shared/utils/classification.js";
@@ -26,6 +28,35 @@ const retryDelay = (retry) => {
   const quickRandom = Math.ceil(32 + 40 * Math.random());
   return delay(retry * 312 + quickRandom);
 };
+
+/**
+ * Replaces same day dupes with a single average run, same as
+ * scoresForRecommendedClassification(), but in memory.
+ *
+ * Used for What If Recommended Classification calculation
+ */
+const dedupeGrandbagging = (scores) =>
+  Object.values(
+    scores.reduce((acc, cur) => {
+      cur.classifier = cur.classifier || randomUUID;
+      const date = new Date(cur.sd).toLocaleDateString();
+      const key = [date, cur.classifier].join(":");
+      acc[key] = acc[key] || [];
+      acc[key].push(cur);
+      return acc;
+    }, {})
+  ).map((oneDayScores) => {
+    if (oneDayScores.length == 1) {
+      return oneDayScores[0];
+    }
+
+    const avgHf =
+      oneDayScores.reduce((acc, cur) => acc + cur.hf, 0) / oneDayScores.length;
+    const avgRecPercent =
+      oneDayScores.reduce((acc, cur) => acc + cur.recPercent, 0) / oneDayScores.length;
+
+    return { ...oneDayScores[0], hf: avgHf, recPercent: avgRecPercent };
+  });
 
 const fetchUSPSAEndpoint = async (sessionKey, endpoint, tryNumber = 1, maxTries = 3) => {
   try {
@@ -290,7 +321,77 @@ const afterUpload = async (classifiers, shooters) => {
 };
 
 const uploadRoutes = async (fastify, opts) => {
-  // TODO: upload shooter from USPSA with memberNumber/password
+  fastify.post("/whatif", async (req, res) => {
+    const { scores, division, memberNumber } = req.body;
+    const now = new Date();
+
+    const lookupHHFs = uniqBy(
+      scores
+        .filter((s) => s.hf && s.classifier && s.source !== "Major Match")
+        .map((s) => {
+          if (s.classifier) {
+            s.classifierDivision = [s.classifier, division].join(":");
+          }
+          return s;
+        }),
+      (s) => s.classifierDivision
+    ).map((s) => s.classifierDivision);
+    const recHHFs = await RecHHF.find({ classifierDivision: { $in: lookupHHFs } }).lean();
+    const recHHFsMap = recHHFs.reduce((acc, cur) => {
+      acc[cur.classifierDivision] = cur;
+      return acc;
+    }, {});
+
+    // final score prep
+    const hydratedScores = scores.map((c, index, all) => {
+      c.division = division;
+      if (!c.sd) {
+        c.sd = new Date(now.getTime() + 1000 * (all.length - index)).toISOString();
+      }
+      if (c.classifier) {
+        c.classifierDivision = [c.classifier, division].join(":");
+      }
+
+      const recHHF = recHHFsMap[c.classifierDivision];
+      if (recHHF) {
+        c.recPercent = (100 * c.hf) / recHHF.recHHF;
+        c.curPercent = (100 * c.hf) / recHHF.curHHF;
+      } else {
+        console.error("No RecHHF for " + c.classifierDivision);
+      }
+      return c;
+    });
+    const existingRecScores = await scoresForRecommendedClassification([memberNumber]);
+    const existingScores = await allDivisionsScores([memberNumber]);
+    const recScores = dedupeGrandbagging(hydratedScores);
+    const otherDivisionsScores = existingScores.filter((s) => s.division !== division);
+    const recPercent = calculateUSPSAClassification(recScores, "recPercent");
+    const curPercent = calculateUSPSAClassification(
+      [...hydratedScores, ...otherDivisionsScores],
+      "curPercent"
+    );
+
+    return {
+      scoresByDate: recScores.map(({ hf, classifier, recPercent, sd }) => ({
+        hf,
+        classifier,
+        recPercent,
+        sd,
+      })),
+      recHHFsMap,
+      whatIf: {
+        recPercent: recPercent[division]?.percent,
+        curPercent: curPercent[division]?.percent,
+      },
+      scores: hydratedScores,
+      existingRec: existingRecScores
+        .filter((s) => s.division === "co")
+        .map(({ hf, classifier }) => ({ hf, classifier })),
+      existing: existingScores
+        .filter((s) => s.division === "co")
+        .map(({ hf, classifier }) => ({ hf, classifier })),
+    };
+  });
 
   fastify.get("/test/:memberNumber", async (req, res) => {
     const { memberNumber } = req.params;

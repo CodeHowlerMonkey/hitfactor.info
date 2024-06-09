@@ -20,6 +20,7 @@ const ShooterRunsTable = ({
   onClubSelection,
   loading,
   updateWhatIfs,
+  whatIf,
 }) => {
   const reportDialogRef = useRef(null);
   return (
@@ -57,11 +58,25 @@ const ShooterRunsTable = ({
           field="sdUnix"
           header="Date"
           sortable
-          body={(run) =>
-            !run.whatIf
-              ? new Date(run.sd).toLocaleDateString("en-us", { timeZone: "UTC" })
-              : "What If"
-          }
+          body={(run) => {
+            if (!run.whatIf) {
+              return new Date(run.sd).toLocaleDateString("en-us", { timeZone: "UTC" });
+            }
+
+            return (
+              <>
+                What If
+                <input
+                  type="date"
+                  min={new Date().toISOString().split("T")[0]}
+                  value={run.sd.split("T")[0]}
+                  onChange={({ target: { value } }) =>
+                    updateWhatIfs(run._id, { sd: new Date(value).toISOString() })
+                  }
+                />
+              </>
+            );
+          }}
         />
         <Column
           field="classifier"
@@ -70,7 +85,10 @@ const ShooterRunsTable = ({
           bodyStyle={{ width: "12rem" }}
           body={(c) =>
             c.whatIf ? (
-              <ClassifierDropdown onChange={(v) => console.log(v)} />
+              <ClassifierDropdown
+                value={c.classifier}
+                onChange={(classifier) => updateWhatIfs(c._id, { classifier })}
+              />
             ) : (
               <ClassifierCell
                 info={c.classifierInfo}
@@ -92,10 +110,11 @@ const ShooterRunsTable = ({
                   className="max-w-full"
                   inputClassName="max-w-full"
                   placeholder="HitFactor"
-                  minFractionDigits={4}
+                  minFractionDigits={0}
                   maxFractionDigits={4}
+                  value={c.hf || 0}
                   onChange={({ value }) => {
-                    updateWhatIfs(c.whatIf, { hf: value });
+                    updateWhatIfs(c._id, { hf: value });
                   }}
                 />
               );
@@ -140,7 +159,7 @@ const ShooterRunsTable = ({
         <Column field="source" header="Source" sortable />
         <Column
           body={(c) =>
-            !c.whatIf ? (
+            !c.whatIf && !whatIf ? (
               <ReportDialog.Button
                 onClick={() => reportDialogRef.current.startReport(c)}
               />
@@ -149,7 +168,7 @@ const ShooterRunsTable = ({
                 icon="pi pi-trash text-xs md:text-base text-red-400"
                 size="small"
                 style={{ width: "1em" }}
-                onClick={() => updateWhatIfs(c.whatIf, { delete: true })}
+                onClick={() => updateWhatIfs(c._id, { delete: true })}
                 text
               />
             )
