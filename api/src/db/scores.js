@@ -111,12 +111,33 @@ export const scoresFromClassifierFile = (fileObj) => {
     .flat();
 };
 
+const hydrateScoresBatch = async (batch) => {
+  await Score.bulkWrite(
+    batch.map((s) => ({
+      updateOne: {
+        filter: {
+          memberNumberDivision: s.memberNumberDivision,
+          classifierDivision: s.classifierDivision,
+          hf: s.hf,
+          sd: s.sd,
+          // some PS matches don't have club set, but all USPSA uploads do,
+          // so to prevent dupes, don't filter by club on score upsert
+          // clubid: s.clubid,
+        },
+        update: { $set: s },
+        upsert: true,
+      },
+    }))
+  );
+  process.stdout.write("⬆︎");
+};
+
 const batchHydrateScores = async (letter) => {
   let curBatch = [];
   process.stdout.write("\n");
   process.stdout.write(letter);
   process.stdout.write(": ");
-  return processImportAsyncSeq(
+  await processImportAsyncSeq(
     "../../data/imported",
     new RegExp(`classifiers\\.${letter}\\.\\d+\\.json`),
     async (obj) => {
@@ -124,28 +145,14 @@ const batchHydrateScores = async (letter) => {
       curBatch = curBatch.concat(curFileScores);
       process.stdout.write(".");
       if (curBatch.length >= 512) {
-        await Score.bulkWrite(
-          curBatch.map((s) => ({
-            updateOne: {
-              filter: {
-                memberNumberDivision: s.memberNumberDivision,
-                classifierDivision: s.classifierDivision,
-                hf: s.hf,
-                sd: s.sd,
-                // some PS matches don't have club set, but all USPSA uploads do,
-                // so to prevent dupes, don't filter by club on score upsert
-                // clubid: s.clubid,
-              },
-              update: { $set: s },
-              upsert: true,
-            },
-          }))
-        );
-        process.stdout.write("⬆︎");
+        await hydrateScoresBatch(curBatch);
         curBatch = [];
       }
     }
   );
+  if (curBatch.length) {
+    await hydrateScoresBatch(curBatch);
+  }
 };
 
 export const hydrateScores = async () => {
