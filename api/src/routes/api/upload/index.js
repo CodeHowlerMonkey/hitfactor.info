@@ -398,6 +398,11 @@ const uploadRoutes = async (fastify, opts) => {
     const scores = await scoresForRecommendedClassification([memberNumber]);
     return calculateUSPSAClassification(scores, "recPercent");
   });
+  fastify.get("/test2/:memberNumber", async (req, res) => {
+    const { memberNumber } = req.params;
+    const scores = await allDivisionsScores([memberNumber]);
+    return calculateUSPSAClassification(scores, "curPercent");
+  });
 
   fastify.get("/searchMatches", async (req, res) => {
     const { q } = req.query;

@@ -378,8 +378,15 @@ export const reclassifyShooters = async (shooters) => {
     const memberNumbers = uniqBy(shooters, (s) => s.memberNumber).map(
       (s) => s.memberNumber
     );
-    const scores = await scoresForRecommendedClassification(memberNumbers);
-    const scoresByMemberNumber = scores.reduce((acc, cur) => {
+    const recScores = await scoresForRecommendedClassification(memberNumbers);
+    const recScoresByMemberNumber = recScores.reduce((acc, cur) => {
+      let curMemberScores = acc[cur.memberNumber] ?? [];
+      curMemberScores.push(cur);
+      acc[cur.memberNumber] = curMemberScores;
+      return acc;
+    }, {});
+    const curScores = await allDivisionsScores(memberNumbers);
+    const curScoresByMemberNumber = curScores.reduce((acc, cur) => {
       let curMemberScores = acc[cur.memberNumber] ?? [];
       curMemberScores.push(cur);
       acc[cur.memberNumber] = curMemberScores;
@@ -391,13 +398,14 @@ export const reclassifyShooters = async (shooters) => {
         if (!memberNumber) {
           return [];
         }
-        const memberScores = scoresByMemberNumber[memberNumber];
+        const recMemberScores = recScoresByMemberNumber[memberNumber];
+        const curMemberScores = curScoresByMemberNumber[memberNumber];
         const recalcByCurPercent = calculateUSPSAClassification(
-          memberScores,
+          curMemberScores,
           "curPercent"
         );
         const recalcByRecPercent = calculateUSPSAClassification(
-          memberScores,
+          recMemberScores,
           "recPercent"
         );
 
