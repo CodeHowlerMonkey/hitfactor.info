@@ -904,7 +904,7 @@
           "division_id": "3",
           "division": "Limited",
           "class": "B",
-          "current_percent": "65.7102",
+          "current_percent": "65.4475",
           "high_percent": "67.4604"
         },
         {
@@ -5310,8 +5310,8 @@
           "division_id": "38",
           "division": "PCC",
           "class": "A",
-          "current_percent": "78.5496",
-          "high_percent": "79.9733"
+          "current_percent": "80.2938",
+          "high_percent": "80.2938"
         },
         {
           "id": "1223292",
@@ -13403,7 +13403,7 @@
         "suffix": "",
         "salutation": "",
         "joined_date": "2000-03-08 00:00:00",
-        "expiration_date": "2024-06-04 00:00:00",
+        "expiration_date": "2025-06-05 00:00:00",
         "life_member": "0",
         "privacy": "0"
       },
@@ -15753,7 +15753,7 @@
         "privacy": "0"
       },
       "nroi_certification": {
-        "id": "74853",
+        "id": "81683",
         "member_id": "35692",
         "prev_cert_type": "1",
         "cert_type": "1",
@@ -15763,9 +15763,9 @@
         "sc_cert": "0",
         "legacy": "0",
         "active": "1",
-        "updated_date": "2023-05-27 15:06:26",
-        "certified_date": "2023-05-27 15:06:26",
-        "expiration_date": "2024-06-30 07:00:00",
+        "updated_date": "2024-06-06 13:21:45",
+        "certified_date": "2024-06-06 13:21:45",
+        "expiration_date": "2025-06-30 07:00:00",
         "certification_date": "2006-06-08 07:00:00",
         "type_name": "RO"
       },
@@ -16081,7 +16081,7 @@
         "suffix": "",
         "salutation": "",
         "joined_date": "2000-05-24 00:00:00",
-        "expiration_date": "2024-06-05 00:00:00",
+        "expiration_date": "2025-06-06 00:00:00",
         "life_member": "0",
         "privacy": "0"
       },
@@ -21390,7 +21390,7 @@
         "suffix": "",
         "salutation": "",
         "joined_date": "2001-03-01 00:00:00",
-        "expiration_date": "2024-04-05 18:25:28",
+        "expiration_date": "2026-06-05 00:00:00",
         "life_member": "0",
         "privacy": "0"
       },

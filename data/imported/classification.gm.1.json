@@ -2108,9 +2108,9 @@
         "privacy": "0"
       },
       "nroi_certification": {
-        "id": "75206",
+        "id": "81702",
         "member_id": "1065",
-        "prev_cert_type": "0",
+        "prev_cert_type": "1",
         "cert_type": "1",
         "instructor_id": "1841",
         "legacy_instructor": null,
@@ -2118,9 +2118,9 @@
         "sc_cert": "0",
         "legacy": "0",
         "active": "1",
-        "updated_date": "2023-06-17 16:14:37",
-        "certified_date": "2023-06-17 16:14:37",
-        "expiration_date": "2024-06-17 00:00:00",
+        "updated_date": "2024-06-07 16:25:28",
+        "certified_date": "2024-06-07 16:25:28",
+        "expiration_date": "2025-06-17 00:00:00",
         "certification_date": "2023-06-17 16:14:37",
         "type_name": "RO"
       },
@@ -4194,7 +4194,7 @@
         "suffix": "",
         "salutation": "",
         "joined_date": "1988-08-22 00:00:00",
-        "expiration_date": "2024-06-09 00:00:00",
+        "expiration_date": "2025-06-10 00:00:00",
         "life_member": "0",
         "privacy": "0"
       },
@@ -15219,8 +15219,8 @@
           "division_id": "2",
           "division": "Open",
           "class": "M",
-          "current_percent": "87.2596",
-          "high_percent": "87.2596"
+          "current_percent": "87.9147",
+          "high_percent": "87.9147"
         },
         {
           "id": "151434",
@@ -16820,7 +16820,7 @@
           "division_id": "35",
           "division": "Carry Optics",
           "class": "GM",
-          "current_percent": "99.3076",
+          "current_percent": "98.7250",
           "high_percent": "100.0000"
         },
         {
@@ -24182,7 +24182,7 @@
         "privacy": "0"
       },
       "nroi_certification": {
-        "id": "74866",
+        "id": "81703",
         "member_id": "28852",
         "prev_cert_type": "1",
         "cert_type": "1",
@@ -24192,9 +24192,9 @@
         "sc_cert": "0",
         "legacy": "0",
         "active": "1",
-        "updated_date": "2023-05-28 13:53:08",
-        "certified_date": "2023-05-28 13:53:08",
-        "expiration_date": "2024-05-31 07:00:00",
+        "updated_date": "2024-06-07 16:29:28",
+        "certified_date": "2024-06-07 16:29:28",
+        "expiration_date": "2025-05-31 07:00:00",
         "certification_date": "2010-07-06 07:00:00",
         "type_name": "RO"
       },

@@ -8596,7 +8596,7 @@
           "division_id": "2",
           "division": "Open",
           "class": "A",
-          "current_percent": "74.3293",
+          "current_percent": "76.0189",
           "high_percent": "76.1925"
         },
         {
@@ -11408,7 +11408,7 @@
           "division_id": "3",
           "division": "Limited",
           "class": "B",
-          "current_percent": "67.2665",
+          "current_percent": "67.2985",
           "high_percent": "67.6949"
         },
         {
@@ -20172,7 +20172,7 @@
         "privacy": "0"
       },
       "nroi_certification": {
-        "id": "74982",
+        "id": "81672",
         "member_id": "61187",
         "prev_cert_type": "2",
         "cert_type": "2",
@@ -20182,9 +20182,9 @@
         "sc_cert": "1",
         "legacy": "0",
         "active": "1",
-        "updated_date": "2023-06-04 12:15:10",
-        "certified_date": "2023-06-04 12:15:10",
-        "expiration_date": "2024-07-19 00:00:00",
+        "updated_date": "2024-06-05 15:31:37",
+        "certified_date": "2024-06-05 15:31:37",
+        "expiration_date": "2025-07-19 00:00:00",
         "certification_date": "2018-04-10 23:58:22",
         "type_name": "CRO"
       },
