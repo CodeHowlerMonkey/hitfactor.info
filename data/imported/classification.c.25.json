@@ -195,14 +195,14 @@
       "status": 200,
       "member_data": {
         "member_id": "35651",
-        "member_number": "TY43250",
+        "member_number": "A43250",
         "first_name": "Don",
         "middle_name": "",
         "last_name": "Anderson",
         "suffix": "",
         "salutation": "",
         "joined_date": "2000-05-17 00:00:00",
-        "expiration_date": "2024-06-02 00:00:00",
+        "expiration_date": "2025-06-03 00:00:00",
         "life_member": "0",
         "privacy": "0"
       },
@@ -3180,12 +3180,12 @@
         "suffix": "",
         "salutation": "",
         "joined_date": "2000-05-31 00:00:00",
-        "expiration_date": "2024-07-06 00:00:00",
+        "expiration_date": "2025-07-07 00:00:00",
         "life_member": "0",
         "privacy": "0"
       },
       "nroi_certification": {
-        "id": "75682",
+        "id": "81713",
         "member_id": "35767",
         "prev_cert_type": "1",
         "cert_type": "1",
@@ -3195,9 +3195,9 @@
         "sc_cert": "0",
         "legacy": "0",
         "active": "1",
-        "updated_date": "2023-07-22 13:38:34",
-        "certified_date": "2023-07-22 13:38:34",
-        "expiration_date": "2024-06-20 08:39:07",
+        "updated_date": "2024-06-09 11:26:43",
+        "certified_date": "2024-06-09 11:26:43",
+        "expiration_date": "2025-06-20 08:39:07",
         "certification_date": "2006-11-08 08:00:00",
         "type_name": "RO"
       },
@@ -22549,8 +22549,8 @@
           "division_id": "35",
           "division": "Carry Optics",
           "class": "D",
-          "current_percent": "36.1735",
-          "high_percent": "36.1735"
+          "current_percent": "37.2301",
+          "high_percent": "37.2301"
         },
         {
           "id": "301512",

@@ -115052,6 +115052,24 @@
           "division_id": 38,
           "division_classifiers": [
             {
+              "defindx": "387737",
+              "classifier": "21-01",
+              "sd": "6/02/24",
+              "ed": "6/07/24",
+              "clubid": "CCS08",
+              "club_name": "Oakdale Sportsmans Club",
+              "percent": "34.4769",
+              "code": "P",
+              "dindx": "38",
+              "source": "Stage Score",
+              "hf": "5.6197",
+              "noab": "0",
+              "pending_a_flag": "0",
+              "verified": "1",
+              "paid_status": "1",
+              "calculated": "1"
+            },
+            {
               "defindx": "378218",
               "classifier": "99-13",
               "sd": "3/03/24",

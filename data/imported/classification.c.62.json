@@ -1770,7 +1770,7 @@
         "suffix": "",
         "salutation": "",
         "joined_date": "2014-11-13 00:00:00",
-        "expiration_date": "2024-04-06 00:00:00",
+        "expiration_date": "2025-04-07 00:00:00",
         "life_member": "0",
         "privacy": "0"
       },
@@ -3074,7 +3074,7 @@
         "privacy": "1"
       },
       "nroi_certification": {
-        "id": "75888",
+        "id": "81654",
         "member_id": "86421",
         "prev_cert_type": "2",
         "cert_type": "2",
@@ -3084,9 +3084,9 @@
         "sc_cert": "1",
         "legacy": "0",
         "active": "1",
-        "updated_date": "2023-08-10 09:15:19",
-        "certified_date": "2023-08-10 09:15:19",
-        "expiration_date": "2024-06-11 00:00:00",
+        "updated_date": "2024-06-04 10:01:51",
+        "certified_date": "2024-06-04 10:01:51",
+        "expiration_date": "2025-06-11 00:00:00",
         "certification_date": "2017-01-03 08:00:00",
         "type_name": "CRO"
       },
@@ -7192,7 +7192,7 @@
           "division_id": "5",
           "division": "Production",
           "class": "C",
-          "current_percent": "47.8919",
+          "current_percent": "47.0871",
           "high_percent": "51.7887"
         },
         {
@@ -10724,7 +10724,7 @@
           "division_id": "3",
           "division": "Limited",
           "class": "C",
-          "current_percent": "45.4582",
+          "current_percent": "44.9595",
           "high_percent": "48.4977"
         },
         {
@@ -12616,73 +12616,73 @@
           "id": "652169",
           "division_id": "2",
           "division": "Open",
-          "class": "U",
-          "current_percent": "0.0000",
-          "high_percent": "0.0000"
+          "class": "X",
+          "current_percent": "X",
+          "high_percent": "X"
         },
         {
           "id": "652170",
           "division_id": "3",
           "division": "Limited",
-          "class": "D",
-          "current_percent": "34.9230",
-          "high_percent": "34.9230"
+          "class": "X",
+          "current_percent": "X",
+          "high_percent": "X"
         },
         {
           "id": "652171",
           "division_id": "4",
           "division": "Limited 10",
-          "class": "U",
-          "current_percent": "0.0000",
-          "high_percent": "0.0000"
+          "class": "X",
+          "current_percent": "X",
+          "high_percent": "X"
         },
         {
           "id": "652172",
           "division_id": "5",
           "division": "Production",
-          "class": "U",
-          "current_percent": "0.0000",
-          "high_percent": "0.0000"
+          "class": "X",
+          "current_percent": "X",
+          "high_percent": "X"
         },
         {
           "id": "652173",
           "division_id": "6",
           "division": "Revolver",
-          "class": "U",
-          "current_percent": "0.0000",
-          "high_percent": "0.0000"
+          "class": "X",
+          "current_percent": "X",
+          "high_percent": "X"
         },
         {
           "id": "652174",
           "division_id": "7",
           "division": "Single Stack",
-          "class": "D",
-          "current_percent": "17.6624",
-          "high_percent": "21.4688"
+          "class": "X",
+          "current_percent": "X",
+          "high_percent": "X"
         },
         {
           "id": "652175",
           "division_id": "35",
           "division": "Carry Optics",
-          "class": "D",
-          "current_percent": "32.3036",
-          "high_percent": "38.5717"
+          "class": "X",
+          "current_percent": "X",
+          "high_percent": "X"
         },
         {
           "id": "652176",
           "division_id": "38",
           "division": "PCC",
-          "class": "C",
-          "current_percent": "44.2897",
-          "high_percent": "45.5597"
+          "class": "X",
+          "current_percent": "X",
+          "high_percent": "X"
         },
         {
           "id": "1271994",
           "division_id": "41",
           "division": "Limited Optics",
-          "class": "U",
-          "current_percent": "0.0000",
-          "high_percent": "0.0000"
+          "class": "X",
+          "current_percent": "X",
+          "high_percent": "X"
         }
       ]
     }

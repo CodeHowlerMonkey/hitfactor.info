@@ -97569,6 +97569,24 @@
           "division_id": 3,
           "division_classifiers": [
             {
+              "defindx": "387309",
+              "classifier": "22-06",
+              "sd": "6/02/24",
+              "ed": "6/03/24",
+              "clubid": "ECO08",
+              "club_name": "Practical Shooting Assn Of Colorado",
+              "percent": "29.3262",
+              "code": "B",
+              "dindx": "3",
+              "source": "Stage Score",
+              "hf": "3.5348",
+              "noab": "0",
+              "pending_a_flag": "0",
+              "verified": "1",
+              "paid_status": "1",
+              "calculated": "1"
+            },
+            {
               "defindx": "356890",
               "classifier": "18-01",
               "sd": "7/02/23",

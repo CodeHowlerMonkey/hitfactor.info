@@ -21943,7 +21943,7 @@
         "suffix": "",
         "salutation": "",
         "joined_date": "1995-03-14 00:00:00",
-        "expiration_date": "2024-03-23 00:00:00",
+        "expiration_date": "2025-06-03 10:22:26",
         "life_member": "0",
         "privacy": 0
       },
@@ -22575,6 +22575,24 @@
           "division_id": 38,
           "division_classifiers": [
             {
+              "defindx": "387976",
+              "classifier": "13-06",
+              "sd": "6/09/24",
+              "ed": "6/09/24",
+              "clubid": "IPSC02",
+              "club_name": "Yuma Matchmasters",
+              "percent": "46.8889",
+              "code": "P",
+              "dindx": "38",
+              "source": "Stage Score",
+              "hf": "4.486",
+              "noab": "0",
+              "pending_a_flag": "0",
+              "verified": "1",
+              "paid_status": "1",
+              "calculated": "1"
+            },
+            {
               "defindx": "373400",
               "classifier": "18-01",
               "sd": "12/10/23",
@@ -22921,6 +22939,24 @@
         {
           "division_id": 41,
           "division_classifiers": [
+            {
+              "defindx": "387976",
+              "classifier": "13-06",
+              "sd": "6/09/24",
+              "ed": "6/09/24",
+              "clubid": "IPSC02",
+              "club_name": "Yuma Matchmasters",
+              "percent": "39.7341",
+              "code": "P",
+              "dindx": "41",
+              "source": "Stage Score",
+              "hf": "3.8076",
+              "noab": "0",
+              "pending_a_flag": "0",
+              "verified": "1",
+              "paid_status": "1",
+              "calculated": "1"
+            },
             {
               "defindx": "373400",
               "classifier": "18-01",

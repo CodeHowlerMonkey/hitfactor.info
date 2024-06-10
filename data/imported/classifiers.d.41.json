@@ -4,6 +4,105 @@
     "value": {
       "status": 200,
       "member_data": {
+        "member_id": "85456",
+        "member_number": "A87475",
+        "first_name": "Nathan",
+        "middle_name": "M",
+        "last_name": "Huff",
+        "suffix": "",
+        "salutation": "",
+        "joined_date": "2014-09-04 00:00:00",
+        "expiration_date": "2015-09-30 00:00:00",
+        "life_member": "0",
+        "privacy": 0
+      },
+      "success": true,
+      "classifiers": [
+        {
+          "division_id": 7,
+          "division_classifiers": [
+            {
+              "defindx": -1,
+              "classifier": "06-03",
+              "sd": "9/28/14",
+              "ed": "10/13/14",
+              "clubid": "IL08",
+              "club_name": "Chillicothe Sportsmens Club",
+              "percent": "49.6921",
+              "code": "Y",
+              "dindx": "7",
+              "source": "Legacy",
+              "hf": -1,
+              "noab": "0",
+              "pending_a_flag": "0",
+              "verified": 1,
+              "paid_status": 1,
+              "calculated": 1
+            },
+            {
+              "defindx": -1,
+              "classifier": "99-10",
+              "sd": "9/28/14",
+              "ed": "10/13/14",
+              "clubid": "IL08",
+              "club_name": "Chillicothe Sportsmens Club",
+              "percent": "31.9442",
+              "code": "Y",
+              "dindx": "7",
+              "source": "Legacy",
+              "hf": -1,
+              "noab": "0",
+              "pending_a_flag": "0",
+              "verified": 1,
+              "paid_status": 1,
+              "calculated": 1
+            },
+            {
+              "defindx": -1,
+              "classifier": "99-46",
+              "sd": "9/28/14",
+              "ed": "10/13/14",
+              "clubid": "IL08",
+              "club_name": "Chillicothe Sportsmens Club",
+              "percent": "24.5634",
+              "code": "Y",
+              "dindx": "7",
+              "source": "Legacy",
+              "hf": -1,
+              "noab": "0",
+              "pending_a_flag": "0",
+              "verified": 1,
+              "paid_status": 1,
+              "calculated": 1
+            },
+            {
+              "defindx": -1,
+              "classifier": "99-48",
+              "sd": "9/28/14",
+              "ed": "10/13/14",
+              "clubid": "IL08",
+              "club_name": "Chillicothe Sportsmens Club",
+              "percent": "9.9775",
+              "code": "Y",
+              "dindx": "7",
+              "source": "Legacy",
+              "hf": -1,
+              "noab": "0",
+              "pending_a_flag": "0",
+              "verified": 1,
+              "paid_status": 1,
+              "calculated": 1
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "status": "fulfilled",
+    "value": {
+      "status": 200,
+      "member_data": {
         "member_id": "85459",
         "member_number": "A87478",
         "first_name": "Charles",
@@ -34341,6 +34440,29 @@
               "verified": 1,
               "paid_status": 1,
               "calculated": 1
+            }
+          ]
+        },
+        {
+          "division_id": 35,
+          "division_classifiers": [
+            {
+              "defindx": "388091",
+              "classifier": "03-02",
+              "sd": "6/08/24",
+              "ed": "6/09/24",
+              "clubid": "AL13",
+              "club_name": "Rocket City Practical Shooters",
+              "percent": "21.8089",
+              "code": "P",
+              "dindx": "35",
+              "source": "Stage Score",
+              "hf": "1.5613",
+              "noab": "0",
+              "pending_a_flag": "0",
+              "verified": "1",
+              "paid_status": "1",
+              "calculated": "1"
             }
           ]
         }
@@ -68850,141 +68972,6 @@
               "percent": "12.7585",
               "code": "Y",
               "dindx": "4",
-              "source": "Legacy",
-              "hf": -1,
-              "noab": "0",
-              "pending_a_flag": "0",
-              "verified": 1,
-              "paid_status": 1,
-              "calculated": 1
-            }
-          ]
-        }
-      ]
-    }
-  },
-  {
-    "status": "fulfilled",
-    "value": {
-      "status": 200,
-      "member_data": {
-        "member_id": "87361",
-        "member_number": "A89374",
-        "first_name": "Steven",
-        "middle_name": "M",
-        "last_name": "Kruger",
-        "suffix": "",
-        "salutation": "",
-        "joined_date": "2015-02-05 00:00:00",
-        "expiration_date": "2016-02-28 00:00:00",
-        "life_member": "0",
-        "privacy": 0
-      },
-      "success": true,
-      "classifiers": [
-        {
-          "division_id": 5,
-          "division_classifiers": [
-            {
-              "defindx": -1,
-              "classifier": "06-03",
-              "sd": "4/11/15",
-              "ed": "4/30/15",
-              "clubid": "MN03",
-              "club_name": "Metro Area Practical Shooting Assn",
-              "percent": "50.4958",
-              "code": "Y",
-              "dindx": "5",
-              "source": "Legacy",
-              "hf": -1,
-              "noab": "0",
-              "pending_a_flag": "0",
-              "verified": 1,
-              "paid_status": 1,
-              "calculated": 1
-            },
-            {
-              "defindx": -1,
-              "classifier": "99-62",
-              "sd": "4/11/15",
-              "ed": "4/30/15",
-              "clubid": "MN03",
-              "club_name": "Metro Area Practical Shooting Assn",
-              "percent": "45.4115",
-              "code": "Y",
-              "dindx": "5",
-              "source": "Legacy",
-              "hf": -1,
-              "noab": "0",
-              "pending_a_flag": "0",
-              "verified": 1,
-              "paid_status": 1,
-              "calculated": 1
-            },
-            {
-              "defindx": -1,
-              "classifier": "99-23",
-              "sd": "4/11/15",
-              "ed": "4/30/15",
-              "clubid": "MN03",
-              "club_name": "Metro Area Practical Shooting Assn",
-              "percent": "41.8952",
-              "code": "Y",
-              "dindx": "5",
-              "source": "Legacy",
-              "hf": -1,
-              "noab": "0",
-              "pending_a_flag": "0",
-              "verified": 1,
-              "paid_status": 1,
-              "calculated": 1
-            },
-            {
-              "defindx": -1,
-              "classifier": "99-24",
-              "sd": "4/11/15",
-              "ed": "4/30/15",
-              "clubid": "MN03",
-              "club_name": "Metro Area Practical Shooting Assn",
-              "percent": "26.6029",
-              "code": "Y",
-              "dindx": "5",
-              "source": "Legacy",
-              "hf": -1,
-              "noab": "0",
-              "pending_a_flag": "0",
-              "verified": 1,
-              "paid_status": 1,
-              "calculated": 1
-            },
-            {
-              "defindx": -1,
-              "classifier": "09-13",
-              "sd": "4/11/15",
-              "ed": "4/30/15",
-              "clubid": "MN03",
-              "club_name": "Metro Area Practical Shooting Assn",
-              "percent": "24.6363",
-              "code": "Y",
-              "dindx": "5",
-              "source": "Legacy",
-              "hf": -1,
-              "noab": "0",
-              "pending_a_flag": "0",
-              "verified": 1,
-              "paid_status": 1,
-              "calculated": 1
-            },
-            {
-              "defindx": -1,
-              "classifier": "99-22",
-              "sd": "4/11/15",
-              "ed": "4/30/15",
-              "clubid": "MN03",
-              "club_name": "Metro Area Practical Shooting Assn",
-              "percent": "13.0053",
-              "code": "Y",
-              "dindx": "5",
               "source": "Legacy",
               "hf": -1,
               "noab": "0",

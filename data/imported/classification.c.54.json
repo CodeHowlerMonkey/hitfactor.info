@@ -9992,7 +9992,7 @@
         "suffix": "",
         "salutation": "",
         "joined_date": "2012-08-21 00:00:00",
-        "expiration_date": "2013-08-31 00:00:00",
+        "expiration_date": "2025-06-07 09:54:37",
         "life_member": "0",
         "privacy": "0"
       },
@@ -10003,73 +10003,73 @@
           "id": "568585",
           "division_id": "2",
           "division": "Open",
-          "class": "X",
-          "current_percent": "X",
-          "high_percent": "X"
+          "class": "U",
+          "current_percent": "0.0000",
+          "high_percent": "0.0000"
         },
         {
           "id": "568586",
           "division_id": "3",
           "division": "Limited",
-          "class": "X",
-          "current_percent": "X",
-          "high_percent": "X"
+          "class": "U",
+          "current_percent": "0.0000",
+          "high_percent": "0.0000"
         },
         {
           "id": "568587",
           "division_id": "4",
           "division": "Limited 10",
-          "class": "X",
-          "current_percent": "X",
-          "high_percent": "X"
+          "class": "U",
+          "current_percent": "0.0000",
+          "high_percent": "0.0000"
         },
         {
           "id": "568588",
           "division_id": "5",
           "division": "Production",
-          "class": "X",
-          "current_percent": "X",
-          "high_percent": "X"
+          "class": "C",
+          "current_percent": "51.2740",
+          "high_percent": "51.2740"
         },
         {
           "id": "568589",
           "division_id": "6",
           "division": "Revolver",
-          "class": "X",
-          "current_percent": "X",
-          "high_percent": "X"
+          "class": "U",
+          "current_percent": "0.0000",
+          "high_percent": "0.0000"
         },
         {
           "id": "568590",
           "division_id": "7",
           "division": "Single Stack",
-          "class": "X",
-          "current_percent": "X",
-          "high_percent": "X"
+          "class": "C",
+          "current_percent": "47.2698",
+          "high_percent": "47.2698"
         },
         {
           "id": "568591",
           "division_id": "35",
           "division": "Carry Optics",
-          "class": "X",
-          "current_percent": "X",
-          "high_percent": "X"
+          "class": "U",
+          "current_percent": "0.0000",
+          "high_percent": "0.0000"
         },
         {
           "id": "568592",
           "division_id": "38",
           "division": "PCC",
-          "class": "X",
-          "current_percent": "X",
-          "high_percent": "X"
+          "class": "U",
+          "current_percent": "0.0000",
+          "high_percent": "0.0000"
         },
         {
           "id": "1261395",
           "division_id": "41",
           "division": "Limited Optics",
-          "class": "X",
-          "current_percent": "X",
-          "high_percent": "X"
+          "class": "U",
+          "current_percent": "0.0000",
+          "high_percent": "0.0000"
         }
       ]
     }
@@ -14186,7 +14186,7 @@
           "division_id": "2",
           "division": "Open",
           "class": "C",
-          "current_percent": "51.9667",
+          "current_percent": "49.8381",
           "high_percent": "59.0513"
         },
         {
@@ -19761,7 +19761,7 @@
           "division_id": "35",
           "division": "Carry Optics",
           "class": "C",
-          "current_percent": "48.0195",
+          "current_percent": "48.1362",
           "high_percent": "53.0271"
         },
         {
@@ -21170,8 +21170,8 @@
           "division_id": "2",
           "division": "Open",
           "class": "C",
-          "current_percent": "51.2532",
-          "high_percent": "53.6800"
+          "current_percent": "54.0756",
+          "high_percent": "54.0756"
         },
         {
           "id": "572698",
@@ -21820,8 +21820,8 @@
           "division_id": "6",
           "division": "Revolver",
           "class": "C",
-          "current_percent": "52.0491",
-          "high_percent": "52.0491"
+          "current_percent": "52.1356",
+          "high_percent": "52.1356"
         },
         {
           "id": "572974",

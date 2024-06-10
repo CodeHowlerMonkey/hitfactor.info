@@ -4,6 +4,105 @@
     "value": {
       "status": 200,
       "member_data": {
+        "member_id": "60992",
+        "member_number": "A67526",
+        "first_name": "Christopher",
+        "middle_name": "",
+        "last_name": "Pickerel",
+        "suffix": "",
+        "salutation": "",
+        "joined_date": "2010-02-24 00:00:00",
+        "expiration_date": "2011-02-28 00:00:00",
+        "life_member": "0",
+        "privacy": 0
+      },
+      "success": true,
+      "classifiers": [
+        {
+          "division_id": 3,
+          "division_classifiers": [
+            {
+              "defindx": -1,
+              "classifier": "99-13",
+              "sd": "5/16/10",
+              "ed": "6/04/10",
+              "clubid": "AR05",
+              "club_name": "Old Fort Gun Club",
+              "percent": "35.4554",
+              "code": "Y",
+              "dindx": "3",
+              "source": "Legacy",
+              "hf": -1,
+              "noab": "0",
+              "pending_a_flag": "0",
+              "verified": 1,
+              "paid_status": 1,
+              "calculated": 1
+            },
+            {
+              "defindx": -1,
+              "classifier": "03-07",
+              "sd": "4/17/10",
+              "ed": "5/06/10",
+              "clubid": "AR05",
+              "club_name": "Old Fort Gun Club",
+              "percent": "29.1627",
+              "code": "Y",
+              "dindx": "3",
+              "source": "Legacy",
+              "hf": -1,
+              "noab": "0",
+              "pending_a_flag": "0",
+              "verified": 1,
+              "paid_status": 1,
+              "calculated": 1
+            },
+            {
+              "defindx": -1,
+              "classifier": "06-10",
+              "sd": "3/14/10",
+              "ed": "4/12/10",
+              "clubid": "OK02",
+              "club_name": "Oil Capital Rod & Gun Club",
+              "percent": "27.6187",
+              "code": "Y",
+              "dindx": "3",
+              "source": "Legacy",
+              "hf": -1,
+              "noab": "0",
+              "pending_a_flag": "0",
+              "verified": 1,
+              "paid_status": 1,
+              "calculated": 1
+            },
+            {
+              "defindx": -1,
+              "classifier": "03-08",
+              "sd": "2/27/10",
+              "ed": "3/01/10",
+              "clubid": "OK15",
+              "club_name": "The United States Shooting Academy",
+              "percent": "22.8115",
+              "code": "Y",
+              "dindx": "3",
+              "source": "Legacy",
+              "hf": -1,
+              "noab": "0",
+              "pending_a_flag": "0",
+              "verified": 1,
+              "paid_status": 1,
+              "calculated": 1
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "status": "fulfilled",
+    "value": {
+      "status": 200,
+      "member_data": {
         "member_id": "60994",
         "member_number": "A67528",
         "first_name": "Gary",
@@ -3872,14 +3971,14 @@
       "status": 200,
       "member_data": {
         "member_id": "61153",
-        "member_number": "TY67656",
+        "member_number": "A67656",
         "first_name": "Michael",
         "middle_name": "",
         "last_name": "Toron",
         "suffix": "",
         "salutation": "",
         "joined_date": "2010-03-10 00:00:00",
-        "expiration_date": "2024-06-01 00:00:00",
+        "expiration_date": "2025-06-02 00:00:00",
         "life_member": "0",
         "privacy": 0
       },
@@ -3988,6 +4087,24 @@
         {
           "division_id": 5,
           "division_classifiers": [
+            {
+              "defindx": "387881",
+              "classifier": "22-04",
+              "sd": "6/08/24",
+              "ed": "6/09/24",
+              "clubid": "MET03",
+              "club_name": "Freeport Practical Shooters",
+              "percent": "27.2554",
+              "code": "P",
+              "dindx": "5",
+              "source": "Stage Score",
+              "hf": "2.6574",
+              "noab": "0",
+              "pending_a_flag": "0",
+              "verified": "1",
+              "paid_status": "1",
+              "calculated": "1"
+            },
             {
               "defindx": "343746",
               "classifier": "99-24",
@@ -65002,123 +65119,6 @@
               "clubid": "LA06",
               "club_name": "Cajun Action Shooters",
               "percent": "3.4071",
-              "code": "Y",
-              "dindx": "5",
-              "source": "Legacy",
-              "hf": -1,
-              "noab": "0",
-              "pending_a_flag": "0",
-              "verified": 1,
-              "paid_status": 1,
-              "calculated": 1
-            }
-          ]
-        }
-      ]
-    }
-  },
-  {
-    "status": "fulfilled",
-    "value": {
-      "status": 200,
-      "member_data": {
-        "member_id": "62857",
-        "member_number": "A69049",
-        "first_name": "Michael",
-        "middle_name": "T",
-        "last_name": "Nies",
-        "suffix": "",
-        "salutation": "",
-        "joined_date": "2010-07-02 00:00:00",
-        "expiration_date": "2012-07-31 00:00:00",
-        "life_member": "0",
-        "privacy": 0
-      },
-      "success": true,
-      "classifiers": [
-        {
-          "division_id": 5,
-          "division_classifiers": [
-            {
-              "defindx": -1,
-              "classifier": "09-02",
-              "sd": "5/26/11",
-              "ed": "6/06/11",
-              "clubid": "IPSC67",
-              "club_name": "Oceanside Practical Pistol",
-              "percent": "40.8333",
-              "code": "Y",
-              "dindx": "5",
-              "source": "Legacy",
-              "hf": -1,
-              "noab": "0",
-              "pending_a_flag": "0",
-              "verified": 1,
-              "paid_status": 1,
-              "calculated": 1
-            },
-            {
-              "defindx": -1,
-              "classifier": "99-13",
-              "sd": "4/17/11",
-              "ed": "4/25/11",
-              "clubid": "OH04",
-              "club_name": "Miamisburg Sportsman's Club",
-              "percent": "49.8695",
-              "code": "Y",
-              "dindx": "5",
-              "source": "Legacy",
-              "hf": -1,
-              "noab": "0",
-              "pending_a_flag": "0",
-              "verified": 1,
-              "paid_status": 1,
-              "calculated": 1
-            },
-            {
-              "defindx": -1,
-              "classifier": "03-05",
-              "sd": "3/24/11",
-              "ed": "4/08/11",
-              "clubid": "IPSC67",
-              "club_name": "Oceanside Practical Pistol",
-              "percent": "42.5342",
-              "code": "Y",
-              "dindx": "5",
-              "source": "Legacy",
-              "hf": -1,
-              "noab": "0",
-              "pending_a_flag": "0",
-              "verified": 1,
-              "paid_status": 1,
-              "calculated": 1
-            },
-            {
-              "defindx": -1,
-              "classifier": "99-22",
-              "sd": "9/11/10",
-              "ed": "10/12/10",
-              "clubid": "IPSC19",
-              "club_name": "Gen X Ipsc",
-              "percent": "7.629",
-              "code": "Y",
-              "dindx": "5",
-              "source": "Legacy",
-              "hf": -1,
-              "noab": "0",
-              "pending_a_flag": "0",
-              "verified": 1,
-              "paid_status": 1,
-              "calculated": 1
-            },
-            {
-              "defindx": -1,
-              "classifier": "99-12",
-              "sd": "6/29/10",
-              "ed": "7/26/10",
-              "clubid": "NV11",
-              "club_name": "American Shooters",
-              "percent": "48.3462",
               "code": "Y",
               "dindx": "5",
               "source": "Legacy",

@@ -36723,6 +36723,24 @@
           "division_id": 2,
           "division_classifiers": [
             {
+              "defindx": "387806",
+              "classifier": "03-03",
+              "sd": "6/08/24",
+              "ed": "0/00/00",
+              "clubid": "CC05",
+              "club_name": "Albany Rifle & Pistol Club",
+              "percent": "20.6049",
+              "code": "P",
+              "dindx": "2",
+              "source": "Stage Score",
+              "hf": "1.9389",
+              "noab": "0",
+              "pending_a_flag": "0",
+              "verified": "1",
+              "paid_status": "0",
+              "calculated": "1"
+            },
+            {
               "defindx": "384531",
               "classifier": "03-02",
               "sd": "5/11/24",

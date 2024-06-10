@@ -5498,7 +5498,7 @@
               "clubid": "VA38",
               "club_name": "Thurmont Conservation and Sportsmen Club",
               "percent": "32.5628",
-              "code": "P",
+              "code": "B",
               "dindx": "2",
               "source": "Stage Score",
               "hf": "3.4046",
@@ -39709,6 +39709,24 @@
         {
           "division_id": 35,
           "division_classifiers": [
+            {
+              "defindx": "387432",
+              "classifier": "99-11",
+              "sd": "6/01/24",
+              "ed": "0/00/00",
+              "clubid": "ID03",
+              "club_name": "Idaho Society Of Practical Shooters",
+              "percent": "34.6684",
+              "code": "P",
+              "dindx": "35",
+              "source": "Stage Score",
+              "hf": "4.0362",
+              "noab": "0",
+              "pending_a_flag": "0",
+              "verified": "0",
+              "paid_status": "0",
+              "calculated": "1"
+            },
             {
               "defindx": "375688",
               "classifier": "06-04",
