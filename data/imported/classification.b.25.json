@@ -128,7 +128,7 @@
         "privacy": "0"
       },
       "nroi_certification": {
-        "id": "74493",
+        "id": "81661",
         "member_id": "57508",
         "prev_cert_type": "1",
         "cert_type": "1",
@@ -138,9 +138,9 @@
         "sc_cert": "0",
         "legacy": "0",
         "active": "1",
-        "updated_date": "2023-05-06 20:40:35",
-        "certified_date": "2023-05-06 20:40:35",
-        "expiration_date": "2024-02-28 08:00:00",
+        "updated_date": "2024-06-04 19:52:21",
+        "certified_date": "2024-06-04 19:52:21",
+        "expiration_date": "2025-02-28 08:00:00",
         "certification_date": "2009-10-12 07:00:00",
         "type_name": "RO"
       },
@@ -436,7 +436,7 @@
           "division_id": "2",
           "division": "Open",
           "class": "C",
-          "current_percent": "59.7612",
+          "current_percent": "58.4498",
           "high_percent": "59.7612"
         },
         {
@@ -3383,7 +3383,7 @@
           "division_id": "2",
           "division": "Open",
           "class": "B",
-          "current_percent": "67.5625",
+          "current_percent": "67.8111",
           "high_percent": "68.2886"
         },
         {
@@ -4713,9 +4713,9 @@
           "id": "464391",
           "division_id": "35",
           "division": "Carry Optics",
-          "class": "U",
-          "current_percent": "0.0000",
-          "high_percent": "0.0000"
+          "class": "C",
+          "current_percent": "43.9240",
+          "high_percent": "43.9240"
         },
         {
           "id": "464392",
@@ -7448,7 +7448,7 @@
         "privacy": "0"
       },
       "nroi_certification": {
-        "id": "71572",
+        "id": "81663",
         "member_id": "58482",
         "prev_cert_type": "2",
         "cert_type": "2",
@@ -7458,9 +7458,9 @@
         "sc_cert": "1",
         "legacy": "0",
         "active": "1",
-        "updated_date": "2023-01-08 17:52:23",
-        "certified_date": "2023-01-08 17:52:23",
-        "expiration_date": "2023-11-30 08:00:00",
+        "updated_date": "2024-06-04 20:22:55",
+        "certified_date": "2024-06-04 20:22:55",
+        "expiration_date": "2024-11-30 08:00:00",
         "certification_date": "2010-06-08 07:00:00",
         "type_name": "CRO"
       },
@@ -8057,9 +8057,9 @@
           "id": "467775",
           "division_id": "35",
           "division": "Carry Optics",
-          "class": "C",
-          "current_percent": "56.6384",
-          "high_percent": "56.6384"
+          "class": "B",
+          "current_percent": "59.4648",
+          "high_percent": "59.4648"
         },
         {
           "id": "467776",

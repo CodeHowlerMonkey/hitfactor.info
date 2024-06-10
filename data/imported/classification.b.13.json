@@ -7479,7 +7479,7 @@
         "privacy": "0"
       },
       "nroi_certification": {
-        "id": "75126",
+        "id": "81666",
         "member_id": "28358",
         "prev_cert_type": "1",
         "cert_type": "1",
@@ -7489,9 +7489,9 @@
         "sc_cert": "0",
         "legacy": "0",
         "active": "1",
-        "updated_date": "2023-06-12 10:11:27",
-        "certified_date": "2023-06-12 10:11:27",
-        "expiration_date": "2024-06-06 00:00:00",
+        "updated_date": "2024-06-05 10:02:05",
+        "certified_date": "2024-06-05 10:02:05",
+        "expiration_date": "2025-06-06 00:00:00",
         "certification_date": "2022-06-06 16:59:51",
         "type_name": "RO"
       },
@@ -19841,19 +19841,19 @@
       "status": 200,
       "member_data": {
         "member_id": "29502",
-        "member_number": "TY37104",
+        "member_number": "A37104",
         "first_name": "Daniel",
         "middle_name": "D",
         "last_name": "Twillmann",
         "suffix": "",
         "salutation": "",
         "joined_date": "1997-08-19 00:00:00",
-        "expiration_date": "2024-09-02 00:00:00",
+        "expiration_date": "2025-09-03 00:00:00",
         "life_member": "0",
         "privacy": "0"
       },
       "nroi_certification": {
-        "id": "75234",
+        "id": "81700",
         "member_id": "29502",
         "prev_cert_type": "1",
         "cert_type": "1",
@@ -19863,9 +19863,9 @@
         "sc_cert": "0",
         "legacy": "0",
         "active": "1",
-        "updated_date": "2023-06-19 14:14:50",
-        "certified_date": "2023-06-19 14:14:50",
-        "expiration_date": "2024-06-30 07:00:00",
+        "updated_date": "2024-06-07 14:03:07",
+        "certified_date": "2024-06-07 14:03:07",
+        "expiration_date": "2025-06-30 07:00:00",
         "certification_date": "2000-04-04 07:00:00",
         "type_name": "RO"
       },
@@ -22367,7 +22367,7 @@
         "suffix": "",
         "salutation": "",
         "joined_date": "1997-09-09 00:00:00",
-        "expiration_date": "2024-07-14 00:00:00",
+        "expiration_date": "2025-07-15 00:00:00",
         "life_member": "0",
         "privacy": "0"
       },

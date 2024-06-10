@@ -8557,7 +8557,7 @@
         "privacy": "0"
       },
       "nroi_certification": {
-        "id": "74840",
+        "id": "81664",
         "member_id": "42723",
         "prev_cert_type": "2",
         "cert_type": "2",
@@ -8567,9 +8567,9 @@
         "sc_cert": "0",
         "legacy": "0",
         "active": "1",
-        "updated_date": "2023-05-26 17:06:49",
-        "certified_date": "2023-05-26 17:06:49",
-        "expiration_date": "2024-06-30 07:00:00",
+        "updated_date": "2024-06-04 22:33:27",
+        "certified_date": "2024-06-04 22:33:27",
+        "expiration_date": "2025-06-30 07:00:00",
         "certification_date": "2005-05-10 07:00:00",
         "type_name": "CRO"
       },
@@ -17509,7 +17509,7 @@
           "division_id": "38",
           "division": "PCC",
           "class": "B",
-          "current_percent": "69.7793",
+          "current_percent": "69.2093",
           "high_percent": "69.7793"
         },
         {
