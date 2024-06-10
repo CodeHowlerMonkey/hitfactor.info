@@ -46,7 +46,7 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
     .map((d) => ({
       ...d,
       updated: new Date(d.updated).toLocaleDateString("en-us", { timeZone: "UTC" }),
-      recHHFChange: d.recHHF - d.hhf,
+      recHHFChange: d.hhf - d.recHHF,
     }))
     .sort((a, b) => {
       switch (sortState.sortField) {
@@ -74,7 +74,7 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
     <DataTable
       size="small"
       className="text-xs md:text-base"
-      style={{ maxWidth: "800px", margin: "auto" }}
+      style={{ maxWidth: "840px", margin: "auto" }}
       loading={loading}
       showGridlines
       selectionMode={"single"}
@@ -120,7 +120,7 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
         field="quality"
         header="Div. Qual."
         sortable
-        style={{ width: "9em", minWidth: "9em" }}
+        style={{ width: "9em", minWidth: "9em", maxWidth: "9em" }}
         body={(c, { field }) => {
           return (
             <div className="flex gap-2 text-sm">
@@ -175,25 +175,30 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
         style={{ width: "100px" }}
       />
       <Column field="hhf" header="HQ HHF" sortable style={{ width: "100px" }} />
-      {/*<Column field="prevHHF" header="Prev. HHF" sortable />*/}
-      {/*<Column
+      <Column
         field="recHHFChange"
-        header="Rec. HHF Change"
+        header="HQ Minus Rec. HHF"
         sortable
         body={(c) => {
           if (!c.recHHF) {
             return "—";
           }
-          const sign = c.recHHF > c.hhf ? "+" : "";
-          const diff = c.recHHF - c.hhf;
-          const diffPercent = 100 * (c.recHHF / c.hhf - 1);
+          const sign = c.recHHF > c.hhf ? "" : "+";
+          const diff = c.hhf - c.recHHF;
+          const diffPercent = 100 * (c.hhf / c.recHHF - 1);
 
-          const hfDifference = sign + diff.toFixed(4);
-          const percentDifference = sign + diffPercent.toFixed(2);
+          const hfDifference = diff.toFixed(4);
+          const percentDifference = sign + " " + diffPercent.toFixed(2);
 
-          return `${hfDifference} (${percentDifference}%)`;
+          return (
+            <div>
+              <div>{hfDifference}</div>
+              <div style={{ fontSize: "0.8em" }}>({percentDifference}%)</div>
+            </div>
+          );
         }}
-      />*/}
+      />
+      {/*<Column field="prevHHF" header="Prev. HHF" sortable />*/}
       {/*<Column field="updated" header="Updated" sortable />*/}
       {/*<Column
         field="runsLegacy"
