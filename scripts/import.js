@@ -1,6 +1,7 @@
 import fs from "fs";
 import { ZenRows } from "zenrows";
 import uniqBy from "lodash.uniqby";
+import { request as undiciRequest } from "undici";
 const client = new ZenRows(process.env.ZENROWS_API_KEY);
 
 const fieldNameMap = {
@@ -42,7 +43,7 @@ const quickRandomDelay = () => {
 
 const retryDelay = (retry) => {
   const quickRandom = Math.ceil(32 + 40 * Math.random());
-  return delay(retry * 1200 + quickRandom);
+  return delay(retry * 125 + quickRandom);
 };
 
 let keyIndex = 0;
@@ -57,20 +58,70 @@ const getUspsaApiKey = () => {
   return key;
 };
 
-const _fetch = async (url, useZenRows = false) => {
+const bullshitHeaders = (tryNumber) => {
+  const options = [
+    {
+      "user-agent":
+        "BOCFucker/5.11 (ShitPhone; ZPU NOBrain 0.0) MSAwesomeStuff/113.1.20 (YESYESOK, WozardOS) Shazaaam/501857",
+      "Uspsa-Debug": "FALSE",
+    },
+    {
+      "user-agent":
+        "HowlerMonkey/5.7 (BrainPhone; CPU BigBrain 18_2_2 like WTF) BOCFucker/607.2.19 (KTHXBYE, like Lizard) Alakablam/69420",
+      "access-code": "plzbroletmein" + Math.random(),
+      "Uspsa-Debug": "TRUE",
+    },
+    {
+      "Uspsa-Access-Code":
+        "90187730387490290285757823902309345785782389023902378957834589239023478578578234892389e45783478239023095734238923092390-3478457854892390-2390-23" +
+        Math.random(),
+      "Uspsa-Debug": "TRUE",
+    },
+    {
+      "Uspsa-BOC-Access-Code-Secret":
+        "9018773038749029028575782fjfjfosiw3oiwerhouierhopauwhpiowufiouhgerwkjilhsadlsdlwlfelsgioeuhertiok3902309345785782389023902378957834589239023478578578234892389e45783478239023095734238923092390-3478457854892390-2390-23" +
+        Math.random(),
+      "Uspsa-Debug": "MAYBE",
+    },
+    {
+      "Uspsa-Access-Code":
+        "FUCKYOUFICJYOUFUCKYOUFUCKYOUFUCKYOUFUCKYOUFYCJOYFUCJ-23" +
+        Math.floor(304729 * Math.random()) +
+        "FUCKING WHY",
+      "Uspsa-Debug": "TRUE",
+    },
+  ];
+  const index = tryNumber % options.length;
+  return options[index];
+};
+
+const USPSA_DIRECT = true;
+const USPSA_IP = process.env.USPSA_IP;
+const USPSA_HOST = "api.uspsa.org";
+const USPSA_BASE = USPSA_DIRECT ? USPSA_IP : USPSA_HOST;
+
+const _fetch = async (url, useZenRows = false, tryNumber) => {
   const headers = {
     accept: "application/json",
     "uspsa-api": getUspsaApiKey(),
     "Uspsa-Api-Version": "1.1.3",
-    "Uspsa-Debug": "TRUE",
     "user-agent":
-      "HowlerMonkey/5.7 (BrainPhone; CPU BigBrain 18_2_2 like WTF) AppleShitKit/607.2.19 (KTHXBYE, like Lizard) Alakablam/90210",
-    "Access-Code": "letmein" + Math.random(), // there's no way cloudflare will fall for this
-    Accept: "application/json",
+      "HowlerMonkey/5.7 (BrainPhone; CPU BigBrain 18_2_2 like WTF) BOCFucker/607.2.19 (KTHXBYE, like Lizard) Alakablam/69420",
+    "access-code": "plzbroletmein" + Math.random(),
+    "Uspsa-Debug": "TRUE",
+    //...bullshitHeaders(tryNumber),
   };
+
   if (useZenRows) {
     const { data } = await client.get(url, { custom_headers: true }, { headers });
     return data;
+  }
+
+  if (url.includes(USPSA_IP)) {
+    const apiRequest = await undiciRequest(url, {
+      headers: { ...headers, host: USPSA_HOST },
+    });
+    return await apiRequest.body.json();
   }
 
   const response = await fetch(url, { headers });
@@ -84,11 +135,15 @@ const errors = [];
 const fetchApiEndpoint = async (
   endpoint,
   tryNumber = 1,
-  maxTries = 7,
+  maxTries = 77,
   useZenRows = false
 ) => {
   try {
-    const fetched = await _fetch(`https://api.uspsa.org/api/app/${endpoint}`, useZenRows);
+    const fetched = await _fetch(
+      `https://${USPSA_BASE}/api/app/${endpoint}`,
+      useZenRows,
+      tryNumber
+    );
     delete fetched.debug;
     if (!useZenRows) {
       process.stdout.write(".");
@@ -104,7 +159,9 @@ const fetchApiEndpoint = async (
       } else {
         process.stdout.write("⚬");
       }
-      await retryDelay(tryNumber);
+      if (!USPSA_DIRECT) {
+        await retryDelay(tryNumber);
+      }
       return await fetchApiEndpoint(endpoint, tryNumber + 1, maxTries, useZenRows);
     } else if (!useZenRows) {
       // try twice with zenRows if normal fetch with retries failed
@@ -160,6 +217,16 @@ const fetchAll = async (what, numbers, suffix) => {
 };
 
 const importEverything = async () => {
+  console.log("fetching official hq hhfs & classifiers");
+  const officialHHF = await fetchApiEndpoint("hhf/10");
+  const classifiers = await fetchApiEndpoint("classifier");
+  fs.writeFileSync("./data/hhf.json", JSON.stringify(officialHHF, null, 4));
+  fs.writeFileSync(
+    "./data/classifiers/classifiers.json",
+    JSON.stringify(classifiers, null, 4)
+  );
+  console.log("done");
+
   console.log("fetching meta...");
   const response = await fetch(
     "https://uspsa.org/practiscore/practiscore_class_update.txt"
@@ -339,16 +406,6 @@ const importEverything = async () => {
     "./data/meta/classified.d.json",
     JSON.stringify(classifiedDNumbers, null, 2)
   );
-
-  console.log("fetching official hq hhfs & classifiers");
-  const officialHHF = await fetchApiEndpoint("hhf/10");
-  const classifiers = await fetchApiEndpoint("classifier");
-  fs.writeFileSync("./data/hhf.json", JSON.stringify(officialHHF, null, 4));
-  fs.writeFileSync(
-    "./data/classifiers/classifiers.json",
-    JSON.stringify(classifiers, null, 4)
-  );
-  console.log("done");
 
   console.log("fetching all current GMs classifiers and classifications ");
   await Promise.all([
