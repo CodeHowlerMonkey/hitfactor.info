@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import {
@@ -11,6 +11,37 @@ import ReportDialog from "../../../components/ReportDialog";
 import { Button } from "primereact/button";
 import { InputNumber } from "primereact/inputnumber";
 import ClassifierDropdown from "../../../components/ClassifierDropdown";
+import { useDebouncedCallback } from "use-debounce";
+
+const HFEdit = ({ value: valueProp, updateWhatIfs, id }) => {
+  const [value, setValue] = useState(valueProp || 0);
+  const inputRef = useRef(null);
+
+  useEffect(() => {
+    if (document.activeElement !== inputRef.current.getInput()) {
+      setValue(valueProp);
+    }
+  }, [valueProp]);
+
+  const update = useDebouncedCallback(updateWhatIfs, 500);
+
+  return (
+    <InputNumber
+      ref={inputRef}
+      inputMode="decimal"
+      className="max-w-full text-base"
+      inputClassName="max-w-full py-2 md:py-3"
+      placeholder="HitFactor"
+      minFractionDigits={0}
+      maxFractionDigits={4}
+      value={value}
+      onChange={({ value: newValue }) => {
+        setValue(newValue);
+        update(id, { hf: newValue }, true);
+      }}
+    />
+  );
+};
 
 const ShooterRunsTable = ({
   classifiers,
@@ -105,19 +136,7 @@ const ShooterRunsTable = ({
           sortable
           body={(c, { field }) => {
             if (c.whatIf) {
-              return (
-                <InputNumber
-                  className="max-w-full"
-                  inputClassName="max-w-full"
-                  placeholder="HitFactor"
-                  minFractionDigits={0}
-                  maxFractionDigits={4}
-                  value={c.hf || 0}
-                  onChange={({ value }) => {
-                    updateWhatIfs(c._id, { hf: value });
-                  }}
-                />
-              );
+              return <HFEdit id={c._id} value={c.hf} updateWhatIfs={updateWhatIfs} />;
             }
             return renderHFOrNA(c, { field });
           }}
@@ -168,7 +187,7 @@ const ShooterRunsTable = ({
                 icon="pi pi-trash text-xs md:text-base text-red-400"
                 size="small"
                 style={{ width: "1em" }}
-                onClick={() => updateWhatIfs(c._id, { delete: true })}
+                onClick={() => updateWhatIfs(c._id, { delete: true }, true)}
                 text
               />
             )

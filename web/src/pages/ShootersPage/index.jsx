@@ -80,7 +80,7 @@ const useShooterTableData = ({ division, memberNumber }) => {
       // console.log(JSON.stringify({ result }, null, 2));
     }
   };
-  const debouncedRefetchWhatIfs = useDebouncedCallback(refetchWhatIfs, 750);
+  const debouncedRefetchWhatIfs = useDebouncedCallback(refetchWhatIfs, 500);
 
   const [whatIf, setWhatIf] = useState(null);
   const resetWhatIfs = useCallback(() => {
@@ -110,12 +110,15 @@ const useShooterTableData = ({ division, memberNumber }) => {
   });
 
   const updateWhatIfs = useCallback(
-    (id, changes = {}) => {
+    (id, changes = {}, noDebounce = false) => {
       let isDelete = false;
       const whatIfClassifiers = classifiers
         .map((c) => {
           if (c._id === id) {
-            c = { ...c, ...changes };
+            for (const key of Object.keys(changes)) {
+              const value = changes[key];
+              c[key] = value;
+            }
 
             if (c.delete) {
               isDelete = true;
@@ -128,7 +131,11 @@ const useShooterTableData = ({ division, memberNumber }) => {
         .filter(Boolean);
 
       setClassifiers(whatIfClassifiers);
-      debouncedRefetchWhatIfs(whatIfClassifiers);
+      if (noDebounce) {
+        refetchWhatIfs(whatIfClassifiers);
+      } else {
+        debouncedRefetchWhatIfs(whatIfClassifiers);
+      }
     },
     [classifiers]
   );
@@ -185,10 +192,10 @@ export const ShooterRunsAndInfo = ({ division, memberNumber, onBackToShooters })
         <h4 className="block md:text-lg lg:text-xl">Scores</h4>
         {whatIf && (
           <div className="m-auto">
-            <h5 className="block md:inline mr-4 my-0">
+            <h5 className="block md:inline mr-4">
               Recommended: {renderPercent(whatIf, { field: "recPercent" })}
             </h5>
-            <h5 className="block md:inline my-0">
+            <h5 className="block md:inline">
               Current HHF: {renderPercent(whatIf, { field: "curPercent" })}
             </h5>
           </div>
