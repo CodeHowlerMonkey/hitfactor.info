@@ -58,7 +58,7 @@ export const renderPercent = (c, { field }) => {
 
 export const renderHFOrNA = (c, { field }) => {
   let value = c[field];
-  if (value < 0 || value === undefined) {
+  if (value < 0 || value === undefined || value === null) {
     return "—";
   }
 
