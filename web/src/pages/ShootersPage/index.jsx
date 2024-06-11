@@ -185,10 +185,10 @@ export const ShooterRunsAndInfo = ({ division, memberNumber, onBackToShooters })
         <h4 className="block md:text-lg lg:text-xl">Scores</h4>
         {whatIf && (
           <div className="m-auto">
-            <h5 className="inline mr-4">
+            <h5 className="block md:inline mr-4 my-0">
               Recommended: {renderPercent(whatIf, { field: "recPercent" })}
             </h5>
-            <h5 className="inline">
+            <h5 className="block md:inline my-0">
               Current HHF: {renderPercent(whatIf, { field: "curPercent" })}
             </h5>
           </div>
@@ -196,20 +196,20 @@ export const ShooterRunsAndInfo = ({ division, memberNumber, onBackToShooters })
         <div>
           {whatIf && (
             <Button
-              className="px-2 my-3 mr-2 text-sm"
+              className="px-2 my-3 mr-2 text-xs md:text-sm"
               label="Reset"
               size="small"
               iconPos="left"
-              icon="pi pi-refresh"
+              icon="pi pi-refresh text-xs md:text-base"
               onClick={resetWhatIfs}
             />
           )}
           <Button
-            className="px-2 my-3 text-sm"
+            className="px-2 my-3 text-xs md:text-sm"
             label="What If"
             size="small"
             iconPos="left"
-            icon="pi pi-plus-circle"
+            icon="pi pi-plus-circle text-xs md:text-base"
             onClick={addWhatIf}
           />
         </div>
