@@ -273,7 +273,7 @@ const multimatchUploadResults = async (uuidsRaw) => {
   );
 };
 
-const afterUpload = async (classifiers, shooters) => {
+const afterUpload = async (classifiers, shooters, curTry = 1, maxTries = 3) => {
   try {
     console.time("afterUpload");
     // recalc recHHF
@@ -321,6 +321,10 @@ const afterUpload = async (classifiers, shooters) => {
   } catch (err) {
     console.error("afterUpload error:");
     console.error(err);
+    if (curTry < maxTries) {
+      console.error("retrying");
+      return afterUpload(classifiers, shooters, curTry + 1, maxTries);
+    }
   }
 };
 
@@ -507,7 +511,9 @@ const uploadRoutes = async (fastify, opts) => {
       );
 
       const { classifiers, shooters } = classifiersAndShootersFromScores(scores);
-      afterUpload(classifiers, shooters);
+      setImmediate(async () => {
+        await afterUpload(classifiers, shooters);
+      });
 
       return {
         result: {
@@ -601,7 +607,9 @@ const uploadRoutes = async (fastify, opts) => {
         scores,
         shooterNameMap
       );
-      afterUpload(classifiers, shooters);
+      setImmediate(async () => {
+        await afterUpload(classifiers, shooters);
+      });
 
       return {
         shooters,
