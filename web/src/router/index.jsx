@@ -124,6 +124,10 @@ const router = createBrowserRouter([
     ),
     children: [
       {
+        path: "",
+        Component: React.lazy(() => import("../pages/HomePage")),
+      },
+      {
         path: "stats",
         Component: React.lazy(() => import("../pages/StatsPage")),
       },
