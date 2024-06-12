@@ -120,7 +120,7 @@ const loginToUSPSA = async (username, password) => {
   return null;
 };
 
-const classifiersAndShootersFromScores = (scores) => {
+const classifiersAndShootersFromScores = (scores, memberNumberToNameMap) => {
   const classifiers = uniqBy(
     scores.map(({ classifierDivision, classifier, division }) => ({
       classifierDivision,
@@ -134,6 +134,7 @@ const classifiersAndShootersFromScores = (scores) => {
       memberNumberDivision,
       memberNumber,
       division,
+      name: memberNumberToNameMap[memberNumber],
     })),
     (s) => s.memberNumberDivision
   ).filter((c) => !!c.memberNumber);
@@ -193,6 +194,9 @@ const matchInfo = async (uuid) => {
   }
   const { match_shooters, match_stages } = match;
   const shootersMap = Object.fromEntries(match_shooters.map((s) => [s.sh_uuid, s.sh_id]));
+  match.memberNumberToNamesMap = Object.fromEntries(
+    match_shooters.map((s) => [s.sh_id, [s.sh_fn, s.sh_ln].filter(Boolean).join(" ")])
+  );
   const classifiersMap = Object.fromEntries(
     match_stages
       .filter((s) => !!s.stage_classifiercode)
@@ -525,6 +529,12 @@ const uploadRoutes = async (fastify, opts) => {
       );
       const scores = scoresRaw.filter(Boolean);
       const matches = matchesRaw.filter(Boolean);
+      const shooterNameMap = matches.reduce((acc, cur) => {
+        return {
+          ...acc,
+          ...cur.memberNumberToNamesMap,
+        };
+      }, {});
 
       try {
         const dqDocs = matches.reduce((acc, match) => {
@@ -587,7 +597,10 @@ const uploadRoutes = async (fastify, opts) => {
         }))
       );
 
-      const { classifiers, shooters } = classifiersAndShootersFromScores(scores);
+      const { classifiers, shooters } = classifiersAndShootersFromScores(
+        scores,
+        shooterNameMap
+      );
       afterUpload(classifiers, shooters);
 
       return {

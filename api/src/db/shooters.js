@@ -439,7 +439,7 @@ export const reclassifyShooters = async (shooters) => {
     const curScoresByMemberNumber = await allDivisionsScoresByMemberNumber(memberNumbers);
 
     const updates = shooters
-      .map(({ memberNumber, division }) => {
+      .map(({ memberNumber, division, name }) => {
         if (!memberNumber) {
           return [];
         }
@@ -475,6 +475,7 @@ export const reclassifyShooters = async (shooters) => {
               filter: { memberNumber, division },
               update: {
                 $setOnInsert: {
+                  name,
                   memberNumber,
                   division,
                   memberNumberDivision: [memberNumber, division].join(":"),
@@ -489,12 +490,9 @@ export const reclassifyShooters = async (shooters) => {
                   currents: mapDivisions((div) =>
                     rankForClass(missingShooterData[memberNumber]?.[div] || "U")
                   ),
-                  // TODO: name from the score?
-                  //name: [c.member_data.first_name, c.member_data.last_name, c.member_data.suffix]
-                  //  .filter(Boolean)
-                  //  .join(" "),
                 },
               },
+              upsert: true,
             },
           },
           {
