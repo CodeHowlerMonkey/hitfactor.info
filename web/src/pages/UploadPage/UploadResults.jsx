@@ -6,6 +6,17 @@ const shooterHref = (memberNumber, division) =>
 const classifierHref = (classifier, division) =>
   `/classifiers/${division}/${classifier || ""}`;
 
+const errorContent = (error) => {
+  const errorString = error.toString?.() || error;
+  return (
+    <div className="text-center">
+      {errorString.split("\n").map((s) => (
+        <p key={s}>{s}</p>
+      ))}
+    </div>
+  );
+};
+
 const UploadResults = ({
   result,
   loading,
@@ -16,7 +27,13 @@ const UploadResults = ({
     <>
       {loading && <ProgressSpinner />}
       {error && (
-        <Message severity="error" text={error.toString?.() || error} className="m-4" />
+        <>
+          <Message
+            severity="error"
+            content={errorContent(error)}
+            className="my-4 -mx-4"
+          />
+        </>
       )}
       {result && (
         <Message
