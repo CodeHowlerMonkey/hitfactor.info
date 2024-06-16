@@ -33,11 +33,9 @@ export const connect = async () => {
   });
 
   // Close the Mongoose connection, when receiving SIGINT
-  process.on("SIGINT", function () {
-    mongoose.connection.close(function () {
-      console.error("DB: closed on SIGINT");
-      process.exit(0);
-    });
+  process.on("SIGINT", async function () {
+    await mongoose.connection.close();
+    process.exit(0);
   });
   await _connect();
 };
