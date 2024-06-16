@@ -16,6 +16,9 @@ const MatchesSchema = new mongoose.Schema(
 );
 MatchesSchema.index({ id: -1 });
 MatchesSchema.index({ fetched: 1, uploaded: 1 });
+MatchesSchema.index({ updated: 1, uploaded: 1 });
+MatchesSchema.index({ updated: 1 });
+MatchesSchema.index({ fetched: 1 });
 export const Matches = mongoose.model("Matches", MatchesSchema);
 
 const MATCHES_PER_FETCH = 1000;
@@ -48,8 +51,39 @@ const fetchMatchesRange = async (fromId, template = "USPSA") => {
     name: h.match_name,
     uuid: h.match_id,
     date: h.match_date,
+    timestamp_utc_updated: h.timestamp_utc_updated,
   }));
-  //.sort((a, b) => b.id - a.id);
+};
+
+const fetchMatchesRangeByTimestamp = async (timestamp, template = "USPSA") => {
+  console.log("fetching since " + timestamp);
+  const {
+    results: [{ hits }],
+  } = await (
+    await fetch(process.env.ALGOLIA_URL, {
+      body: JSON.stringify({
+        requests: [
+          {
+            indexName: "postmatches",
+            params: `hitsPerPage=${MATCHES_PER_FETCH}&query=&numericFilters=${encodeURIComponent(
+              "timestamp_utc_updated > " + timestamp
+            )}&facetFilters=templateName:${template}`,
+          },
+        ],
+      }),
+      method: "POST",
+    })
+  ).json();
+
+  return hits.map((h) => ({
+    updated: new Date(h.updated + "Z"),
+    created: new Date(h.created + "Z"),
+    id: h.id,
+    name: h.match_name,
+    uuid: h.match_id,
+    date: h.match_date,
+    timestamp_utc_updated: h.timestamp_utc_updated,
+  }));
 };
 
 /**
@@ -62,7 +96,8 @@ const fetchMoreMatches = async (startId = 220000, template, onPageCallback) => {
   let lastResults = [];
   let curId = startId;
   do {
-    lastResults = await fetchMatchesRange(curId, template);
+    lastResults = (await fetchMatchesRange(curId, template)).sort((a, b) => b.id - a.id);
+
     curId = lastResults[0]?.id || Number.MAX_SAFE_INTEGER;
 
     resultsCount += lastResults.length;
@@ -72,19 +107,79 @@ const fetchMoreMatches = async (startId = 220000, template, onPageCallback) => {
   return resultsCount;
 };
 
-export const fetchAndSaveMoreUSPSAMatches = async () => {
+/**
+ * @param startDate match updated date to start with
+ */
+const fetchMoreMatchesByTimestamp = async (startTimestamp, template, onPageCallback) => {
+  let resultsCount = 0;
+
+  let lastResults = [];
+  let curTimestamp = startTimestamp;
+  do {
+    lastResults = (await fetchMatchesRangeByTimestamp(curTimestamp, template)).sort(
+      (a, b) => b.timestamp_utc_updated - a.timestamp_utc_updated
+    );
+
+    curTimestamp = lastResults[0]?.timestamp_utc_updated || new Date() / 1000;
+
+    resultsCount += lastResults.length;
+    await onPageCallback(lastResults);
+  } while (lastResults.length > 0);
+
+  return resultsCount;
+};
+
+/**
+ * Fetch loop by id, won't produce updates, since id stays the same, and we're fetching
+ * only ids that are higher than the highest one we already have in the database.
+ *
+ * Saves matches into Matches collecion, which is later used by upload loop.
+ *
+ * Use for initial fetch of matches, for day-to-day use fetchAndSaveMoreUSPASMatchesByUpdateDate
+ */
+export const fetchAndSaveMoreUSPSAMatchesById = async () => {
   const lastMatch = await Matches.findOne().sort({ id: -1 });
-  await fetchMoreMatches(lastMatch?.id, "USPSA", async (matches) => {
-    await Matches.bulkWrite(
+  console.log("lastMatchId = " + lastMatch?.id);
+  return fetchMoreMatches(lastMatch?.id, "USPSA", async (matches) =>
+    Matches.bulkWrite(
       matches.map((m) => ({
         updateOne: {
           filter: {
-            id: m.id,
+            uuid: m.uuid,
           },
-          update: { $set: s },
+          update: { $set: m },
           upsert: true,
         },
       }))
-    );
-  });
+    )
+  );
+};
+
+/**
+ * Same as fetchAndSaveMoreUSPSAMatchesById, but uses updated date.
+ *
+ * Should overwrite some matches if they were updated after previous fetch.
+ */
+export const fetchAndSaveMoreUSPSAMatchesByUpdatedDate = async () => {
+  const lastMatch = await Matches.findOne().sort({ updated: -1 });
+  console.log(
+    "lastUpdatedMatch= " +
+      lastMatch?.updated?.toLocaleDateString?.("en-us", { timeZone: "UTC" })
+  );
+  return fetchMoreMatchesByTimestamp(
+    (lastMatch?.updated || new Date()) / 1000,
+    "USPSA",
+    async (matches) =>
+      Matches.bulkWrite(
+        matches.map((m) => ({
+          updateOne: {
+            filter: {
+              uuid: m.uuid,
+            },
+            update: { $set: m },
+            upsert: true,
+          },
+        }))
+      )
+  );
 };

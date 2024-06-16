@@ -1,4 +1,5 @@
 import uniqBy from "lodash.uniqby";
+import { connect } from "../db/index.js";
 import { RecHHF, hydrateRecHHFsForClassifiers } from "../db/recHHF.js";
 import { reclassifyShooters } from "../db/shooters.js";
 import { hydrateStats } from "../db/stats.js";
@@ -9,6 +10,13 @@ import { DQs } from "../db/dq.js";
 import { uuidsFromUrlString } from "../../../shared/utils/uuid.js";
 import { curHHFForDivisionClassifier } from "../dataUtil/hhf.js";
 import { Percent } from "../dataUtil/numbers.js";
+import {
+  Matches,
+  fetchAndSaveMoreUSPSAMatchesById,
+  fetchAndSaveMoreUSPSAMatchesByUpdatedDate,
+} from "../db/matches.js";
+
+const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export const classifiersAndShootersFromScores = (scores, memberNumberToNameMap) => {
   const classifiers = uniqBy(
@@ -73,8 +81,6 @@ export const afterUpload = async (classifiers, shooters, curTry = 1, maxTries = 
     );
     console.timeLog("afterUploadWorker", "classifiers");
 
-    // recalc all stats without waiting
-    await hydrateStats();
     console.timeEnd("afterUploadWorker");
   } catch (err) {
     console.error("afterUploadWorker error:");
@@ -273,7 +279,7 @@ export const uploadMatches = async (uuids) => {
     }
 
     if (!scores.length) {
-      return { error: "No classifier scores found" };
+      return { classifiers: [], shooters: [] };
     }
     await Score.bulkWrite(
       scores.map((s) => ({
@@ -297,10 +303,7 @@ export const uploadMatches = async (uuids) => {
       scores,
       shooterNameMap
     );
-    setImmediate(async () => {
-      await afterUpload(classifiers, shooters);
-    });
-
+    await afterUpload(classifiers, shooters);
     return {
       shooters,
       classifiers,
@@ -310,3 +313,103 @@ export const uploadMatches = async (uuids) => {
     return { error: `${e.name}: ${e.message}` };
   }
 };
+
+async function runEvery(what, ms) {
+  while (true) {
+    const start = Date.now();
+
+    try {
+      await what();
+    } catch (error) {
+      console.error("An error occurred:", error);
+    }
+
+    const elapsed = Date.now() - start;
+    const waitTime = Math.max(ms - elapsed, 0);
+
+    await delay(waitTime);
+  }
+}
+
+const MINUTES = 60 * 1000;
+
+export const uploadsStats = async () => {
+  await connect();
+
+  const count = await Matches.countDocuments({ uploaded: { $exists: false } });
+  console.log(count);
+};
+
+const findAFewMatches = async () =>
+  Matches.find({
+    $expr: { $gt: ["$updated", "$uploaded"] },
+  })
+    .limit(5)
+    .sort({ fetched: 1 });
+
+const uploadLoop = async () => {
+  const count = await Matches.countDocuments({ uploaded: { $exists: false } });
+  console.log(count + "uploads in the queue");
+
+  let numberOfUpdates = 0;
+  let fewMatches = [];
+  do {
+    fewMatches = await findAFewMatches();
+    if (!fewMatches.length) {
+      return;
+    }
+    const uuids = fewMatches.map((m) => m.uuid);
+    console.log(uuids);
+    const uploadResults = await uploadMatches(uuids);
+    numberOfUpdates += uploadResults.classifiers?.length || 0;
+    console.log(JSON.stringify(uploadResults, null, 2));
+    console.log("uploaded");
+
+    await Matches.bulkWrite(
+      fewMatches.map((m) => ({
+        updateOne: {
+          filter: { _id: m._id },
+          update: { $set: { ...m.toObject(), uploaded: new Date() } },
+        },
+      }))
+    );
+    console.log("done");
+  } while (fewMatches.length);
+  return numberOfUpdates;
+};
+
+const uploadsWorkerMain = async () => {
+  await connect();
+
+  runEvery(async () => {
+    console.log("starting to fetch");
+    console.time("fetchLoop");
+    const utcHours = new Date().getUTCHours();
+    if (utcHours < 7 || utcHours > 15) {
+      let numberOfNewMatches = await fetchAndSaveMoreUSPSAMatchesById();
+      let numberOfUpdatedMatches = await fetchAndSaveMoreUSPSAMatchesByUpdatedDate();
+      console.log("fetched " + numberOfNewMatches + " new matches");
+      console.log("fetched " + numberOfUpdatedMatches + " updated matches");
+    } else {
+      console.log("sleeping");
+    }
+    console.timeEnd("fetchLoop");
+  }, 30 * MINUTES);
+
+  setTimeout(() => {
+    runEvery(async () => {
+      console.log("starting upload");
+      console.time("uploadLoop");
+
+      const uploadUpdates = await uploadLoop();
+      if (uploadUpdates > 0) {
+        // recalc stats after uploading all matches in the queue
+        await hydrateStats();
+      }
+
+      console.timeEnd("uploadLoop");
+    }, 3 * MINUTES);
+  }, 3 * MINUTES);
+};
+
+export default uploadsWorkerMain;

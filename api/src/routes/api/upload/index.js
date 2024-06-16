@@ -121,11 +121,6 @@ const uploadRoutes = async (fastify, opts) => {
     return calculateUSPSAClassification(scores, "curPercent");
   });
 
-  fastify.get("/uspsaMatches", async (req, res) => {
-    //return await fetchUSPSAMatchesRange(244000);
-    return await fetchAllUSPSAMatches(240000);
-  });
-
   fastify.get("/searchMatches", async (req, res) => {
     const { q } = req.query;
     try {

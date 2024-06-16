@@ -7,7 +7,7 @@
     "node": "20.11.x"
   },
   "scripts": {
-    "======================== Development Scripts ====================": "",
+    "========================= Development Scripts ====================": "",
     "start": "concurrently -c \"auto\" --names \"API,WEB\" \"npm run start-api\" \"npm run start-web\"",
     "quick": "concurrently -c \"auto\" --names \"API,WEB\" \"npm run start-api-quick\" \"npm run start-web\"",
     "start-api-quick": "cd api && npm run quick",
@@ -17,7 +17,9 @@
     "====================== Production / Build Scripts ================": "",
     "prod": "cd api && npm run prod",
     "postinstall": "(cd api && npm install); (cd web && npm install && npm run build);",
-    "========================= Import Scripts ============================": "",
+    "========================== Worker Scripts ========================": "",
+    "uploadsWorker": "NODE_OPTIONS='--max-old-space-size=512' node scripts/uploadsWorker.js", 
+    "========================= USPSA Import Scripts ============================": "",
     "import": "node scripts/import.js",
     "========================= Database Scripts ============================": "",
     "hydrate-quick": "QUICK_DEV=1 node scripts/hydrateMongo.js",
