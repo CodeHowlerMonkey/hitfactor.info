@@ -3,6 +3,7 @@ import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import {
   headerTooltipOptions,
+  renderClubIdMatchLink,
   renderHFOrNA,
   renderPercent,
 } from "../../../components/Table";
@@ -174,7 +175,13 @@ const ShooterRunsTable = ({
           headerTooltipOptions={headerTooltipOptions}
         />
         <Column field="code" header="Flag" sortable />
-        <Column field="clubid" header="Club" sortable showFilterMenu={false} />
+        <Column
+          field="clubid"
+          header="Club"
+          sortable
+          body={renderClubIdMatchLink}
+          showFilterMenu={false}
+        />
         <Column field="source" header="Source" sortable />
         <Column
           body={(c) =>

@@ -7,11 +7,11 @@ import { Column } from "primereact/column";
 import { useApi } from "../utils/client";
 import useTableSort from "./Table/useTableSort";
 import useTablePagination from "./Table/useTablePagination";
-import { headerTooltipOptions } from "./Table/Table";
+import { headerTooltipOptions } from "./Table";
 import { Dropdown } from "primereact/dropdown";
 import { useDebounce } from "use-debounce";
 import ShooterCell from "./ShooterCell";
-import { renderPercent } from "./Table";
+import { renderClubIdMatchLink, renderPercent } from "./Table";
 import ReportDialog from "./ReportDialog";
 
 const TableFilter = ({ placeholder, onFilterChange }) => {
@@ -236,6 +236,7 @@ const RunsTable = ({ classifier, division, clubs, onShooterSelection }) => {
           sortable
           showFilterMenu={false}
           filter
+          body={renderClubIdMatchLink}
           filterElement={(options) => (
             <DropdownFilter
               filter

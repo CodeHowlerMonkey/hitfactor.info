@@ -1,4 +1,3 @@
-export * from "./Table";
 export * from "./useTablePagination";
 export * from "./useTableSort";
 
@@ -67,4 +66,25 @@ export const renderHFOrNA = (c, { field }) => {
   }
 
   return value.toFixed(4);
+};
+
+export const renderClubIdMatchLink = (c, { field }) => {
+  if (c.upload) {
+    return (
+      <a
+        target="_blank"
+        href={`https://practiscore.com/results/new/${c.upload}`}
+        title={c.matchName}
+      >
+        {c[field]}
+      </a>
+    );
+  }
+
+  return c[field];
+};
+
+export const headerTooltipOptions = {
+  position: "top",
+  style: { maxWidth: "300px" },
 };

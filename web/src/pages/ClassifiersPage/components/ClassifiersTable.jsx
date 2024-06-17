@@ -5,7 +5,7 @@ import { Column } from "primereact/column";
 
 import { useApi } from "../../../utils/client";
 import useTableSort from "../../../components/Table/useTableSort";
-import { headerTooltipOptions } from "../../../components/Table/Table";
+// import { headerTooltipOptions } from "../../../components/Table";
 
 import { numSort, dateSort, classifierCodeSort } from "../../../../../shared/utils/sort";
 import ClassifierCell from "../../../components/ClassifierCell";
