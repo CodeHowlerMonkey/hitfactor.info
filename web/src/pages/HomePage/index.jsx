@@ -175,7 +175,7 @@ const HomePage = () => {
             </div>
           </div>
 
-          <div className="flex justify-content-center">
+          <div className="flex justify-content-center mb-5">
             <div className="py-3 pr-8 pl-3 w-30rem hidden lg:block">
               <img
                 src="/img/home/brain.jpg"
