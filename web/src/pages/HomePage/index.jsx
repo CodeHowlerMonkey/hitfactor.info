@@ -28,7 +28,7 @@ const HomePage = () => {
     <div className="surface-0">
       <div className="mx-auto" style={{ maxWidth: 1280 }}>
         <div className="grid grid-nogutter surface-0 text-800">
-          <div className="col-12 md:col-6 p-6 text-center md:text-left flex align-items-center ">
+          <div className="col-12 md:col-6 p-0 py-2 md:p-6 text-center md:text-left flex align-items-center ">
             <section>
               <span className="text-5xl mb-1">
                 USPSA Classification System Was Broken.
