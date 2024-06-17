@@ -217,96 +217,96 @@ const HomePage = () => {
               />
             </div>
           </div>
-        </div>
 
-        <div className="flex justify-content-center mb-5">
-          <div className="py-3 pl-5 pr-3 lg:pr-8 lg:pl-3 lg:w-30rem flex-order-1 lg:flex-order-0">
-            <div className="text-900 text-xl mb-2 font-medium">
-              Brutal Classification Engine
-            </div>
-            <span className="block text-700 line-height-3 mb-3">
-              Rec.HHFs made Individual Classifiers Easier.
-              <br /> So we made the Algorithm Harder.
-            </span>
-            <div className="pt-3 border-top-1 border-300">
-              <div className="mb-2 line-height-3">Best 6 out of Recent 10</div>
-              <div className="mb-2 line-height-3">No A/B/C/D Flags</div>
-              <div className="mb-2 line-height-3">No Tanking Protection</div>
-              <div className="mb-2 line-height-3">Same Day Dupes are Averaged Out</div>
-              <div className="mb-2 line-height-3">You're welcome, Grandbaggers</div>
-            </div>
-            <img
-              src="/img/home/brutal.jpg"
-              alt="Image"
-              style={{ borderRadius: 22 }}
-              className="w-full mt-3 block lg:hidden"
-            />
-          </div>
-          <div className="flex flex-column align-items-center w-2rem flex-order-0 lg:flex-order-1">
-            <span
-              className="bg-pink-500 text-0 flex align-items-center justify-content-center border-circle"
-              style={{ minWidth: "2.5rem", minHeight: "2.5rem" }}
-            >
-              4
-            </span>
-            <div
-              className="h-full bg-pink-500"
-              style={{ width: 2, minHeight: "4rem" }}
-            ></div>
-          </div>
-          <div className="py-3 pl-8 pr-3 w-30rem hidden lg:block flex-order-2">
-            <img
-              src="/img/home/brutal.jpg"
-              style={{ borderRadius: 22 }}
-              alt="Image"
-              className="w-full mr-8"
-            />
-          </div>
-        </div>
-        <div className="flex lg:justify-content-center mb-5">
-          <div className="py-3 pr-8 pl-3 w-30rem hidden lg:block">
-            <img
-              src="/img/home/champions.jpg"
-              alt="Image"
-              className="w-full mr-8"
-              style={{ borderRadius: 22 }}
-            />
-          </div>
-          <div className="flex flex-column align-items-center w-2rem">
-            <span
-              className="bg-purple-500 text-0 flex align-items-center justify-content-center border-circle"
-              style={{ minWidth: "2.5rem", minHeight: "2.5rem" }}
-            >
-              5
-            </span>
-            <div
-              className="h-full bg-purple-500"
-              style={{ width: 2, minHeight: "4rem" }}
-            ></div>
-          </div>
-          <div className="py-3 pl-5 lg:pl-8 pl-3 lg:w-30rem">
-            <div className="text-900 text-xl mb-2 font-medium">The Result?</div>
-            <span className="block text-700 line-height-3 mb-3">
-              An Improved Classification System that Accurately Reflects Your Shooting
-              Skills
-            </span>
-            <div className="pt-3 border-top-1 border-300">
-              <div className="mb-2 line-height-3">
-                <p>Top Shooters Are Still at The Top</p>
-                <Button
-                  label="See For Yourself"
-                  type="button"
-                  className="mr-3 p-button-outlined"
-                  onClick={() => navigate("/shooters/co/")}
-                />
+          <div className="flex justify-content-center mb-5">
+            <div className="py-3 pl-5 pr-3 lg:pr-8 lg:pl-3 lg:w-30rem flex-order-1 lg:flex-order-0">
+              <div className="text-900 text-xl mb-2 font-medium">
+                Brutal Classification Engine
               </div>
+              <span className="block text-700 line-height-3 mb-3">
+                Rec.HHFs made Individual Classifiers Easier.
+                <br /> So we made the Algorithm Harder.
+              </span>
+              <div className="pt-3 border-top-1 border-300">
+                <div className="mb-2 line-height-3">Best 6 out of Recent 10</div>
+                <div className="mb-2 line-height-3">No A/B/C/D Flags</div>
+                <div className="mb-2 line-height-3">No Tanking Protection</div>
+                <div className="mb-2 line-height-3">Same Day Dupes are Averaged Out</div>
+                <div className="mb-2 line-height-3">You're welcome, Grandbaggers</div>
+              </div>
+              <img
+                src="/img/home/brutal.jpg"
+                alt="Image"
+                style={{ borderRadius: 22 }}
+                className="w-full mt-3 block lg:hidden"
+              />
             </div>
-            <img
-              src="/img/home/champions.jpg"
-              alt="Image"
-              style={{ borderRadius: 22 }}
-              className="w-full mt-3 block lg:hidden"
-            />
+            <div className="flex flex-column align-items-center w-2rem flex-order-0 lg:flex-order-1">
+              <span
+                className="bg-pink-500 text-0 flex align-items-center justify-content-center border-circle"
+                style={{ minWidth: "2.5rem", minHeight: "2.5rem" }}
+              >
+                4
+              </span>
+              <div
+                className="h-full bg-pink-500"
+                style={{ width: 2, minHeight: "4rem" }}
+              ></div>
+            </div>
+            <div className="py-3 pl-8 pr-3 w-30rem hidden lg:block flex-order-2">
+              <img
+                src="/img/home/brutal.jpg"
+                style={{ borderRadius: 22 }}
+                alt="Image"
+                className="w-full mr-8"
+              />
+            </div>
+          </div>
+          <div className="flex lg:justify-content-center mb-5">
+            <div className="py-3 pr-8 pl-3 w-30rem hidden lg:block">
+              <img
+                src="/img/home/champions.jpg"
+                alt="Image"
+                className="w-full mr-8"
+                style={{ borderRadius: 22 }}
+              />
+            </div>
+            <div className="flex flex-column align-items-center w-2rem">
+              <span
+                className="bg-purple-500 text-0 flex align-items-center justify-content-center border-circle"
+                style={{ minWidth: "2.5rem", minHeight: "2.5rem" }}
+              >
+                5
+              </span>
+              <div
+                className="h-full bg-purple-500"
+                style={{ width: 2, minHeight: "4rem" }}
+              ></div>
+            </div>
+            <div className="py-3 pl-5 lg:pl-8 pl-3 lg:w-30rem">
+              <div className="text-900 text-xl mb-2 font-medium">The Result?</div>
+              <span className="block text-700 line-height-3 mb-3">
+                An Improved Classification System that Accurately Reflects Your Shooting
+                Skills
+              </span>
+              <div className="pt-3 border-top-1 border-300">
+                <div className="mb-2 line-height-3">
+                  <p>Top Shooters Are Still at The Top</p>
+                  <Button
+                    label="See For Yourself"
+                    type="button"
+                    className="mr-3 p-button-outlined"
+                    onClick={() => navigate("/shooters/co/")}
+                  />
+                </div>
+              </div>
+              <img
+                src="/img/home/champions.jpg"
+                alt="Image"
+                style={{ borderRadius: 22 }}
+                className="w-full mt-3 block lg:hidden"
+              />
+            </div>
           </div>
         </div>
         <Divider />
