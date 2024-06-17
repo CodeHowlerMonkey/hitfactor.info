@@ -30,32 +30,36 @@ const HomePage = () => {
         <div className="grid grid-nogutter surface-0 text-800">
           <div className="col-12 md:col-6 p-6 text-center md:text-left flex align-items-center ">
             <section>
-              <span className="text-5xl font-bold mb-1">
-                USPSA Classification Was Broken.
+              <span className="text-5xl mb-1">
+                USPSA Classification System Was Broken.
               </span>
-              <span className="block text-6xl text-primary font-bold mb-3">
-                {" "}
-                We fixed it!
-              </span>
+              <span className="text-6xl text-primary font-bold mb-3"> We fixed it!</span>
               <p className="mt-0 mb-4 text-700 line-height-3">
                 <p>
-                  It all started in Cambodia, on the Edge of the Jungle, when the idea was
-                  born. We've had Hundreds of Cheap Smartphones, a Couple of Joints, a
-                  Handful of Ecstasy Pills and a Small Army of Howler Monkeys to get us
-                  started.
+                  It all started in Cambodia on the Edge of the Jungle, when the drugs
+                  began to take hold. We've had a Trunk Full of Cheap Smartphones, and a
+                  Small Army of Howler Monkeys surrounding us.
                 </p>
                 <p>
                   All we wanted to do was to Scrape a Website and Find the Easiest
-                  Classifier. But the Monkeys weren't having it, so naturally, we turned
-                  to the Cartels for a Few Kilos of Crack Cocaine to keep them motivated.
+                  Classifier. But the Monkeys weren't having it.
                 </p>
                 <p>
-                  The rest is history, written by the remnants of The Howler Monkey Army
-                  and documented here, on this website.
+                  So naturally, we turned to the Cartels for a Few Kilos of Crack Cocaine
+                  to keep them motivated...
                 </p>
               </p>
 
-              <Button label="Learn More" type="button" className="mr-3 p-button-raised" />
+              <Button
+                label="Learn More"
+                type="button"
+                className="mr-3 p-button-raised"
+                onClick={() => {
+                  document.getElementById("learnMore").scrollIntoView({
+                    behavior: "smooth",
+                  });
+                }}
+              />
               <Button
                 label="Buy Cocaine"
                 type="button"
@@ -74,17 +78,26 @@ const HomePage = () => {
           </div>
         </div>
         <Divider />
-        <div className="surface-section px-4 py-8 md:px-6 lg:px-8 overflow-hidden">
+        <div
+          id="learnMore"
+          className="surface-section px-4 py-8 md:px-6 lg:px-8 overflow-hidden"
+        >
           <div className="font-bold text-900 text-3xl mb-3 text-center">
-            Recommended Classification Engine
+            Recommended Classification
           </div>
           <div className="text-700 text-center mb-5 line-height-3">
             All Jokes Aside, Here's How Monkeys Have Actually Fixed the Classification
             System
           </div>
+
           <div className="flex lg:justify-content-center mb-5">
             <div className="py-3 pr-8 pl-3 w-30rem hidden lg:block">
-              <img src="/img/home/scrape.png" alt="Image" className="w-full mr-8" />
+              <img
+                src="/img/home/scrape.jpg"
+                alt="Image"
+                className="w-full mr-8"
+                style={{ borderRadius: 22 }}
+              />
             </div>
             <div className="flex flex-column align-items-center w-2rem">
               <span
@@ -99,31 +112,24 @@ const HomePage = () => {
               ></div>
             </div>
             <div className="py-3 pl-5 lg:pl-8 pl-3 lg:w-30rem">
-              <div className="text-900 text-xl mb-2 font-medium">Real USPSA Data</div>
+              <div className="text-900 text-xl mb-2 font-medium">Real Match Data</div>
               <span className="block text-700 line-height-3 mb-3">
-                First, we've scraped Official USPSA Classification Records for All Known
-                Active Member Numbers.
+                First, We've Obtained Everyone's Classifier Scores
               </span>
               <div className="pt-3 border-top-1 border-300">
                 <div className="mb-2 line-height-3">
-                  <p>
-                    Remember <b>"Looking for data? Contact it@uspsa.org"</b> promise on
-                    USPSA's website? Yeah, that was a lie.
-                  </p>
-                  <p>
-                    The monkeys had to reverse engineer Mobile App APIs and fight
-                    deliberate access restrictions to obtain <b>public</b> classification
-                    records.
-                  </p>
+                  <p>Literally Millions of Them (and Counting)</p>
                 </div>
               </div>
               <img
-                src="/img/home/scrape.png"
+                src="/img/home/scrape.jpg"
                 alt="Image"
+                style={{ borderRadius: 22 }}
                 className="w-full mt-3 block lg:hidden"
               />
             </div>
           </div>
+
           <div className="flex justify-content-center mb-5">
             <div className="py-3 pl-5 pr-3 lg:pr-8 lg:pl-3 lg:w-30rem flex-order-1 lg:flex-order-0">
               <div className="text-900 text-xl mb-2 font-medium">Target Distribution</div>
@@ -141,8 +147,9 @@ const HomePage = () => {
                 <div className="mb-2 line-height-3">Top 80% = C-class (40%)</div>
               </div>
               <img
-                src="/img/home/graph.png"
+                src="/img/home/graph.jpg"
                 alt="Image"
+                style={{ borderRadius: 22 }}
                 className="w-full mt-3 block lg:hidden"
               />
             </div>
@@ -159,15 +166,22 @@ const HomePage = () => {
               ></div>
             </div>
             <div className="py-3 pl-8 pr-3 w-30rem hidden lg:block flex-order-2">
-              <img src="/img/home/graph.png" alt="Image" className="w-full mr-8" />
+              <img
+                src="/img/home/graph.jpg"
+                alt="Image"
+                className="w-full mr-8"
+                style={{ borderRadius: 22 }}
+              />
             </div>
           </div>
+
           <div className="flex justify-content-center">
             <div className="py-3 pr-8 pl-3 w-30rem hidden lg:block">
               <img
-                src="/demo/images/blocks/feature/feature-timeline-3.png"
+                src="/img/home/brain.jpg"
                 alt="Image"
                 className="w-full mr-8"
+                style={{ borderRadius: 22 }}
               />
             </div>
             <div className="flex flex-column align-items-center w-2rem">
@@ -184,69 +198,115 @@ const HomePage = () => {
             </div>
             <div className="py-3 pl-5 lg:pl-8 pl-3 lg:w-30rem">
               <div className="text-900 text-xl mb-2 font-medium">
-                Pharetra et ultrices neque
+                Recommended High Hit Factors
               </div>
               <span className="block text-700 line-height-3 mb-3">
-                Id interdum velit laoreet id. A iaculis at erat pellentesque adipiscing
-                commodo elit at imperdiet.
+                Using Target Distribution we've Built an Algorithm to Automatically Assign
+                Recommended HHFs to Classifiers.
               </span>
               <div className="pt-3 border-top-1 border-300">
-                <div className="mb-2 line-height-3">
-                  <span className="text-900 font-medium">Egestas dui id</span> ornare arcu
-                  odio ut. Mi bibendum neque egestas congue.
-                </div>
-                <div className="line-height-3">
-                  <span className="text-900 font-medium">Sed velit dignissim</span>{" "}
-                  sodales ut eu. Massa placerat duis ultricies lacus.
+                <div className="mb-2 line-height-3 text-1900">
+                  It Can Go Up & Down, But Is Stable After 1000 Scores
                 </div>
               </div>
               <img
-                src="/demo/images/blocks/feature/feature-timeline-3.png"
+                src="/img/home/brain.jpg"
                 alt="Image"
+                style={{ borderRadius: 22 }}
                 className="w-full mt-3 block lg:hidden"
               />
             </div>
           </div>
         </div>
-        <Divider />
-        <div className="grid grid-nogutter surface-0 text-800">
-          <div className="col-12 md:col-6 overflow-hidden md:h-full">
+
+        <div className="flex justify-content-center mb-5">
+          <div className="py-3 pl-5 pr-3 lg:pr-8 lg:pl-3 lg:w-30rem flex-order-1 lg:flex-order-0">
+            <div className="text-900 text-xl mb-2 font-medium">
+              Brutal Classification Engine
+            </div>
+            <span className="block text-700 line-height-3 mb-3">
+              Rec.HHFs made Individual Classifiers Easier.
+              <br /> So we made the Algorithm Harder.
+            </span>
+            <div className="pt-3 border-top-1 border-300">
+              <div className="mb-2 line-height-3">Best 6 out of Recent 10</div>
+              <div className="mb-2 line-height-3">No A/B/C/D Flags</div>
+              <div className="mb-2 line-height-3">No Tanking Protection</div>
+              <div className="mb-2 line-height-3">Same Day Dupes are Averaged Out</div>
+              <div className="mb-2 line-height-3">You're welcome, Grandbaggers</div>
+            </div>
             <img
-              src="/img/home/wefixedit2.jpg"
-              alt="hero-1"
-              className="md:ml-auto block my-auto md:h-full"
-              style={{ clipPath: "polygon(8% 0, 100% 0%, 100% 100%, 0 100%)" }}
+              src="/img/home/brutal.jpg"
+              alt="Image"
+              style={{ borderRadius: 22 }}
+              className="w-full mt-3 block lg:hidden"
             />
           </div>
-          <div className="col-12 md:col-6 p-6 text-center md:text-left flex align-items-center ">
-            <section>
-              <span className="text-5xl font-bold mb-1">Recommended HHFs</span>
-              <p className="mt-0 mb-4 text-700 line-height-3">
-                <p>
-                  It all started in Cambodia, on the Edge of the Jungle, when the idea was
-                  born. We've had Hundreds of Cheap Smartphones, a Couple of Joints, a
-                  Handful of Ecstasy Pills and a Small Army of Howler Monkeys to get us
-                  started.
-                </p>
-                <p>
-                  All we wanted to do was to Scrape a Website and Find the Easiest
-                  Classifier. But the Monkeys weren't having it, so naturally, we turned
-                  to the Cartels for a Few Kilos of Crack Cocaine to keep them motivated.
-                </p>
-                <p>
-                  The rest is history, written by the remnants of The Howler Monkey Army
-                  and documented here, on this website.
-                </p>
-              </p>
-
-              <Button label="Learn More" type="button" className="mr-3 p-button-raised" />
-              <Button
-                label="Buy Cocaine"
-                type="button"
-                className="p-button-outlined"
-                onClick={() => window.open("https://www.cia.gov/", "_blank")}
-              />
-            </section>
+          <div className="flex flex-column align-items-center w-2rem flex-order-0 lg:flex-order-1">
+            <span
+              className="bg-pink-500 text-0 flex align-items-center justify-content-center border-circle"
+              style={{ minWidth: "2.5rem", minHeight: "2.5rem" }}
+            >
+              4
+            </span>
+            <div
+              className="h-full bg-pink-500"
+              style={{ width: 2, minHeight: "4rem" }}
+            ></div>
+          </div>
+          <div className="py-3 pl-8 pr-3 w-30rem hidden lg:block flex-order-2">
+            <img
+              src="/img/home/brutal.jpg"
+              style={{ borderRadius: 22 }}
+              alt="Image"
+              className="w-full mr-8"
+            />
+          </div>
+        </div>
+        <div className="flex lg:justify-content-center mb-5">
+          <div className="py-3 pr-8 pl-3 w-30rem hidden lg:block">
+            <img
+              src="/img/home/champions.jpg"
+              alt="Image"
+              className="w-full mr-8"
+              style={{ borderRadius: 22 }}
+            />
+          </div>
+          <div className="flex flex-column align-items-center w-2rem">
+            <span
+              className="bg-purple-500 text-0 flex align-items-center justify-content-center border-circle"
+              style={{ minWidth: "2.5rem", minHeight: "2.5rem" }}
+            >
+              5
+            </span>
+            <div
+              className="h-full bg-purple-500"
+              style={{ width: 2, minHeight: "4rem" }}
+            ></div>
+          </div>
+          <div className="py-3 pl-5 lg:pl-8 pl-3 lg:w-30rem">
+            <div className="text-900 text-xl mb-2 font-medium">The Result?</div>
+            <span className="block text-700 line-height-3 mb-3">
+              An Improved Classification System that Accurately Reflects Your Shooting
+              Skills
+            </span>
+            <div className="pt-3 border-top-1 border-300">
+              <div className="mb-2 line-height-3">
+                <p>Top Shooters Are Still at The Top</p>
+                <Button
+                  label="See For Yourself"
+                  type="button"
+                  className="mr-3 p-button-outlined"
+                  onClick={() => navigate("/shooters/co/")}
+                />
+              </div>
+            </div>
+            <img
+              src="/img/home/champions.jpg"
+              alt="Image"
+              style={{ borderRadius: 22 }}
+              className="w-full mt-3 block lg:hidden"
+            />
           </div>
         </div>
         <Divider />
@@ -297,7 +357,7 @@ const HomePage = () => {
                     </li>
                     <li className="flex align-items-center mb-3">
                       <i className="pi pi-check-circle text-green-500 mr-2"></i>
-                      <span>Search By Partial Number or Name</span>
+                      <span>Unlimited Search By Partial Number or Name</span>
                     </li>
                     <li className="flex align-items-center mb-3">
                       <i className="pi pi-check-circle text-green-500 mr-2"></i>
@@ -358,7 +418,7 @@ const HomePage = () => {
                     </li>
                     <li className="flex align-items-center mb-3">
                       <i className="pi pi-times-circle text-red-500 mr-2" />
-                      <span>Search by Exact Number Only</span>
+                      <span>Rate Limited Search by Exact Number Only</span>
                     </li>
                     <li className="flex align-items-center mb-3">
                       <i className="pi pi-times-circle text-red-500 mr-2" />
@@ -451,13 +511,17 @@ const HomePage = () => {
           <div className="text-900 font-bold text-5xl mb-3">
             Join Howler Monkey Community
           </div>
-          <div className="text-700 text-2xl mb-5">
+          <div className="text-700 text-2xl mb-1">
             We talk <b>Mad Shit</b> about BOC, but are <b>Super Friendly</b> to others.
+          </div>
+          <div className="text-700 text-xl mb-5">
+            Use #hitfactor-info Channel for Any Questions or Feedback.
           </div>
           <Button
             label="Bring Bananas"
             icon="pi pi-discord"
             className="font-bold px-5 py-3 p-button-raised p-button-rounded white-space-nowrap"
+            onClick={() => window.open("https://discord.gg/zgKq7RbQjx", "_blank")}
           />
         </div>
       </div>
