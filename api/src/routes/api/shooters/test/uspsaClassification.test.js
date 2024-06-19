@@ -619,7 +619,7 @@ test("addToCurWindow", (t) => {
     makeClassifier({ classifier: "20-09" }),
   ]);
 
-  addToCurWindow(makeClassifier({ classifier: "20-02" }), curWindow);
+  addToCurWindow(makeClassifier({ classifier: "20-09" }), curWindow);
   assert.strictEqual(curWindow.length, 9);
   addToCurWindow(makeClassifier({ classifier: "20-10" }), curWindow);
   assert.strictEqual(curWindow.length, 9);
@@ -631,7 +631,7 @@ test("addToCurWindow", (t) => {
     makeClassifier({ classifier: "20-07" }),
     makeClassifier({ classifier: "20-08" }),
     makeClassifier({ classifier: "20-09" }),
-    makeClassifier({ classifier: "20-02" }),
+    makeClassifier({ classifier: "20-09" }),
     makeClassifier({ classifier: "20-10" }),
   ]);
   addToCurWindow(makeClassifier({ classifier: "20-02" }), curWindow);
@@ -645,7 +645,7 @@ test("addToCurWindow", (t) => {
     makeClassifier({ classifier: "20-07" }),
     makeClassifier({ classifier: "20-08" }),
     makeClassifier({ classifier: "20-09" }),
-    makeClassifier({ classifier: "20-02" }),
+    makeClassifier({ classifier: "20-09" }),
     makeClassifier({ classifier: "20-10" }),
     makeClassifier({ classifier: "20-02" }),
     makeClassifier({ classifier: "20-02" }),
@@ -732,7 +732,7 @@ test("calculateUSPSAClassification + percentField + dates", (t) => {
     { p: 88.91499999999999, sd: "7/02/22" },
     { p: 89.16333333333333, sd: "7/16/22" },
     { p: 91.68666666666667, sd: "7/19/22" },
-    { p: 93.08333333333334, sd: "8/06/22" },
+    { p: 93.02833333333334, sd: "8/06/22" },
     { p: 94.615, sd: "8/16/22" },
     { p: 95.07666666666667, sd: "8/20/22" },
     { p: 96.02246666666666, sd: "9/02/22" },
@@ -747,7 +747,7 @@ test("calculateUSPSAClassification + percentField + dates", (t) => {
     { p: 99.045, sd: "4/18/23" },
     { p: 99.045, sd: "5/06/23" },
     { p: 98.25006666666667, sd: "5/11/23" },
-    { p: 99.28666666666668, sd: "5/27/23" },
+    { p: 98.25006666666667, sd: "5/27/23" },
     { p: 98.29673333333334, sd: "6/03/23" },
     { p: 98.96340000000001, sd: "7/15/23" },
     { p: 98.96340000000001, sd: "7/18/23" },
@@ -768,5 +768,5 @@ test("calculateUSPSAClassification CS should have curPercent in Open", (t) => {
 
 test("calculateUSPSAClassification A111317 should have co", (t) => {
   const result = calculateUSPSAClassification(noCurPercentButExpected, "curPercent");
-  assert.strictEqual(Number(result.co.percent.toFixed(2)), 68.23);
+  assert.strictEqual(Number(result.co.percent.toFixed(2)), 72.6);
 });

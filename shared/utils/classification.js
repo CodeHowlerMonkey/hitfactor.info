@@ -192,7 +192,7 @@ export const addToCurWindow = (c, curWindow, targetWindowSize = 8) => {
   curWindow.reverse();
   const removed = curWindow.splice(targetWindowSize);
   curWindow.reverse();
-  const extraWindowLength = numberOfDuplicates([...removed, ...curWindow]);
+  const extraWindowLength = numberOfDuplicates(curWindow);
   const extraFromTail = removed.slice(0, extraWindowLength).reverse();
   curWindow.unshift(...extraFromTail);
 };
