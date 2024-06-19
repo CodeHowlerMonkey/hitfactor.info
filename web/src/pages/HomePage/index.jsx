@@ -34,7 +34,7 @@ const HomePage = () => {
                 USPSA Classification System Was Broken.
               </span>
               <span className="text-6xl text-primary font-bold mb-3"> We fixed it!</span>
-              <p className="mt-0 mb-4 text-700 line-height-3">
+              <span className="mt-0 mb-4 text-700 line-height-3">
                 <p>
                   It all started in Cambodia on the Edge of the Jungle, when the drugs
                   began to take hold. We've had a Trunk Full of Cheap Smartphones, and a
@@ -48,7 +48,7 @@ const HomePage = () => {
                   So naturally, we turned to the Cartels for a Few Kilos of Crack Cocaine
                   to keep them motivated...
                 </p>
-              </p>
+              </span>
 
               <Button
                 label="Learn More"
