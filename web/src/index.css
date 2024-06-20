@@ -5,14 +5,18 @@
   font-weight: 400;
   */
 
-  color-scheme: light dark;
-  /* color: rgba(255, 255, 255, 0.87); */
+  color-scheme: only dark;
+  color: var(--surface-900);
   background-color: #282936;
 
   /* font-synthesis: none; */
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  a:link, a:visited {
+    color: var(--primary-500);
+  }
 }
 
 /* primereact tables don't want to take full height without this */
