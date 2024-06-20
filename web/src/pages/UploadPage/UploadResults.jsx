@@ -49,7 +49,7 @@ const UploadResults = ({
             Classifiers:
             <ul>
               {result.classifiers?.map((c) => (
-                <li>
+                <li key={[c.classifier, c.division].join(":")}>
                   <a href={classifierHref(c.classifier, c.division)} target="_blank">
                     {c.classifier} - {c.division}
                   </a>
@@ -61,7 +61,7 @@ const UploadResults = ({
             Shooters:
             <ul>
               {result.shooters?.map((s) => (
-                <li>
+                <li key={[s.memberNumber, s.division].join(":")}>
                   <a href={shooterHref(s.memberNumber, s.division)} target="_blank">
                     {s.memberNumber} - {s.division}
                   </a>

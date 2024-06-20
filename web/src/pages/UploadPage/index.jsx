@@ -185,7 +185,6 @@ const UploadPage = () => {
                           setToUpload([]);
                           setSearchResults([]);
                         }
-                        console.log(apiResponse);
                       } catch (e) {
                         setError(e);
                       }
@@ -307,7 +306,6 @@ const OldUploadPage = () => {
               setValue("");
               setResult(apiResponse);
             }
-            console.log(apiResponse);
           } catch (e) {
             setError(e);
           }
