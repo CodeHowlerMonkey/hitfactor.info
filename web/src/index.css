@@ -14,7 +14,7 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 
-  a:link, a:visited {
+  a:link:not(.p-menuitem-link), a:visited:not(.p-menuitem-link) {
     color: var(--primary-500);
   }
 }
