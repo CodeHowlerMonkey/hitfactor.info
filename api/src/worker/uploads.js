@@ -340,21 +340,28 @@ export const uploadsStats = async () => {
   console.log(count);
 };
 
-const findAFewMatches = async () =>
-  Matches.find({
-    $expr: { $gt: ["$updated", "$uploaded"] },
-  })
-    .limit(5)
-    .sort({ fetched: 1 });
+const matchesForUploadFilter = (lastUploadedMatchId) => {
+  return {
+    $expr: { $gt: ["$updated", "$uploaded"], $gt: ["$id", lastUploadedMatchId || 0] },
+  };
+};
+
+const findAFewMatches = async (lastUploadedMatchId) =>
+  Matches.find(matchesForUploadFilter(lastUploadedMatchId)).limit(5).sort({ fetched: 1 });
 
 const uploadLoop = async () => {
-  const count = await Matches.countDocuments({ uploaded: { $exists: false } });
-  console.log(count + "uploads in the queue");
+  const lastUploadedMatch = await Matches.findOne({ uploaded: { $exists: true } }).sort({
+    updated: -1,
+  });
+  const count = await Matches.countDocuments(
+    matchesForUploadFilter(lastUploadedMatch?.id)
+  );
+  console.log(count + " uploads in the queue");
 
   let numberOfUpdates = 0;
   let fewMatches = [];
   do {
-    fewMatches = await findAFewMatches();
+    fewMatches = await findAFewMatches(lastUploadedMatch?.id);
     if (!fewMatches.length) {
       return;
     }
