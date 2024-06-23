@@ -6,6 +6,11 @@ const MatchesSchema = new mongoose.Schema(
     created: Date,
     id: { type: Number, required: true, unique: true },
     name: String,
+
+    type: String,
+    subType: String,
+    templateName: String,
+
     uuid: { type: String, required: true, unique: true },
     date: String, // match_date string as-is e.g. 2024-01-01
 
@@ -60,6 +65,9 @@ const fetchMatchesRange = async (fromId, template = "USPSA") => {
     uuid: h.match_id,
     date: h.match_date,
     timestamp_utc_updated: h.timestamp_utc_updated,
+    type: h.match_type,
+    subType: h.match_subtype,
+    templateName: h.templateName,
   }));
 };
 
