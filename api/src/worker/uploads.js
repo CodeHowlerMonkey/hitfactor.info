@@ -136,9 +136,10 @@ const normalizeDivision = (shitShowDivisionNameCanBeAnythingWTFPS) => {
 };
 
 const matchInfo = async (uuid) => {
-  const [match, results] = await Promise.all([
+  const [match, results, scoresJson] = await Promise.all([
     fetchPS(`${uuid}/match_def.json`),
     fetchPS(`${uuid}/results.json`),
+    fetchPS(`${uuid}/match_scores.json`),
   ]);
   if (!match || !results) {
     return [];
@@ -156,6 +157,18 @@ const matchInfo = async (uuid) => {
   const classifierUUIDs = Object.keys(classifiersMap);
   const classifierResults = results.filter((r) => classifierUUIDs.includes(r.stageUUID));
 
+  const { match_scores } = scoresJson;
+  // [stageUUID][shooterUUID]= { ...scoresInfo}
+  const stageScoresMap = match_scores.reduce((acc, cur) => {
+    const curStage = acc[cur.stage_uuid] || {};
+    cur.stage_stagescores.forEach((cs) => {
+      curStage[cs.shtr] = cs;
+    });
+    acc[cur.stage_uuid] = curStage;
+    return acc;
+  }, {});
+  //console.log(JSON.stringify(Object.keys(stageScoresMap), null, 2));
+
   const scores = classifierResults
     .map((r) => {
       const { stageUUID, ...varNameResult } = r;
@@ -171,10 +184,32 @@ const matchInfo = async (uuid) => {
         });
         const hf = Number(a.hitFactor);
         const percent = Percent(hf, hhf) || 0;
+        const points = Number(a.points);
+        const penalties = Number(a.penalties);
+
+        const detailedScores = stageScoresMap[stageUUID]?.[a.shooter] || {};
+        const modifiedDate = new Date(detailedScores.mod);
+        const modified = Number.isNaN(modifiedDate.getTime()) ? undefined : modifiedDate;
 
         return {
           hf: Number(a.hitFactor),
           hhf,
+
+          points,
+          penalties,
+          stageTimeSecs: a.stageTimeSecs,
+
+          // from /match_scores.json
+          modified,
+          steelMikes: detailedScores.popm,
+          steelHits: detailedScores.poph,
+          steelNS: detailedScores.popns,
+          steelNPM: detailedScores.popnpm,
+          rawPoints: detailedScores.rawpts,
+          strings: detailedScores.str,
+          targetHits: detailedScores.ts,
+          device: detailedScores.dname,
+
           percent,
           memberNumber,
           classifier,
@@ -282,21 +317,59 @@ export const uploadMatches = async (uuids) => {
       return { classifiers: [], shooters: [] };
     }
     await Score.bulkWrite(
-      scores.map((s) => ({
-        updateOne: {
-          filter: {
-            memberNumberDivision: s.memberNumberDivision,
-            classifierDivision: s.classifierDivision,
-            hf: s.hf,
-            sd: s.sd,
-            // some PS matches don't have club set, but all USPSA uploads do,
-            // so to prevent dupes, don't filter by club on score upsert
-            // clubid: s.clubid,
+      scores.map((s) => {
+        const {
+          stageTimeSecs,
+          points,
+          penalties,
+
+          modified,
+          steelMikes,
+          steelHits,
+          steelNS,
+          steelNPM,
+          rawPoints,
+          strings,
+          targetHits,
+          device,
+          ...nonExtraFields
+        } = s;
+
+        const extraFields = {
+          stageTimeSecs,
+          points,
+          penalties,
+
+          modified,
+          steelMikes,
+          steelHits,
+          steelNS,
+          steelNPM,
+          rawPoints,
+          strings,
+          targetHits,
+          device,
+        };
+
+        return {
+          updateOne: {
+            filter: {
+              memberNumberDivision: s.memberNumberDivision,
+              classifierDivision: s.classifierDivision,
+              hf: s.hf,
+              sd: s.sd,
+              // some PS matches don't have club set, but all USPSA uploads do,
+              // so to prevent dupes, don't filter by club on score upsert
+              // clubid: s.clubid,
+            },
+            update: {
+              $setOnInsert: nonExtraFields,
+              $set: extraFields,
+            },
+            upsert: true,
           },
-          update: { $setOnInsert: s },
-          upsert: true,
-        },
-      }))
+        };
+      })
     );
 
     const { classifiers, shooters } = classifiersAndShootersFromScores(

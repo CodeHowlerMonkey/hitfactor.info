@@ -20,6 +20,20 @@ const ScoreSchema = new mongoose.Schema(
     memberNumber: String,
     division: String,
 
+    // extra stage perf fields
+    stageTimeSecs: String, // keeping as-is from PS
+    points: Number,
+    penalties: Number,
+    modified: Date,
+    steelMikes: Number,
+    steelHits: Number,
+    steelNS: Number,
+    steelNPM: Number,
+    rawPoints: Number,
+    strings: [Number],
+    targetHits: [Number],
+    device: String,
+
     // compound keys for lookups
     classifierDivision: String,
     memberNumberDivision: String,
