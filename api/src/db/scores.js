@@ -20,6 +20,11 @@ const ScoreSchema = new mongoose.Schema(
     memberNumber: String,
     division: String,
 
+    // extra fields for sport/matchType
+    type: String,
+    subType: String,
+    templateName: String,
+
     // extra stage perf fields
     stageTimeSecs: String, // keeping as-is from PS
     points: Number,

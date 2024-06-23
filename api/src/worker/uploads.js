@@ -135,7 +135,7 @@ const normalizeDivision = (shitShowDivisionNameCanBeAnythingWTFPS) => {
   return anythingMap[lowercaseNoSpace] || lowercaseNoSpace;
 };
 
-const matchInfo = async (uuid) => {
+const matchInfo = async (uuid, matchInfo) => {
   const [match, results, scoresJson] = await Promise.all([
     fetchPS(`${uuid}/match_def.json`),
     fetchPS(`${uuid}/results.json`),
@@ -167,7 +167,6 @@ const matchInfo = async (uuid) => {
     acc[cur.stage_uuid] = curStage;
     return acc;
   }, {});
-  //console.log(JSON.stringify(Object.keys(stageScoresMap), null, 2));
 
   const scores = classifierResults
     .map((r) => {
@@ -198,6 +197,11 @@ const matchInfo = async (uuid) => {
           points,
           penalties,
           stageTimeSecs: a.stageTimeSecs,
+
+          // from algolia / matches collection
+          type: matchInfo?.type,
+          subType: matchInfo?.subType,
+          templateName: matchInfo?.templateName,
 
           // from /match_scores.json
           modified,
@@ -247,7 +251,17 @@ const multimatchUploadResults = async (uuidsRaw) => {
     return [];
   }
 
-  const matchResults = await Promise.all(uuids.map((uuid) => matchInfo(uuid, true)));
+  const matches = await Matches.find({ uuid: { $in: uuids } })
+    .limit(0)
+    .lean();
+  const matchResults = await Promise.all(
+    uuids.map((uuid) =>
+      matchInfo(
+        uuid,
+        matches.find((m) => m.uuid === uuid)
+      )
+    )
+  );
   return matchResults.reduce(
     (acc, cur) => {
       acc.scores = acc.scores.concat(cur.scores);
@@ -323,6 +337,11 @@ export const uploadMatches = async (uuids) => {
           points,
           penalties,
 
+          // algolia / matches collection
+          type,
+          subType,
+          templateName,
+
           modified,
           steelMikes,
           steelHits,
@@ -339,6 +358,10 @@ export const uploadMatches = async (uuids) => {
           stageTimeSecs,
           points,
           penalties,
+
+          type,
+          subType,
+          templateName,
 
           modified,
           steelMikes,
