@@ -120,3 +120,7 @@
 
 .classifier-dropdown ul.p-dropdown-items li.p-dropdown-item {
 }
+
+.p-menu .p-menu-list .focused-menu-item {
+  background-color: var(--surface-border);
+}

@@ -1,11 +1,24 @@
 import mongoose from "mongoose";
 
+const A = 1;
+const B = 16;
+const C = 256;
+const D = 4096;
+const NS = 65536;
+const M = 1048576;
+const NPM = 16777216;
+
 const MatchesSchema = new mongoose.Schema(
   {
     updated: Date,
     created: Date,
     id: { type: Number, required: true, unique: true },
     name: String,
+
+    type: String,
+    subType: String,
+    templateName: String,
+
     uuid: { type: String, required: true, unique: true },
     date: String, // match_date string as-is e.g. 2024-01-01
 
@@ -24,6 +37,14 @@ export const Matches = mongoose.model("Matches", MatchesSchema);
 const MATCHES_PER_FETCH = 1000;
 const _idRange = (fromId) =>
   encodeURIComponent(`id: ${fromId + 1} TO ${fromId + MATCHES_PER_FETCH + 1}`);
+const filtersForTemplate = (template) => {
+  if (!template) {
+    return "";
+  }
+
+  return `"templateName:${template}"`;
+};
+
 const fetchMatchesRange = async (fromId, template = "USPSA") => {
   console.log("fetching from " + fromId);
   const {
@@ -36,7 +57,7 @@ const fetchMatchesRange = async (fromId, template = "USPSA") => {
             indexName: "postmatches",
             params: `hitsPerPage=${MATCHES_PER_FETCH}&query=&numericFilters=${_idRange(
               fromId
-            )}&facetFilters=templateName:${template}`,
+            )}&facetFilters=${filtersForTemplate(template)}`,
           },
         ],
       }),
@@ -52,6 +73,9 @@ const fetchMatchesRange = async (fromId, template = "USPSA") => {
     uuid: h.match_id,
     date: h.match_date,
     timestamp_utc_updated: h.timestamp_utc_updated,
+    type: h.match_type,
+    subType: h.match_subtype,
+    templateName: h.templateName,
   }));
 };
 
@@ -140,7 +164,7 @@ const fetchMoreMatchesByTimestamp = async (startTimestamp, template, onPageCallb
 export const fetchAndSaveMoreUSPSAMatchesById = async () => {
   const lastMatch = await Matches.findOne().sort({ id: -1 });
   console.log("lastMatchId = " + lastMatch?.id);
-  return fetchMoreMatches(lastMatch?.id, "USPSA", async (matches) =>
+  return fetchMoreMatches(lastMatch?.id, "", async (matches) =>
     Matches.bulkWrite(
       matches.map((m) => ({
         updateOne: {

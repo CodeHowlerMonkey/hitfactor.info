@@ -25,9 +25,9 @@ const HomePage = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="surface-0">
+    <div>
       <div className="mx-auto" style={{ maxWidth: 1280 }}>
-        <div className="grid grid-nogutter surface-0 text-800">
+        <div className="grid grid-nogutter text-800">
           <div className="col-12 md:col-6 p-0 py-2 md:p-6 text-center md:text-left flex align-items-center ">
             <section>
               <span className="text-5xl mb-1">
@@ -78,10 +78,7 @@ const HomePage = () => {
           </div>
         </div>
         <Divider />
-        <div
-          id="learnMore"
-          className="surface-section px-4 py-8 md:px-6 lg:px-8 overflow-hidden"
-        >
+        <div id="learnMore" className="px-4 py-8 md:px-6 lg:px-8 overflow-hidden">
           <div className="font-bold text-900 text-3xl mb-3 text-center">
             Recommended Classification
           </div>
@@ -311,7 +308,7 @@ const HomePage = () => {
         </div>
         <Divider />
 
-        <div className="surface-0 my-4 mx-auto">
+        <div className="my-4 mx-auto">
           <div className="text-900 font-bold text-5xl mb-2 text-center">
             Pricing Plans
           </div>
@@ -504,7 +501,7 @@ const HomePage = () => {
 
         <Divider />
 
-        <div className="surface-0 text-700 text-center pb-4">
+        <div className="text-700 text-center pb-4">
           <div className="text-blue-600 font-bold mb-3">
             <i className="pi pi-discord"></i>&nbsp;POWERED BY DISCORD
           </div>

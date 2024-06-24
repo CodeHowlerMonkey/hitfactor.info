@@ -111,10 +111,14 @@ const normalizeDivision = (shitShowDivisionNameCanBeAnythingWTFPS) => {
 
     limited: "ltd",
     lim: "ltd",
+    li: "ltd",
 
+    lt: "l10",
     limited10: "l10",
     lim10: "l10",
+    ltdten: "l10",
 
+    pr: "prod",
     production: "prod",
 
     revolver: "rev",
@@ -135,10 +139,11 @@ const normalizeDivision = (shitShowDivisionNameCanBeAnythingWTFPS) => {
   return anythingMap[lowercaseNoSpace] || lowercaseNoSpace;
 };
 
-const matchInfo = async (uuid) => {
-  const [match, results] = await Promise.all([
+const matchInfo = async (uuid, matchInfo) => {
+  const [match, results, scoresJson] = await Promise.all([
     fetchPS(`${uuid}/match_def.json`),
     fetchPS(`${uuid}/results.json`),
+    fetchPS(`${uuid}/match_scores.json`),
   ]);
   if (!match || !results) {
     return [];
@@ -156,6 +161,17 @@ const matchInfo = async (uuid) => {
   const classifierUUIDs = Object.keys(classifiersMap);
   const classifierResults = results.filter((r) => classifierUUIDs.includes(r.stageUUID));
 
+  const { match_scores } = scoresJson;
+  // [stageUUID][shooterUUID]= { ...scoresInfo}
+  const stageScoresMap = match_scores.reduce((acc, cur) => {
+    const curStage = acc[cur.stage_uuid] || {};
+    cur.stage_stagescores.forEach((cs) => {
+      curStage[cs.shtr] = cs;
+    });
+    acc[cur.stage_uuid] = curStage;
+    return acc;
+  }, {});
+
   const scores = classifierResults
     .map((r) => {
       const { stageUUID, ...varNameResult } = r;
@@ -163,18 +179,45 @@ const matchInfo = async (uuid) => {
 
       // my borther in Christ, this is nested AF!
       return Object.values(varNameResult)[0][0].Overall.map((a) => {
-        const memberNumber = shootersMap[a.shooter];
+        const memberNumber = shootersMap[a.shooter]?.toUpperCase();
         const division = normalizeDivision(a.division);
         const hhf = curHHFForDivisionClassifier({
           division,
           number: classifier,
         });
-        const hf = Number(a.hitFactor);
+        const hf = Number(a.hitFactor) || 0;
         const percent = Percent(hf, hhf) || 0;
+        const points = Number(a.points) || 0;
+        const penalties = Number(a.penalties) || 0;
+
+        const detailedScores = stageScoresMap[stageUUID]?.[a.shooter] || {};
+        const modifiedDate = new Date(detailedScores.mod);
+        const modified = Number.isNaN(modifiedDate.getTime()) ? undefined : modifiedDate;
 
         return {
           hf: Number(a.hitFactor),
           hhf,
+
+          points,
+          penalties,
+          stageTimeSecs: a.stageTimeSecs,
+
+          // from algolia / matches collection
+          type: matchInfo?.type,
+          subType: matchInfo?.subType,
+          templateName: matchInfo?.templateName,
+
+          // from /match_scores.json
+          modified,
+          steelMikes: detailedScores.popm,
+          steelHits: detailedScores.poph,
+          steelNS: detailedScores.popns,
+          steelNPM: detailedScores.popnpm,
+          rawPoints: detailedScores.rawpts,
+          strings: detailedScores.str,
+          targetHits: detailedScores.ts,
+          device: detailedScores.dname,
+
           percent,
           memberNumber,
           classifier,
@@ -212,7 +255,17 @@ const multimatchUploadResults = async (uuidsRaw) => {
     return [];
   }
 
-  const matchResults = await Promise.all(uuids.map((uuid) => matchInfo(uuid, true)));
+  const matches = await Matches.find({ uuid: { $in: uuids } })
+    .limit(0)
+    .lean();
+  const matchResults = await Promise.all(
+    uuids.map((uuid) =>
+      matchInfo(
+        uuid,
+        matches.find((m) => m.uuid === uuid)
+      )
+    )
+  );
   return matchResults.reduce(
     (acc, cur) => {
       acc.scores = acc.scores.concat(cur.scores);
@@ -289,9 +342,6 @@ export const uploadMatches = async (uuids) => {
             classifierDivision: s.classifierDivision,
             hf: s.hf,
             sd: s.sd,
-            // some PS matches don't have club set, but all USPSA uploads do,
-            // so to prevent dupes, don't filter by club on score upsert
-            // clubid: s.clubid,
           },
           update: { $setOnInsert: s },
           upsert: true,
@@ -340,22 +390,78 @@ export const uploadsStats = async () => {
   console.log(count);
 };
 
-const matchesForUploadFilter = (lastUploadedMatchId) => {
-  return {
-    $expr: { $gt: ["$updated", "$uploaded"], $gt: ["$id", lastUploadedMatchId || 0] },
-  };
+export const dqNames = async () => {
+  await connect();
+
+  const dqs = await DQs.aggregate([
+    {
+      $match: {
+        memberNumber: {
+          $nin: [
+            null,
+            "NA",
+            "PEN",
+            "PENDING",
+            "NONE",
+            "Pending",
+            "x",
+            "xx",
+            "xxx",
+            "none",
+            "NEW",
+            "new",
+            "N/A",
+            "n/a",
+            "None",
+            "0",
+            "00",
+            "000",
+            "0000",
+            "XXX",
+            "",
+            "Na",
+            "na",
+            "00000",
+            "XXXX",
+            "PQ",
+            "X",
+            "9999",
+            "PEND",
+            "GUEST",
+          ],
+        },
+      },
+    },
+    {
+      $group: {
+        _id: "$memberNumber",
+        firstName: {
+          $last: "$firstName",
+        },
+        lastName: {
+          $last: "$lastName",
+        },
+        total: {
+          $sum: 1,
+        },
+      },
+    },
+    {
+      $sort: {
+        total: -1,
+      },
+    },
+  ]);
+
+  console.log(JSON.stringify(dqs, null, 2));
 };
 
-const findAFewMatches = async (lastUploadedMatchId) =>
-  Matches.find(matchesForUploadFilter(lastUploadedMatchId)).limit(5).sort({ fetched: 1 });
+const matchesForUploadFilter = () => ({ $expr: { $gt: ["$updated", "$uploaded"] } });
+const findAFewMatches = async () =>
+  Matches.find(matchesForUploadFilter()).limit(5).sort({ updated: 1 });
 
 const uploadLoop = async () => {
-  const lastUploadedMatch = await Matches.findOne({ uploaded: { $exists: true } }).sort({
-    updated: -1,
-  });
-  const count = await Matches.countDocuments(
-    matchesForUploadFilter(lastUploadedMatch?.id)
-  );
+  const count = await Matches.countDocuments(matchesForUploadFilter());
   console.log(count + " uploads in the queue");
 
   let numberOfUpdates = 0;
