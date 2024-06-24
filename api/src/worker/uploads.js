@@ -335,79 +335,18 @@ export const uploadMatches = async (uuids) => {
       return { classifiers: [], shooters: [] };
     }
     await Score.bulkWrite(
-      scores.map((s) => {
-        const {
-          stageTimeSecs,
-          points,
-          penalties,
-
-          // algolia / matches collection
-          type,
-          subType,
-          templateName,
-
-          modified,
-          steelMikes,
-          steelHits,
-          steelNS,
-          steelNPM,
-          rawPoints,
-          strings,
-          targetHits,
-          device,
-          code,
-          upload,
-          clubid,
-          club_name,
-          matchName,
-          ...nonExtraFields
-        } = s;
-
-        const extraFields = {
-          code,
-          upload,
-          clubid,
-          club_name,
-          matchName,
-
-          stageTimeSecs,
-          points,
-          penalties,
-
-          type,
-          subType,
-          templateName,
-
-          modified,
-          steelMikes,
-          steelHits,
-          steelNS,
-          steelNPM,
-          rawPoints,
-          strings,
-          targetHits,
-          device,
-        };
-
-        return {
-          updateOne: {
-            filter: {
-              // memberNumberDivision: s.memberNumberDivision,
-              classifierDivision: s.classifierDivision,
-              hf: s.hf,
-              sd: s.sd,
-              // some PS matches don't have club set, but all USPSA uploads do,
-              // so to prevent dupes, don't filter by club on score upsert
-              // clubid: s.clubid,
-            },
-            update: {
-              $setOnInsert: nonExtraFields,
-              $set: extraFields,
-            },
-            upsert: true,
+      scores.map((s) => ({
+        updateOne: {
+          filter: {
+            memberNumberDivision: s.memberNumberDivision,
+            classifierDivision: s.classifierDivision,
+            hf: s.hf,
+            sd: s.sd,
           },
-        };
-      })
+          update: { $setOnInsert: s },
+          upsert: true,
+        },
+      }))
     );
 
     const { classifiers, shooters } = classifiersAndShootersFromScores(
