@@ -1,5 +1,6 @@
-import React, { useState, Suspense, useEffect } from "react";
+import React, { useRef, useState, Suspense, useEffect } from "react";
 import { TabMenu } from "primereact/tabmenu";
+import { Menu as PrimeMenu } from "primereact/menu";
 import { ProgressSpinner } from "primereact/progressspinner";
 import {
   createBrowserRouter,
@@ -8,6 +9,67 @@ import {
   useLocation,
   Link,
 } from "react-router-dom";
+
+const enableUserMenu = false;
+
+const MoreMenu = () => {
+  const loggedIn = false;
+  const menu = useRef(null);
+  const items = [
+    loggedIn && {
+      icon: "pi pi-user-edit",
+      label: "Profile / Settings",
+    },
+    loggedIn && {
+      icon: "pi pi-book",
+      label: "Classification Record",
+    },
+    {
+      label: "GitHub",
+      icon: "pi pi-github",
+      url: "https://github.com/CodeHowlerMonkey/hitfactor.info",
+      target: "_blank",
+    },
+    {
+      separator: true,
+    },
+    loggedIn && {
+      icon: "pi pi-sign-out",
+      label: "Logout",
+    },
+    !loggedIn && {
+      icon: "pi pi-sign-in",
+      label: "Login",
+      url: "/api/login",
+    },
+    !loggedIn && {
+      label: "Register",
+      url: "/api/register",
+    },
+  ];
+
+  return (
+    <>
+      <PrimeMenu
+        model={items}
+        popup
+        ref={menu}
+        popupAlignment="right"
+        pt={{
+          root: { className: "-mt-5", style: { overflow: "hidden" } },
+          menu: { style: { width: "max-content" } },
+        }}
+      />
+      <a
+        className="flex p-menuitem-link no-highlight px-2"
+        onClick={(e) => menu.current.toggle(e)}
+      >
+        {" "}
+        <span className="pi pi-bars text-2xl" />
+      </a>
+    </>
+  );
+};
 
 const config = [
   {
@@ -55,9 +117,10 @@ const config = [
     style: { opacity: 1 },
   },
   {
+    visible: !enableUserMenu,
     template: () => (
       <Link
-        className="flex p-menuitem-link no-highlight"
+        className="flex p-menuitem-link no-highlight px-2"
         to="https://github.com/CodeHowlerMonkey/hitfactor.info"
         target="_blank"
       >
@@ -65,6 +128,10 @@ const config = [
         <span className="pi pi-github text-2xl" />
       </Link>
     ),
+  },
+  {
+    visible: enableUserMenu,
+    template: () => <MoreMenu />,
   },
 ];
 

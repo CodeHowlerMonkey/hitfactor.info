@@ -10,8 +10,10 @@ import {
 } from "../../../shared/constants/divisions";
 import usePreviousEffect from "../utils/usePreviousEffect";
 
+const enableSportSelector = false;
+
 const SportSelector = ({ sportCode, setSportCode }) => {
-  const menuLeft = useRef(null);
+  const menu = useRef(null);
   const items = [
     {
       items: [
@@ -34,9 +36,13 @@ const SportSelector = ({ sportCode, setSportCode }) => {
     },
   ];
 
+  if (!enableSportSelector) {
+    return null;
+  }
+
   return (
     <div className="card flex justify-content-center">
-      <Menu model={items} popup ref={menuLeft} id="popup_menu_left" />
+      <Menu model={items} popup ref={menu} />
       <a
         role="tab"
         class="p-tabview-nav-link mr-4"
@@ -44,7 +50,7 @@ const SportSelector = ({ sportCode, setSportCode }) => {
         onClick={(e) => {
           e.preventDefault();
 
-          menuLeft.current.toggle(e);
+          menu.current.toggle(e);
           setTimeout(() => document.activeElement?.blur(), 0);
         }}
         aria-haspopup
