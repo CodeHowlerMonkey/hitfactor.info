@@ -447,6 +447,72 @@ export const uploadsStats = async () => {
   console.log(count);
 };
 
+export const dqNames = async () => {
+  await connect();
+
+  const dqs = await DQs.aggregate([
+    {
+      $match: {
+        memberNumber: {
+          $nin: [
+            null,
+            "NA",
+            "PEN",
+            "PENDING",
+            "NONE",
+            "Pending",
+            "x",
+            "xx",
+            "xxx",
+            "none",
+            "NEW",
+            "new",
+            "N/A",
+            "n/a",
+            "None",
+            "0",
+            "00",
+            "000",
+            "0000",
+            "XXX",
+            "",
+            "Na",
+            "na",
+            "00000",
+            "XXXX",
+            "PQ",
+            "X",
+            "9999",
+            "PEND",
+            "GUEST",
+          ],
+        },
+      },
+    },
+    {
+      $group: {
+        _id: "$memberNumber",
+        firstName: {
+          $last: "$firstName",
+        },
+        lastName: {
+          $last: "$lastName",
+        },
+        total: {
+          $sum: 1,
+        },
+      },
+    },
+    {
+      $sort: {
+        total: -1,
+      },
+    },
+  ]);
+
+  console.log(JSON.stringify(dqs, null, 2));
+};
+
 const matchesForUploadFilter = (lastUploadedMatchId) => {
   return {
     $expr: { $gt: ["$updated", "$uploaded"], $gt: ["$id", lastUploadedMatchId || 0] },
