@@ -111,10 +111,14 @@ const normalizeDivision = (shitShowDivisionNameCanBeAnythingWTFPS) => {
 
     limited: "ltd",
     lim: "ltd",
+    li: "ltd",
 
+    lt: "l10",
     limited10: "l10",
     lim10: "l10",
+    ltdten: "l10",
 
+    pr: "prod",
     production: "prod",
 
     revolver: "rev",
