@@ -1,5 +1,13 @@
 import mongoose from "mongoose";
 
+const A = 1;
+const B = 16;
+const C = 256;
+const D = 4096;
+const NS = 65536;
+const M = 1048576;
+const NPM = 16777216;
+
 const MatchesSchema = new mongoose.Schema(
   {
     updated: Date,
