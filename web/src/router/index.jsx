@@ -9,6 +9,8 @@ import {
   useLocation,
   Link,
 } from "react-router-dom";
+import { Divider } from "primereact/divider";
+import Footer from "../components/Footer";
 
 const enableUserMenu = false;
 
@@ -164,17 +166,23 @@ const Menu = () => {
 };
 
 const Layout = () => (
-  <div className="card">
-    <Menu />
-    <Suspense
-      fallback={
-        <div className="flex flex-justify-around p-4">
-          <ProgressSpinner />
-        </div>
-      }
-    >
-      <Outlet />
-    </Suspense>
+  <div className="card relative min-h-screen">
+    <div style={{ paddingBottom: "13rem" }}>
+      <Menu />
+      <Suspense
+        fallback={
+          <div className="flex flex-justify-around p-4">
+            <ProgressSpinner />
+          </div>
+        }
+      >
+        <Outlet />
+      </Suspense>
+      <div className="absolute h-13rem bottom-0 w-full">
+        <Divider />
+        <Footer />
+      </div>
+    </div>
   </div>
 );
 
