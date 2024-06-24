@@ -456,28 +456,18 @@ export const dqNames = async () => {
   console.log(JSON.stringify(dqs, null, 2));
 };
 
-const matchesForUploadFilter = (lastUploadedMatchId) => {
-  return {
-    $expr: { $gt: ["$updated", "$uploaded"], $gt: ["$id", lastUploadedMatchId || 0] },
-  };
-};
-
-const findAFewMatches = async (lastUploadedMatchId) =>
-  Matches.find(matchesForUploadFilter(lastUploadedMatchId)).limit(5).sort({ fetched: 1 });
+const matchesForUploadFilter = () => ({ $expr: { $gt: ["$updated", "$uploaded"] } });
+const findAFewMatches = async () =>
+  Matches.find(matchesForUploadFilter()).limit(5).sort({ updated: 1 });
 
 const uploadLoop = async () => {
-  const lastUploadedMatch = await Matches.findOne({ uploaded: { $exists: true } }).sort({
-    updated: -1,
-  });
-  const count = await Matches.countDocuments(
-    matchesForUploadFilter(lastUploadedMatch?.id)
-  );
+  const count = await Matches.countDocuments(matchesForUploadFilter());
   console.log(count + " uploads in the queue");
 
   let numberOfUpdates = 0;
   let fewMatches = [];
   do {
-    fewMatches = await findAFewMatches(lastUploadedMatch?.id);
+    fewMatches = await findAFewMatches();
     if (!fewMatches.length) {
       return;
     }
