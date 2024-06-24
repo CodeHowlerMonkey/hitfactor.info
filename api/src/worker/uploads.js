@@ -467,7 +467,7 @@ const uploadLoop = async () => {
   let numberOfUpdates = 0;
   let fewMatches = [];
   do {
-    fewMatches = await findAFewMatches(lastUploadedMatch?.id);
+    fewMatches = await findAFewMatches();
     if (!fewMatches.length) {
       return;
     }
