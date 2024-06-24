@@ -175,16 +175,16 @@ const matchInfo = async (uuid, matchInfo) => {
 
       // my borther in Christ, this is nested AF!
       return Object.values(varNameResult)[0][0].Overall.map((a) => {
-        const memberNumber = shootersMap[a.shooter];
+        const memberNumber = shootersMap[a.shooter]?.toUpperCase();
         const division = normalizeDivision(a.division);
         const hhf = curHHFForDivisionClassifier({
           division,
           number: classifier,
         });
-        const hf = Number(a.hitFactor);
+        const hf = Number(a.hitFactor) || 0;
         const percent = Percent(hf, hhf) || 0;
-        const points = Number(a.points);
-        const penalties = Number(a.penalties);
+        const points = Number(a.points) || 0;
+        const penalties = Number(a.penalties) || 0;
 
         const detailedScores = stageScoresMap[stageUUID]?.[a.shooter] || {};
         const modifiedDate = new Date(detailedScores.mod);
@@ -351,10 +351,21 @@ export const uploadMatches = async (uuids) => {
           strings,
           targetHits,
           device,
+          code,
+          upload,
+          clubid,
+          club_name,
+          matchName,
           ...nonExtraFields
         } = s;
 
         const extraFields = {
+          code,
+          upload,
+          clubid,
+          club_name,
+          matchName,
+
           stageTimeSecs,
           points,
           penalties,
@@ -377,7 +388,7 @@ export const uploadMatches = async (uuids) => {
         return {
           updateOne: {
             filter: {
-              memberNumberDivision: s.memberNumberDivision,
+              // memberNumberDivision: s.memberNumberDivision,
               classifierDivision: s.classifierDivision,
               hf: s.hf,
               sd: s.sd,
