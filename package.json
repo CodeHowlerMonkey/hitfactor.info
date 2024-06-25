@@ -9,8 +9,8 @@
   "scripts": {
     "========================= Development Scripts ====================": "",
     "start": "docker-compose up -d && concurrently -c \"auto\" --names \"API,WEB\" \"npm run start-api\" \"npm run start-web\"",
-    "quick": "docker-compose up -d && concurrently -c \"auto\" --names \"API,WEB\" \"npm run start-api-quick\" \"npm run start-web\"",
-    "start-api-quick": "cd api && npm run quick",
+    "local": "docker-compose up -d && concurrently -c \"auto\" --names \"API,WEB\" \"npm run start-api-local\" \"npm run start-web\"",
+    "start-api-local": "cd api && npm run local",
     "start-api": "cd api && npm start",
     "start-web": "cd web && npm start",
     "test": "node --test",
@@ -22,7 +22,7 @@
     "========================= USPSA Import Scripts ============================": "",
     "import": "node scripts/import.js",
     "========================= Database Scripts ============================": "",
-    "hydrate-quick": "QUICK_DEV=1 node scripts/hydrateMongo.js",
+    "hydrate-local": "LOCAL_DEV=1 node scripts/hydrateMongo.js",
     "hydrate": "node scripts/hydrateMongo.js",
     "dump": "mongodump $MONGO_URL"
   },

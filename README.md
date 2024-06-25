@@ -15,7 +15,22 @@ Currently read-only, uploads planned (See issue #1)
 
 #### Running
 
-##### Locally - All Data
+##### Local
+
+For faster turn around when developing API, use:
+
+```
+npm i
+npm run local
+```
+
+This starts up the app with a Mongo instance running in Docker.
+
+(Hydrates in less than 5 seconds)
+
+##### Sandbox
+
+Note: You must supply `MONGO_URL={URL_OF_SANDBOX_DATABASE}` to test in this manner.
 
 ```
 npm i
@@ -23,17 +38,6 @@ npm start
 ```
 
 (Takes minute+ to hydrate the data and become responsive on M1Pro)
-
-##### Locally - Quick Mode
-
-For faster turn around when developing API, use:
-
-```
-npm i
-npm run quick
-```
-
-(Hydrates in less than 5 seconds)
 
 ###### In Production
 

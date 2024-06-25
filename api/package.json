@@ -4,8 +4,8 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "quick": "MONGO_URL_QUICK=mongodb://localhost:27017 QUICK_DEV=1 nodemon --exec npm run fastify-dev --watch src/ --watch ../data/ --watch ../shared/",
-    "start": "MONGO_URL=mongodb://localhost:27017 nodemon --exec npm run fastify-dev --watch src/ --watch ../data/ --watch ../shared/",
+    "local": "MONGO_URL_LOCAL=mongodb://localhost:27017 LOCAL_DEV=1 nodemon --exec npm run fastify-dev --watch src/ --watch ../data/ --watch ../shared/",
+    "start": "nodemon --exec npm run fastify-dev --watch src/ --watch ../data/ --watch ../shared/",
     "fastify-dev": "NODE_OPTIONS='--inspect --max-old-space-size=512' NODE_ENV=development fastify start -T 120000 -l info -p 3333 src/app.js",
     "prod": "NODE_OPTIONS='--max-old-space-size=512' NODE_ENV=production fastify start -T 120000 -l info -a 0.0.0.0 src/app.js"
   },
