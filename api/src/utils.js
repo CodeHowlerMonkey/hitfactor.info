@@ -13,7 +13,7 @@ export const loadJSON = (path) => JSON.parse(fs.readFileSync(dirPath(path), "utf
 const filesToProcess = (dir, fileRegexp) => {
   const files = fs.readdirSync(dirPath(dir)).filter((file) => !!file.match(fileRegexp));
 
-  if (process.env.QUICK_DEV) {
+  if (process.env.LOCAL_DEV) {
     const last = files[files.length - 1];
     return [last];
   }

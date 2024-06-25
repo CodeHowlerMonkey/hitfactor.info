@@ -10,25 +10,28 @@ A Better Classification System for Action Shooting Sports
 
 #### Running
 
+##### Locally with Docker-Compose
+For faster turn around when developing API, use:
+This starts up the app with a Mongo instance running in Docker.
+(Hydrates in less than 5 seconds)
+
+
+```
+npm i
+npm run local
+```
+
 ##### Locally against MONGO_URL
+Note: You must supply `MONGO_URL={URL_OF_SANDBOX_DATABASE}` to test in this manner.
 
 ```
 npm i
 npm start
 ```
 
-##### Locally with Docker
-
-For faster turn around when developing API, use:
-
-```
-npm i
-npm run local 
-```
-
 ###### In Production
 
-Currently deployed on Koyeb using Dockerfile and Dockerfile-uploadsWorker. To run api/web in prod mode, use:
+Currently deployed on Koyeb using Dockerfiles. To run api/web in prod mode, use:
 
 ```
 npm i
