@@ -10,7 +10,7 @@ A Better Classification System for Action Shooting Sports
 
 #### Running
 
-##### Locally against MONGO_URL
+##### Locally with Docker-Compose
 For faster turn around when developing API, use:
 This starts up the app with a Mongo instance running in Docker.
 (Hydrates in less than 5 seconds)
@@ -21,9 +21,7 @@ npm i
 npm run local
 ```
 
-
-##### Locally with Docker
-
+##### Locally against MONGO_URL
 Note: You must supply `MONGO_URL={URL_OF_SANDBOX_DATABASE}` to test in this manner.
 
 ```
