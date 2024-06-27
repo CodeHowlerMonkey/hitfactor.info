@@ -45,15 +45,15 @@ export const divisions = divisionsFromJson;
 export const hfuDivisions = [
   {
     long: "Competition",
-    short: "comp",
+    short: "comp", // src: opn, counts: opn
   },
   {
     long: "Optics",
-    short: "opt",
+    short: "opt", // src: loco, counts: loco
   },
   {
     long: "Irons",
-    short: "irn",
+    short: "irn", // src: ltd, counts: ltd, l10, prod, ss, rev
   },
   {
     long: "Carbine",
@@ -110,3 +110,5 @@ export const divisionChangeMap = {
     pcsl_acp: "co",
   },
 };
+
+export const minorDivisions = ["co", "lo", "prod", "pcc", "comp", "opt", "irn", "car"];

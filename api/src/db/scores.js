@@ -2,8 +2,8 @@ import mongoose from "mongoose";
 
 import { UTCDate } from "../../../shared/utils/date.js";
 
-import { processImportAsync, processImportAsyncSeq } from "../utils.js";
-import { divIdToShort } from "../dataUtil/divisions.js";
+import { processImportAsyncSeq } from "../utils.js";
+export { divIdToShort, minorDivisions } from "../../../shared/constants/divisions.js";
 import { curHHFFor } from "../dataUtil/hhf.js";
 import { N, Percent, PositiveOrMinus1 } from "../dataUtil/numbers.js";
 
@@ -15,6 +15,7 @@ const ScoreSchema = new mongoose.Schema(
     club_name: String,
     percent: Number,
     hf: Number,
+    minorHF: Number,
     code: { type: String, maxLength: 1 },
     source: String,
     memberNumber: String,
@@ -45,6 +46,22 @@ const ScoreSchema = new mongoose.Schema(
   },
   { strict: false }
 );
+
+// not all scores have minorHF, so this is an adapter around it or regular hf based on sport/division
+ScoreSchema.virtual("hfuHF").get(function () {
+  const division = this.division || "";
+  if (division.startsWith("pcsl_")) {
+    return this.hf;
+  }
+
+  // opn ltd l10 prod ss rev lo co pcc
+  // comp opt irn car
+  if (MINOR_DIVISIONS.includes(division)) {
+    return this.hf;
+  }
+
+  return this.minorHF;
+});
 ScoreSchema.virtual("isMajor").get(function () {
   return this.source === "Major Match";
 });
