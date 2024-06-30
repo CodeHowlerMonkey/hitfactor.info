@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 import { UTCDate } from "../../../shared/utils/date.js";
 
 import { processImportAsyncSeq } from "../utils.js";
-export { divIdToShort, minorDivisions } from "../../../shared/constants/divisions.js";
+import { divIdToShort, minorDivisions } from "../../../shared/constants/divisions.js";
 import { curHHFFor } from "../dataUtil/hhf.js";
 import { N, Percent, PositiveOrMinus1 } from "../dataUtil/numbers.js";
 
@@ -56,7 +56,7 @@ ScoreSchema.virtual("hfuHF").get(function () {
 
   // opn ltd l10 prod ss rev lo co pcc
   // comp opt irn car
-  if (MINOR_DIVISIONS.includes(division)) {
+  if (minorDivisions.includes(division)) {
     return this.hf;
   }
 
