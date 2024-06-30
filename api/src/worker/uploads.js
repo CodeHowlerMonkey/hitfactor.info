@@ -15,27 +15,69 @@ import {
   fetchAndSaveMoreUSPSAMatchesById,
   fetchAndSaveMoreUSPSAMatchesByUpdatedDate,
 } from "../db/matches.js";
+import { hfuDivisionCompatabilityMap } from "../dataUtil/divisions.js";
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-export const classifiersAndShootersFromScores = (scores, memberNumberToNameMap) => {
-  const classifiers = uniqBy(
-    scores.map(({ classifierDivision, classifier, division }) => ({
-      classifierDivision,
-      classifier,
-      division,
-    })),
-    (s) => s.classifierDivision
-  ).filter((c) => !!c.classifier);
-  const shooters = uniqBy(
-    scores.map(({ memberNumberDivision, memberNumber, division }) => ({
-      memberNumberDivision,
-      memberNumber,
-      division,
-      name: memberNumberToNameMap[memberNumber],
-    })),
-    (s) => s.memberNumberDivision
-  ).filter((c) => !!c.memberNumber);
+const uniqByTruthyMap = (arr, cb) => uniqBy(arr, cb).filter(cb).map(cb);
+export const arrayCombination = (arr1, arr2, cb) => {
+  const result = new Array(arr1.length * arr2.length);
+  let i = 0;
+  for (let ii = 0; ii < arr1.length; ++ii) {
+    for (let iii = 0; iii < arr2.length; ++iii) {
+      result[i++] = cb(arr1[ii], arr2[iii]);
+    }
+  }
+
+  return result;
+};
+
+export const classifiersAndShootersFromScores = (
+  scores,
+  memberNumberToNameMap = {},
+  includeHFUDivisions = false
+) => {
+  const classifiers = uniqByTruthyMap(scores, (s) => s.classifierDivision)
+    .map((classifierDivision) => {
+      const [classifier, division] = classifierDivision.split(":");
+      const extraDivision = includeHFUDivisions && hfuDivisionCompatabilityMap[division];
+      return [
+        {
+          classifierDivision,
+          classifier,
+          division,
+        },
+        extraDivision && {
+          classifier,
+          classifierDivision: [classifier, extraDivision].join(":"),
+          division: extraDivision,
+        },
+      ];
+    })
+    .flat()
+    .filter(Boolean);
+  const shooters = uniqByTruthyMap(scores, (s) => s.memberNumberDivision)
+    .map((memberNumberDivision) => {
+      const [memberNumber, division] = memberNumberDivision.split(":");
+      const extraDivision = includeHFUDivisions && hfuDivisionCompatabilityMap[division];
+      return [
+        {
+          memberNumberDivision,
+          memberNumber,
+          division,
+          name: memberNumberToNameMap[memberNumber],
+        },
+        extraDivision && {
+          memberNumber,
+          memberNumberDivision: [memberNumber, extraDivision].join(":"),
+          division: extraDivision,
+          name: memberNumberToNameMap[memberNumber],
+        },
+      ];
+    })
+    .flat()
+    .filter(Boolean);
+
   return { classifiers, shooters };
 };
 
