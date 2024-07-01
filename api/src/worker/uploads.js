@@ -15,7 +15,11 @@ import {
   fetchAndSaveMoreUSPSAMatchesById,
   fetchAndSaveMoreUSPSAMatchesByUpdatedDate,
 } from "../db/matches.js";
-import { hfuDivisionCompatabilityMap } from "../dataUtil/divisions.js";
+import {
+  arrayWithExplodedDivisions,
+  hfuDivisionCompatabilityMap,
+  pairToDivision,
+} from "../dataUtil/divisions.js";
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -37,48 +41,49 @@ export const classifiersAndShootersFromScores = (
   memberNumberToNameMap = {},
   includeHFUDivisions = false
 ) => {
-  const classifiers = uniqByTruthyMap(scores, (s) => s.classifierDivision)
-    .map((classifierDivision) => {
-      const [classifier, division] = classifierDivision.split(":");
-      const extraDivision = includeHFUDivisions && hfuDivisionCompatabilityMap[division];
-      return [
-        {
-          classifierDivision,
-          classifier,
-          division,
-        },
-        extraDivision && {
-          classifier,
-          classifierDivision: [classifier, extraDivision].join(":"),
-          division: extraDivision,
-        },
-      ];
-    })
-    .flat()
-    .filter(Boolean);
-  const shooters = uniqByTruthyMap(scores, (s) => s.memberNumberDivision)
-    .map((memberNumberDivision) => {
-      const [memberNumber, division] = memberNumberDivision.split(":");
-      const extraDivision = includeHFUDivisions && hfuDivisionCompatabilityMap[division];
-      return [
-        {
-          memberNumberDivision,
-          memberNumber,
-          division,
-          name: memberNumberToNameMap[memberNumber],
-        },
-        extraDivision && {
-          memberNumber,
-          memberNumberDivision: [memberNumber, extraDivision].join(":"),
-          division: extraDivision,
-          name: memberNumberToNameMap[memberNumber],
-        },
-      ];
-    })
-    .flat()
-    .filter(Boolean);
+  const divisionExplosionMap = includeHFUDivisions ? hfuDivisionCompatabilityMap : {};
+  const uniqueClassifierDivisionPairs = uniqByTruthyMap(
+    scores,
+    (s) => s.classifierDivision
+  );
+  const uniqueMemberNumberDivisionPairs = uniqByTruthyMap(
+    scores,
+    (s) => s.memberNumberDivision
+  );
 
-  return { classifiers, shooters };
+  const classifiers = arrayWithExplodedDivisions(
+    uniqueClassifierDivisionPairs,
+    divisionExplosionMap,
+    pairToDivision,
+    (originalClassifierDivision, division) => {
+      const classifier = originalClassifierDivision.split(":")[0];
+      return {
+        classifierDivision: [classifier, division].join(":"),
+        classifier,
+        division,
+      };
+    }
+  );
+
+  const shooters = arrayWithExplodedDivisions(
+    uniqueMemberNumberDivisionPairs,
+    divisionExplosionMap,
+    pairToDivision,
+    (originalMemberNumberDivision, division) => {
+      const memberNumber = originalMemberNumberDivision.split(":")[0];
+      return {
+        memberNumberDivision: [memberNumber, division].join(":"),
+        memberNumber,
+        division,
+        name: memberNumberToNameMap[memberNumber],
+      };
+    }
+  );
+
+  return {
+    classifiers: uniqBy(classifiers, (c) => c.classifierDivision),
+    shooters: uniqBy(shooters, (s) => s.memberNumberDivision),
+  };
 };
 
 export const afterUpload = async (classifiers, shooters, curTry = 1, maxTries = 3) => {
@@ -393,7 +398,8 @@ export const uploadMatches = async (uuids) => {
 
     const { classifiers, shooters } = classifiersAndShootersFromScores(
       scores,
-      shooterNameMap
+      shooterNameMap,
+      true
     );
     await afterUpload(classifiers, shooters);
     return {

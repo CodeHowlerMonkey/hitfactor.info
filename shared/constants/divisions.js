@@ -1,5 +1,8 @@
 import divisionsFromJson from "../../data/division.json" assert { type: "json" };
 
+/** Extracts division from memberNumberDivision or classifierDivision */
+export const pairToDivision = (pair) => pair.split(":")[1];
+
 /** ["opn", "ltd", "l10", "prod", "rev", "ss", "co", "lo", "pcc"] */
 export const divShortNames = divisionsFromJson.divisions.map((c) =>
   c.short_name.toLowerCase()
@@ -60,6 +63,7 @@ export const hfuDivisions = [
     short: "car",
   },
 ];
+export const hfuDivisionsShortNames = hfuDivisions.map((d) => d.short);
 
 export const sportName = (code) =>
   ({ hfu: "Hit Factor", pcsl: "PCSL", uspsa: "USPSA" }[code] || "USPSA");
@@ -88,6 +92,12 @@ export const hfuDivisionCompatabilityMap = {
 };
 
 /**
+ * Divisions that should NOT be used to calculate RecHHF for HFU divisions.
+ * Still can be used to show scores under them though.
+ */
+export const hfuDivisionRecHHFExclusion = ["pcsl_acp", "l10", "prod", "ss", "rev"];
+
+/**
  * All directions switch from sport to sport with selected division map.
  * User in DivisionNavigation
  *
@@ -112,3 +122,75 @@ export const divisionChangeMap = {
 };
 
 export const minorDivisions = ["co", "lo", "prod", "pcc", "comp", "opt", "irn", "car"];
+
+export const hfuDivisionCompatabilityMapInversion = (excludedDivisions = []) =>
+  Object.keys(hfuDivisionCompatabilityMap)
+    .filter((div) => !excludedDivisions.includes(div))
+    .reduce((acc, curKey) => {
+      const curValue = hfuDivisionCompatabilityMap[curKey];
+      const invertedArray = acc[curValue] || [];
+      invertedArray.push(curKey);
+      acc[curValue] = invertedArray;
+      return acc;
+    }, {});
+
+// inversion of hfuDivisionCompatabilityMap, only used for displaying
+// scores (in ClassifierRuns/ShooterRuns), but not for RecHHF calculation
+// (see hfuDivisionExplosionForRecHHF)
+export const hfuDivisionExplosionForScores = hfuDivisionCompatabilityMapInversion();
+
+// reduced inversion of hfuDivisionCompatabilityMap, because not all scores
+// can be used to calculate RecHHF (e.g. prod for irn, due to round limit)
+export const hfuDivisionExplosionForRecHHF = hfuDivisionCompatabilityMapInversion(
+  hfuDivisionRecHHFExclusion
+);
+
+const defaultDivisionAccess = (something) => something.division;
+/**
+ * Takes array of something and makes it bigger by including additional divisions
+ * from provided mapping.
+ */
+export const arrayWithExplodedDivisions = (
+  arr,
+  divisionExplosionMap,
+  arrDivCb = defaultDivisionAccess,
+  arrResultCb
+) => {
+  const withExtras = arr
+    .map((c) => {
+      const division = arrDivCb(c);
+      const extraDivisions = [].concat(divisionExplosionMap[division] || []);
+      return [
+        arrResultCb(c, division),
+        ...extraDivisions.map((extraDiv) => arrResultCb(c, extraDiv)),
+      ];
+    })
+    .flat()
+    .filter(Boolean);
+
+  return [...new Set(withExtras)];
+};
+
+/**
+ * Takes array of classifiers and returns array of classifierDivision keys,
+ * adding all compatible divisions for RecHHFs
+ */
+export const classifierDivisionArrayWithExplodedDivisions = (
+  classifiers,
+  divisionExplosionMap
+) =>
+  arrayWithExplodedDivisions(
+    classifiers,
+    divisionExplosionMap,
+    defaultDivisionAccess,
+    (classifierObj, division) => [classifierObj.classifier, division].join(":")
+  );
+
+export const classifierDivisionArrayWithHFUExtras = (classifiers) =>
+  classifierDivisionArrayWithExplodedDivisions(classifiers, hfuDivisionCompatabilityMap);
+
+export const classifierDivisionArrayForHFURecHHFs = (classifiers) =>
+  classifierDivisionArrayWithExplodedDivisions(
+    classifiers,
+    hfuDivisionExplosionForRecHHF
+  );

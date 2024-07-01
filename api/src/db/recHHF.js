@@ -4,6 +4,11 @@ import { HF, Percent, PositiveOrMinus1 } from "../dataUtil/numbers.js";
 
 import { Score } from "./scores.js";
 import { curHHFForDivisionClassifier } from "../dataUtil/hhf.js";
+import {
+  classifierDivisionArrayForHFURecHHFs,
+  hfuDivisionCompatabilityMap,
+  pairToDivision,
+} from "../dataUtil/divisions.js";
 
 /**
  * Calculated recommended HHF by matching lower percent of the score to percentile of shooters
@@ -447,7 +452,7 @@ const runsForRecsMultiByClassifierDivision = async (classifiers) => {
   const runs = await Score.find({
     bad: { $exists: false },
     classifierDivision: {
-      $in: classifiers.map((c) => [c.classifier, c.division].join(":")),
+      $in: classifierDivisionArrayForHFURecHHFs(classifiers),
     },
     hf: { $gt: 0 },
   })
@@ -457,9 +462,21 @@ const runsForRecsMultiByClassifierDivision = async (classifiers) => {
     .lean();
 
   const byCD = runs.reduce((acc, cur) => {
-    const curClassifierDivision = acc[cur.classifierDivision] ?? [];
-    curClassifierDivision.push(cur);
-    acc[cur.classifierDivision] = curClassifierDivision;
+    const curBucket = acc[cur.classifierDivision] ?? [];
+    curBucket.push(cur);
+    acc[cur.classifierDivision] = curBucket;
+
+    // same as above but for single HFU division, if there is any for cur.division
+    const [classifier, division] = cur.classifierDivision.split(":");
+    const extraCompatibleDivision = hfuDivisionCompatabilityMap[division];
+    if (extraCompatibleDivision) {
+      const extraClassifierDivision = [classifier, extraCompatibleDivision].join(":");
+      const extraBucket = acc[extraClassifierDivision] ?? [];
+      // must be a copy, or percentile calc will mess things up
+      extraBucket.push({ ...cur });
+      acc[extraClassifierDivision] = extraBucket;
+    }
+
     return acc;
   }, {});
 
