@@ -238,7 +238,6 @@ const scsaMatchInfo = async (matchInfo) => {
           stageTimeSecs: stageTotal,
           stagePeakTimeSecs: classifierPeakTime,
 
-          points: 0,
           penalties: penaltyCount,
 
           // from algolia / matches collection
