@@ -27,6 +27,7 @@ const ScoreSchema = new mongoose.Schema(
 
     // extra stage perf fields
     stageTimeSecs: String, // keeping as-is from PS
+    stagePeakTimeSecs: Number, // applicable to SCSA only
     points: Number,
     penalties: Number,
     modified: Date,

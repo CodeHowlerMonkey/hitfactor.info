@@ -9,12 +9,13 @@ import { Score } from "../db/scores.js";
 import { DQs } from "../db/dq.js";
 import { uuidsFromUrlString } from "../../../shared/utils/uuid.js";
 import { curHHFForDivisionClassifier } from "../dataUtil/hhf.js";
-import { Percent } from "../dataUtil/numbers.js";
+import { N, Percent } from "../dataUtil/numbers.js";
 import {
   Matches,
   fetchAndSaveMoreUSPSAMatchesById,
   fetchAndSaveMoreUSPSAMatchesByUpdatedDate,
 } from "../db/matches.js";
+import { scsaDivisionWithPrefix, scsaPeakTime, ScsaPeakTimesMap } from "../dataUtil/classifiersData";
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -102,33 +103,6 @@ const fetchPS = async (path) => {
   return await response.json();
 };
 
-const scsaDivisionWithPrefix = (scsaDivision) => `scsa:${scsaDivision.toLowerCase()}`;
-
-// See: https://scsa.org/classification
-// Peak Times in SCSA typically change every 2 to 3 years, and new classifiers have not been added
-// since the late 2000s.
-const PeakTimesMap = {
-  //      SC-101  SC-102 SC-103 SC-104 SC-105 SC-106 SC-107 SC-108
-  'ISR' : [13.5,  12,    10.5,  15.75, 13,    14.25, 14,    11  ],
-  'LTD' : [12.5,  9.5,   9.5,   13.5,  10.5,  12.5,  12.5,  9.5 ],
-  'OSR' : [12.25, 10.5,  10,    14.25, 12.75, 13.5,  12.75, 10.5],
-  'RFPI': [10.5,  9,     8,     13,    9.25,  11,    11,    8.25],
-  'RFPO': [8.75,	7.5,	 7,	    11.5,	 8.5,	  9.5,	 10,	  7.5 ],
-  'RFRI': [9.75,	7.5,	 7.5,	  12,	   9,	    9.75,	 10,	  7.5 ],
-  'RFRO': [9.5,	  7,	   7,	    10.75, 8.5,	  9,	   9,	    7   ],
-  'PROD': [13,    10,    10,    14,    11.5,  13,    13,    10  ],
-  'OPN' : [11.25,	9.5,	 8.5,	  12.5,	 10.5,	11.25, 11.5,	8.5 ],
-  'SS'  : [13.25, 10.5,  10.25, 14.75, 11.75, 13.5,  13.5,  10.5],
-  'CO'  : [12.5,  9.75,  10,    13.75, 11,    12.75, 13,    9.75],
-  'PCCO': [9.5,	  7,	   7,	    11.25, 8.75,	9,	   9.5,	  7.5 ],
-  'PCCI': [10.75,	8.5,	7.75,   12.25, 9.5,   10.5,  11,    8   ]
-}
-
-const scsaPeakTime = (scsaDivision, scsaClassifierCode) => {
-  // Indexing scheme based on the fact that the division peak times in the above structure are sorted in ascending order.
-  return PeakTimesMap[scsaDivision][parseInt(scsaClassifierCode.substr(3, 4))-101];
-}
-
 const normalizeDivision = (shitShowDivisionNameCanBeAnythingWTFPS) => {
   const lowercaseNoSpace = shitShowDivisionNameCanBeAnythingWTFPS
     .toLowerCase()
@@ -166,14 +140,14 @@ const normalizeDivision = (shitShowDivisionNameCanBeAnythingWTFPS) => {
   return anythingMap[lowercaseNoSpace] || lowercaseNoSpace;
 };
 
-const scsaMatchInfo = async (uuid, matchInfo) => {
+const scsaMatchInfo = async (matchInfo) => {
   // Unlike USPSA, SCSA does not have results.json.
   const [match, scoresJson] = await Promise.all([
-    fetchPS(`${uuid}/match_def.json`),
-    fetchPS(`${uuid}/match_scores.json`),
+    fetchPS(`${matchInfo.uuid}/match_def.json`),
+    fetchPS(`${matchInfo.uuid}/match_scores.json`),
   ]);
   if (!match || !scoresJson) {
-    return [];
+    return EmptyMatchResults;
   }
   /*
     match_penalties Structure:
@@ -218,7 +192,7 @@ const scsaMatchInfo = async (uuid, matchInfo) => {
 
       return stage_stagescores.filter((ss) => {
         const divisionCode = shootersDivisionMap[ss.shtr]?.toUpperCase();
-        return divisionCode !== undefined && Object.keys(PeakTimesMap).find((div) => div === divisionCode) !== undefined;
+        return divisionCode !== undefined && Object.keys(ScsaPeakTimesMap).find((div) => div === divisionCode) !== undefined;
       }).map((ss) => {
         // str is the array of all strings for the stage
         // e.g. [7, 5.46, 6.17, 23.13]
@@ -245,7 +219,7 @@ const scsaMatchInfo = async (uuid, matchInfo) => {
           // Strings max out at 30 seconds in SCSA.
           return Math.min(30, adjustedStringTotal);
         })
-          .sort(((x, y) => y - x));
+          .sort(((a, b) => b - a));
 
         const memberNumber = shootersMap[ss.shtr]?.toUpperCase();
         const divisionCode = shootersDivisionMap[ss.shtr]?.toUpperCase();
@@ -257,16 +231,15 @@ const scsaMatchInfo = async (uuid, matchInfo) => {
         // Worst string (front of the array) dropped.
         const bestNStrings = adjustedStrings.slice(1);
 
-        const stageTotal = Number(bestNStrings.reduce((p, c) => p + c, 0).toFixed(2));
+        const stageTotal = N(bestNStrings.reduce((p, c) => p + c, 0));
 
         const classifierPeakTime = scsaPeakTime(divisionCode, classifier);
         return {
-          hf: stageTotal,
-          hhf: classifierPeakTime,
+          stageTimeSecs: stageTotal,
+          stagePeakTimeSecs: classifierPeakTime,
 
           points: 0,
           penalties: penaltyCount,
-          stageTimeSecs: stageTotal,
 
           // from algolia / matches collection
           type: matchInfo?.type,
@@ -275,16 +248,11 @@ const scsaMatchInfo = async (uuid, matchInfo) => {
 
           // from /match_scores.json
           modified,
-          steelMikes: detailedScores.popm,
-          steelHits: detailedScores.poph,
-          steelNS: detailedScores.popns,
-          steelNPM: detailedScores.popnpm,
-          rawPoints: detailedScores.rawpts,
           strings: detailedScores.str,
           targetHits: detailedScores.ts,
           device: detailedScores.dname,
 
-          percent: Number(classifierPeakTime / stageTotal).toFixed(2),
+          percent: Percent(classifierPeakTime, stageTotal),
           memberNumber,
           classifier,
           division,
@@ -313,11 +281,11 @@ const scsaMatchInfo = async (uuid, matchInfo) => {
   return { scores, match, results: [] };
 }
 
-const uspsaOrHitFactorMatchInfo = async (uuid, matchInfo) => {
+const uspsaOrHitFactorMatchInfo = async (matchInfo) => {
   const [match, results, scoresJson] = await Promise.all([
-    fetchPS(`${uuid}/match_def.json`),
-    fetchPS(`${uuid}/results.json`),
-    fetchPS(`${uuid}/match_scores.json`),
+    fetchPS(`${matchInfo.uuid}/match_def.json`),
+    fetchPS(`${matchInfo.uuid}/results.json`),
+    fetchPS(`${matchInfo.uuid}/match_scores.json`),
   ]);
   if (!match || !results) {
     return [];
@@ -421,7 +389,7 @@ const uspsaOrHitFactorMatchInfo = async (uuid, matchInfo) => {
   return { scores, match, results };
 };
 
-const NilMatchResults = { scores: [], matches: [], results: [] };
+const EmptyMatchResults = { scores: [], matches: [], results: [] };
 
 const multimatchUploadResults = async (uuidsRaw) => {
   const uuids = uuidsRaw.filter(
@@ -431,28 +399,19 @@ const multimatchUploadResults = async (uuidsRaw) => {
     return [];
   }
 
-  const matches = await Matches.find({ uuid: { $in: uuids } })
+  const matchResults = await Matches.find({ uuid: { $in: uuids } })
     .limit(0)
-    .lean();
-  const matchResults = await Promise.all(
-    uuids.map((uuid) => {
-      const match = matches.find((m) => m.uuid === uuid);
+    .lean()
+    .map((match) => {
       if (['USPSA', 'Hit_Factor'].find((x) => x === match.templateName)) {
-        return uspsaOrHitFactorMatchInfo(
-          uuid,
-          match
-        );
+        return uspsaOrHitFactorMatchInfo(match);
       } else if ('Steel Challenge' === match.templateName) {
-        return scsaMatchInfo(
-          uuid,
-          match
-        );
+        return scsaMatchInfo(match);
       } else {
-        return NilMatchResults;
+        return EmptyMatchResults;
       }
-    }
-    )
-  );
+    });
+
   return matchResults.reduce(
     (acc, cur) => {
       acc.scores = acc.scores.concat(cur.scores);
@@ -460,7 +419,7 @@ const multimatchUploadResults = async (uuidsRaw) => {
       acc.results = acc.results.concat(cur.results);
       return acc;
     },
-    NilMatchResults
+    EmptyMatchResults
   );
 };
 
