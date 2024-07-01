@@ -123,6 +123,7 @@ export const afterUpload = async (classifiers, shooters, curTry = 1, maxTries = 
         updateOne: {
           filter: { division: doc.division, classifier: doc.classifier },
           update: { $set: doc },
+          upsert: true,
         },
       }))
     );

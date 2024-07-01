@@ -1,5 +1,5 @@
 import { classifiers } from "./classifiersData.js";
-import { divIdToShort } from "./divisions.js";
+import { divIdToShort, hfuDivisionMapForHHF } from "./divisions.js";
 import { HF } from "./numbers.js";
 import { loadJSON } from "../utils.js";
 
@@ -13,12 +13,21 @@ export const divShortToHHFs = loadJSON("../../data/hhf.json").hhfs.reduce((acc, 
   };
 }, {});
 
+export const hhfsForDivision = (division) => {
+  const hfuDivisionForHHF = hfuDivisionMapForHHF[division];
+  if (hfuDivisionForHHF) {
+    return divShortToHHFs[hfuDivisionForHHF];
+  }
+
+  return divShortToHHFs[division];
+};
+
 export const curHHFForDivisionClassifier = ({ division, number }) => {
   if (!number) {
     return NaN;
   }
 
-  const divisionHHFs = divShortToHHFs[division];
+  const divisionHHFs = hhfsForDivision(division);
   const c = classifiers.find((cur) => cur.classifier === number);
 
   // major match or classifier not found for some reason

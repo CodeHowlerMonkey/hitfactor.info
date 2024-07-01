@@ -145,6 +145,10 @@ export const hfuDivisionExplosionForRecHHF = hfuDivisionCompatabilityMapInversio
   hfuDivisionRecHHFExclusion
 );
 
+export const hfuDivisionMapForHHF = Object.fromEntries(
+  Object.entries(hfuDivisionExplosionForRecHHF).map(([key, value]) => [key, value[0]])
+);
+
 const defaultDivisionAccess = (something) => something.division;
 /**
  * Takes array of something and makes it bigger by including additional divisions

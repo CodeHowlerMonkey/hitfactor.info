@@ -6,6 +6,7 @@ import {
   hfuDivisionCompatabilityMapInversion,
   hfuDivisionExplosionForRecHHF,
   hfuDivisionExplosionForScores,
+  hfuDivisionMapForHHF,
   hfuDivisionRecHHFExclusion,
 } from "../divisions.js";
 
@@ -86,4 +87,13 @@ test("classifierDivisionArrayForHFURecHHFs", (t) => {
     classifierDivisionArrayForHFURecHHFs([classifierFactory("09-01", "pcsl_po")]),
     ["09-01:pcsl_po"]
   );
+});
+
+test("hfuDivisionMapForHHF", (t) => {
+  assert.deepEqual(hfuDivisionMapForHHF, {
+    comp: "opn",
+    opt: "co",
+    irn: "ltd",
+    car: "pcc",
+  });
 });
