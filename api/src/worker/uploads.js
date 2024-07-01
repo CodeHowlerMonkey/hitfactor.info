@@ -301,13 +301,14 @@ const scsaMatchInfo = async (matchInfo) => {
 };
 
 const uspsaOrHitFactorMatchInfo = async (matchInfo) => {
+  const { uuid } = matchInfo;
   const [match, results, scoresJson] = await Promise.all([
-    fetchPS(`${matchInfo.uuid}/match_def.json`),
-    fetchPS(`${matchInfo.uuid}/results.json`),
-    fetchPS(`${matchInfo.uuid}/match_scores.json`),
+    fetchPS(`${uuid}/match_def.json`),
+    fetchPS(`${uuid}/results.json`),
+    fetchPS(`${uuid}/match_scores.json`),
   ]);
   if (!match || !results) {
-    return [];
+    return EmptyMatchResults;
   }
   const { match_shooters, match_stages } = match;
   const shootersMap = Object.fromEntries(match_shooters.map((s) => [s.sh_uuid, s.sh_id]));
@@ -418,18 +419,23 @@ const multimatchUploadResults = async (uuidsRaw) => {
     return [];
   }
 
-  const matchResults = await Matches.find({ uuid: { $in: uuids } })
+  const matches = await Matches.find({ uuid: { $in: uuids } })
     .limit(0)
-    .lean()
-    .map((match) => {
-      if (["USPSA", "Hit_Factor"].find((x) => x === match.templateName)) {
-        return uspsaOrHitFactorMatchInfo(match);
-      } else if ("Steel Challenge" === match.templateName) {
-        return scsaMatchInfo(match);
-      } else {
-        return EmptyMatchResults;
+    .lean();
+
+  const matchResults = await Promise.all(
+    matches.map(async (match) => {
+      switch (match.templateName) {
+        case "Steel Challenge":
+          return scsaMatchInfo(match);
+
+        case "USPSA":
+        case "Hit Factor":
+        default:
+          return uspsaOrHitFactorMatchInfo(match);
       }
-    });
+    })
+  );
 
   return matchResults.reduce((acc, cur) => {
     acc.scores = acc.scores.concat(cur.scores);
