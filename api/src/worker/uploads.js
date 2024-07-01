@@ -257,7 +257,7 @@ const scsaMatchInfo = async (uuid, matchInfo) => {
         // Worst string (front of the array) dropped.
         const bestNStrings = adjustedStrings.slice(1);
 
-        const stageTotal = bestNStrings.reduce((p, c) => p + c, 0);
+        const stageTotal = Number(bestNStrings.reduce((p, c) => p + c, 0).toFixed(2));
 
         const classifierPeakTime = scsaPeakTime(divisionCode, classifier);
         return {
