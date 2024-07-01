@@ -15,7 +15,7 @@ import {
   fetchAndSaveMoreUSPSAMatchesById,
   fetchAndSaveMoreUSPSAMatchesByUpdatedDate,
 } from "../db/matches.js";
-import { scsaDivisionWithPrefix, scsaPeakTime, ScsaPeakTimesMap } from "../dataUtil/classifiersData";
+import { scsaDivisionWithPrefix, scsaPeakTime, ScsaPeakTimesMap } from "../dataUtil/classifiersData.js";
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
