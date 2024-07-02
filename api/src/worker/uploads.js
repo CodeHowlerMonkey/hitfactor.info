@@ -290,7 +290,7 @@ const scsaMatchInfo = async (matchInfo) => {
     .flat()
     .filter(
       (r) =>
-        r.hf > 0 &&
+        r.stageTimeSecs > 0 &&
         !!r.memberNumber &&
         !!r.classifier &&
         !!r.division &&
