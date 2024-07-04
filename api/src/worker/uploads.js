@@ -145,6 +145,8 @@ const normalizeDivision = (shitShowDivisionNameCanBeAnythingWTFPS) => {
 };
 
 const scsaMatchInfo = async (matchInfo) => {
+  const { uuid } = matchInfo;
+
   // Unlike USPSA, SCSA does not have results.json.
   const [match, scoresJson] = await Promise.all([
     fetchPS(`${matchInfo.uuid}/match_def.json`),
