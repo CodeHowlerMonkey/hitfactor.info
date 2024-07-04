@@ -1,0 +1,22 @@
+version: '3.8'
+services:
+  mongodb:
+    image: mongo:7
+    deploy:
+      resources:
+        limits:
+          memory: 1024M
+        reservations:
+          memory: 512MB
+    ports:
+      - '27017:27017'
+    volumes:
+      - dbdata7:/data/db
+volumes:
+  dbdata7:
+    driver: local
+    driver_opts:
+      o: "size=5000m"
+      device: tmpfs
+      type: tmpfs
+

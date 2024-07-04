@@ -10,25 +10,40 @@ A Better Classification System for Action Shooting Sports
 
 #### Running
 
+##### Locally with Docker-Compose
+For faster turn around when developing API, use:
+This starts up the app with a Mongo instance running in Docker.
+
+```
+npm i
+npm run local
+```
+
+Populate the local database with production data by doing the following:
+
+1. Download a production `mongodump` archive (ask an existing contributor to provide you with the archive). 
+2. Extract `zeta` folder to be at the root level of this repo.
+3. Run the following `mongorestore` command:
+
+```
+mongorestore --host localhost:27017 zeta -d test
+```
+
+NOTE: Before running this command, it is highly recommended to increase memory availability in `Docker Desktop` to at least 5 or 6 GB.
+
+Otherwise, the restore process may crash due to Docker's OOMKiller.
+
 ##### Locally against MONGO_URL
+Note: You must supply `MONGO_URL={URL_OF_SANDBOX_DATABASE}` to test in this manner.
 
 ```
 npm i
 npm start
 ```
 
-##### Locally with Docker
-
-For faster turn around when developing API, use:
-
-```
-npm i
-npm run local 
-```
-
 ###### In Production
 
-Currently deployed on Koyeb using Dockerfile and Dockerfile-uploadsWorker. To run api/web in prod mode, use:
+Currently deployed on Koyeb using Dockerfiles. To run api/web in prod mode, use:
 
 ```
 npm i
