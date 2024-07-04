@@ -3,6 +3,7 @@ import assert from "assert";
 import {
   classifierDivisionArrayForHFURecHHFs,
   classifierDivisionArrayWithHFUExtras,
+  divisionsForScoresAdapter,
   hfuDivisionCompatabilityMapInversion,
   hfuDivisionExplosionForRecHHF,
   hfuDivisionExplosionForScores,
@@ -46,29 +47,29 @@ test("classifierDivisionArrayWithExtra", (t) => {
 
 test("hfuDivisionCompatabilityMapInversion", (t) => {
   assert.deepEqual(hfuDivisionCompatabilityMapInversion(), {
-    comp: ["opn", "pcsl_comp"],
-    opt: ["co", "lo", "pcsl_po", "pcsl_acp"],
-    irn: ["ltd", "l10", "prod", "ss", "rev", "pcsl_pi"],
-    car: ["pcc", "pcsl_pcc"],
+    comp: ["comp", "opn", "pcsl_comp"],
+    opt: ["opt", "co", "lo", "pcsl_po", "pcsl_acp"],
+    irn: ["irn", "ltd", "l10", "prod", "ss", "rev", "pcsl_pi"],
+    car: ["car", "pcc", "pcsl_pcc"],
   });
   assert.deepEqual(hfuDivisionExplosionForScores, {
-    comp: ["opn", "pcsl_comp"],
-    opt: ["co", "lo", "pcsl_po", "pcsl_acp"],
-    irn: ["ltd", "l10", "prod", "ss", "rev", "pcsl_pi"],
-    car: ["pcc", "pcsl_pcc"],
+    comp: ["comp", "opn", "pcsl_comp"],
+    opt: ["opt", "co", "lo", "pcsl_po", "pcsl_acp"],
+    irn: ["irn", "ltd", "l10", "prod", "ss", "rev", "pcsl_pi"],
+    car: ["car", "pcc", "pcsl_pcc"],
   });
 
   assert.deepEqual(hfuDivisionCompatabilityMapInversion(hfuDivisionRecHHFExclusion), {
-    comp: ["opn", "pcsl_comp"],
-    opt: ["co", "lo", "pcsl_po"],
-    irn: ["ltd", "pcsl_pi"],
-    car: ["pcc", "pcsl_pcc"],
+    comp: ["comp", "opn", "pcsl_comp"],
+    opt: ["opt", "co", "lo", "pcsl_po"],
+    irn: ["irn", "ltd", "pcsl_pi"],
+    car: ["car", "pcc", "pcsl_pcc"],
   });
   assert.deepEqual(hfuDivisionExplosionForRecHHF, {
-    comp: ["opn", "pcsl_comp"],
-    opt: ["co", "lo", "pcsl_po"],
-    irn: ["ltd", "pcsl_pi"],
-    car: ["pcc", "pcsl_pcc"],
+    comp: ["comp", "opn", "pcsl_comp"],
+    opt: ["opt", "co", "lo", "pcsl_po"],
+    irn: ["irn", "ltd", "pcsl_pi"],
+    car: ["car", "pcc", "pcsl_pcc"],
   });
 });
 
@@ -96,4 +97,15 @@ test("hfuDivisionMapForHHF", (t) => {
     irn: "ltd",
     car: "pcc",
   });
+});
+
+test("divisionsForScoresAdapter", (t) => {
+  assert.deepEqual(divisionsForScoresAdapter("co"), ["co"]);
+  assert.deepEqual(divisionsForScoresAdapter("opt"), [
+    "opt",
+    "co",
+    "lo",
+    "pcsl_po",
+    "pcsl_acp",
+  ]);
 });

@@ -128,7 +128,7 @@ export const hfuDivisionCompatabilityMapInversion = (excludedDivisions = []) =>
     .filter((div) => !excludedDivisions.includes(div))
     .reduce((acc, curKey) => {
       const curValue = hfuDivisionCompatabilityMap[curKey];
-      const invertedArray = acc[curValue] || [];
+      const invertedArray = acc[curValue] || [curValue];
       invertedArray.push(curKey);
       acc[curValue] = invertedArray;
       return acc;
@@ -145,8 +145,11 @@ export const hfuDivisionExplosionForRecHHF = hfuDivisionCompatabilityMapInversio
   hfuDivisionRecHHFExclusion
 );
 
+/** Plug for HHF source to make classifiers hydrate for HFU divisions on upload
+ * Should be removed or replaced with custom HFU HHF mapping
+ */
 export const hfuDivisionMapForHHF = Object.fromEntries(
-  Object.entries(hfuDivisionExplosionForRecHHF).map(([key, value]) => [key, value[0]])
+  Object.entries(hfuDivisionExplosionForRecHHF).map(([key, value]) => [key, value[1]])
 );
 
 const defaultDivisionAccess = (something) => something.division;
@@ -198,3 +201,21 @@ export const classifierDivisionArrayForHFURecHHFs = (classifiers) =>
     classifiers,
     hfuDivisionExplosionForRecHHF
   );
+
+export const divisionsForScoresAdapter = (division) => {
+  const hfuDivisions = hfuDivisionExplosionForScores[division];
+  if (hfuDivisions) {
+    return hfuDivisions;
+  }
+
+  return [division];
+};
+
+export const divisionsForRecHHFAdapter = (division) => {
+  const hfuDivisions = hfuDivisionExplosionForRecHHF[division];
+  if (hfuDivisions) {
+    return hfuDivisions;
+  }
+
+  return [division];
+};

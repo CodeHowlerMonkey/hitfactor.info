@@ -14,7 +14,7 @@ import { hhfsForDivision } from "../dataUtil/hhf.js";
 import mongoose from "mongoose";
 import { Score } from "./scores.js";
 import { RecHHF } from "./recHHF.js";
-import { divShortNames, hfuDivisionExplosionForScores } from "../dataUtil/divisions.js";
+import { divisionsForScoresAdapter, divShortNames } from "../dataUtil/divisions.js";
 
 const calcLegitRunStats = (runs, hhf) =>
   runs.reduce(
@@ -181,11 +181,10 @@ export const singleClassifierExtendedMetaDoc = async (
   recHHFReady
 ) => {
   const c = classifiersByNumber[classifier];
-  const divisions = [division, ...(hfuDivisionExplosionForScores[division] || [])];
   const [recHHFQuery, hitFactorScores] = await Promise.all([
     recHHFReady ?? RecHHF.findOne({ division, classifier }).select("recHHF").lean(),
     Score.find({
-      division: { $in: divisions },
+      division: { $in: divisionsForScoresAdapter(division) },
       classifier,
       hf: { $gte: 0 },
       bad: { $exists: false },
