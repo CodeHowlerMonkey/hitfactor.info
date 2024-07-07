@@ -25,6 +25,7 @@ dist-ssr
 
 # mongodump
 dump/
+dump.bak/
 
 # mongorestore
 2024-06-24.zip
