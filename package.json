@@ -8,7 +8,7 @@
   },
   "scripts": {
     "========================= Development Scripts ====================": "",
-    "start": "docker-compose up -d && concurrently -c \"auto\" --names \"API,WEB\" \"npm run start-api\" \"npm run start-web\"",
+    "start": "concurrently -c \"auto\" --names \"API,WEB\" \"npm run start-api\" \"npm run start-web\"",
     "local": "docker-compose up -d && concurrently -c \"auto\" --names \"API,WEB\" \"npm run start-api-local\" \"npm run start-web\"",
     "start-api-local": "cd api && npm run local",
     "start-api": "cd api && npm start",
