@@ -69,22 +69,47 @@ export const renderHFOrNA = (c, { field }) => {
 };
 
 export const renderClubIdMatchLink = (c, { field }) => {
+  const content = c[field] || "";
   if (c.upload) {
+    const title = content + "\n" + (c.matchName || "");
     return (
       <a
         target="_blank"
         href={`https://practiscore.com/results/new/${c.upload}`}
-        title={c.matchName}
+        title={title}
       >
-        {c[field]}
+        {content.split(" ").slice(0, 2).join(" ")}
       </a>
     );
   }
 
-  return c[field];
+  return content;
 };
 
 export const headerTooltipOptions = {
   position: "top",
   style: { maxWidth: "300px" },
+};
+
+export const clubMatchColumn = {
+  field: "clubid",
+  header: "Club / Match",
+  sortable: true,
+  showFilterMenu: false,
+  body: (c, { field }) => {
+    const clubText = renderClubIdMatchLink(c, { field });
+    return (
+      <span
+        style={{
+          overflow: "hidden",
+          display: "inline-block",
+          maxWidth: "4em",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap",
+        }}
+      >
+        {clubText}
+      </span>
+    );
+  },
 };

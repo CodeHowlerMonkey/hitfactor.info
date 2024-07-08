@@ -7,11 +7,10 @@ import { Column } from "primereact/column";
 import { useApi } from "../utils/client";
 import useTableSort from "./Table/useTableSort";
 import useTablePagination from "./Table/useTablePagination";
-import { headerTooltipOptions } from "./Table";
+import { clubMatchColumn, renderPercent, headerTooltipOptions } from "./Table";
 import { Dropdown } from "primereact/dropdown";
 import { useDebounce } from "use-debounce";
 import ShooterCell from "./ShooterCell";
-import { renderClubIdMatchLink, renderPercent } from "./Table";
 import ReportDialog from "./ReportDialog";
 import { sportForDivision } from "../../../shared/constants/divisions";
 
@@ -244,12 +243,8 @@ const RunsTable = ({ classifier, division, clubs, onShooterSelection }) => {
         headerTooltipOptions={headerTooltipOptions}
        />*/}
         <Column
-          field="clubid"
-          header="Club"
-          sortable
-          showFilterMenu={false}
+          {...clubMatchColumn}
           filter
-          body={renderClubIdMatchLink}
           filterElement={(options) => (
             <DropdownFilter
               filter

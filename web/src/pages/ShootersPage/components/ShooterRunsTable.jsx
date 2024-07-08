@@ -3,9 +3,9 @@ import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import {
   headerTooltipOptions,
-  renderClubIdMatchLink,
   renderHFOrNA,
   renderPercent,
+  clubMatchColumn,
 } from "../../../components/Table";
 import ClassifierCell from "../../../components/ClassifierCell";
 import ReportDialog from "../../../components/ReportDialog";
@@ -175,13 +175,7 @@ const ShooterRunsTable = ({
           headerTooltipOptions={headerTooltipOptions}
         />
         <Column field="code" header="Flag" sortable />
-        <Column
-          field="clubid"
-          header="Club"
-          sortable
-          body={renderClubIdMatchLink}
-          showFilterMenu={false}
-        />
+        <Column {...clubMatchColumn} />
         <Column field="source" header="Source" sortable />
         <Column
           body={(c) =>
