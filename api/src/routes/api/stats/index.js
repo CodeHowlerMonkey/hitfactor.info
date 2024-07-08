@@ -1,5 +1,5 @@
 import { Percent } from "../../../dataUtil/numbers.js";
-import { divisionsPopularity } from "../../../db/scores.js";
+import { uspsaDivisionsPopularity } from "../../../db/scores.js";
 
 const _divisionsPopularityCached = {};
 const statsRoutes = async (fastify, opts) => {
@@ -7,7 +7,7 @@ const statsRoutes = async (fastify, opts) => {
     const year = Number(req.query.year) || 0;
     let data = _divisionsPopularityCached[year];
     if (!data) {
-      data = await divisionsPopularity(year);
+      data = await uspsaDivisionsPopularity(year);
       _divisionsPopularityCached[year] = data;
     }
 

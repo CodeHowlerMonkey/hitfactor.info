@@ -3,12 +3,14 @@ import assert from "assert";
 import {
   classifierDivisionArrayForHFURecHHFs,
   classifierDivisionArrayWithHFUExtras,
+  divisionsForRecHHFAdapter,
   divisionsForScoresAdapter,
   hfuDivisionCompatabilityMapInversion,
   hfuDivisionExplosionForRecHHF,
   hfuDivisionExplosionForScores,
   hfuDivisionMapForHHF,
   hfuDivisionRecHHFExclusion,
+  sportForDivision,
 } from "../divisions.js";
 
 const classifierFactory = (classifier, division) => ({
@@ -108,4 +110,14 @@ test("divisionsForScoresAdapter", (t) => {
     "pcsl_po",
     "pcsl_acp",
   ]);
+});
+
+test("divisionsForRecHHFAdapter", (t) => {
+  assert.deepEqual(divisionsForRecHHFAdapter("co"), ["co"]);
+  assert.deepEqual(divisionsForRecHHFAdapter("irn"), ["irn", "ltd", "pcsl_pi"]);
+});
+
+test("sportForDivision", (t) => {
+  assert.equal(sportForDivision("co"), "uspsa");
+  assert.equal(sportForDivision("opt"), "hfu");
 });

@@ -3,10 +3,11 @@ import divisionsFromJson from "../../data/division.json" assert { type: "json" }
 /** Extracts division from memberNumberDivision or classifierDivision */
 export const pairToDivision = (pair) => pair.split(":")[1];
 
+// TODO: add allDivisions for multisport, use uspsaDivisions for USPSA only
+export const uspsaDivisions = divisionsFromJson.divisions;
 /** ["opn", "ltd", "l10", "prod", "rev", "ss", "co", "lo", "pcc"] */
-export const divShortNames = divisionsFromJson.divisions.map((c) =>
-  c.short_name.toLowerCase()
-);
+export const divShortNames = uspsaDivisions.map((c) => c.short_name.toLowerCase());
+export const uspsaDivShortNames = divShortNames;
 
 export const mapDivisions = (mapper) =>
   Object.fromEntries(divShortNames.map((div) => [div, mapper(div)]));
@@ -25,25 +26,26 @@ export const forEachDivisionSeq = async (cb) => {
 };
 
 /** {opn: 2, ltd: 3, l10: 4, ... } */
-export const divShortToId = divisionsFromJson.divisions.reduce(
+export const divShortToId = uspsaDivisions.reduce(
   (result, cur) => ({ ...result, [cur.short_name.toLowerCase()]: cur.id }),
   {}
 );
+export const uspsaDivShortToId = divShortToId;
 
-export const divShortToLong = divisionsFromJson.divisions.reduce(
+export const divShortToLong = uspsaDivisions.reduce(
   (result, cur) => ({
     ...result,
     [cur.short_name.toLowerCase()]: cur.long_name,
   }),
   {}
 );
+export const uspsaDivShortToLong = divShortToLong;
 
 export const divIdToShort = Object.fromEntries(
   Object.entries(divShortToId).map((flip) => [flip[1], flip[0]])
 );
+export const uspsaDivIdToShort = divIdToShort;
 
-// TODO: add allDivisions for multisport, use uspsaDivisions for USPSA only
-export const uspsaDivisions = divisionsFromJson.divisions;
 export const divisions = divisionsFromJson;
 export const hfuDivisions = [
   {
@@ -64,6 +66,19 @@ export const hfuDivisions = [
   },
 ];
 export const hfuDivisionsShortNames = hfuDivisions.map((d) => d.short);
+
+export const sportForDivision = (division) => {
+  if (hfuDivisionsShortNames.indexOf(division) >= 0) {
+    return "hfu";
+  }
+
+  if (division.includes("_")) {
+    const [sport] = division.split("_");
+    return sport;
+  }
+
+  return "uspsa";
+};
 
 export const sportName = (code) =>
   ({ hfu: "Hit Factor", pcsl: "PCSL", uspsa: "USPSA" }[code] || "USPSA");
