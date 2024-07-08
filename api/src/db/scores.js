@@ -2,8 +2,13 @@ import mongoose from "mongoose";
 
 import { UTCDate } from "../../../shared/utils/date.js";
 
-import { processImportAsync, processImportAsyncSeq } from "../utils.js";
-import { divIdToShort } from "../dataUtil/divisions.js";
+import { processImportAsyncSeq } from "../utils.js";
+import {
+  divIdToShort,
+  divisionsForScoresAdapter,
+  minorDivisions,
+  uspsaDivShortNames,
+} from "../../../shared/constants/divisions.js";
 import { curHHFFor } from "../dataUtil/hhf.js";
 import { N, Percent, PositiveOrMinus1 } from "../dataUtil/numbers.js";
 
@@ -218,7 +223,8 @@ export const scoresForDivisionForShooter = async ({ division, memberNumber }) =>
   });
 };
 
-export const divisionsPopularity = async (year = 0) => {
+// TODO: intro same functionality for other sports
+export const uspsaDivisionsPopularity = async (year = 0) => {
   const after = 365 * (year + 1);
   const before = 365 * year;
 
@@ -236,7 +242,12 @@ export const divisionsPopularity = async (year = 0) => {
         },
       },
     },
-    { $match: { age: { $lte: after, $gte: before } } },
+    {
+      $match: {
+        age: { $lte: after, $gte: before },
+        division: { $in: uspsaDivShortNames },
+      },
+    },
     {
       $group: {
         _id: "$division",
