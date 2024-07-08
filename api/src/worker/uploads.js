@@ -26,6 +26,7 @@ import {
   scsaPeakTime,
   ScsaPeakTimesMap,
 } from "../dataUtil/classifiersData.js";
+import { minorHF } from "../../../shared/utils/hitfactor.js";
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -407,7 +408,7 @@ const uspsaOrHitFactorMatchInfo = async (matchInfo) => {
         const modifiedDate = new Date(detailedScores.mod);
         const modified = Number.isNaN(modifiedDate.getTime()) ? undefined : modifiedDate;
 
-        return {
+        const curScore = {
           hf: Number(a.hitFactor),
           hhf,
 
@@ -445,6 +446,8 @@ const uspsaOrHitFactorMatchInfo = async (matchInfo) => {
           memberNumberDivision: [memberNumber, division].join(":"),
           classifierDivision: [classifier, division].join(":"),
         };
+        curScore.minorHF = minorHF(curScore);
+        return curScore;
       });
     })
     .flat()
