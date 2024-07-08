@@ -17,6 +17,7 @@ import { useState } from "react";
 import { classForPercent } from "../../../../shared/utils/classification";
 import { bgColorForClass } from "../../utils/color";
 import { SelectButton } from "primereact/selectbutton";
+import { sportForDivision } from "../../../../shared/constants/divisions";
 
 const colorForPrefix = (prefix, alpha) =>
   ({
@@ -133,9 +134,10 @@ export const ScoresChart = ({
   recommendedHHF5,
   recommendedHHF15,
 }) => {
+  const sport = sportForDivision(division);
   const [full, setFull] = useState(false);
   const modes = ["Official", "Current CHHF", "Recommended"];
-  const [mode, setMode] = useState(modes[0]);
+  const [mode, setMode] = useState(modes[2]);
   const { json: data, loading } = useApi(
     `/classifiers/${division}/${classifier}/chart?full=${full ? 1 : 0}`
   );
@@ -187,7 +189,7 @@ export const ScoresChart = ({
               ...yLine("40th", 40, annotationColor(0.3)),
               ...yLine("80th", 80, annotationColor(0.2)),
 
-              ...xLinesForHHF("", hhf),
+              ...(sport === "uspsa" ? xLinesForHHF("", hhf) : []),
               ...(recHHF
                 ? xLinesForHHF("r", recHHF)
                 : {
@@ -224,27 +226,29 @@ export const ScoresChart = ({
         style={{ width: "96vw", height: "96vh", margin: "16px" }}
         onHide={() => setFull(false)}
       >
-        <div
-          style={{
-            position: "absolute",
-            top: "52px",
-            display: "flex",
-            justifyContent: "space-between",
-            left: 0,
-            right: 0,
-            margin: "auto",
-            zIndex: 1,
-          }}
-        >
-          <SelectButton
-            className="compact text-xs md:text-base"
-            allowEmpty={false}
-            options={modes}
-            value={mode}
-            onChange={(e) => setMode(e.value)}
-            style={{ margin: "auto", transform: "scale(0.65)" }}
-          />
-        </div>
+        {sport === "uspsa" && (
+          <div
+            style={{
+              position: "absolute",
+              top: "52px",
+              display: "flex",
+              justifyContent: "space-between",
+              left: 0,
+              right: 0,
+              margin: "auto",
+              zIndex: 1,
+            }}
+          >
+            <SelectButton
+              className="compact text-xs md:text-base"
+              allowEmpty={false}
+              options={modes}
+              value={mode}
+              onChange={(e) => setMode(e.value)}
+              style={{ margin: "auto", transform: "scale(0.65)" }}
+            />
+          </div>
+        )}
         {graph}
       </Dialog>
     );
@@ -252,16 +256,18 @@ export const ScoresChart = ({
 
   return (
     <div className="relative h-full" style={{ margin: -2 }}>
-      <div className="absolute" style={{ zIndex: 1, left: 0 }}>
-        <SelectButton
-          className="compact text-xs md:text-base"
-          allowEmpty={false}
-          options={modes}
-          value={mode}
-          onChange={(e) => setMode(e.value)}
-          style={{ transform: "scale(0.65)" }}
-        />
-      </div>
+      {sport === "uspsa" && (
+        <div className="absolute" style={{ zIndex: 1, left: 0 }}>
+          <SelectButton
+            className="compact text-xs md:text-base"
+            allowEmpty={false}
+            options={modes}
+            value={mode}
+            onChange={(e) => setMode(e.value)}
+            style={{ transform: "scale(0.65)" }}
+          />
+        </div>
+      )}
       {graph}
       <Button
         onClick={() => setFull(true)}

@@ -23,7 +23,20 @@ const ClassTag = ({ value, alpha, tooltip }) =>
     </span>
   );
 
-export const ShooterCell = ({ data, onClick }) => (
+const DivisionNameIfNeeded = ({ division, sport }) =>
+  sport !== "hfu" ? null : (
+    <span
+      style={{
+        marginLeft: 4,
+        fontSize: "0.60em",
+        verticalAlign: "super",
+      }}
+    >
+      ({division.toUpperCase()})
+    </span>
+  );
+
+export const ShooterCell = ({ data, onClick, sport }) => (
   <div style={{ cursor: "pointer" }} className="max-w-max" onClick={onClick}>
     <div className="max-w-max">
       <ClassTag
@@ -41,7 +54,10 @@ export const ShooterCell = ({ data, onClick }) => (
         tooltip={`HQ: ${data?.current?.toFixed(2) ?? 0}%`}
       />
     </div>
-    <div className="max-w-max">{data.memberNumber}</div>
+    <div className="max-w-max">
+      {data.memberNumber}
+      <DivisionNameIfNeeded sport={sport} division={data?.division} />
+    </div>
     <div style={{ fontSize: "1.125em" }}>{data.name}</div>
   </div>
 );
