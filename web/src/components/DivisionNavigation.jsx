@@ -45,7 +45,7 @@ const SportSelector = ({ sportCode, setSportCode }) => {
       <Menu model={items} popup ref={menu} />
       <a
         role="tab"
-        class="p-tabview-nav-link mr-4"
+        className="p-tabview-nav-link mr-4"
         tabIndex="-1"
         onClick={(e) => {
           e.preventDefault();
@@ -55,8 +55,8 @@ const SportSelector = ({ sportCode, setSportCode }) => {
         }}
         aria-haspopup
       >
-        <span class="p-tabview-title">{sportName(sportCode)}</span>
-        <span class="pi pi-chevron-down ml-2 text-sm" />
+        <span className="p-tabview-title">{sportName(sportCode)}</span>
+        <span className="pi pi-chevron-down ml-2 text-sm" />
       </a>
     </div>
   );
