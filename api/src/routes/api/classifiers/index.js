@@ -20,6 +20,10 @@ import {
   percentAggregationOp,
   textSearchMatch,
 } from "../../../db/utils.js";
+import {
+  divisionsForRecHHFAdapter,
+  divisionsForScoresAdapter,
+} from "../../../dataUtil/divisions.js";
 
 const _getShooterField = (field) => ({
   $getField: {
@@ -49,7 +53,14 @@ const _runsAggregation = async ({
         _v: false,
       },
     },
-    { $match: { classifier, division, hf: { $gt: 0 }, bad: { $exists: false } } },
+    {
+      $match: {
+        classifier,
+        division: { $in: divisionsForScoresAdapter(division) },
+        hf: { $gt: 0 },
+        bad: { $exists: false },
+      },
+    },
     {
       $lookup: {
         from: "shooters",
@@ -93,7 +104,6 @@ const _runsAggregation = async ({
         rechhfs: false,
         memberNumberDivision: false,
         classifier: false,
-        division: false,
       },
     },
     {
@@ -111,28 +121,6 @@ const _runsAggregation = async ({
     ...addTotalCountAggregation("totalWithFilters"),
     ...multiSortAndPaginate({ sort, order, page }),
   ]);
-
-const _runsAdapter = (classifier, division, runs /*hhf, hhfs*/) =>
-  runs.map((run, index) => {
-    const percent = N(run.percent);
-    const curPercent = PositiveOrMinus1(run.curPercent);
-    const recPercent = PositiveOrMinus1(run.recPercent);
-    const percentMinusCurPercent = N(percent - curPercent);
-
-    //const findHistoricalHHF = hhfs.findLast((hhf) => hhf.date <= new Date(run.sd).getTime())?.hhf;
-    const recalcHistoricalHHF = HF((100 * run.hf) / run.percent);
-
-    run.sd = new Date(run.sd).toLocaleDateString("en-us", { timeZone: "UTC" });
-    run.historicalHHF = /*findHistoricalHHF ?? */ recalcHistoricalHHF;
-    run.percent = percent;
-    run.curPercent = curPercent;
-    run.recPercent = recPercent;
-    run.percentMinusCurPercent = percent >= 100 ? 0 : percentMinusCurPercent;
-    run.classifier = classifier;
-    run.division = division;
-    run.index = index;
-    return run;
-  });
 
 const classifiersRoutes = async (fastify, opts) => {
   fastify.get("/", (req, res) => classifiers.map(basicInfoForClassifier));
@@ -204,7 +192,22 @@ const classifiersRoutes = async (fastify, opts) => {
     });
 
     return {
-      runs: _runsAdapter(number, division, runsFromDB),
+      runs: runsFromDB.map((run, index) => {
+        const percent = N(run.percent);
+        const curPercent = PositiveOrMinus1(run.curPercent);
+        const recPercent = PositiveOrMinus1(run.recPercent);
+        const percentMinusCurPercent = N(percent - curPercent);
+
+        run.sd = new Date(run.sd).toLocaleDateString("en-us", { timeZone: "UTC" });
+        run.historicalHHF = HF((100 * run.hf) / run.percent); // recalculated only
+        run.percent = percent;
+        run.curPercent = curPercent;
+        run.recPercent = recPercent;
+        run.percentMinusCurPercent = percent >= 100 ? 0 : percentMinusCurPercent;
+        run.classifier = number;
+        run.index = index;
+        return run;
+      }),
       runsTotal: runsFromDB[0]?.total || 0,
       runsTotalWithFilters: runsFromDB[0]?.totalWithFilters || 0,
       runsPage: Number(page) || 1,
@@ -229,7 +232,12 @@ const classifiersRoutes = async (fastify, opts) => {
         },
       },
       {
-        $match: { classifier: number, division, hf: { $gt: 0 }, bad: { $exists: false } },
+        $match: {
+          classifier: number,
+          division: { $in: divisionsForScoresAdapter(division) },
+          hf: { $gt: 0 },
+          bad: { $exists: false },
+        },
       },
       {
         $lookup: {

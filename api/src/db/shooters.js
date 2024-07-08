@@ -1,7 +1,11 @@
 import mongoose, { Schema } from "mongoose";
 
 import { loadJSON, processImportAsyncSeq } from "../utils.js";
-import { divIdToShort, mapDivisions } from "../dataUtil/divisions.js";
+import {
+  divIdToShort,
+  divisionsForScoresAdapter,
+  mapDivisions,
+} from "../dataUtil/divisions.js";
 import {
   calculateUSPSAClassification,
   classForPercent,
@@ -36,7 +40,13 @@ const memberNumberFromMemberData = (memberData) => {
 
 const scoresAgeAggr = async (memberNumber, division, maxScores) => {
   await Score.aggregate([
-    { $match: { memberNumber, division, bad: { $exists: false } } },
+    {
+      $match: {
+        memberNumber,
+        division: { $in: divisionsForScoresAdapter(division) },
+        bad: { $exists: false },
+      },
+    },
     {
       $project: {
         sd: true,
@@ -105,6 +115,10 @@ export const reduceByDiv = (classifications, valueFn) =>
     {}
   );
 
+/**
+ * Selects all scores of multiple shooters (all divisions).
+ * Used for reclassification (HQ alg makes divisions cross-dependent for C flag)
+ */
 export const allDivisionsScores = async (memberNumbers) => {
   const query = Score.find({
     memberNumber: { $in: memberNumbers },

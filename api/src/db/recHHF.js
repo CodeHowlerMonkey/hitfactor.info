@@ -6,6 +6,7 @@ import { Score } from "./scores.js";
 import { curHHFForDivisionClassifier } from "../dataUtil/hhf.js";
 import {
   classifierDivisionArrayForHFURecHHFs,
+  divisionsForRecHHFAdapter,
   hfuDivisionCompatabilityMap,
   pairToDivision,
 } from "../dataUtil/divisions.js";
@@ -436,7 +437,7 @@ const runsForRecs = async ({ division, number }) =>
   (
     await Score.find({
       classifier: number,
-      division,
+      division: { $in: divisionsForRecHHFAdapter(division) },
       hf: { $gt: 0 },
       bad: { $exists: false },
     })
