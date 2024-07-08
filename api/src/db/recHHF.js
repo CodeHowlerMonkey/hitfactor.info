@@ -584,6 +584,7 @@ export const hydrateRecHHFsForClassifiers = async (classifiers) => {
   );
 };
 
+// TODO: rename to rehydrateRecHHF, replace distinct() from DB with whitelists
 export const hydrateRecHHF = async () => {
   console.log("hydrating recommended HHFs");
   console.time("recHHFs");

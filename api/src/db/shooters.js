@@ -200,6 +200,7 @@ export const scoresForRecommendedClassification = (memberNumbers) =>
       },
     },
     {
+      // TODO: use minorHF to add hfuPercent or something like that
       $addFields: {
         recPercent: {
           $cond: {

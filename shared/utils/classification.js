@@ -198,6 +198,7 @@ export const addToCurWindow = (c, curWindow, targetWindowSize = 8) => {
 };
 
 // TODO: minimal class as highest - 1
+// TODO: HFU divisions support through TDD
 export const calculateUSPSAClassification = (
   classifiers,
   percentField = "percent",

@@ -169,18 +169,9 @@ const classifiersRoutes = async (fastify, opts) => {
     return result;
   });
 
-  // TODO: move scores filtering & pagination to mongo
   fastify.get("/scores/:division/:number", async (req, res) => {
     const { division, number } = req.params;
-    const {
-      sort,
-      order,
-      page,
-      // hhf: filterHHFString,
-      club: filterClubString,
-      filter: filterString,
-    } = req.query;
-    // const filterHHF = parseFloat(filterHHFString);
+    const { sort, order, page, club: filterClubString, filter: filterString } = req.query;
     const runsFromDB = await _runsAggregation({
       classifier: number,
       division,
