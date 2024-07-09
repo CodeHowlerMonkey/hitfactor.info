@@ -35,7 +35,7 @@ const compactNumberColumnStyle = {
 };
 
 const ClassifiersTable = ({ division, onClassifierSelection }) => {
-  const sortProps = useTableSort({ initial: { field: "code", order: 1 } });
+  const sortProps = useTableSort({ initial: { field: "allDivQuality", order: -1 } });
   const [filter, setFilter] = useState("");
   const sortState = sortProps;
 
