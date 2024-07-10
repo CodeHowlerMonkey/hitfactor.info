@@ -95,6 +95,9 @@ const UploadPage = () => {
   const tableData = uniqBy([...toUpload, ...searchResults], (c) => c.uuid).map((c) => ({
     ...c,
     upload: toUploadIds.includes(c.uuid),
+    date: new Date(c.matchDate || c.created || c.updated)
+      .toLocaleDateString()
+      .split(" ")[0],
   }));
 
   return (
