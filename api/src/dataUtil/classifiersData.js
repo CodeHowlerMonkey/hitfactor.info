@@ -52,7 +52,7 @@ export const ScsaPeakTimesMap = {
 };
 
 export const scsaDivisionWithPrefix = (scsaDivision) =>
-  `scsa:${scsaDivision.toLowerCase()}`;
+  `scsa_${scsaDivision.toLowerCase()}`;
 
 export const scsaPeakTime = (scsaDivision, scsaClassifierCode) => {
   // Indexing scheme based on the fact that the division peak times in the above structure are sorted in ascending order.
