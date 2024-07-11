@@ -12,7 +12,7 @@ import { HF, N, Percent } from "../dataUtil/numbers.js";
 import { hhfsForDivision } from "../dataUtil/hhf.js";
 
 import mongoose from "mongoose";
-import { Score } from "./scores.js";
+import { minorHFScoresAdapter, Score } from "./scores.js";
 import { RecHHF } from "./recHHF.js";
 import { divisionsForScoresAdapter, divShortNames } from "../dataUtil/divisions.js";
 
@@ -181,7 +181,7 @@ export const singleClassifierExtendedMetaDoc = async (
   recHHFReady
 ) => {
   const c = classifiersByNumber[classifier];
-  const [recHHFQuery, hitFactorScores] = await Promise.all([
+  const [recHHFQuery, hitFactorScoresRaw] = await Promise.all([
     recHHFReady ?? RecHHF.findOne({ division, classifier }).select("recHHF").lean(),
     Score.find({
       division: { $in: divisionsForScoresAdapter(division) },
@@ -193,6 +193,7 @@ export const singleClassifierExtendedMetaDoc = async (
       .limit(0)
       .lean(),
   ]);
+  const hitFactorScores = minorHFScoresAdapter(hitFactorScoresRaw, division);
 
   const recHHF = recHHFQuery?.recHHF;
   const inverseRecPercentileStats = (xPercent) => ({

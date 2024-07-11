@@ -66,6 +66,7 @@ export const hfuDivisions = [
   },
 ];
 export const hfuDivisionsShortNames = hfuDivisions.map((d) => d.short);
+export const hfuDivisionsShortNamesThatNeedMinorHF = ["comp", "irn"];
 
 export const sportForDivision = (division) => {
   if (hfuDivisionsShortNames.indexOf(division) >= 0) {

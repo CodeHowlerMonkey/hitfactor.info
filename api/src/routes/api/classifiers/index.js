@@ -23,6 +23,7 @@ import {
 import {
   divisionsForRecHHFAdapter,
   divisionsForScoresAdapter,
+  hfuDivisionsShortNamesThatNeedMinorHF,
 } from "../../../dataUtil/divisions.js";
 
 const _getShooterField = (field) => ({
@@ -35,6 +36,30 @@ const _getRecHHFField = (field) => ({
   $getField: {
     input: { $arrayElemAt: ["$rechhfs", 0] },
     field,
+  },
+});
+
+const _replaceHFWithMinorHFIfNeeded = (division) =>
+  !hfuDivisionsShortNamesThatNeedMinorHF.includes(division)
+    ? []
+    : [
+        {
+          $addFields: {
+            hf: "$minorHF",
+          },
+        },
+      ];
+
+// override division and all division-derived fields to given division, used for correct lookup of HFU scores, even when they came from another division
+const _overwriteDivision = (division) => ({
+  $addFields: {
+    originalDivision: "$division",
+    division,
+    classifierDivision: { $concat: ["$classifier", ":", division] },
+
+    // TODO: uncomment when shooter migration is done, it should make ShooterCell
+    // in ClassifierRunsTable start using HFU classification
+    // memberNumberDivision: { $concat: ["$memberNumber", ":", division] },
   },
 });
 const _runsAggregation = async ({
@@ -53,6 +78,7 @@ const _runsAggregation = async ({
         _v: false,
       },
     },
+    ..._replaceHFWithMinorHFIfNeeded(division),
     {
       $match: {
         classifier,
@@ -61,6 +87,7 @@ const _runsAggregation = async ({
         bad: { $exists: false },
       },
     },
+    _overwriteDivision(division),
     {
       $lookup: {
         from: "shooters",
@@ -213,6 +240,7 @@ const classifiersRoutes = async (fastify, opts) => {
     const runs = await Score.aggregate([
       {
         $project: {
+          minorHF: true,
           hf: true,
           memberNumber: true,
           memberNumberDivision: true,
@@ -222,6 +250,7 @@ const classifiersRoutes = async (fastify, opts) => {
           _id: false,
         },
       },
+      ..._replaceHFWithMinorHFIfNeeded(division),
       {
         $match: {
           classifier: number,
@@ -230,6 +259,7 @@ const classifiersRoutes = async (fastify, opts) => {
           bad: { $exists: false },
         },
       },
+      _overwriteDivision(division),
       {
         $lookup: {
           from: "shooters",

@@ -6,6 +6,7 @@ import { processImportAsyncSeq } from "../utils.js";
 import {
   divIdToShort,
   divisionsForScoresAdapter,
+  hfuDivisionsShortNamesThatNeedMinorHF,
   minorDivisions,
   uspsaDivShortNames,
 } from "../../../shared/constants/divisions.js";
@@ -60,7 +61,7 @@ ScoreSchema.virtual("hfuHF").get(function () {
     return this.hf;
   }
 
-  // opn ltd l10 prod ss rev lo co pcc
+  // prod lo co pcc
   // comp opt irn car
   if (minorDivisions.includes(division)) {
     return this.hf;
@@ -87,6 +88,10 @@ ScoreSchema.virtual("recPercent").get(function () {
   const recHHF = this.HHFs?.[0]?.recHHF || -1;
   return this.isMajor ? this.percent : PositiveOrMinus1(Percent(this.hf, recHHF, 4));
 });
+ScoreSchema.virtual("hfuPercent").get(function () {
+  const recHHF = this.HHFs?.[0]?.recHHF || -1;
+  return this.isMajor ? -1 : PositiveOrMinus1(Percent(this.hfuHF, recHHF, 4));
+});
 // TODO: get rid of percentMinusCurPercent
 ScoreSchema.virtual("percentMinusCurPercent").get(function () {
   return this.curPercent >= 0 ? N(this.percent - this.curPercent) : -1;
@@ -110,6 +115,26 @@ const badScoresMap = {
 };
 
 const isMajor = (source) => source === "Major Match";
+
+/**
+ * Picks runs for division. As-is for USPSA, or switches hf to minorHF for
+ * HFU's comp and irn division (since they have major PF scores from USPSA divisions)
+ *
+ * If minorHF is needed, but not avilale - the run is dropped.
+ * WARNING: mutates runs' hf to set it to minorHF
+ */
+export const minorHFScoresAdapter = (runs, division) => {
+  if (!hfuDivisionsShortNamesThatNeedMinorHF.includes(division)) {
+    return runs;
+  }
+
+  return runs
+    .filter((r) => r.minorHF > 0)
+    .map((r) => {
+      r.hf = r.minorHF;
+      return r;
+    });
+};
 
 export const scoresFromClassifierFile = (fileObj) => {
   const memberNumber = fileObj?.value?.member_data?.member_number;
@@ -220,8 +245,11 @@ export const shooterScoresChartData = async ({ memberNumber, division }) => {
     .populate("HHFs")
     .limit(0)
     .sort({ sd: -1 });
-  return scores
-    .map((doc) => doc.toObject({ virtuals: true }))
+
+  return minorHFScoresAdapter(
+    scores.map((s) => s.toObject({ virtuals: true })),
+    division
+  )
     .map((run) => ({
       x: run.sd,
       recPercent: run.recPercent,
@@ -241,8 +269,11 @@ export const scoresForDivisionForShooter = async ({ division, memberNumber }) =>
     .populate("HHFs")
     .sort({ sd: -1, hf: -1 })
     .limit(0);
-  return scores.map((doc, index) => {
-    const obj = doc.toObject({ virtuals: true });
+
+  return minorHFScoresAdapter(
+    scores.map((s) => s.toObject({ virtuals: true })),
+    division
+  ).map((obj, index) => {
     obj.index = index;
     return obj;
   });

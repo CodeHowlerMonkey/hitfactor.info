@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 import { HF, Percent, PositiveOrMinus1 } from "../dataUtil/numbers.js";
 
-import { Score } from "./scores.js";
+import { minorHFScoresAdapter, Score } from "./scores.js";
 import { curHHFForDivisionClassifier } from "../dataUtil/hhf.js";
 import {
   classifierDivisionArrayForHFURecHHFs,
@@ -457,7 +457,7 @@ const runsForRecsMultiByClassifierDivision = async (classifiers) => {
     },
     hf: { $gt: 0 },
   })
-    .select({ hf: true, _id: false, classifierDivision: true })
+    .select({ hf: true, minorHF: true, _id: false, classifierDivision: true })
     .sort({ hf: -1 })
     .limit(0)
     .lean();
@@ -512,10 +512,12 @@ RecHHFSchema.index({ classifierDivision: 1 }, { unique: true });
 
 export const RecHHF = mongoose.model("RecHHF", RecHHFSchema);
 
-const recHHFUpdate = (runs, division, classifier) => {
-  if (!runs) {
+const recHHFUpdate = (runsRaw, division, classifier) => {
+  if (!runsRaw) {
     return null;
   }
+
+  const runs = minorHFScoresAdapter(runsRaw, division);
   const recHHF = recommendedHHFFunctionFor({
     division,
     number: classifier,
