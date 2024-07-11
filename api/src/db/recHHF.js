@@ -8,7 +8,6 @@ import {
   classifierDivisionArrayForHFURecHHFs,
   divisionsForRecHHFAdapter,
   hfuDivisionCompatabilityMap,
-  pairToDivision,
 } from "../dataUtil/divisions.js";
 
 /**
