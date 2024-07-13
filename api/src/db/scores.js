@@ -78,19 +78,19 @@ ScoreSchema.virtual("HHFs", {
   localField: "classifierDivision",
 });
 ScoreSchema.virtual("recHHF").get(function () {
+  return this.HHFs?.[0]?.recHHF || -1;
+});
+ScoreSchema.virtual("curHHF").get(function () {
   return this.HHFs?.[0]?.curHHF || -1;
 });
 ScoreSchema.virtual("curPercent").get(function () {
-  const curHHF = this.HHFs?.[0]?.curHHF || -1;
-  return this.isMajor ? this.percent : PositiveOrMinus1(Percent(this.hf, curHHF, 4));
+  return this.isMajor ? this.percent : PositiveOrMinus1(Percent(this.hf, this.curHHF, 4));
 });
 ScoreSchema.virtual("recPercent").get(function () {
-  const recHHF = this.HHFs?.[0]?.recHHF || -1;
-  return this.isMajor ? this.percent : PositiveOrMinus1(Percent(this.hf, recHHF, 4));
+  return this.isMajor ? this.percent : PositiveOrMinus1(Percent(this.hf, this.recHHF, 4));
 });
 ScoreSchema.virtual("hfuPercent").get(function () {
-  const recHHF = this.HHFs?.[0]?.recHHF || -1;
-  return this.isMajor ? -1 : PositiveOrMinus1(Percent(this.hfuHF, recHHF, 4));
+  return this.isMajor ? -1 : PositiveOrMinus1(Percent(this.hfuHF, this.recHHF, 4));
 });
 // TODO: get rid of percentMinusCurPercent
 ScoreSchema.virtual("percentMinusCurPercent").get(function () {
