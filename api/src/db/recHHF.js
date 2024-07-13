@@ -5,10 +5,12 @@ import { HF, Percent, PositiveOrMinus1 } from "../dataUtil/numbers.js";
 import { minorHFScoresAdapter, Score } from "./scores.js";
 import { curHHFForDivisionClassifier } from "../dataUtil/hhf.js";
 import {
+  allDivShortNames,
   classifierDivisionArrayForHFURecHHFs,
   divisionsForRecHHFAdapter,
   hfuDivisionCompatabilityMap,
 } from "../dataUtil/divisions.js";
+import { uspsaClassifiers } from "../dataUtil/classifiersData.js";
 
 /**
  * Calculated recommended HHF by matching lower percent of the score to percentile of shooters
@@ -585,18 +587,18 @@ export const hydrateRecHHFsForClassifiers = async (classifiers) => {
   );
 };
 
-// TODO: rename to rehydrateRecHHF, replace distinct() from DB with whitelists
-export const hydrateRecHHF = async () => {
+export const rehydrateRecHHF = async (
+  divisions = allDivShortNames,
+  classifiers = uspsaClassifiers
+) => {
   console.log("hydrating recommended HHFs");
   console.time("recHHFs");
-  const divisions = (await Score.find().distinct("division")).filter(Boolean);
-  const classifers = (await Score.find().distinct("classifier")).filter(Boolean);
-  console.log(`Divisions: ${divisions.length}, Classifiers: ${classifers.length}`);
+  console.log(`Divisions: ${divisions.length}, Classifiers: ${classifiers.length}`);
 
   let i = 1;
-  const total = divisions.length * classifers.length;
+  const total = divisions.length * classifiers.length;
   for (const division of divisions) {
-    for (const classifier of classifers) {
+    for (const classifier of classifiers) {
       await hydrateSingleRecHFF(division, classifier);
       process.stdout.write(`\r${i}/${total}`);
       ++i;

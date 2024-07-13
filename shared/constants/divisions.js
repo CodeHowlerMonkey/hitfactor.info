@@ -107,6 +107,8 @@ export const hfuDivisionCompatabilityMap = {
   pcsl_acp: "opt",
 };
 
+export const pcslDivisions = ["pcsl_comp", "pcsl_po", "pcsl_pi", "pcsl_pcc", "pcsl_acp"];
+
 /**
  * Divisions that should NOT be used to calculate RecHHF for HFU divisions.
  * Still can be used to show scores under them though.
@@ -235,3 +237,12 @@ export const divisionsForRecHHFAdapter = (division) => {
 
   return [division];
 };
+
+export const allDivShortNames = [
+  ...uspsaDivShortNames,
+  ...hfuDivisionsShortNames,
+  // TODO: pcsl
+  // TODO: scsa
+];
+export const mapAllDivisions = (mapper) =>
+  Object.fromEntries(allDivShortNames.map((div) => [div, mapper(div)]));

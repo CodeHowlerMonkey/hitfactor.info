@@ -7,8 +7,6 @@ import {
   hfuDivisionCompatabilityMap,
   hfuDivisionsShortNamesThatNeedMinorHF,
   mapDivisions,
-  pcslDivisions,
-  uspsaDivShortNames,
 } from "../dataUtil/divisions.js";
 import {
   calculateUSPSAClassification,
