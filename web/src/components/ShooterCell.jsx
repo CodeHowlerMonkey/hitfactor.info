@@ -38,7 +38,7 @@ const DivisionNameIfNeeded = ({ division, sport }) =>
 
 export const ShooterCell = ({ data, onClick, sport }) => (
   <div style={{ cursor: "pointer" }} className="max-w-max" onClick={onClick}>
-    {sport === "uspsa" && (
+    {(!sport || sport === "uspsa") && (
       <div className="max-w-max">
         <ClassTag
           value={data?.recClass ?? "?"}

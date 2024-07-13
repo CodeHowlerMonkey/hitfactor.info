@@ -14,6 +14,7 @@ import {
 import { useDebounce } from "use-debounce";
 import ShooterCell from "../../../components/ShooterCell";
 import ReportDialog from "../../../components/ReportDialog";
+import { sportForDivision } from "../../../../../shared/constants/divisions";
 
 const classColumnProps = {
   sortable: true,
@@ -157,6 +158,7 @@ const ShootersTable = ({
           sortable
           body={(shooter) => (
             <ShooterCell
+              sport={sportForDivision(division)}
               data={shooter}
               onClick={() => onShooterSelection?.(shooter.memberNumber)}
             />
