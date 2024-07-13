@@ -146,6 +146,8 @@ export const ScoresChart = ({
     return <ProgressSpinner />;
   }
 
+  const chartLabel = sport === "hfu" && recHHF ? `Rec. HHF: ${recHHF}` : undefined;
+
   const graph = (
     <Scatter
       style={{ position: "relative" }}
@@ -204,7 +206,7 @@ export const ScoresChart = ({
       data={{
         datasets: [
           {
-            label: "HF / Percentile",
+            label: chartLabel || "HF / Percentile",
             data,
             pointBorderColor: "white",
             pointBorderWidth: 0,
