@@ -4,7 +4,11 @@ import { loadJSON, processImportAsyncSeq } from "../utils.js";
 import {
   divIdToShort,
   divisionsForScoresAdapter,
+  hfuDivisionCompatabilityMap,
+  hfuDivisionsShortNamesThatNeedMinorHF,
   mapDivisions,
+  pcslDivisions,
+  uspsaDivShortNames,
 } from "../dataUtil/divisions.js";
 import {
   calculateUSPSAClassification,
@@ -142,6 +146,44 @@ export const allDivisionsScoresByMemberNumber = async (memberNumbers) => {
   }, {});
 };
 
+const _divisionExplosion = () => [
+  { $set: { hfuDivisionCompatabilityMap } },
+  {
+    $set: {
+      division: [
+        "$division",
+        { $getField: { input: "$hfuDivisionCompatabilityMap", field: "$division" } },
+      ],
+    },
+  },
+  { $unwind: { path: "$division" } },
+  { $match: { division: { $ne: null } } }, // easier to unmatch than to filter lol
+  { $unset: "hfuDivisionCompatabilityMap" },
+];
+
+const _addHFUDivisions = () => [
+  ..._divisionExplosion(),
+  {
+    $match: {
+      $or: [
+        { division: { $nin: hfuDivisionsShortNamesThatNeedMinorHF } },
+        { minorHF: { $gt: 0 } },
+      ],
+    },
+  },
+  {
+    $set: {
+      hf: {
+        $cond: {
+          if: { $in: ["$division", hfuDivisionsShortNamesThatNeedMinorHF] },
+          then: "$minorHF",
+          else: "$hf",
+        },
+      },
+    },
+  },
+];
+
 export const scoresForRecommendedClassification = (memberNumbers) =>
   Score.aggregate([
     {
@@ -154,6 +196,7 @@ export const scoresForRecommendedClassification = (memberNumbers) =>
     {
       $project: {
         hf: true,
+        minorHF: true,
         division: true,
         classifier: true,
         classifierDivision: true,
@@ -175,6 +218,7 @@ export const scoresForRecommendedClassification = (memberNumbers) =>
         },
       },
     },
+    ..._addHFUDivisions(),
     {
       $set: { classifierDivision: { $concat: ["$classifier", ":", "$division"] } },
     },
