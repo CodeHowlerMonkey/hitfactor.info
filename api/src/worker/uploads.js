@@ -18,6 +18,7 @@ import {
 import {
   arrayWithExplodedDivisions,
   hfuDivisionCompatabilityMap,
+  hfuDivisionsShortNames,
   pairToDivision,
 } from "../dataUtil/divisions.js";
 
@@ -27,6 +28,7 @@ import {
   ScsaPeakTimesMap,
 } from "../dataUtil/classifiersData.js";
 import { minorHF } from "../../../shared/utils/hitfactor.js";
+import features from "../../../shared/features.js";
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -577,9 +579,17 @@ export const uploadMatches = async (uuids) => {
       true
     );
     await afterUpload(classifiers, shooters);
+
+    const publicShooters = features.hfu
+      ? shooters
+      : shooters.filter((s) => !hfuDivisionsShortNames.includes(s.division));
+    const publicClassifiers = features.hfu
+      ? classifiers
+      : classifiers.filter((c) => !hfuDivisionsShortNames.includes(c.division));
+
     return {
-      shooters,
-      classifiers,
+      shooters: publicShooters,
+      classifiers: publicClassifiers,
     };
   } catch (e) {
     console.error(e);

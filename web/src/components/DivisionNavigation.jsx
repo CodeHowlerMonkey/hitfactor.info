@@ -9,8 +9,7 @@ import {
   sportName,
 } from "../../../shared/constants/divisions";
 import usePreviousEffect from "../utils/usePreviousEffect";
-
-const enableSportSelector = true;
+import features from "../../../shared/features";
 
 const SportSelector = ({ sportCode, setSportCode }) => {
   const menu = useRef(null);
@@ -36,7 +35,7 @@ const SportSelector = ({ sportCode, setSportCode }) => {
     },
   ];
 
-  if (!enableSportSelector) {
+  if (!features.hfu) {
     return null;
   }
 
@@ -103,6 +102,16 @@ export const DivisionNavigation = ({ onSelect, uspsaOnly }) => {
   const [initialSport, initialDivisionIndex] = sportAndDivisionIndexForDivision(division);
   const [sportCode, setSportCode] = useState(initialSport);
   const [activeIndex, setActiveIndex] = useState(initialDivisionIndex);
+
+  // bail to uspsa, if hfu is disabled or uspsaOnly is requested
+  useEffect(() => {
+    const [sport] = sportAndDivisionIndexForDivision(division);
+    if (sport !== "uspsa" && (!features.hfu || uspsaOnly)) {
+      setSportCode("uspsa");
+      setActiveIndex(1);
+      onSelect("opn", "uspsa");
+    }
+  }, [onSelect, division]);
 
   // update selection if navigation changes
   useEffect(() => {

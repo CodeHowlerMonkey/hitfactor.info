@@ -11,8 +11,7 @@ import {
 } from "react-router-dom";
 import { Divider } from "primereact/divider";
 import Footer from "../components/Footer";
-
-const enableUserMenu = false;
+import features from "../../../shared/features";
 
 const MoreMenu = () => {
   const loggedIn = false;
@@ -119,7 +118,7 @@ const config = [
     style: { opacity: 1 },
   },
   {
-    visible: !enableUserMenu,
+    visible: !features.users,
     template: () => (
       <Link
         className="flex p-menuitem-link no-highlight px-2"
@@ -132,7 +131,7 @@ const config = [
     ),
   },
   {
-    visible: enableUserMenu,
+    visible: features.users,
     template: () => <MoreMenu />,
   },
 ];
