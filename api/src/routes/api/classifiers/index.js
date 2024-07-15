@@ -56,10 +56,7 @@ const _overwriteDivision = (division) => ({
     originalDivision: "$division",
     division,
     classifierDivision: { $concat: ["$classifier", ":", division] },
-
-    // TODO: uncomment when shooter migration is done, it should make ShooterCell
-    // in ClassifierRunsTable start using HFU classification
-    // memberNumberDivision: { $concat: ["$memberNumber", ":", division] },
+    memberNumberDivision: { $concat: ["$memberNumber", ":", division] },
   },
 });
 const _runsAggregation = async ({

@@ -153,6 +153,7 @@ const _divisionExplosion = () => [
   { $unset: "hfuDivisionCompatabilityMap" },
 ];
 
+// duplicates non-hfu-division scores, adding hfu-division scores
 const _addHFUDivisions = () => [
   ..._divisionExplosion(),
   {
@@ -236,7 +237,6 @@ export const scoresForRecommendedClassification = (memberNumbers) =>
       },
     },
     {
-      // TODO: use minorHF to add hfuPercent or something like that
       $addFields: {
         recPercent: {
           $cond: {
@@ -524,6 +524,7 @@ export const reclassifyShooters = async (shooters) => {
                   memberNumber,
                   division,
                   memberNumberDivision: [memberNumber, division].join(":"),
+                  current: rankForClass(hqClass),
                 },
               },
               upsert: true,
@@ -551,7 +552,6 @@ export const reclassifyShooters = async (shooters) => {
                     hqClass,
                     hqClassRank: rankForClass(hqClass),
                     class: hqClass,
-                    current: rankForClass(hqClass),
                     memberId: psClassUpdates[memberNumber]?.memberId,
 
                     age: recalcByRecPercent?.[division]?.age,
