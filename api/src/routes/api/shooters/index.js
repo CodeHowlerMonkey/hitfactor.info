@@ -11,6 +11,7 @@ import {
 } from "../../../db/scores.js";
 import { Shooter, reclassificationForProgressMode } from "../../../db/shooters.js";
 import { textSearchMatch } from "../../../db/utils.js";
+import { classForPercent } from "../../../../../shared/utils/classification.js";
 
 // TODO: refactor to aggregation and use addPlaceAndPercentileAggregation
 // instead of JS logic, that is applied after filters
@@ -76,8 +77,8 @@ const shootersRoutes = async (fastify, opts) => {
     const { division, memberNumber } = req.params;
     const { sort, order, page: pageString } = req.query;
 
-    const [info, scoresData] = await Promise.all([
-      Shooter.findOne({ division, memberNumber }).lean(),
+    const [infos, scoresData] = await Promise.all([
+      Shooter.find({ memberNumber }).limit(0).lean(),
       scoresForDivisionForShooter({
         division,
         memberNumber,
@@ -90,6 +91,31 @@ const shootersRoutes = async (fastify, opts) => {
         classifierInfo: basicInfoForClassifierCode(c?.classifier),
       })
     );
+
+    const info = infos.find((s) => s.division === division);
+    info.classificationByDivision = infos.reduce((acc, cur) => {
+      const {
+        reclassificationsCurPercentCurrent: curHHFCurrent,
+        reclassificationsRecPercentCurrent: recCurrent,
+      } = cur;
+
+      acc[cur.division] = {
+        hqClass: cur.hqClass,
+        current: cur.current,
+        reclassificationsCurPercentClass: classForPercent(curHHFCurrent || 0),
+        reclassificationsCurPercentCurrent: curHHFCurrent || 0,
+        reclassificationsRecPercentClass: classForPercent(recCurrent || 0),
+        reclassificationsRecPercentCurrent: recCurrent || 0,
+        age: cur.age,
+        age1: cur.age1,
+      };
+      return acc;
+    }, {});
+    delete info.reclassifications;
+    delete info.classes;
+    delete info.currents;
+    delete info.ages;
+    delete info.age1s;
 
     return {
       info: info || {},

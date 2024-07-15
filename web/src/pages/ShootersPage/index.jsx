@@ -96,8 +96,8 @@ const useShooterTableData = ({ division, memberNumber }) => {
     setWhatIf(
       (prevWhatIf) =>
         prevWhatIf ?? {
-          recPercent: info?.reclassifications?.recPercent?.current || -1,
-          curPercent: info?.reclassifications?.curPercent?.current || -1,
+          recPercent: info?.reclassificationsRecPercentCurrent || -1,
+          curPercent: info?.reclassificationsCurPercentCurrent || -1,
         }
     );
     setClassifiers((existing) => {

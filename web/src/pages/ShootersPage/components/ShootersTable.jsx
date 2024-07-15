@@ -182,22 +182,6 @@ const ShootersTable = ({
         />
         <Column field="current" header="HQ" sortable body={renderPercent} />
         <Column
-          field="hqToRecPercent"
-          header="HQ vs Rec.HHF %"
-          headerTooltip="Difference between official and recommended classifications"
-          headerTooltipOptions={headerTooltipOptions}
-          sortable
-          body={renderPercentDiff}
-        />
-        <Column
-          field="hqToCurHHFPercent"
-          header="HQ vs Cur.HHF %"
-          headerTooltip="Difference between official classification and current HHF classification percent."
-          headerTooltipOptions={headerTooltipOptions}
-          sortable
-          body={renderPercentDiff}
-        />
-        <Column
           field="age"
           header="Age"
           body={(c) => (c.age ? (c.age || 0).toFixed(1) + "mo" : "—")}
