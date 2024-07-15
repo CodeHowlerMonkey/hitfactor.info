@@ -73,7 +73,9 @@ export const ShooterProgressChart = ({ division, memberNumber }) => {
               {
                 label: "Percent",
                 data: data.map((c) => ({
-                  x: new Date(c.sd),
+                  x: new Date(
+                    new Date(c.sd).toLocaleDateString("en-us", { timeZone: "UTC" })
+                  ),
                   y: c.p,
                 })),
                 backgroundColor: "#ae9ef1",
