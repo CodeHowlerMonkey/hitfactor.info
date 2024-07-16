@@ -11,7 +11,7 @@ import {
 import usePreviousEffect from "../utils/usePreviousEffect";
 import features from "../../../shared/features";
 
-const SportSelector = ({ sportCode, setSportCode }) => {
+const SportSelector = ({ sportCode, setSportCode, uspsaOnly }) => {
   const menu = useRef(null);
   const items = [
     {
@@ -35,7 +35,7 @@ const SportSelector = ({ sportCode, setSportCode }) => {
     },
   ];
 
-  if (!features.hfu) {
+  if (!features.hfu || uspsaOnly) {
     return null;
   }
 
@@ -103,21 +103,18 @@ export const DivisionNavigation = ({ onSelect, uspsaOnly }) => {
   const [sportCode, setSportCode] = useState(initialSport);
   const [activeIndex, setActiveIndex] = useState(initialDivisionIndex);
 
-  // bail to uspsa, if hfu is disabled or uspsaOnly is requested
+  // update selection if navigation changes
   useEffect(() => {
-    const [sport] = sportAndDivisionIndexForDivision(division);
-    if (sport !== "uspsa" && (!features.hfu || uspsaOnly)) {
+    const [sport, divisionIndex] = sportAndDivisionIndexForDivision(division);
+    if (features.hfu && !uspsaOnly) {
+      setActiveIndex(divisionIndex);
+      setSportCode(sport);
+    } else if (sport === "hfu") {
+      // bail back to uspsa/opn if hfu is disabled or not supported
       setSportCode("uspsa");
       setActiveIndex(1);
       onSelect("opn", "uspsa");
     }
-  }, [onSelect, division]);
-
-  // update selection if navigation changes
-  useEffect(() => {
-    const [sport, divisionIndex] = sportAndDivisionIndexForDivision(division);
-    setSportCode(sport);
-    setActiveIndex(divisionIndex);
   }, [division, setActiveIndex]);
 
   usePreviousEffect(
@@ -126,7 +123,7 @@ export const DivisionNavigation = ({ onSelect, uspsaOnly }) => {
         return;
       }
       const prevDivision = divisionForSportAndIndex(prevSportCode, activeIndex);
-      const newDivision = divisionChangeMap[sportCode][prevDivision];
+      const newDivision = divisionChangeMap[sportCode][prevDivision] || "opt";
       const [newSport, newIndex] = sportAndDivisionIndexForDivision(newDivision);
 
       // Default to 1 (Open/Comp), instead of -1 (not found) when changing sport
@@ -172,7 +169,11 @@ export const DivisionNavigation = ({ onSelect, uspsaOnly }) => {
         <TabPanel
           header="Mode"
           headerTemplate={
-            <SportSelector sportCode={sportCode} setSportCode={setSportCode} />
+            <SportSelector
+              sportCode={sportCode}
+              setSportCode={setSportCode}
+              uspsaOnly={uspsaOnly}
+            />
           }
         />
         {tabViewItems}
