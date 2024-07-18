@@ -29,6 +29,7 @@ import {
 } from "../dataUtil/classifiersData.js";
 import { minorHF } from "../../../shared/utils/hitfactor.js";
 import features from "../../../shared/features.js";
+import { ZenRows } from "zenrows";
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -149,14 +150,42 @@ export const afterUpload = async (classifiers, shooters, curTry = 1, maxTries = 
   }
 };
 
-const fetchPS = async (path) => {
-  const response = await fetch("https://s3.amazonaws.com/ps-scores/production/" + path, {
-    referrer: "https://practiscore.com",
-  });
-  if (response.status !== 200) {
+export const fetchPSHTML = async (uuid) => {
+  const client = new ZenRows(process.env.ZENROWS_API_KEY);
+  const { data, status } = await client.get(
+    "https://practiscore.com/results/new/" + uuid
+  );
+  if (status !== 200) {
+    console.error("fetchPSHTML error, bad status: " + status);
     return null;
   }
-  return await response.json();
+
+  const dataStartIndex = data.indexOf("matchDef = {");
+  if (dataStartIndex < 0) {
+    console.error("fetchPSHTML error, cant find matchDef" + status);
+    return null;
+  }
+
+  try {
+    return Object.fromEntries(
+      data
+        .substr(dataStartIndex)
+        .split("\n")
+        .filter((s) => s.includes("= "))
+        .map((s) => {
+          const [keyRaw, value] = s.split(" = ");
+          const key = keyRaw.trim();
+          if (["matchDef", "scores", "results"].includes(key)) {
+            return [key, JSON.parse(value.trim().replace(/;$/, ""))];
+          }
+          return null;
+        })
+        .filter(Boolean)
+    );
+  } catch (e) {
+    console.error("fetchPSHTML parse error");
+    return null;
+  }
 };
 
 const normalizeDivision = (shitShowDivisionNameCanBeAnythingWTFPS) => {
@@ -200,10 +229,7 @@ const scsaMatchInfo = async (matchInfo) => {
   const { uuid } = matchInfo;
 
   // Unlike USPSA, SCSA does not have results.json.
-  const [match, scoresJson] = await Promise.all([
-    fetchPS(`${matchInfo.uuid}/match_def.json`),
-    fetchPS(`${matchInfo.uuid}/match_scores.json`),
-  ]);
+  const { matchDef: match, scores: scoresJson } = await fetchPSHTML(matchInfo.uuid);
   if (!match || !scoresJson) {
     return EmptyMatchResults;
   }
@@ -356,11 +382,7 @@ const scsaMatchInfo = async (matchInfo) => {
 
 const uspsaOrHitFactorMatchInfo = async (matchInfo) => {
   const { uuid } = matchInfo;
-  const [match, results, scoresJson] = await Promise.all([
-    fetchPS(`${uuid}/match_def.json`),
-    fetchPS(`${uuid}/results.json`),
-    fetchPS(`${uuid}/match_scores.json`),
-  ]);
+  const { matchDef: match, results, scores: scoresJson } = await fetchPSHTML(uuid);
   if (!match || !results) {
     return EmptyMatchResults;
   }
