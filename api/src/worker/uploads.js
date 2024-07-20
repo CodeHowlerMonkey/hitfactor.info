@@ -98,19 +98,35 @@ export const afterUpload = async (classifiers, shooters, curTry = 1, maxTries = 
   }
 };
 
-export const fetchPSHTML = async (uuid) => {
-  const client = new ZenRows(process.env.ZENROWS_API_KEY);
-  const { data, status } = await client.get(
-    "https://practiscore.com/results/new/" + uuid
-  );
-  if (status !== 200) {
-    console.error("fetchPSHTML error, bad status: " + status);
-    return null;
-  }
+const _fetchPSWithZenRows = async (uuid, tryNumber = 1, maxTries = 2) => {
+  try {
+    const client = new ZenRows(process.env.ZENROWS_API_KEY);
+    const { data, status } = await client.get(
+      "https://practiscore.com/results/new/" + uuid,
+      { js_render: "true", premium_proxy: "true" }
+    );
+    if (status !== 200) {
+      console.error("fetchPSHTML error, bad status: " + status);
+      throw new Error("tryHarder");
+      return null;
+    }
+    return data;
+  } catch (e) {
+    if (tryNumber >= maxTries) {
+      return null;
+    }
 
+    console.error(e);
+    console.error("fetchPSHTML fetch error, retrying");
+    return _fetchPSWithZenRows(uuid, tryNumber + 1);
+  }
+};
+
+export const fetchPSHTML = async (uuid) => {
+  const data = await _fetchPSWithZenRows(uuid);
   const dataStartIndex = data.indexOf("matchDef = {");
   if (dataStartIndex < 0) {
-    console.error("fetchPSHTML error, cant find matchDef" + status);
+    console.error("fetchPSHTML error, cant find matchDef");
     return null;
   }
 
@@ -447,19 +463,28 @@ const multimatchUploadResults = async (uuidsRaw) => {
     .limit(0)
     .lean();
 
-  const matchResults = await Promise.all(
-    matches.map(async (match) => {
-      switch (match.templateName) {
-        case "Steel Challenge":
-          return scsaMatchInfo(match);
-
-        case "USPSA":
-        case "Hit Factor":
-        default:
-          return uspsaOrHitFactorMatchInfo(match);
+  const matchResults = [];
+  for (const match of matches) {
+    console.log("pulling " + match.uuid);
+    switch (match.templateName) {
+      case "Steel Challenge": {
+        // Steel Challenge doesn't have new results format with embedded json files
+        // skipping it entirely for now
+        break;
+        const scsaResults = await scsaMatchInfo(match);
+        matchResults.push(scsaResults);
+        break;
       }
-    })
-  );
+
+      case "USPSA":
+      case "Hit Factor":
+      default: {
+        const uspsaResults = await uspsaOrHitFactorMatchInfo(match);
+        matchResults.push(uspsaResults);
+        break;
+      }
+    }
+  }
 
   return matchResults.reduce((acc, cur) => {
     acc.scores = acc.scores.concat(cur.scores);
@@ -648,18 +673,23 @@ export const dqNames = async () => {
   console.log(JSON.stringify(dqs, null, 2));
 };
 
-const matchesForUploadFilter = () => ({ $expr: { $gt: ["$updated", "$uploaded"] } });
-const findAFewMatches = async () =>
-  Matches.find(matchesForUploadFilter()).limit(5).sort({ updated: 1 });
+const matchesForUploadFilter = (extraFilter = {}) => ({
+  ...extraFilter,
+  $expr: { $gt: ["$updated", "$uploaded"] },
+});
+const findAFewMatches = async (extraFilter) =>
+  Matches.find(matchesForUploadFilter(extraFilter)).limit(5).sort({ updated: 1 });
 
 const uploadLoop = async () => {
-  const count = await Matches.countDocuments(matchesForUploadFilter());
-  console.log(count + " uploads in the queue");
+  // TODO: add Steel Challenge here once supported
+  const onlyUSPSAOrHF = { templateName: { $in: ["USPSA", "Hit Factor"] } };
+  const count = await Matches.countDocuments(matchesForUploadFilter(onlyUSPSAOrHF));
+  console.log(count + " uploads in the queue (USPSA or Hit Factor only)");
 
   let numberOfUpdates = 0;
   let fewMatches = [];
   do {
-    fewMatches = await findAFewMatches();
+    fewMatches = await findAFewMatches(onlyUSPSAOrHF);
     if (!fewMatches.length) {
       return;
     }
@@ -714,7 +744,7 @@ const uploadsWorkerMain = async () => {
 
       console.timeEnd("uploadLoop");
     }, 3 * MINUTES);
-  }, 3 * MINUTES);
+  }, 0.15 * MINUTES);
 };
 
 export default uploadsWorkerMain;
