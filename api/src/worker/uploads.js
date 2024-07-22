@@ -13,8 +13,8 @@ import { curHHFForDivisionClassifier } from "../dataUtil/hhf.js";
 import { N, Percent } from "../dataUtil/numbers.js";
 import {
   Matches,
-  fetchAndSaveMoreUSPSAMatchesById,
-  fetchAndSaveMoreUSPSAMatchesByUpdatedDate,
+  fetchAndSaveMoreMatchesById,
+  fetchAndSaveMoreMatchesByUpdatedDate,
 } from "../db/matches.js";
 import {
   scsaDivisionWithPrefix,
@@ -721,8 +721,8 @@ const uploadsWorkerMain = async () => {
     console.time("fetchLoop");
     const utcHours = new Date().getUTCHours();
     if (utcHours < 7 || utcHours > 15) {
-      let numberOfNewMatches = await fetchAndSaveMoreUSPSAMatchesById();
-      let numberOfUpdatedMatches = await fetchAndSaveMoreUSPSAMatchesByUpdatedDate();
+      let numberOfNewMatches = await fetchAndSaveMoreMatchesById();
+      let numberOfUpdatedMatches = await fetchAndSaveMoreMatchesByUpdatedDate();
       console.log("fetched " + numberOfNewMatches + " new matches");
       console.log("fetched " + numberOfUpdatedMatches + " updated matches");
     } else {
@@ -744,7 +744,7 @@ const uploadsWorkerMain = async () => {
 
       console.timeEnd("uploadLoop");
     }, 3 * MINUTES);
-  }, 0.15 * MINUTES);
+  }, 3 * MINUTES);
 };
 
 export default uploadsWorkerMain;

@@ -71,9 +71,6 @@ const MatchSearchInput = forwardRef(({ placeholder, onChange }, ref) => {
   );
 });
 
-// TODO: 2 tabs, USPSA / PractiScore
-// PS is current UploadPage, USPSA if login/password form
-// upload shooter from USPSA with memberNumber/password
 const UploadPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -114,24 +111,80 @@ const UploadPage = () => {
               {tableData.length > 0 && (
                 <DataTable
                   stripedRows
-                  rowGroupMode="subheader"
-                  groupRowsBy="upload"
                   value={tableData}
                   size="small"
                   totalRecords={tableData.length}
                   sortField="upload"
                   sortOrder={1}
+                  /*
+                  rowGroupMode="subheader"
+                  groupRowsBy="upload"
                   rowGroupHeaderTemplate={(data) => {
                     if (data.upload) {
                       return "To Upload";
                     }
                     return "Search Results";
                   }}
+                    */
                 >
                   <Column field="date" header="Date" />
-                  <Column field="state" header="State" />
-                  <Column field="name" header="Match Name" />
                   <Column
+                    header="Type"
+                    body={({ templateName, type, subType }) => (
+                      <span
+                        title={[type, subType]
+                          .filter((w) => !!w && w !== "none")
+                          .join(" / ")}
+                      >
+                        {templateName}
+                      </span>
+                    )}
+                  />
+                  <Column field="state" header="State" />
+                  <Column
+                    field="name"
+                    style={{ width: "24em" }}
+                    header="Match"
+                    body={(match) => (
+                      <a
+                        href={`https://practiscore.com/results/new/${match.uuid}`}
+                        target="_blank"
+                        style={{
+                          color: "unset",
+                          textUnderlineOffset: "0.2em",
+                          textDecorationColor: "rgba(255,255,255,0.5)",
+                        }}
+                      >
+                        {match.name}
+                      </a>
+                    )}
+                  />
+                  <Column
+                    header="Uploaded"
+                    body={(match) => {
+                      if (match.uploaded) {
+                        return (
+                          <span>
+                            <i className="pi pi-check mr-2 text-teal-500" />
+                            {new Date(match.uploaded).toLocaleDateString()}
+                          </span>
+                        );
+                      }
+
+                      return (
+                        <span
+                          className="text-center ml-6"
+                          title={`Check back in ${match.eta || 30} minutes.`}
+                        >
+                          Not yet
+                        </span>
+                      );
+
+                      return null;
+                    }}
+                  />
+                  <Column
+                    hidden
                     header="Upload?"
                     body={(match) => (
                       <ToggleButton

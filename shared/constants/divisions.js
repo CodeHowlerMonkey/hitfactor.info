@@ -104,6 +104,9 @@ export const hfuDivisionCompatabilityMap = {
   pcsl_pi: "irn",
   pcsl_pcc: "car",
   pcsl_acp: "opt",
+
+  // TODO: add more compatability here and/or in normalizeDivisions for
+  // db.scores.distinct('division')
 };
 
 /**

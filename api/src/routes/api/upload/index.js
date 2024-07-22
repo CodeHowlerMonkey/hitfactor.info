@@ -7,6 +7,33 @@ import {
 } from "../../../db/shooters.js";
 import { calculateUSPSAClassification } from "../../../../../shared/utils/classification.js";
 import { uploadMatches } from "../../../worker/uploads.js";
+import { Matches } from "../../../db/matches.js";
+import algoliasearch from "algoliasearch";
+
+const searchMatches = async (q) => {
+  try {
+    const client = algoliasearch(process.env.ALGOLIA_APP_ID, process.env.ALGOLIA_API_KEY);
+    const index = client.initIndex("postmatches");
+    const { hits } = await index.search(q, {
+      hitsPerPage: 25,
+      filters: "templateName:USPSA OR templateName:'Hit Factor'",
+    });
+
+    return hits
+      .map((h) => ({
+        updated: new Date(h.updated),
+        created: new Date(h.created),
+        id: h.id,
+        state: h.front_club_state,
+        name: h.match_name,
+        uuid: h.match_id,
+      }))
+      .sort((a, b) => b.id - a.id);
+  } catch (err) {
+    console.error(err);
+  }
+  return [];
+};
 
 /**
  * Replaces same day dupes with a single average run, same as
@@ -123,39 +150,32 @@ const uploadRoutes = async (fastify, opts) => {
 
   fastify.get("/searchMatches", async (req, res) => {
     const { q } = req.query;
-    try {
-      const {
-        results: [{ hits }],
-      } = await (
-        await fetch(process.env.ALGOLIA_URL, {
-          body: JSON.stringify({
-            requests: [
-              {
-                indexName: "postmatches",
-                params:
-                  "hitsPerPage=10&query=" +
-                  encodeURIComponent(q) +
-                  "&facetFilters=templateName:USPSA", // I'm not installing qs for one API reee
-              },
-            ],
-          }),
-          method: "POST",
-        })
-      ).json();
+    const algoliaMatches = await searchMatches(q);
+    const uuids = algoliaMatches.map((m) => m.uuid);
 
-      return hits
-        .map((h) => ({
-          matchDate: new Date(h.match_date),
-          updated: new Date(h.updated),
-          created: new Date(h.created),
-          id: h.id,
-          state: h.front_club_state,
-          name: h.match_name,
-          uuid: h.match_id,
-        }))
-        .sort((a, b) => b.id - a.id);
-    } catch (err) {}
-    return [];
+    const foundMatches = await Matches.find({ uuid: { $in: uuids } });
+    const foundMatchesByUUID = foundMatches.reduce((acc, curFoundMatch) => {
+      acc[curFoundMatch.uuid] = curFoundMatch;
+      return acc;
+    }, {});
+
+    return algoliaMatches.map((m) => {
+      const foundMatch = foundMatchesByUUID[m?.uuid] || {};
+      m.uploaded = foundMatch.uploaded;
+      m.type = foundMatch.type;
+      m.subType = foundMatch.subType;
+      m.templateName = foundMatch.templateName;
+
+      if (foundMatch.uploaded) {
+        m.eta = 0;
+      } else if (foundMatch.updated) {
+        m.eta = 5;
+      } else {
+        m.eta = 30;
+      }
+
+      return m;
+    });
   });
 
   fastify.get("/info/:uuid", async (req) => {

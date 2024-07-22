@@ -91,7 +91,7 @@ const fetchMatchesRangeByTimestamp = async (timestamp, template = "USPSA") => {
             indexName: "postmatches",
             params: `hitsPerPage=${MATCHES_PER_FETCH}&query=&numericFilters=${encodeURIComponent(
               "timestamp_utc_updated > " + timestamp
-            )}&facetFilters=templateName:${template}`,
+            )}&facetFilters=${filtersForTemplate(template)}`,
           },
         ],
       }),
@@ -159,9 +159,9 @@ const fetchMoreMatchesByTimestamp = async (startTimestamp, template, onPageCallb
  *
  * Saves matches into Matches collecion, which is later used by upload loop.
  *
- * Use for initial fetch of matches, for day-to-day use fetchAndSaveMoreUSPASMatchesByUpdateDate
+ * Use for initial fetch of matches, for day-to-day use fetchAndSaveMoreMatchesByUpdateDate
  */
-export const fetchAndSaveMoreUSPSAMatchesById = async () => {
+export const fetchAndSaveMoreMatchesById = async () => {
   const lastMatch = await Matches.findOne().sort({ id: -1 });
   console.log("lastMatchId = " + lastMatch?.id);
   return fetchMoreMatches(lastMatch?.id, "", async (matches) =>
@@ -180,11 +180,11 @@ export const fetchAndSaveMoreUSPSAMatchesById = async () => {
 };
 
 /**
- * Same as fetchAndSaveMoreUSPSAMatchesById, but uses updated date.
+ * Same as fetchAndSaveMoreMatchesById, but uses updated date.
  *
  * Should overwrite some matches if they were updated after previous fetch.
  */
-export const fetchAndSaveMoreUSPSAMatchesByUpdatedDate = async () => {
+export const fetchAndSaveMoreMatchesByUpdatedDate = async () => {
   const lastMatch = await Matches.findOne().sort({ updated: -1 });
   console.log(
     "lastUpdatedMatch= " +
@@ -192,7 +192,7 @@ export const fetchAndSaveMoreUSPSAMatchesByUpdatedDate = async () => {
   );
   return fetchMoreMatchesByTimestamp(
     (lastMatch?.updated || new Date()) / 1000,
-    "USPSA",
+    "",
     async (matches) =>
       Matches.bulkWrite(
         matches.map((m) => ({
