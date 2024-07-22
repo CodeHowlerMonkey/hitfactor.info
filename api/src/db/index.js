@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import { hydrateStats } from "./stats.js";
 import { hydrateScores } from "./scores.js";
-import { hydrateRecHHF } from "./recHHF.js";
+import { rehydrateRecHHF } from "./recHHF.js";
 import { hydrateShooters } from "./shooters.js";
 import { hydrateClassifiersExtendedMeta } from "./classifiers.js";
 
@@ -10,7 +10,9 @@ export const connect = async () => {
   const url = !LOCAL_DEV ? MONGO_URL : MONGO_URL_LOCAL;
 
   if (!LOCAL_DEV && !MONGO_URL) {
-    throw new Error(`Environment Variable MONGO_URL must be specified in top-level environment variables in sandbox mode.`);
+    throw new Error(
+      `Environment Variable MONGO_URL must be specified in top-level environment variables in sandbox mode.`
+    );
   }
 
   const _connect = () => {
@@ -50,7 +52,7 @@ export const hydrate = async () => {
   console.time("full hydration");
 
   await hydrateScores();
-  await hydrateRecHHF();
+  await rehydrateRecHHF();
   await hydrateShooters();
   await hydrateClassifiersExtendedMeta();
   await hydrateStats();

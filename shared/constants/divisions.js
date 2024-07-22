@@ -66,6 +66,7 @@ export const hfuDivisions = [
   },
 ];
 export const hfuDivisionsShortNames = hfuDivisions.map((d) => d.short);
+export const hfuDivisionsShortNamesThatNeedMinorHF = ["comp", "irn"];
 
 export const sportForDivision = (division) => {
   if (hfuDivisionsShortNames.indexOf(division) >= 0) {
@@ -108,6 +109,8 @@ export const hfuDivisionCompatabilityMap = {
   // TODO: add more compatability here and/or in normalizeDivisions for
   // db.scores.distinct('division')
 };
+
+export const pcslDivisions = ["pcsl_comp", "pcsl_po", "pcsl_pi", "pcsl_pcc", "pcsl_acp"];
 
 /**
  * Divisions that should NOT be used to calculate RecHHF for HFU divisions.
@@ -237,3 +240,12 @@ export const divisionsForRecHHFAdapter = (division) => {
 
   return [division];
 };
+
+export const allDivShortNames = [
+  ...uspsaDivShortNames,
+  ...hfuDivisionsShortNames,
+  // TODO: pcsl
+  // TODO: scsa
+];
+export const mapAllDivisions = (mapper) =>
+  Object.fromEntries(allDivShortNames.map((div) => [div, mapper(div)]));

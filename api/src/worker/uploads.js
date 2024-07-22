@@ -17,32 +17,84 @@ import {
   fetchAndSaveMoreMatchesByUpdatedDate,
 } from "../db/matches.js";
 import {
+  arrayWithExplodedDivisions,
+  hfuDivisionCompatabilityMap,
+  hfuDivisionsShortNames,
+  pairToDivision,
+} from "../dataUtil/divisions.js";
+
+import {
   scsaDivisionWithPrefix,
   scsaPeakTime,
   ScsaPeakTimesMap,
 } from "../dataUtil/classifiersData.js";
+import { minorHF } from "../../../shared/utils/hitfactor.js";
+import features from "../../../shared/features.js";
+import { ZenRows } from "zenrows";
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-export const classifiersAndShootersFromScores = (scores, memberNumberToNameMap) => {
-  const classifiers = uniqBy(
-    scores.map(({ classifierDivision, classifier, division }) => ({
-      classifierDivision,
-      classifier,
-      division,
-    })),
+const uniqByTruthyMap = (arr, cb) => uniqBy(arr, cb).filter(cb).map(cb);
+export const arrayCombination = (arr1, arr2, cb) => {
+  const result = new Array(arr1.length * arr2.length);
+  let i = 0;
+  for (let ii = 0; ii < arr1.length; ++ii) {
+    for (let iii = 0; iii < arr2.length; ++iii) {
+      result[i++] = cb(arr1[ii], arr2[iii]);
+    }
+  }
+
+  return result;
+};
+
+export const classifiersAndShootersFromScores = (
+  scores,
+  memberNumberToNameMap = {},
+  includeHFUDivisions = false
+) => {
+  const divisionExplosionMap = includeHFUDivisions ? hfuDivisionCompatabilityMap : {};
+  const uniqueClassifierDivisionPairs = uniqByTruthyMap(
+    scores,
     (s) => s.classifierDivision
-  ).filter((c) => !!c.classifier);
-  const shooters = uniqBy(
-    scores.map(({ memberNumberDivision, memberNumber, division }) => ({
-      memberNumberDivision,
-      memberNumber,
-      division,
-      name: memberNumberToNameMap[memberNumber],
-    })),
+  );
+  const uniqueMemberNumberDivisionPairs = uniqByTruthyMap(
+    scores,
     (s) => s.memberNumberDivision
-  ).filter((c) => !!c.memberNumber);
-  return { classifiers, shooters };
+  );
+
+  const classifiers = arrayWithExplodedDivisions(
+    uniqueClassifierDivisionPairs,
+    divisionExplosionMap,
+    pairToDivision,
+    (originalClassifierDivision, division) => {
+      const classifier = originalClassifierDivision.split(":")[0];
+      return {
+        classifierDivision: [classifier, division].join(":"),
+        classifier,
+        division,
+      };
+    }
+  );
+
+  const shooters = arrayWithExplodedDivisions(
+    uniqueMemberNumberDivisionPairs,
+    divisionExplosionMap,
+    pairToDivision,
+    (originalMemberNumberDivision, division) => {
+      const memberNumber = originalMemberNumberDivision.split(":")[0];
+      return {
+        memberNumberDivision: [memberNumber, division].join(":"),
+        memberNumber,
+        division,
+        name: memberNumberToNameMap[memberNumber],
+      };
+    }
+  );
+
+  return {
+    classifiers: uniqBy(classifiers, (c) => c.classifierDivision),
+    shooters: uniqBy(shooters, (s) => s.memberNumberDivision),
+  };
 };
 
 export const afterUpload = async (classifiers, shooters, curTry = 1, maxTries = 3) => {
@@ -82,6 +134,7 @@ export const afterUpload = async (classifiers, shooters, curTry = 1, maxTries = 
         updateOne: {
           filter: { division: doc.division, classifier: doc.classifier },
           update: { $set: doc },
+          upsert: true,
         },
       }))
     );
@@ -396,7 +449,7 @@ const uspsaOrHitFactorMatchInfo = async (matchInfo) => {
         const modifiedDate = new Date(detailedScores.mod);
         const modified = Number.isNaN(modifiedDate.getTime()) ? undefined : modifiedDate;
 
-        return {
+        const curScore = {
           hf: Number(a.hitFactor),
           hhf,
 
@@ -434,6 +487,8 @@ const uspsaOrHitFactorMatchInfo = async (matchInfo) => {
           memberNumberDivision: [memberNumber, division].join(":"),
           classifierDivision: [classifier, division].join(":"),
         };
+        curScore.minorHF = minorHF(curScore);
+        return curScore;
       });
     })
     .flat()
@@ -568,12 +623,21 @@ export const uploadMatches = async (uuids) => {
 
     const { classifiers, shooters } = classifiersAndShootersFromScores(
       scores,
-      shooterNameMap
+      shooterNameMap,
+      true
     );
     await afterUpload(classifiers, shooters);
+
+    const publicShooters = features.hfu
+      ? shooters
+      : shooters.filter((s) => !hfuDivisionsShortNames.includes(s.division));
+    const publicClassifiers = features.hfu
+      ? classifiers
+      : classifiers.filter((c) => !hfuDivisionsShortNames.includes(c.division));
+
     return {
-      shooters,
-      classifiers,
+      shooters: publicShooters,
+      classifiers: publicClassifiers,
     };
   } catch (e) {
     console.error(e);

@@ -9,10 +9,9 @@ import {
   sportName,
 } from "../../../shared/constants/divisions";
 import usePreviousEffect from "../utils/usePreviousEffect";
+import features from "../../../shared/features";
 
-const enableSportSelector = false;
-
-const SportSelector = ({ sportCode, setSportCode }) => {
+const SportSelector = ({ sportCode, setSportCode, uspsaOnly }) => {
   const menu = useRef(null);
   const items = [
     {
@@ -36,7 +35,7 @@ const SportSelector = ({ sportCode, setSportCode }) => {
     },
   ];
 
-  if (!enableSportSelector) {
+  if (!features.hfu || uspsaOnly) {
     return null;
   }
 
@@ -45,7 +44,7 @@ const SportSelector = ({ sportCode, setSportCode }) => {
       <Menu model={items} popup ref={menu} />
       <a
         role="tab"
-        class="p-tabview-nav-link mr-4"
+        className="p-tabview-nav-link mr-4"
         tabIndex="-1"
         onClick={(e) => {
           e.preventDefault();
@@ -55,8 +54,8 @@ const SportSelector = ({ sportCode, setSportCode }) => {
         }}
         aria-haspopup
       >
-        <span class="p-tabview-title">{sportName(sportCode)}</span>
-        <span class="pi pi-chevron-down ml-2 text-sm" />
+        <span className="p-tabview-title">{sportName(sportCode)}</span>
+        <span className="pi pi-chevron-down ml-2 text-sm" />
       </a>
     </div>
   );
@@ -72,37 +71,50 @@ const divisionForSportAndIndex = (sport, index) => {
   return uspsaDivisions[index - 1]?.short_name?.toLowerCase?.();
 };
 
-const indexForDivision = (division) => {
-  // hfu
+const sportAndDivisionIndexForDivision = (division) => {
+  // hfu is only additional sport without _ in the division name
   const hfuIndex = hfuDivisions.findIndex(
     (c) => c.short.toLowerCase() === (division || "invalid")
   );
   if (hfuIndex >= 0) {
     // plusOne the dataIndex, because TabView counts SportSelector as index 0
-    return hfuIndex + 1;
+    return ["hfu", hfuIndex + 1];
   }
 
-  // uspsa
+  // TODO: check for normal sport_division divisions here
+
+  // uspsa is default
   const uspsaIndex = uspsaDivisions.findIndex(
     (c) => c?.short_name?.toLowerCase() === (division || "invalid")
   );
   if (uspsaIndex >= 0) {
     // plusOne the dataIndex, because TabView counts SportSelector as index 0
-    return uspsaIndex + 1;
+    return ["uspsa", uspsaIndex + 1];
   }
 
-  return -1;
+  return ["uspsa", -1];
 };
 
 export const DivisionNavigation = ({ onSelect, uspsaOnly }) => {
   // TODO: save in localStorage last sport/division selection
   const { division } = useParams();
-  const [sportCode, setSportCode] = useState("uspsa");
-  const [activeIndex, setActiveIndex] = useState(indexForDivision(division));
+
+  const [initialSport, initialDivisionIndex] = sportAndDivisionIndexForDivision(division);
+  const [sportCode, setSportCode] = useState(initialSport);
+  const [activeIndex, setActiveIndex] = useState(initialDivisionIndex);
 
   // update selection if navigation changes
   useEffect(() => {
-    setActiveIndex(indexForDivision(division));
+    const [sport, divisionIndex] = sportAndDivisionIndexForDivision(division);
+    if (features.hfu && !uspsaOnly) {
+      setActiveIndex(divisionIndex);
+      setSportCode(sport);
+    } else if (sport === "hfu") {
+      // bail back to uspsa/opn if hfu is disabled or not supported
+      setSportCode("uspsa");
+      setActiveIndex(1);
+      onSelect("opn", "uspsa");
+    }
   }, [division, setActiveIndex]);
 
   usePreviousEffect(
@@ -111,12 +123,12 @@ export const DivisionNavigation = ({ onSelect, uspsaOnly }) => {
         return;
       }
       const prevDivision = divisionForSportAndIndex(prevSportCode, activeIndex);
-      const newDivision = divisionChangeMap[sportCode][prevDivision];
-      const newIndex = indexForDivision(newDivision);
+      const newDivision = divisionChangeMap[sportCode][prevDivision] || "opt";
+      const [newSport, newIndex] = sportAndDivisionIndexForDivision(newDivision);
 
       // Default to 1 (Open/Comp), instead of -1 (not found) when changing sport
       setActiveIndex(newIndex >= 0 ? newIndex : 1);
-      onSelect(newDivision);
+      onSelect(newDivision, newSport);
     },
     [sportCode]
   );
@@ -157,7 +169,11 @@ export const DivisionNavigation = ({ onSelect, uspsaOnly }) => {
         <TabPanel
           header="Mode"
           headerTemplate={
-            <SportSelector sportCode={sportCode} setSportCode={setSportCode} />
+            <SportSelector
+              sportCode={sportCode}
+              setSportCode={setSportCode}
+              uspsaOnly={uspsaOnly}
+            />
           }
         />
         {tabViewItems}

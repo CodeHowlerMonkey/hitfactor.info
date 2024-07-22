@@ -103,7 +103,7 @@ export const ScoresChart = ({ division, memberNumber }) => {
             label: "Percent",
             data: data.map((c) => ({
               ...c,
-              x: new Date(c.x),
+              x: new Date(new Date(c.x).toLocaleDateString("en-us", { timeZone: "UTC" })),
               y: c.percent,
             })),
             backgroundColor: "#ae9ef1",
@@ -113,7 +113,7 @@ export const ScoresChart = ({ division, memberNumber }) => {
             label: "Current Percent",
             data: data.map((c) => ({
               ...c,
-              x: new Date(c.x),
+              x: new Date(new Date(c.x).toLocaleDateString("en-us", { timeZone: "UTC" })),
               y: c.curPercent,
             })),
             backgroundColor: "#b5ca25",
@@ -122,7 +122,7 @@ export const ScoresChart = ({ division, memberNumber }) => {
             label: "Rec. Percent",
             data: data.map((c) => ({
               ...c,
-              x: new Date(c.x),
+              x: new Date(new Date(c.x).toLocaleDateString("en-us", { timeZone: "UTC" })),
               y: c.recPercent,
             })),
             borderColor: "#40cf40",

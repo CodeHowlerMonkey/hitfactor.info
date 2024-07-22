@@ -27,23 +27,34 @@ const toFixedWithSuffixValueOrPlaceholder = (value, length, suffix, empty = "—
 const percentValueOrEmpty = (value) =>
   toFixedWithSuffixValueOrPlaceholder(value, 2, "%", "");
 
-const cardRow = ({ classes, currents, ages, reclassifications }, div) => ({
-  division: tableNameForDiv[div],
-  hq: [classes?.[div], percentValueOrEmpty(currents?.[div])].filter(Boolean).join(" / "),
-  curHHF: [
-    reclassifications?.curPercent?.classes?.[div],
-    percentValueOrEmpty(reclassifications?.curPercent?.currents?.[div]),
-  ]
-    .filter(Boolean)
-    .join(" / "),
-  rec: [
-    reclassifications?.recPercent?.classes?.[div],
-    percentValueOrEmpty(reclassifications?.recPercent?.currents?.[div]),
-  ]
-    .filter(Boolean)
-    .join(" / "),
-  age: toFixedWithSuffixValueOrPlaceholder(ages?.[div], 1, "mo"),
-});
+const cardRow = (classificationByDivision, div) => {
+  const {
+    hqClass,
+    current,
+    age,
+    reclassificationsCurPercentCurrent,
+    reclassificationsCurPercentClass,
+    reclassificationsRecPercentClass,
+    reclassificationsRecPercentCurrent,
+  } = classificationByDivision[div];
+  return {
+    division: tableNameForDiv[div],
+    hq: [hqClass, percentValueOrEmpty(current)].filter(Boolean).join(" / "),
+    curHHF: [
+      reclassificationsCurPercentClass,
+      percentValueOrEmpty(reclassificationsCurPercentCurrent),
+    ]
+      .filter(Boolean)
+      .join(" / "),
+    rec: [
+      reclassificationsRecPercentClass,
+      percentValueOrEmpty(reclassificationsRecPercentCurrent),
+    ]
+      .filter(Boolean)
+      .join(" / "),
+    age: toFixedWithSuffixValueOrPlaceholder(age, 1, "mo"),
+  };
+};
 
 const dateValue = (value) =>
   !value ? "" : new Date(value).toLocaleDateString("en-us", { timeZone: "UTC" });
@@ -93,18 +104,18 @@ export const ShooterInfoTable = ({ info, division, memberNumber, loading }) => {
           size="small"
           stripedRows
           value={
-            loading
+            loading || !info?.classificationByDivision
               ? []
               : [
-                  cardRow(info, "opn"),
-                  cardRow(info, "ltd"),
-                  cardRow(info, "l10"),
-                  cardRow(info, "prod"),
-                  cardRow(info, "rev"),
-                  cardRow(info, "ss"),
-                  cardRow(info, "co"),
-                  cardRow(info, "pcc"),
-                  cardRow(info, "lo"),
+                  cardRow(info.classificationByDivision, "opn"),
+                  cardRow(info.classificationByDivision, "ltd"),
+                  cardRow(info.classificationByDivision, "l10"),
+                  cardRow(info.classificationByDivision, "prod"),
+                  cardRow(info.classificationByDivision, "rev"),
+                  cardRow(info.classificationByDivision, "ss"),
+                  cardRow(info.classificationByDivision, "co"),
+                  cardRow(info.classificationByDivision, "pcc"),
+                  cardRow(info.classificationByDivision, "lo"),
                 ]
           }
         >

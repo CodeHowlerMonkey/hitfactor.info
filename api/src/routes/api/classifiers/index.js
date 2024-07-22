@@ -20,6 +20,11 @@ import {
   percentAggregationOp,
   textSearchMatch,
 } from "../../../db/utils.js";
+import {
+  divisionsForRecHHFAdapter,
+  divisionsForScoresAdapter,
+  hfuDivisionsShortNamesThatNeedMinorHF,
+} from "../../../dataUtil/divisions.js";
 
 const _getShooterField = (field) => ({
   $getField: {
@@ -31,6 +36,27 @@ const _getRecHHFField = (field) => ({
   $getField: {
     input: { $arrayElemAt: ["$rechhfs", 0] },
     field,
+  },
+});
+
+const _replaceHFWithMinorHFIfNeeded = (division) =>
+  !hfuDivisionsShortNamesThatNeedMinorHF.includes(division)
+    ? []
+    : [
+        {
+          $addFields: {
+            hf: "$minorHF",
+          },
+        },
+      ];
+
+// override division and all division-derived fields to given division, used for correct lookup of HFU scores, even when they came from another division
+const _overwriteDivision = (division) => ({
+  $addFields: {
+    originalDivision: "$division",
+    division,
+    classifierDivision: { $concat: ["$classifier", ":", division] },
+    memberNumberDivision: { $concat: ["$memberNumber", ":", division] },
   },
 });
 const _runsAggregation = async ({
@@ -49,7 +75,16 @@ const _runsAggregation = async ({
         _v: false,
       },
     },
-    { $match: { classifier, division, hf: { $gt: 0 }, bad: { $exists: false } } },
+    ..._replaceHFWithMinorHFIfNeeded(division),
+    {
+      $match: {
+        classifier,
+        division: { $in: divisionsForScoresAdapter(division) },
+        hf: { $gt: 0 },
+        bad: { $exists: false },
+      },
+    },
+    _overwriteDivision(division),
     {
       $lookup: {
         from: "shooters",
@@ -76,7 +111,6 @@ const _runsAggregation = async ({
         hqClass: _getShooterField("class"),
         hqCurrent: _getShooterField("current"),
         name: _getShooterField("name"),
-        reclassifications: _getShooterField("reclassifications"),
         recClass: _getShooterField("recClass"),
         curHHFClass: _getShooterField("curHHFClass"),
         reclassificationsCurPercentCurrent: _getShooterField(
@@ -93,7 +127,6 @@ const _runsAggregation = async ({
         rechhfs: false,
         memberNumberDivision: false,
         classifier: false,
-        division: false,
       },
     },
     {
@@ -111,28 +144,6 @@ const _runsAggregation = async ({
     ...addTotalCountAggregation("totalWithFilters"),
     ...multiSortAndPaginate({ sort, order, page }),
   ]);
-
-const _runsAdapter = (classifier, division, runs /*hhf, hhfs*/) =>
-  runs.map((run, index) => {
-    const percent = N(run.percent);
-    const curPercent = PositiveOrMinus1(run.curPercent);
-    const recPercent = PositiveOrMinus1(run.recPercent);
-    const percentMinusCurPercent = N(percent - curPercent);
-
-    //const findHistoricalHHF = hhfs.findLast((hhf) => hhf.date <= new Date(run.sd).getTime())?.hhf;
-    const recalcHistoricalHHF = HF((100 * run.hf) / run.percent);
-
-    run.sd = new Date(run.sd).toLocaleDateString("en-us", { timeZone: "UTC" });
-    run.historicalHHF = /*findHistoricalHHF ?? */ recalcHistoricalHHF;
-    run.percent = percent;
-    run.curPercent = curPercent;
-    run.recPercent = recPercent;
-    run.percentMinusCurPercent = percent >= 100 ? 0 : percentMinusCurPercent;
-    run.classifier = classifier;
-    run.division = division;
-    run.index = index;
-    return run;
-  });
 
 const classifiersRoutes = async (fastify, opts) => {
   fastify.get("/", (req, res) => classifiers.map(basicInfoForClassifier));
@@ -181,18 +192,9 @@ const classifiersRoutes = async (fastify, opts) => {
     return result;
   });
 
-  // TODO: move scores filtering & pagination to mongo
   fastify.get("/scores/:division/:number", async (req, res) => {
     const { division, number } = req.params;
-    const {
-      sort,
-      order,
-      page,
-      // hhf: filterHHFString,
-      club: filterClubString,
-      filter: filterString,
-    } = req.query;
-    // const filterHHF = parseFloat(filterHHFString);
+    const { sort, order, page, club: filterClubString, filter: filterString } = req.query;
     const runsFromDB = await _runsAggregation({
       classifier: number,
       division,
@@ -204,7 +206,22 @@ const classifiersRoutes = async (fastify, opts) => {
     });
 
     return {
-      runs: _runsAdapter(number, division, runsFromDB),
+      runs: runsFromDB.map((run, index) => {
+        const percent = N(run.percent);
+        const curPercent = PositiveOrMinus1(run.curPercent);
+        const recPercent = PositiveOrMinus1(run.recPercent);
+        const percentMinusCurPercent = N(percent - curPercent);
+
+        run.sd = new Date(run.sd).toLocaleDateString("en-us", { timeZone: "UTC" });
+        run.historicalHHF = HF((100 * run.hf) / run.percent); // recalculated only
+        run.percent = percent;
+        run.curPercent = curPercent;
+        run.recPercent = recPercent;
+        run.percentMinusCurPercent = percent >= 100 ? 0 : percentMinusCurPercent;
+        run.classifier = number;
+        run.index = index;
+        return run;
+      }),
       runsTotal: runsFromDB[0]?.total || 0,
       runsTotalWithFilters: runsFromDB[0]?.totalWithFilters || 0,
       runsPage: Number(page) || 1,
@@ -219,6 +236,7 @@ const classifiersRoutes = async (fastify, opts) => {
     const runs = await Score.aggregate([
       {
         $project: {
+          minorHF: true,
           hf: true,
           memberNumber: true,
           memberNumberDivision: true,
@@ -228,9 +246,16 @@ const classifiersRoutes = async (fastify, opts) => {
           _id: false,
         },
       },
+      ..._replaceHFWithMinorHFIfNeeded(division),
       {
-        $match: { classifier: number, division, hf: { $gt: 0 }, bad: { $exists: false } },
+        $match: {
+          classifier: number,
+          division: { $in: divisionsForScoresAdapter(division) },
+          hf: { $gt: 0 },
+          bad: { $exists: false },
+        },
       },
+      _overwriteDivision(division),
       {
         $lookup: {
           from: "shooters",

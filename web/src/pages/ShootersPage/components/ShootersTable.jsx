@@ -14,6 +14,7 @@ import {
 import { useDebounce } from "use-debounce";
 import ShooterCell from "../../../components/ShooterCell";
 import ReportDialog from "../../../components/ReportDialog";
+import { sportForDivision } from "../../../../../shared/constants/divisions";
 
 const classColumnProps = {
   sortable: true,
@@ -157,6 +158,7 @@ const ShootersTable = ({
           sortable
           body={(shooter) => (
             <ShooterCell
+              sport={sportForDivision(division)}
               data={shooter}
               onClick={() => onShooterSelection?.(shooter.memberNumber)}
             />
@@ -179,22 +181,6 @@ const ShootersTable = ({
           body={renderPercent}
         />
         <Column field="current" header="HQ" sortable body={renderPercent} />
-        <Column
-          field="hqToRecPercent"
-          header="HQ vs Rec.HHF %"
-          headerTooltip="Difference between official and recommended classifications"
-          headerTooltipOptions={headerTooltipOptions}
-          sortable
-          body={renderPercentDiff}
-        />
-        <Column
-          field="hqToCurHHFPercent"
-          header="HQ vs Cur.HHF %"
-          headerTooltip="Difference between official classification and current HHF classification percent."
-          headerTooltipOptions={headerTooltipOptions}
-          sortable
-          body={renderPercentDiff}
-        />
         <Column
           field="age"
           header="Age"

@@ -1,5 +1,9 @@
 import { v4 as randomUUID } from "uuid";
-import { divShortNames, mapDivisions } from "../../api/src/dataUtil/divisions.js";
+import {
+  allDivShortNames,
+  divShortNames,
+  mapAllDivisions,
+} from "../../api/src/dataUtil/divisions.js";
 import uniqBy from "lodash.uniqby";
 import { dateSort, numSort } from "./sort.js";
 
@@ -69,8 +73,8 @@ export const lowestAllowedPercentForOtherDivisionClass = (highestClassification)
 
 export const canBeInserted = (c, state, percentField = "percent") => {
   try {
-    const { division, classifier } = c;
-    if (!divShortNames.includes(division)) {
+    const { division } = c;
+    if (!allDivShortNames.includes(division)) {
       return false;
     }
     const { window } = state[division];
@@ -177,13 +181,17 @@ export const percentAndAgesForDivWindow = (
   };
 };
 
+const initialClassificationStateForDivision = () => ({
+  percent: 0,
+  highPercent: 0,
+  window: [],
+  percentWithDates: [],
+});
 export const newClassificationCalculationState = () =>
-  mapDivisions((div) => ({
-    percent: 0,
-    highPercent: 0,
-    window: [],
-    percentWithDates: [],
-  }));
+  mapAllDivisions(initialClassificationStateForDivision);
+
+const getDivisionState = (state, division) =>
+  state?.[division] || initialClassificationStateForDivision();
 
 // adds in place, growing window if needed for duplicates
 export const addToCurWindow = (c, curWindow, targetWindowSize = 8) => {
@@ -198,6 +206,7 @@ export const addToCurWindow = (c, curWindow, targetWindowSize = 8) => {
 };
 
 // TODO: minimal class as highest - 1
+// TODO: HFU divisions support through TDD
 export const calculateUSPSAClassification = (
   classifiers,
   percentField = "percent",
@@ -261,7 +270,7 @@ export const calculateUSPSAClassification = (
 
   classifiersReadyToScore.forEach(scoringFunction);
 
-  return mapDivisions((div) => {
+  return mapAllDivisions((div) => {
     state[div].class = classForPercent(state[div].percent);
     delete state[div].window;
     return state[div];
@@ -269,4 +278,4 @@ export const calculateUSPSAClassification = (
 };
 
 export const getDivToClass = (state) =>
-  mapDivisions((div) => classForPercent(state[div].highPercent));
+  mapAllDivisions((div) => classForPercent(getDivisionState(state, div).highPercent));

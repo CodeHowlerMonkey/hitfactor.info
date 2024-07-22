@@ -6,6 +6,7 @@ import { processImportAsyncSeq } from "../utils.js";
 import {
   divIdToShort,
   divisionsForScoresAdapter,
+  hfuDivisionsShortNamesThatNeedMinorHF,
   minorDivisions,
   uspsaDivShortNames,
 } from "../../../shared/constants/divisions.js";
@@ -20,6 +21,7 @@ const ScoreSchema = new mongoose.Schema(
     club_name: String,
     percent: Number,
     hf: Number,
+    minorHF: Number,
     code: { type: String, maxLength: 1 },
     source: String,
     memberNumber: String,
@@ -51,6 +53,22 @@ const ScoreSchema = new mongoose.Schema(
   },
   { strict: false }
 );
+
+// not all scores have minorHF, so this is an adapter around it or regular hf based on sport/division
+ScoreSchema.virtual("hfuHF").get(function () {
+  const division = this.division || "";
+  if (division.startsWith("pcsl_")) {
+    return this.hf;
+  }
+
+  // prod lo co pcc
+  // comp opt irn car
+  if (minorDivisions.includes(division)) {
+    return this.hf;
+  }
+
+  return this.minorHF;
+});
 ScoreSchema.virtual("isMajor").get(function () {
   return this.source === "Major Match";
 });
@@ -60,15 +78,19 @@ ScoreSchema.virtual("HHFs", {
   localField: "classifierDivision",
 });
 ScoreSchema.virtual("recHHF").get(function () {
+  return this.HHFs?.[0]?.recHHF || -1;
+});
+ScoreSchema.virtual("curHHF").get(function () {
   return this.HHFs?.[0]?.curHHF || -1;
 });
 ScoreSchema.virtual("curPercent").get(function () {
-  const curHHF = this.HHFs?.[0]?.curHHF || -1;
-  return this.isMajor ? this.percent : PositiveOrMinus1(Percent(this.hf, curHHF, 4));
+  return this.isMajor ? this.percent : PositiveOrMinus1(Percent(this.hf, this.curHHF, 4));
 });
 ScoreSchema.virtual("recPercent").get(function () {
-  const recHHF = this.HHFs?.[0]?.recHHF || -1;
-  return this.isMajor ? this.percent : PositiveOrMinus1(Percent(this.hf, recHHF, 4));
+  return this.isMajor ? this.percent : PositiveOrMinus1(Percent(this.hf, this.recHHF, 4));
+});
+ScoreSchema.virtual("hfuPercent").get(function () {
+  return this.isMajor ? -1 : PositiveOrMinus1(Percent(this.hfuHF, this.recHHF, 4));
 });
 // TODO: get rid of percentMinusCurPercent
 ScoreSchema.virtual("percentMinusCurPercent").get(function () {
@@ -93,6 +115,26 @@ const badScoresMap = {
 };
 
 const isMajor = (source) => source === "Major Match";
+
+/**
+ * Picks runs for division. As-is for USPSA, or switches hf to minorHF for
+ * HFU's comp and irn division (since they have major PF scores from USPSA divisions)
+ *
+ * If minorHF is needed, but not avilale - the run is dropped.
+ * WARNING: mutates runs' hf to set it to minorHF
+ */
+export const minorHFScoresAdapter = (runs, division) => {
+  if (!hfuDivisionsShortNamesThatNeedMinorHF.includes(division)) {
+    return runs;
+  }
+
+  return runs
+    .filter((r) => r.minorHF > 0)
+    .map((r) => {
+      r.hf = r.minorHF;
+      return r;
+    });
+};
 
 export const scoresFromClassifierFile = (fileObj) => {
   const memberNumber = fileObj?.value?.member_data?.member_number;
@@ -195,12 +237,19 @@ export const hydrateScores = async () => {
 };
 
 export const shooterScoresChartData = async ({ memberNumber, division }) => {
-  const scores = await Score.find({ memberNumber, division, bad: { $exists: false } })
+  const scores = await Score.find({
+    memberNumber,
+    division: { $in: divisionsForScoresAdapter(division) },
+    bad: { $exists: false },
+  })
     .populate("HHFs")
     .limit(0)
     .sort({ sd: -1 });
-  return scores
-    .map((doc) => doc.toObject({ virtuals: true }))
+
+  return minorHFScoresAdapter(
+    scores.map((s) => s.toObject({ virtuals: true })),
+    division
+  )
     .map((run) => ({
       x: run.sd,
       recPercent: run.recPercent,
@@ -212,12 +261,19 @@ export const shooterScoresChartData = async ({ memberNumber, division }) => {
 };
 
 export const scoresForDivisionForShooter = async ({ division, memberNumber }) => {
-  const scores = await Score.find({ division, memberNumber, bad: { $exists: false } })
+  const scores = await Score.find({
+    division: { $in: divisionsForScoresAdapter(division) },
+    memberNumber,
+    bad: { $exists: false },
+  })
     .populate("HHFs")
     .sort({ sd: -1, hf: -1 })
     .limit(0);
-  return scores.map((doc, index) => {
-    const obj = doc.toObject({ virtuals: true });
+
+  return minorHFScoresAdapter(
+    scores.map((s) => s.toObject({ virtuals: true })),
+    division
+  ).map((obj, index) => {
     obj.index = index;
     return obj;
   });

@@ -1,5 +1,6 @@
 import { ProgressSpinner } from "primereact/progressspinner";
 import { Message } from "primereact/message";
+import uniqBy from "lodash.uniqby";
 
 const shooterHref = (memberNumber, division) =>
   `/shooters/${division}/${memberNumber || ""}`;
@@ -17,12 +18,21 @@ const errorContent = (error) => {
   );
 };
 
+// TODO: show shooter names
 const UploadResults = ({
   result,
   loading,
   error,
   successMessage = "Upload Complete!",
 }) => {
+  const numClassifiers = uniqBy(result?.classifiers || [], (c) => c.classifier).length;
+  const numDivisions = uniqBy(result?.classifiers || [], (c) => c.division).length;
+  const numShooters = result?.shooters?.length || 0;
+
+  const classifiersSuffix = numClassifiers === 1 ? "" : "s";
+  const divisionsSuffix = numDivisions === 1 ? "" : "s";
+  const shootersSuffix = numShooters === 1 ? "" : "s";
+
   return (
     <>
       {loading && <ProgressSpinner />}
@@ -46,7 +56,8 @@ const UploadResults = ({
       {result && (
         <div className="flex justify-content-around sm:w-full lg:w-10 mt-4">
           <div>
-            Classifiers:
+            {numClassifiers} Classifier{classifiersSuffix}, {numDivisions} Division
+            {divisionsSuffix}:
             <ul>
               {result.classifiers?.map((c) => (
                 <li key={[c.classifier, c.division].join(":")}>
@@ -58,7 +69,7 @@ const UploadResults = ({
             </ul>
           </div>
           <div>
-            Shooters:
+            {numShooters} Shooter{shootersSuffix}
             <ul>
               {result.shooters?.map((s) => (
                 <li key={[s.memberNumber, s.division].join(":")}>

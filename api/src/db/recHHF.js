@@ -2,8 +2,15 @@ import mongoose from "mongoose";
 
 import { HF, Percent, PositiveOrMinus1 } from "../dataUtil/numbers.js";
 
-import { Score } from "./scores.js";
+import { minorHFScoresAdapter, Score } from "./scores.js";
 import { curHHFForDivisionClassifier } from "../dataUtil/hhf.js";
+import {
+  allDivShortNames,
+  classifierDivisionArrayForHFURecHHFs,
+  divisionsForRecHHFAdapter,
+  hfuDivisionCompatabilityMap,
+} from "../dataUtil/divisions.js";
+import { uspsaClassifiers } from "../dataUtil/classifiersData.js";
 
 /**
  * Calculated recommended HHF by matching lower percent of the score to percentile of shooters
@@ -431,7 +438,7 @@ const runsForRecs = async ({ division, number }) =>
   (
     await Score.find({
       classifier: number,
-      division,
+      division: { $in: divisionsForRecHHFAdapter(division) },
       hf: { $gt: 0 },
       bad: { $exists: false },
     })
@@ -447,19 +454,31 @@ const runsForRecsMultiByClassifierDivision = async (classifiers) => {
   const runs = await Score.find({
     bad: { $exists: false },
     classifierDivision: {
-      $in: classifiers.map((c) => [c.classifier, c.division].join(":")),
+      $in: classifierDivisionArrayForHFURecHHFs(classifiers),
     },
     hf: { $gt: 0 },
   })
-    .select({ hf: true, _id: false, classifierDivision: true })
+    .select({ hf: true, minorHF: true, _id: false, classifierDivision: true })
     .sort({ hf: -1 })
     .limit(0)
     .lean();
 
   const byCD = runs.reduce((acc, cur) => {
-    const curClassifierDivision = acc[cur.classifierDivision] ?? [];
-    curClassifierDivision.push(cur);
-    acc[cur.classifierDivision] = curClassifierDivision;
+    const curBucket = acc[cur.classifierDivision] ?? [];
+    curBucket.push(cur);
+    acc[cur.classifierDivision] = curBucket;
+
+    // same as above but for single HFU division, if there is any for cur.division
+    const [classifier, division] = cur.classifierDivision.split(":");
+    const extraCompatibleDivision = hfuDivisionCompatabilityMap[division];
+    if (extraCompatibleDivision) {
+      const extraClassifierDivision = [classifier, extraCompatibleDivision].join(":");
+      const extraBucket = acc[extraClassifierDivision] ?? [];
+      // must be a copy, or percentile calc will mess things up
+      extraBucket.push({ ...cur });
+      acc[extraClassifierDivision] = extraBucket;
+    }
+
     return acc;
   }, {});
 
@@ -494,10 +513,12 @@ RecHHFSchema.index({ classifierDivision: 1 }, { unique: true });
 
 export const RecHHF = mongoose.model("RecHHF", RecHHFSchema);
 
-const recHHFUpdate = (runs, division, classifier) => {
-  if (!runs) {
+const recHHFUpdate = (runsRaw, division, classifier) => {
+  if (!runsRaw) {
     return null;
   }
+
+  const runs = minorHFScoresAdapter(runsRaw, division);
   const recHHF = recommendedHHFFunctionFor({
     division,
     number: classifier,
@@ -566,17 +587,18 @@ export const hydrateRecHHFsForClassifiers = async (classifiers) => {
   );
 };
 
-export const hydrateRecHHF = async () => {
+export const rehydrateRecHHF = async (
+  divisions = allDivShortNames,
+  classifiers = uspsaClassifiers
+) => {
   console.log("hydrating recommended HHFs");
   console.time("recHHFs");
-  const divisions = (await Score.find().distinct("division")).filter(Boolean);
-  const classifers = (await Score.find().distinct("classifier")).filter(Boolean);
-  console.log(`Divisions: ${divisions.length}, Classifiers: ${classifers.length}`);
+  console.log(`Divisions: ${divisions.length}, Classifiers: ${classifiers.length}`);
 
   let i = 1;
-  const total = divisions.length * classifers.length;
+  const total = divisions.length * classifiers.length;
   for (const division of divisions) {
-    for (const classifier of classifers) {
+    for (const classifier of classifiers) {
       await hydrateSingleRecHFF(division, classifier);
       process.stdout.write(`\r${i}/${total}`);
       ++i;

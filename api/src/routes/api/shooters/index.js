@@ -11,6 +11,8 @@ import {
 } from "../../../db/scores.js";
 import { Shooter, reclassificationForProgressMode } from "../../../db/shooters.js";
 import { textSearchMatch } from "../../../db/utils.js";
+import { classForPercent } from "../../../../../shared/utils/classification.js";
+import { sportForDivision } from "../../../dataUtil/divisions.js";
 
 // TODO: refactor to aggregation and use addPlaceAndPercentileAggregation
 // instead of JS logic, that is applied after filters
@@ -19,7 +21,7 @@ const buildShootersQuery = (params, query) => {
   const { filter: filterString, inconsistencies: inconString, classFilter } = query;
   const shootersQuery = Shooter.where({
     division,
-    reclassificationsCurPercentCurrent: { $gt: 0 },
+    reclassificationsRecPercentCurrent: { $gt: 0 },
   });
 
   if (classFilter) {
@@ -49,7 +51,7 @@ const shootersRoutes = async (fastify, opts) => {
 
     const shootersTotalWithoutFilters = await Shooter.where({
       division,
-      reclassificationsCurPercentCurrent: { $gt: 0 },
+      reclassificationsRecPercentCurrent: { $gt: 0 },
     }).countDocuments();
 
     const shootersQuery = buildShootersQuery(req.params, req.query);
@@ -74,10 +76,10 @@ const shootersRoutes = async (fastify, opts) => {
 
   fastify.get("/:division/:memberNumber", async (req, res) => {
     const { division, memberNumber } = req.params;
-    const { sort, order, page: pageString } = req.query;
+    const { sort, order } = req.query;
 
-    const [info, scoresData] = await Promise.all([
-      Shooter.findOne({ division, memberNumber }).lean(),
+    const [infos, scoresData] = await Promise.all([
+      Shooter.find({ memberNumber }).limit(0).lean(),
       scoresForDivisionForShooter({
         division,
         memberNumber,
@@ -90,6 +92,31 @@ const shootersRoutes = async (fastify, opts) => {
         classifierInfo: basicInfoForClassifierCode(c?.classifier),
       })
     );
+
+    const info = infos.find((s) => s.division === division);
+    info.classificationByDivision = infos.reduce((acc, cur) => {
+      const {
+        reclassificationsCurPercentCurrent: curHHFCurrent,
+        reclassificationsRecPercentCurrent: recCurrent,
+      } = cur;
+
+      acc[cur.division] = {
+        hqClass: cur.hqClass,
+        current: cur.current,
+        reclassificationsCurPercentClass: classForPercent(curHHFCurrent || 0),
+        reclassificationsCurPercentCurrent: curHHFCurrent || 0,
+        reclassificationsRecPercentClass: classForPercent(recCurrent || 0),
+        reclassificationsRecPercentCurrent: recCurrent || 0,
+        age: cur.age,
+        age1: cur.age1,
+      };
+      return acc;
+    }, {});
+    delete info.reclassifications;
+    delete info.classes;
+    delete info.currents;
+    delete info.ages;
+    delete info.age1s;
 
     return {
       info: info || {},
@@ -110,10 +137,11 @@ const shootersRoutes = async (fastify, opts) => {
 
   fastify.get("/:division/chart", async (req, res) => {
     const { division } = req.params;
+    const sport = sportForDivision(division);
     const shootersTable = await Shooter.find({
       division,
-      current: { $gt: 0 },
-      reclassificationsCurPercentCurrent: { $gt: 0 },
+      ...(sport !== "hfu" ? { current: { $gt: 0 } } : {}),
+      reclassificationsRecPercentCurrent: { $gt: 0 },
     })
       .select([
         "current",

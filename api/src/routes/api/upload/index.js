@@ -21,6 +21,7 @@ const searchMatches = async (q) => {
 
     return hits
       .map((h) => ({
+        matchDate: new Date(h.match_date),
         updated: new Date(h.updated),
         created: new Date(h.created),
         id: h.id,

@@ -43,6 +43,10 @@ test("newClassificationCalculationState", (t) => {
     co: { percent: 0, highPercent: 0, window: [], percentWithDates: [] },
     lo: { percent: 0, highPercent: 0, window: [], percentWithDates: [] },
     pcc: { percent: 0, highPercent: 0, window: [], percentWithDates: [] },
+    comp: { percent: 0, highPercent: 0, window: [], percentWithDates: [] },
+    opt: { percent: 0, highPercent: 0, window: [], percentWithDates: [] },
+    irn: { percent: 0, highPercent: 0, window: [], percentWithDates: [] },
+    car: { percent: 0, highPercent: 0, window: [], percentWithDates: [] },
   });
 });
 
@@ -212,6 +216,10 @@ test("getDivToClass", (t) => {
     co: "M",
     lo: "GM",
     pcc: "GM",
+    comp: "U",
+    opt: "U",
+    irn: "U",
+    car: "U",
   });
 });
 

@@ -7,12 +7,12 @@ import { Column } from "primereact/column";
 import { useApi } from "../utils/client";
 import useTableSort from "./Table/useTableSort";
 import useTablePagination from "./Table/useTablePagination";
-import { headerTooltipOptions } from "./Table";
+import { clubMatchColumn, renderPercent, headerTooltipOptions } from "./Table";
 import { Dropdown } from "primereact/dropdown";
 import { useDebounce } from "use-debounce";
 import ShooterCell from "./ShooterCell";
-import { renderClubIdMatchLink, renderPercent } from "./Table";
 import ReportDialog from "./ReportDialog";
+import { sportForDivision } from "../../../shared/constants/divisions";
 
 const TableFilter = ({ placeholder, onFilterChange }) => {
   const [filter, setFilter] = useState("");
@@ -142,6 +142,7 @@ const RunsTable = ({ classifier, division, clubs, onShooterSelection }) => {
   }
 
   const reportDialogRef = useRef(null);
+  const sport = sportForDivision(division);
 
   return (
     <>
@@ -193,6 +194,7 @@ const RunsTable = ({ classifier, division, clubs, onShooterSelection }) => {
           header="Shooter"
           body={(run) => (
             <ShooterCell
+              sport={sport}
               data={run}
               onClick={() => onShooterSelection?.(run.memberNumber)}
             />
@@ -200,6 +202,14 @@ const RunsTable = ({ classifier, division, clubs, onShooterSelection }) => {
         />
         <Column field="hf" header="HF" sortable />
         <Column
+          hidden={sport !== "hfu"}
+          body={renderPercent}
+          field="recPercent"
+          header="Percent"
+          sortable
+        />
+        <Column
+          hidden={sport !== "uspsa"}
           body={renderPercent}
           field="recPercent"
           header="Rec. %"
@@ -208,6 +218,7 @@ const RunsTable = ({ classifier, division, clubs, onShooterSelection }) => {
           headerTooltipOptions={headerTooltipOptions}
         />
         <Column
+          hidden={sport !== "uspsa"}
           body={renderPercent}
           field="curPercent"
           header="Cur. %"
@@ -216,6 +227,7 @@ const RunsTable = ({ classifier, division, clubs, onShooterSelection }) => {
           headerTooltipOptions={headerTooltipOptions}
         />
         <Column
+          hidden={sport !== "uspsa"}
           body={renderPercent}
           field="percent"
           header="HQ %"
@@ -231,12 +243,8 @@ const RunsTable = ({ classifier, division, clubs, onShooterSelection }) => {
         headerTooltipOptions={headerTooltipOptions}
        />*/}
         <Column
-          field="clubid"
-          header="Club"
-          sortable
-          showFilterMenu={false}
+          {...clubMatchColumn}
           filter
-          body={renderClubIdMatchLink}
           filterElement={(options) => (
             <DropdownFilter
               filter
