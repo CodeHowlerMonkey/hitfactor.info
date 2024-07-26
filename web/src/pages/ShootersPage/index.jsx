@@ -7,7 +7,7 @@ import ShootersTable from "./components/ShootersTable";
 // import RunsTable, { useRunsTableData } from "../../components/ShootersTable";
 import ShooterInfoTable from "./components/ShooterInfoTable";
 import { postApi, useApi } from "../../utils/client";
-import { divShortToLong } from "../../../../api/src/dataUtil/divisions";
+import { divShortToLong, nameForDivision } from "../../../../api/src/dataUtil/divisions";
 import ShooterRunsTable from "./components/ShooterRunsTable";
 import { Divider } from "primereact/divider";
 import { useDebouncedCallback } from "use-debounce";
@@ -177,7 +177,7 @@ export const ShooterRunsAndInfo = ({ division, memberNumber, onBackToShooters })
           Shooters List
         </Button>
         <h4 className="m-auto md:hidden">
-          {memberNumber} - {name} - {divShortToLong[division]}
+          {memberNumber} - {name} - {nameForDivision(division)}
         </h4>
       </div>
       <ShooterInfoTable

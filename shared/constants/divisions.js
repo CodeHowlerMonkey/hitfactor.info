@@ -49,7 +49,7 @@ export const uspsaDivIdToShort = divIdToShort;
 export const divisions = divisionsFromJson;
 export const hfuDivisions = [
   {
-    long: "Competition",
+    long: "Comp",
     short: "comp", // src: opn, counts: opn
   },
   {
@@ -68,12 +68,16 @@ export const hfuDivisions = [
 export const hfuDivisionsShortNames = hfuDivisions.map((d) => d.short);
 export const hfuDivisionsShortNamesThatNeedMinorHF = ["comp", "irn"];
 
+/** All divisions  */
+export const nameForDivision = (div) =>
+  uspsaDivShortToLong[div] || hfuDivisions.find((d) => d.short === div)?.long;
+
 export const sportForDivision = (division) => {
   if (hfuDivisionsShortNames.indexOf(division) >= 0) {
     return "hfu";
   }
 
-  if (division.includes("_")) {
+  if (division?.includes("_")) {
     const [sport] = division.split("_");
     return sport;
   }

@@ -30,7 +30,6 @@ import {
 } from "../dataUtil/classifiersData.js";
 import { minorHF } from "../../../shared/utils/hitfactor.js";
 import features from "../../../shared/features.js";
-import { ZenRows } from "zenrows";
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 

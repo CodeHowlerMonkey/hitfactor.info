@@ -6,6 +6,7 @@ import { Line } from "./common";
 import { useApi } from "../../utils/client";
 import { useState } from "react";
 import { SelectButton } from "primereact/selectbutton";
+import { sportForDivision } from "../../../../shared/constants/divisions";
 
 const modesMap = {
   Recommended: "recPercent",
@@ -15,6 +16,7 @@ const modeBucketForMode = (mode) => modesMap[mode];
 const modes = Object.keys(modesMap);
 
 export const ShooterProgressChart = ({ division, memberNumber }) => {
+  const isHFU = sportForDivision(division) === "hfu";
   const [mode, setMode] = useState(modes[0]);
   const { json: data, loading } = useApi(
     `/shooters/${division}/${memberNumber}/chart/progress/${modeBucketForMode(mode)}`,
@@ -96,17 +98,19 @@ export const ShooterProgressChart = ({ division, memberNumber }) => {
             }}
           />
         )}
-        <div className="flex justify-space-around absolute right-0 left-0 top-0">
-          <SelectButton
-            className="compact"
-            allowEmpty={false}
-            options={modes}
-            value={mode}
-            onChange={(e) => setMode(e.value)}
-            size={10}
-            style={{ margin: "auto", transform: "scale(0.65)" }}
-          />
-        </div>
+        {!isHFU && (
+          <div className="flex justify-space-around absolute right-0 left-0 top-0">
+            <SelectButton
+              className="compact"
+              allowEmpty={false}
+              options={modes}
+              value={mode}
+              onChange={(e) => setMode(e.value)}
+              size={10}
+              style={{ margin: "auto", transform: "scale(0.65)" }}
+            />
+          </div>
+        )}
       </div>
     </>
   );

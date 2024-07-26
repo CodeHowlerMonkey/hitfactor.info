@@ -5,6 +5,7 @@ import { Dialog } from "primereact/dialog";
 import { Line } from "./common";
 import { useApi } from "../../utils/client";
 import { useState } from "react";
+import { sportForDivision } from "../../../../shared/constants/divisions";
 
 const annotationColor = (alpha) => `rgba(255, 99, 132, ${alpha})`;
 const yLine = (name, y, alpha) => ({
@@ -29,6 +30,7 @@ const yLine = (name, y, alpha) => ({
 });
 
 export const ScoresChart = ({ division, memberNumber }) => {
+  const isHFU = sportForDivision(division) === "hfu";
   const [full, setFull] = useState(false);
   const [percentMode, setPercentMode] = useState(false);
   const { json: data, loading } = useApi(
@@ -99,7 +101,7 @@ export const ScoresChart = ({ division, memberNumber }) => {
       }}
       data={{
         datasets: [
-          {
+          !isHFU && {
             label: "Percent",
             data: data.map((c) => ({
               ...c,
@@ -109,7 +111,7 @@ export const ScoresChart = ({ division, memberNumber }) => {
             backgroundColor: "#ae9ef1",
             borderColor: "#ca258a",
           },
-          {
+          !isHFU && {
             label: "Current Percent",
             data: data.map((c) => ({
               ...c,
@@ -119,16 +121,16 @@ export const ScoresChart = ({ division, memberNumber }) => {
             backgroundColor: "#b5ca25",
           },
           {
-            label: "Rec. Percent",
+            label: isHFU ? "Percent" : "Rec. Percent",
             data: data.map((c) => ({
               ...c,
               x: new Date(new Date(c.x).toLocaleDateString("en-us", { timeZone: "UTC" })),
               y: c.recPercent,
             })),
-            borderColor: "#40cf40",
-            backgroundColor: "#05ca25",
+            borderColor: isHFU ? "#ca258a" : "#40cf40",
+            backgroundColor: isHFU ? "#ae9ef1" : "#05ca25",
           },
-        ],
+        ].filter(Boolean),
       }}
     />
   );

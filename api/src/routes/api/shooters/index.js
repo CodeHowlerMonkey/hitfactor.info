@@ -93,7 +93,7 @@ const shootersRoutes = async (fastify, opts) => {
       })
     );
 
-    const info = infos.find((s) => s.division === division);
+    const info = infos.find((s) => s.division === division) || {};
     info.classificationByDivision = infos.reduce((acc, cur) => {
       const {
         reclassificationsCurPercentCurrent: curHHFCurrent,
