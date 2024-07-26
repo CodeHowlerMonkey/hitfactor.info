@@ -505,18 +505,7 @@ const uspsaOrHitFactorMatchInfo = async (matchInfo) => {
 
 const EmptyMatchResults = { scores: [], matches: [], results: [] };
 
-const multimatchUploadResults = async (uuidsRaw) => {
-  const uuids = uuidsRaw.filter(
-    (maybeUUID) => uuidsFromUrlString(maybeUUID)?.length === 1
-  );
-  if (!uuids?.length) {
-    return [];
-  }
-
-  const matches = await Matches.find({ uuid: { $in: uuids } })
-    .limit(0)
-    .lean();
-
+const uploadResultsForMatches = async (matches) => {
   const matchResults = [];
   for (const match of matches) {
     console.log("pulling " + match.uuid);
@@ -548,11 +537,24 @@ const multimatchUploadResults = async (uuidsRaw) => {
   }, EmptyMatchResults);
 };
 
-export const uploadMatches = async (uuids) => {
+const uploadResultsForMatchUUIDs = async (uuidsRaw) => {
+  const uuids = uuidsRaw.filter(
+    (maybeUUID) => uuidsFromUrlString(maybeUUID)?.length === 1
+  );
+  if (!uuids?.length) {
+    return [];
+  }
+
+  const matches = await Matches.find({ uuid: { $in: uuids } })
+    .limit(0)
+    .lean();
+
+  return uploadResultsForMatches(matches);
+};
+
+const processUploadResults = async (uploadResults) => {
   try {
-    const { scores: scoresRaw, matches: matchesRaw } = await multimatchUploadResults(
-      uuids
-    );
+    const { scores: scoresRaw, matches: matchesRaw } = uploadResults;
     const scores = scoresRaw.filter(Boolean);
     const matches = matchesRaw.filter(Boolean);
     const shooterNameMap = matches.reduce((acc, cur) => {
@@ -642,6 +644,14 @@ export const uploadMatches = async (uuids) => {
     console.error(e);
     return { error: `${e.name}: ${e.message}` };
   }
+};
+
+export const uploadMatches = async (matches) => {
+  return await processUploadResults(await uploadResultsForMatches(matches));
+};
+
+export const uploadMatchesFromUUIDs = async (uuids) => {
+  return await processUploadResults(await uploadResultsForMatchUUIDs(uuids));
 };
 
 async function runEvery(what, ms) {
@@ -741,13 +751,15 @@ const matchesForUploadFilter = (extraFilter = {}) => ({
   $expr: { $gt: ["$updated", "$uploaded"] },
 });
 const findAFewMatches = async (extraFilter) =>
-  Matches.find(matchesForUploadFilter(extraFilter)).limit(5).sort({ updated: 1 });
+  Matches.find(matchesForUploadFilter(extraFilter)).limit(15).sort({ updated: 1 });
 
 const uploadLoop = async () => {
   // TODO: add Steel Challenge here once supported
   const onlyUSPSAOrHF = { templateName: { $in: ["USPSA", "Hit Factor"] } };
+  /*
   const count = await Matches.countDocuments(matchesForUploadFilter(onlyUSPSAOrHF));
   console.log(count + " uploads in the queue (USPSA or Hit Factor only)");
+  */
 
   let numberOfUpdates = 0;
   let fewMatches = [];
@@ -758,7 +770,7 @@ const uploadLoop = async () => {
     }
     const uuids = fewMatches.map((m) => m.uuid);
     console.log(uuids);
-    const uploadResults = await uploadMatches(uuids);
+    const uploadResults = await uploadMatches(fewMatches);
     numberOfUpdates += uploadResults.classifiers?.length || 0;
     console.log(JSON.stringify(uploadResults, null, 2));
     console.log("uploaded");
@@ -806,8 +818,8 @@ const uploadsWorkerMain = async () => {
       }
 
       console.timeEnd("uploadLoop");
-    }, 3 * MINUTES);
-  }, 3 * MINUTES);
+    }, 15 * MINUTES);
+  }, 5 * MINUTES);
 };
 
 export default uploadsWorkerMain;

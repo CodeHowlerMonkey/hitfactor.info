@@ -6,7 +6,7 @@ import {
   allDivisionsScores,
 } from "../../../db/shooters.js";
 import { calculateUSPSAClassification } from "../../../../../shared/utils/classification.js";
-import { uploadMatches } from "../../../worker/uploads.js";
+import { uploadMatchesFromUUIDs } from "../../../worker/uploads.js";
 import { Matches } from "../../../db/matches.js";
 import algoliasearch from "algoliasearch";
 
@@ -186,7 +186,7 @@ const uploadRoutes = async (fastify, opts) => {
 
   fastify.post("/", async (req, res) => {
     const { uuids } = req.body;
-    return await uploadMatches(uuids);
+    return await uploadMatchesFromUUIDs(uuids);
   });
 };
 
