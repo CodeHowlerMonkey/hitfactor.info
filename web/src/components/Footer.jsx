@@ -3,16 +3,16 @@ const badgeSrc =
 const SimpleAnalyticsBadge = () => (
   <a
     href="https://dashboard.simpleanalytics.com/hitfactor.info?utm_source=hitfactor.info&utm_content=badge"
-    referrerpolicy="origin"
+    referrerPolicy="origin"
     target="_blank"
   >
     <picture>
-      <source srcset={badgeSrc} media="(prefers-color-scheme: dark)" />
+      <source srcSet={badgeSrc} media="(prefers-color-scheme: dark)" />
       <img
         src={badgeSrc}
         loading="lazy"
-        referrerpolicy="no-referrer"
-        crossorigin="anonymous"
+        referrerPolicy="no-referrer"
+        crossOrigin="anonymous"
       />
     </picture>
   </a>
