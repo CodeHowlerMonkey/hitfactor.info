@@ -766,7 +766,7 @@ const uploadLoop = async () => {
   do {
     fewMatches = await findAFewMatches(onlyUSPSAOrHF);
     if (!fewMatches.length) {
-      return;
+      return numberOfUpdates;
     }
     const uuids = fewMatches.map((m) => m.uuid);
     console.log(uuids);
