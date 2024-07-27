@@ -1,5 +1,5 @@
 const features = {
-  hfu: false,
+  hfu: true,
   users: false,
 };
 
