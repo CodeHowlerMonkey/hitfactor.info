@@ -131,6 +131,7 @@ export const minorHFScoresAdapter = (runs, division) => {
   return runs
     .filter((r) => r.minorHF > 0)
     .map((r) => {
+      r.originalHF = r.hf;
       r.hf = r.minorHF;
       return r;
     });

@@ -13,6 +13,7 @@ import { Button } from "primereact/button";
 import { InputNumber } from "primereact/inputnumber";
 import ClassifierDropdown from "../../../components/ClassifierDropdown";
 import { useDebouncedCallback } from "use-debounce";
+import { useIsHFU } from "../../../utils/useIsHFU";
 
 const HFEdit = ({ value: valueProp, updateWhatIfs, id }) => {
   const [value, setValue] = useState(valueProp || 0);
@@ -46,14 +47,12 @@ const HFEdit = ({ value: valueProp, updateWhatIfs, id }) => {
 
 const ShooterRunsTable = ({
   classifiers,
-  classifiersTotal,
-  classifiersPage,
   onClassifierSelection,
-  onClubSelection,
   loading,
   updateWhatIfs,
   whatIf,
 }) => {
+  const isHFU = useIsHFU();
   const reportDialogRef = useRef(null);
   return (
     <>
@@ -123,6 +122,7 @@ const ShooterRunsTable = ({
               />
             ) : (
               <ClassifierCell
+                division={c.division}
                 info={c.classifierInfo}
                 fallback={c.club_name}
                 onClick={() => onClassifierSelection?.(c.classifier)}
@@ -139,18 +139,22 @@ const ShooterRunsTable = ({
             if (c.whatIf) {
               return <HFEdit id={c._id} value={c.hf} updateWhatIfs={updateWhatIfs} />;
             }
-            return renderHFOrNA(c, { field });
+            const hf = renderHFOrNA(c, { field });
+            const originalHF = renderHFOrNA(c, { field: "originalHF" });
+            const title = originalHF !== "-" ? `Original HF: ${originalHF}` : undefined;
+            return <span title={title}>{hf}</span>;
           }}
         />
         <Column
           body={renderPercent}
           field="recPercent"
-          header="Rec. %"
+          header={isHFU ? "Percent" : "Rec. %"}
           sortable
           headerTooltip="Recommended classifier percentage for this score."
           headerTooltipOptions={headerTooltipOptions}
         />
         <Column
+          hidden={isHFU}
           body={renderPercent}
           field="curPercent"
           header="Cur. %"
@@ -159,6 +163,7 @@ const ShooterRunsTable = ({
           headerTooltipOptions={headerTooltipOptions}
         />
         <Column
+          hidden={isHFU}
           body={renderPercent}
           field="percent"
           header="Percent"
@@ -167,6 +172,7 @@ const ShooterRunsTable = ({
           headerTooltipOptions={headerTooltipOptions}
         />
         <Column
+          hidden={isHFU}
           body={renderPercent}
           field="percentMinusCurPercent"
           header="Percent Change"
@@ -174,9 +180,9 @@ const ShooterRunsTable = ({
           headerTooltip="Difference between calculated percent when run was submitted and what it would've been with current High Hit-Factor. \n Positive values mean classifier became harder, negative - easier."
           headerTooltipOptions={headerTooltipOptions}
         />
-        <Column field="code" header="Flag" sortable />
+        <Column hidden={isHFU} field="code" header="Flag" sortable />
         <Column {...clubMatchColumn} />
-        <Column field="source" header="Source" sortable />
+        <Column hidden={isHFU} field="source" header="Source" sortable />
         <Column
           body={(c) =>
             !c.whatIf && !whatIf ? (

@@ -45,6 +45,7 @@ const _replaceHFWithMinorHFIfNeeded = (division) =>
     : [
         {
           $addFields: {
+            originalHF: "$hf",
             hf: "$minorHF",
           },
         },

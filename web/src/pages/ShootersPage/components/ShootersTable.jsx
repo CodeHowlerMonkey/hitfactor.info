@@ -15,6 +15,7 @@ import { useDebounce } from "use-debounce";
 import ShooterCell from "../../../components/ShooterCell";
 import ReportDialog from "../../../components/ReportDialog";
 import { sportForDivision } from "../../../../../shared/constants/divisions";
+import { useIsHFU } from "../../../utils/useIsHFU";
 
 const classColumnProps = {
   sortable: true,
@@ -97,6 +98,7 @@ const ShootersTable = ({
     downloadUrl,
     shootersTotalWithoutFilters,
   } = useShootersTableData({ division, inconsistencies, classFilter });
+  const isHFU = useIsHFU(division);
   const reportDialogRef = useRef(null);
   return (
     <>
@@ -166,13 +168,14 @@ const ShootersTable = ({
         />
         <Column
           field="reclassificationsRecPercentCurrent"
-          header="Rec."
-          headerTooltip="Recommended classification percent of this shooter, using best 6 out of most revent 10 scores and recommended HHFs for classifiers. B/C flags are off, but duplicates are still allowed and only best duplicate is used. Major Matches results stay the same."
+          header={isHFU ? "Percent" : "Rec."}
+          headerTooltip="Recommended classification percent of this shooter, using best 6 out of most recent 10 scores and recommended HHFs for classifiers."
           headerTooltipOptions={headerTooltipOptions}
           sortable
           body={renderPercent}
         />
         <Column
+          hidden={isHFU}
           field="reclassificationsCurPercentCurrent"
           header="Cur."
           headerTooltip="Current HHF classification percent of this shooter, if all their classifier scores would use the most recent HHFs. Major Matches results stay the same."
@@ -180,7 +183,13 @@ const ShootersTable = ({
           sortable
           body={renderPercent}
         />
-        <Column field="current" header="HQ" sortable body={renderPercent} />
+        <Column
+          hidden={isHFU}
+          field="current"
+          header="HQ"
+          sortable
+          body={renderPercent}
+        />
         <Column
           field="age"
           header="Age"

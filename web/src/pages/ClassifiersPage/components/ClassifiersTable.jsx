@@ -114,7 +114,7 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
         field="code"
         header="Classifier"
         sortable
-        body={(c) => <ClassifierCell info={c} />}
+        body={(c) => <ClassifierCell info={c} showScoring />}
       />
       <Column
         field="quality"

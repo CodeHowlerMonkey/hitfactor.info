@@ -4,10 +4,9 @@ import { DivisionNavigation } from "../../components";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "primereact/button";
 import ShootersTable from "./components/ShootersTable";
-// import RunsTable, { useRunsTableData } from "../../components/ShootersTable";
 import ShooterInfoTable from "./components/ShooterInfoTable";
 import { postApi, useApi } from "../../utils/client";
-import { divShortToLong, nameForDivision } from "../../../../api/src/dataUtil/divisions";
+import { nameForDivision } from "../../../../api/src/dataUtil/divisions";
 import ShooterRunsTable from "./components/ShooterRunsTable";
 import { Divider } from "primereact/divider";
 import { useDebouncedCallback } from "use-debounce";
@@ -155,12 +154,12 @@ const useShooterTableData = ({ division, memberNumber }) => {
 
 export const ShooterRunsAndInfo = ({ division, memberNumber, onBackToShooters }) => {
   const navigate = useNavigate();
-  const { info, downloadUrl, addWhatIf, resetWhatIfs, ...tableShit } =
+  const { info, downloadUrl, addWhatIf, resetWhatIfs, ...tableData } =
     useShooterTableData({
       division,
       memberNumber,
     });
-  const { loading, whatIf } = tableShit;
+  const { loading, whatIf } = tableData;
   const { name } = info;
 
   return (
@@ -223,7 +222,7 @@ export const ShooterRunsAndInfo = ({ division, memberNumber, onBackToShooters })
       </div>
 
       <ShooterRunsTable
-        {...tableShit}
+        {...tableData}
         onClassifierSelection={(number) => navigate(`/classifiers/${division}/${number}`)}
         onClubSelection={(club) => navigate("/clubs/" + club)}
       />
