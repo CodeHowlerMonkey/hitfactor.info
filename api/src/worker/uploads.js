@@ -164,12 +164,12 @@ const _fetchPSWithZenRows = async (uuid, tryNumber = 1, maxTries = 2) => {
     if (status !== 200) {
       console.error("fetchPSHTML error, bad status: " + status);
       throw new Error("tryHarder");
-      return null;
+      return {};
     }
     return data;
   } catch (e) {
     if (tryNumber >= maxTries) {
-      return null;
+      return {};
     }
 
     console.error(e);
@@ -183,7 +183,7 @@ export const fetchPSHTML = async (uuid) => {
   const dataStartIndex = data.indexOf("matchDef = {");
   if (dataStartIndex < 0) {
     console.error("fetchPSHTML error, cant find matchDef");
-    return null;
+    return {};
   }
 
   try {
@@ -204,7 +204,7 @@ export const fetchPSHTML = async (uuid) => {
     );
   } catch (e) {
     console.error("fetchPSHTML parse error");
-    return null;
+    return {};
   }
 };
 
