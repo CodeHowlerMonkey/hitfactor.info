@@ -152,7 +152,7 @@ const classifiersRoutes = async (fastify, opts) => {
   fastify.get("/:division", async (req) => {
     const { division } = req.params;
     const [classifiers, classifiersAllDivQuality] = await Promise.all([
-      Classifier.find({ division }),
+      Classifier.find({ division, classifier: { $exists: true, $ne: null } }),
       allDivisionClassifiersQuality(),
     ]);
     return classifiers.map((c) => {
