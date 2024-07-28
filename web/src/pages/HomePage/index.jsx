@@ -40,15 +40,16 @@ const HomePage = () => {
               <span className="mt-0 mb-4 text-700 line-height-3">
                 <p>
                   Our Classification System is 100% dynamic and calibrates High Hit
-                  Factors automatically, based on Statistical Analysis and Score
+                  Factors automatically based on Statistical Analysis and Score
                   Distribution.
                 </p>
+
                 <p>
                   It also includes "Hit Factor Unified" mode (HFU), with Minor Scoring, 4
-                  Most Common Divisions and Full Backwards Compatability.
+                  Most Common Divisions, and Full Backward Compatibility.
                 </p>
 
-                <p>So if you're coming from USPSA - you are already classified in HFU.</p>
+                <p>So, if you're coming from USPSA, you are already classified in HFU!</p>
               </span>
 
               <div className="flex flex-row justify-content-center md:justify-content-start">
@@ -83,7 +84,7 @@ const HomePage = () => {
               height="100%"
               className="md:ml-auto block my-auto"
               style={{ minHeight: 360 }}
-              url="https://www.youtube.com/watch?v=LXb3EKWsInQ"
+              url="https://www.youtube.com/watch?v=KrCgxLkoG9Y"
             />
           </div>
         </div>
