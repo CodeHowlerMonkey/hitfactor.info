@@ -1,6 +1,8 @@
 import { Button } from "primereact/button";
 import { useNavigate } from "react-router-dom";
 import { Divider } from "primereact/divider";
+import ReactPlayer from "react-player";
+import { useState } from "react";
 
 const PricesBlock = ({ clubAffiliation = 0, membership = 0, classifier = 0 }) => (
   <>
@@ -23,6 +25,7 @@ const PricesBlock = ({ clubAffiliation = 0, membership = 0, classifier = 0 }) =>
 
 const HomePage = () => {
   const navigate = useNavigate();
+  const [introPlaying, setIntroPlaying] = useState(false);
 
   return (
     <div>
@@ -36,44 +39,51 @@ const HomePage = () => {
               <span className="text-6xl text-primary font-bold mb-3"> We fixed it!</span>
               <span className="mt-0 mb-4 text-700 line-height-3">
                 <p>
-                  It all started in Cambodia on the Edge of the Jungle, when the drugs
-                  began to take hold. We've had a Trunk Full of Cheap Smartphones, and a
-                  Small Army of Howler Monkeys surrounding us.
+                  Our Classification System is 100% dynamic and calibrates High Hit
+                  Factors automatically, based on Statistical Analysis and Score
+                  Distribution.
                 </p>
                 <p>
-                  All we wanted to do was to Scrape a Website and Find the Easiest
-                  Classifier. But the Monkeys weren't having it.
+                  It also includes "Hit Factor Unified" mode (HFU), with Minor Scoring, 4
+                  Most Common Divisions and Full Backwards Compatability.
                 </p>
-                <p>
-                  So naturally, we turned to the Cartels for a Few Kilos of Crack Cocaine
-                  to keep them motivated...
-                </p>
+
+                <p>So if you're coming from USPSA - you are already classified in HFU.</p>
               </span>
 
-              <Button
-                label="Learn More"
-                type="button"
-                className="mr-3 p-button-raised"
-                onClick={() => {
-                  document.getElementById("learnMore").scrollIntoView({
-                    behavior: "smooth",
-                  });
-                }}
-              />
-              <Button
-                label="Buy Cocaine"
-                type="button"
-                className="p-button-outlined"
-                onClick={() => window.open("https://www.cia.gov/", "_blank")}
-              />
+              <div className="flex flex-row justify-content-center md:justify-content-start">
+                <Button
+                  label="Read More"
+                  type="button"
+                  className="p-button-outlined"
+                  onClick={() => {
+                    document.getElementById("learnMore").scrollIntoView({
+                      behavior: "smooth",
+                    });
+                  }}
+                />
+                <Button
+                  label="Watch Intro Video"
+                  type="button"
+                  className="ml-3 p-button-raised"
+                  onClick={() => setIntroPlaying(true)}
+                />
+              </div>
             </section>
           </div>
-          <div className="col-12 md:col-6 overflow-hidden md:h-full">
-            <img
-              src="/img/home/wefixedit2.jpg"
-              alt="hero-1"
-              className="md:ml-auto block my-auto md:h-full"
-              style={{ clipPath: "polygon(8% 0, 100% 0%, 100% 100%, 0 100%)" }}
+          <div
+            className="col-12 md:col-6 overflow-hidden py-6"
+            style={{ clipPath: "polygon(4% 0, 100% 0%, 100% 100%, 0 100%)" }}
+          >
+            <ReactPlayer
+              playing={introPlaying}
+              light={!introPlaying}
+              controls={introPlaying}
+              width="100%"
+              height="100%"
+              className="md:ml-auto block my-auto"
+              style={{ minHeight: 360 }}
+              url="https://www.youtube.com/watch?v=LXb3EKWsInQ"
             />
           </div>
         </div>
@@ -83,8 +93,7 @@ const HomePage = () => {
             Recommended Classification
           </div>
           <div className="text-700 text-center mb-5 line-height-3">
-            All Jokes Aside, Here's How Monkeys Have Actually Fixed the Classification
-            System
+            Here's How Monkeys Have Fixed the Classification System
           </div>
 
           <div className="flex lg:justify-content-center mb-5">
@@ -199,7 +208,7 @@ const HomePage = () => {
               </div>
               <span className="block text-700 line-height-3 mb-3">
                 Using Target Distribution we've Built an Algorithm to Automatically Assign
-                Recommended HHFs to Classifiers.
+                Recommended HHFs to Classifiers
               </span>
               <div className="pt-3 border-top-1 border-300">
                 <div className="mb-2 line-height-3 text-1900">
@@ -221,8 +230,8 @@ const HomePage = () => {
                 Brutal Classification Engine
               </div>
               <span className="block text-700 line-height-3 mb-3">
-                Rec.HHFs made Individual Classifiers Easier.
-                <br /> So we made the Algorithm Harder.
+                Rec.HHFs made Individual Classifiers Easier
+                <br /> So we made the Algorithm Harder
               </span>
               <div className="pt-3 border-top-1 border-300">
                 <div className="mb-2 line-height-3">Best 6 out of Recent 10</div>
@@ -325,7 +334,6 @@ const HomePage = () => {
                   style={{ borderRadius: "6px" }}
                 >
                   <div className="text-900 font-medium text-xl mb-2">HitFactor.Info</div>
-                  <div className="text-600">Howler Monkey Classifiers</div>
                   <PricesBlock />
                   <ul className="list-none p-0 m-0 flex-grow-1">
                     <li className="flex align-items-center mb-3">
@@ -386,12 +394,11 @@ const HomePage = () => {
                   style={{ borderRadius: "6px" }}
                 >
                   <div className="text-900 font-medium text-xl mb-2">USPSA.org</div>
-                  <div className="text-600">BOC's Random Numbers Generator</div>
                   <PricesBlock membership={65} clubAffiliation={75} classifier={3} />
                   <ul className="list-none p-0 m-0 flex-grow-1">
                     <li className="flex align-items-center mb-3">
                       <i className="pi pi-times-circle text-red-500 mr-2" />
-                      <span>Jake's bogus, make-beleive HHFs</span>
+                      <span>Variable Accuracy of HHFs</span>
                     </li>
                     <li className="flex align-items-center mb-3">
                       <i className="pi pi-times-circle text-red-500 mr-2" />
@@ -403,7 +410,7 @@ const HomePage = () => {
                     </li>
                     <li className="flex align-items-center mb-3">
                       <i className="pi pi-times-circle text-red-500 mr-2" />
-                      <span>Encourages Grandbagging (for a fee)</span>
+                      <span>Allows Grandbagging (for a fee)</span>
                     </li>
                     <li className="flex align-items-center mb-3">
                       <i className="pi pi-times-circle text-red-500 mr-2" />
@@ -411,15 +418,15 @@ const HomePage = () => {
                     </li>
                     <li className="flex align-items-center mb-3">
                       <i className="pi pi-times-circle text-red-500 mr-2" />
-                      <span>Closed Source, Zero Transparency</span>
+                      <span>Closed Source</span>
                     </li>
                     <li className="flex align-items-center mb-3">
                       <i className="pi pi-times-circle text-red-500 mr-2" />
-                      <span>Rate Limited Search by Exact Number Only</span>
+                      <span>Search by Exact Number Only</span>
                     </li>
                     <li className="flex align-items-center mb-3">
                       <i className="pi pi-times-circle text-red-500 mr-2" />
-                      <span>No Report System, Zero Accountability</span>
+                      <span>No Report System</span>
                     </li>
                     <li className="flex align-items-center mb-3">
                       <i className="pi pi-times-circle text-red-500 mr-2" />
@@ -428,7 +435,7 @@ const HomePage = () => {
                   </ul>
                   <hr className="mb-3 mx-0 border-top-1 border-bottom-none border-300" />
                   <Button
-                    label="Maintain BOC's Way of Life"
+                    label="Join USPSA"
                     className="p-3 w-full p-button-outlined"
                     onClick={() => window.open("https://uspsa.org/join", "_blank")}
                   />
@@ -443,7 +450,6 @@ const HomePage = () => {
                   style={{ borderRadius: "6px" }}
                 >
                   <div className="text-900 font-medium text-xl mb-2">IDPA.org</div>
-                  <div className="text-600">At least you're shooting something...</div>
                   <PricesBlock membership={45} clubAffiliation={50} />
                   <ul className="list-none p-0 m-0 flex-grow-1">
                     <li className="flex align-items-center mb-3">
@@ -456,15 +462,11 @@ const HomePage = () => {
                     </li>
                     <li className="flex align-items-center mb-3">
                       <i className="pi pi-check-circle text-green-500 mr-2"></i>
-                      <span>Silly WSBs</span>
+                      <span>Funny "Situational" WSBs</span>
                     </li>
                     <li className="flex align-items-center mb-3">
                       <i className="pi pi-check-circle text-green-500 mr-2"></i>
                       <span>Stylish Fishing Vests Always in Fashion</span>
-                    </li>
-                    <li className="flex align-items-center mb-3">
-                      <i className="pi pi-check-circle text-green-500 mr-2"></i>
-                      <span>Less corrupt than USPSA</span>
                     </li>
                     <li className="flex align-items-center mb-3">
                       <i className="pi pi-times-circle text-red-500 mr-2" />
@@ -472,7 +474,7 @@ const HomePage = () => {
                     </li>
                     <li className="flex align-items-center mb-3">
                       <i className="pi pi-times-circle text-red-500 mr-2" />
-                      <span>Every Blind Limp Dog is a Master</span>
+                      <span>Frequent Match Bumps</span>
                     </li>
                     <li className="flex align-items-center mb-3">
                       <i className="pi pi-times-circle text-red-500 mr-2" />
@@ -484,12 +486,16 @@ const HomePage = () => {
                     </li>
                     <li className="flex align-items-center mb-3">
                       <i className="pi pi-times-circle text-red-500 mr-2" />
+                      <span>Carry Optics allows Compensators</span>
+                    </li>
+                    <li className="flex align-items-center mb-3">
+                      <i className="pi pi-times-circle text-red-500 mr-2" />
                       <span>Less Competition</span>
                     </li>
                   </ul>
                   <hr className="mb-3 mx-0 border-top-1 border-bottom-none border-300" />
                   <Button
-                    label="Buy A Fishing Vest"
+                    label="Join IDPA"
                     className="p-3 w-full p-button-outlined"
                     onClick={() => window.open("https://idpa.com/membership", "_blank")}
                   />
