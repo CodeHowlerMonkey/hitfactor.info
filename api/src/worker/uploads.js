@@ -251,7 +251,7 @@ const scsaMatchInfo = async (matchInfo) => {
   // Unlike USPSA, SCSA does not have results.json.
   const { matchDef: match, scores: scoresJson } = await fetchPSHTML(matchInfo.uuid);
   if (!match || !scoresJson) {
-    return EmptyMatchResults;
+    return EmptyMatchResultsFactory();
   }
   /*
     match_penalties Structure:
@@ -404,7 +404,7 @@ const uspsaOrHitFactorMatchInfo = async (matchInfo) => {
   const { uuid } = matchInfo;
   const { matchDef: match, results, scores: scoresJson } = await fetchPSHTML(uuid);
   if (!match || !results) {
-    return EmptyMatchResults;
+    return EmptyMatchResultsFactory();
   }
   const { match_shooters, match_stages } = match;
   const shootersMap = Object.fromEntries(match_shooters.map((s) => [s.sh_uuid, s.sh_id]));
@@ -507,7 +507,7 @@ const uspsaOrHitFactorMatchInfo = async (matchInfo) => {
   return { scores, match, results };
 };
 
-const EmptyMatchResults = { scores: [], matches: [], results: [] };
+const EmptyMatchResultsFactory = () => ({ scores: [], matches: [], results: [] });
 
 const uploadResultsForMatches = async (matches) => {
   const matchResults = [];
@@ -538,7 +538,7 @@ const uploadResultsForMatches = async (matches) => {
     acc.matches = acc.matches.concat(cur.match);
     acc.results = acc.results.concat(cur.results);
     return acc;
-  }, EmptyMatchResults);
+  }, EmptyMatchResultsFactory());
 };
 
 const uploadResultsForMatchUUIDs = async (uuidsRaw) => {
