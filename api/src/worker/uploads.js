@@ -91,8 +91,12 @@ export const classifiersAndShootersFromScores = (
   );
 
   return {
-    classifiers: uniqBy(classifiers, (c) => c.classifierDivision),
-    shooters: uniqBy(shooters, (s) => s.memberNumberDivision),
+    classifiers: uniqBy(classifiers, (c) => c.classifierDivision).filter(
+      (c) => !!c.classifier
+    ),
+    shooters: uniqBy(shooters, (s) => s.memberNumberDivision).filter(
+      (s) => !!s.memberNumber
+    ),
   };
 };
 
