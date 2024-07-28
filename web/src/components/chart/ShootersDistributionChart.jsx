@@ -8,6 +8,7 @@ import { useState } from "react";
 import { classForPercent } from "../../../../shared/utils/classification";
 import { bgColorForClass } from "../../utils/color";
 import { SelectButton } from "primereact/selectbutton";
+import { useIsHFU } from "../../utils/useIsHFU";
 
 const lines = {
   ...yLine("1th", 1.0, annotationColor(0.7)),
@@ -31,6 +32,7 @@ const fieldForMode = (mode) => fieldModeMap[mode];
 const modes = Object.keys(fieldModeMap);
 
 export const ShootersDistributionChart = ({ division, style }) => {
+  const isHFU = useIsHFU(division);
   const [colorMode, setColorMode] = useState(modes[2]);
   const [xMode, setXMode] = useState(modes[2]);
   const { json: data, loading } = useApi(`/shooters/${division}/chart`);
@@ -103,28 +105,30 @@ export const ShootersDistributionChart = ({ division, style }) => {
 
   return (
     <div style={style}>
-      <div className="flex mt-4 justify-content-around text-base lg:text-xl">
-        <div className="flex flex-row flex-wrap justify-content-center gap-2">
-          <span className="mx-4">Color:</span>
-          <SelectButton
-            className="compact"
-            allowEmpty={false}
-            options={modes}
-            value={colorMode}
-            onChange={(e) => setColorMode(e.value)}
-          />
+      {!isHFU && (
+        <div className="flex mt-4 justify-content-around text-base lg:text-xl">
+          <div className="flex flex-row flex-wrap justify-content-center gap-2">
+            <span className="mx-4">Color:</span>
+            <SelectButton
+              className="compact"
+              allowEmpty={false}
+              options={modes}
+              value={colorMode}
+              onChange={(e) => setColorMode(e.value)}
+            />
+          </div>
+          <div className="flex flex-row flex-wrap justify-content-center gap-2">
+            <span className="mx-4">Position:</span>
+            <SelectButton
+              className="compact"
+              allowEmpty={false}
+              options={modes}
+              value={xMode}
+              onChange={(e) => setXMode(e.value)}
+            />
+          </div>
         </div>
-        <div className="flex flex-row flex-wrap justify-content-center gap-2">
-          <span className="mx-4">Position:</span>
-          <SelectButton
-            className="compact"
-            allowEmpty={false}
-            options={modes}
-            value={xMode}
-            onChange={(e) => setXMode(e.value)}
-          />
-        </div>
-      </div>
+      )}
       <div style={{ maxWidth: "100%", height: "calc(100vh - 420px)", minHeight: 360 }}>
         {graph}
       </div>
