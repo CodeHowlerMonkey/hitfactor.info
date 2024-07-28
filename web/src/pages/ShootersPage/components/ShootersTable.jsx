@@ -135,7 +135,7 @@ const ShootersTable = ({
         totalRecords={shootersTotal}
       >
         <Column
-          field="index"
+          field="place"
           header="#"
           align="center"
           style={{ maxWidth: "4em" }}
@@ -149,9 +149,7 @@ const ShootersTable = ({
           align="center"
           headerTooltip="Top percentile for this shooter in current sort mode."
           headerTooltipOptions={headerTooltipOptions}
-          body={(c) =>
-            ((100 * c.index) / (shootersTotalWithoutFilters - 1)).toFixed(2) + "%"
-          }
+          body={(c) => c.percentile.toFixed(2) + "%"}
         />
         <Column
           field="memberNumber"

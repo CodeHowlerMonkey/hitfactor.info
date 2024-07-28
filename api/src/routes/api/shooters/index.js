@@ -10,67 +10,86 @@ import {
   shooterScoresChartData,
 } from "../../../db/scores.js";
 import { Shooter, reclassificationForProgressMode } from "../../../db/shooters.js";
-import { textSearchMatch } from "../../../db/utils.js";
+import {
+  addPlaceAndPercentileAggregation,
+  addTotalCountAggregation,
+  multiSortAndPaginate,
+  textSearchMatch,
+} from "../../../db/utils.js";
 import { classForPercent } from "../../../../../shared/utils/classification.js";
 import { sportForDivision } from "../../../dataUtil/divisions.js";
 
-// TODO: refactor to aggregation and use addPlaceAndPercentileAggregation
-// instead of JS logic, that is applied after filters
-const buildShootersQuery = (params, query) => {
+const DEFAULT_PLACE_BY = "reclassificationsRecPercentCurrent";
+const placeByFieldForSort = (sort) => {
+  if (sort && ["current", "reclassificationsCurPercentCurrent"].includes(sort)) {
+    return sort;
+  }
+
+  return DEFAULT_PLACE_BY;
+};
+
+const _inconsistencyFilter = (inconString) => {
+  if (!inconString) {
+    return [];
+  }
+
+  const [inconsistencies, inconsistenciesMode] = inconString?.split("-");
+  const field = "$" + inconsistencies + "Rank";
+  const operator = inconsistenciesMode === "paper" ? "$lt" : "$gt";
+  return [{ $match: { $expr: { [operator]: [field, "$hqClassRank"] } } }];
+};
+
+const shootersQueryAggregation = (params, query) => {
   const { division } = params;
-  const { filter: filterString, inconsistencies: inconString, classFilter } = query;
-  const shootersQuery = Shooter.where({
-    division,
-    reclassificationsRecPercentCurrent: { $gt: 0 },
-  });
+  const {
+    filter: filterString,
+    inconsistencies: inconString,
+    classFilter,
+    sort,
+    order,
+    page,
+  } = query;
 
-  if (classFilter) {
-    shootersQuery.where({ class: classFilter });
-  }
+  const placeByField = placeByFieldForSort(sort);
 
-  if (filterString) {
-    shootersQuery.where(textSearchMatch(["name", "memberNumber"], filterString));
-  }
+  return Shooter.aggregate([
+    // default match
+    {
+      $project: {
+        _id: false,
+        _v: false,
+      },
+    },
+    {
+      $match: {
+        division,
+        [placeByField]: { $gt: 0 },
+      },
+    },
 
-  if (inconString) {
-    const [inconsistencies, inconsistenciesMode] = inconString?.split("-");
-    const field = "$" + inconsistencies + "Rank";
-    const operator = inconsistenciesMode === "paper" ? "$lt" : "$gt";
-    shootersQuery.where({ $expr: { [operator]: [field, "$hqClassRank"] } });
-  }
+    // filters
+    ...addPlaceAndPercentileAggregation(placeByField),
+    ...(!classFilter ? [] : [{ $match: { class: classFilter } }]),
+    ...(!filterString
+      ? []
+      : [{ $match: textSearchMatch(["memberNumber", "name"], filterString) }]),
+    ..._inconsistencyFilter(inconString),
 
-  return shootersQuery;
+    // meta
+    ...addTotalCountAggregation("totalWithFilters"),
+    ...multiSortAndPaginate({ sort, order, page }),
+  ]);
 };
 
 const shootersRoutes = async (fastify, opts) => {
   fastify.get("/:division", async (req, res) => {
-    const { division } = req.params;
-    const { sort, order, page: pageString } = req.query;
-
-    const page = Number(pageString) || 1;
-
-    const shootersTotalWithoutFilters = await Shooter.where({
-      division,
-      reclassificationsRecPercentCurrent: { $gt: 0 },
-    }).countDocuments();
-
-    const shootersQuery = buildShootersQuery(req.params, req.query);
-    const skip = (page - 1) * PAGE_SIZE;
-    shootersQuery.sort(multisortObj(sort?.split(","), order?.split(","))).skip(skip);
-
-    const paginatedData = await shootersQuery.limit(PAGE_SIZE).lean().exec();
-    const withIndex = paginatedData.map((shooter, index) => ({
-      ...shooter,
-      index: skip + index,
-    }));
-
-    const count = await buildShootersQuery(req.params, req.query).countDocuments().exec();
+    const shooters = await shootersQueryAggregation(req.params, req.query);
 
     return {
-      shooters: withIndex,
-      shootersTotal: count,
-      shootersTotalWithoutFilters,
-      shootersPage: page,
+      shooters,
+      shootersTotal: shooters[0]?.total || 0,
+      shootersTotalWithoutFilters: shooters[0]?.totalWithoutFilters || 0,
+      shootersPage: Number(req.query.page) || 1,
     };
   });
 

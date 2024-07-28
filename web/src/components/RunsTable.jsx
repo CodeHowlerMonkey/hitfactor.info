@@ -187,7 +187,7 @@ const RunsTable = ({ classifier, division, clubs, onShooterSelection }) => {
           header="Perc."
           headerTooltip="Percentile for this score. Shows how many percent of scores are higher than this one."
           headerTooltipOptions={headerTooltipOptions}
-          body={(c) => c.percentile + "%"}
+          body={(c) => c.percentile.toFixed(2) + "%"}
         />
         <Column
           field="memberNumber"
