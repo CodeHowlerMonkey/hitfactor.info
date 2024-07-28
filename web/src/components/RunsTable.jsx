@@ -13,6 +13,7 @@ import { useDebounce } from "use-debounce";
 import ShooterCell from "./ShooterCell";
 import ReportDialog from "./ReportDialog";
 import { sportForDivision } from "../../../shared/constants/divisions";
+import { useIsHFU } from "../utils/useIsHFU";
 
 const TableFilter = ({ placeholder, onFilterChange }) => {
   const [filter, setFilter] = useState("");
@@ -72,11 +73,13 @@ const LegacyCheckbox = ({ onChange }) => {
 
 export const useRunsTableData = ({ division, classifier }) => {
   const { query: pageQuery, reset: resetPage, ...pageProps } = useTablePagination();
-  const { query, ...sortProps } = useTableSort({
+  const { query, resetSort, ...sortProps } = useTableSort({
     mode: "multiple",
     onSortCallback: () => resetPage(),
     initial: [{ field: "hf", order: -1 }],
   });
+  const isHFU = useIsHFU(division);
+  useEffect(() => resetSort(), [isHFU]);
   const [filter, setFilter] = useState("");
   // const [filterHHF, setFilterHHF] = useState(undefined);
   const [filterClub, setFilterClub] = useState(undefined);

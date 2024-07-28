@@ -45,11 +45,13 @@ const TableFilter = ({ placeholder, onFilterChange }) => {
 
 export const useShootersTableData = ({ division, inconsistencies, classFilter }) => {
   const { query: pageQuery, reset: resetPage, ...pageProps } = useTablePagination();
-  const { query, ...sortProps } = useTableSort({
+  const { query, resetSort, ...sortProps } = useTableSort({
     mode: "multiple",
     onSortCallback: () => resetPage(),
     initial: [{ field: "reclassificationsRecPercentCurrent", order: -1 }],
   });
+  const isHFU = useIsHFU(division);
+  useEffect(() => resetSort(), [isHFU]);
   const [filter, setFilter] = useState("");
   const filtersQuery = qs.stringify({
     filter,

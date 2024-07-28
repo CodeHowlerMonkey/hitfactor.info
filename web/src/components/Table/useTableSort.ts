@@ -39,6 +39,7 @@ export const useTableSort = ({
       },
       removableSort: true,
       sortMode: mode,
+      resetSort: () => setState(initialArray),
       query: qs.stringify(
         {
           sort: state.map((s) => s.field),
