@@ -8,16 +8,19 @@ const a11yOff = Object.keys(require("eslint-plugin-jsx-a11y").rules).reduce(
 module.exports = {
   root: true,
   env: { browser: true, es2020: true },
+  parser: "@typescript-eslint/parser",
+  parserOptions: { ecmaVersion: "latest", sourceType: "module" },
   extends: [
     "eslint:recommended",
     "plugin:react/recommended",
     "plugin:react/jsx-runtime",
     "plugin:react-hooks/recommended",
+    "plugin:@typescript-eslint/recommended",
     "airbnb",
     "plugin:prettier/recommended",
   ],
   ignorePatterns: ["dist", ".eslintrc.cjs"],
-  parserOptions: { ecmaVersion: "latest", sourceType: "module" },
+  //extensions: ['.js', 'jsx', '.ts', '.tsx'],
   settings: { react: { version: "18.2" } },
   plugins: ["react-refresh"],
   rules: {
@@ -30,6 +33,7 @@ module.exports = {
       },
     ],
     "import/prefer-default-export": 0,
+    "import/extensions": 0,
 
     "no-console": ["error", {allow: ['warn', 'error']}],
 
@@ -41,7 +45,7 @@ module.exports = {
     "react/display-name": 0,
     "react/no-unstable-nested-components": 0,
     "react/react-in-jsx-scope": 0,
-    "react/jsx-filename-extension": [1, { extensions: [".js", ".jsx"] }],
+    "react/jsx-filename-extension": [1, { extensions: [".jsx", ".tsx"] }],
     "react/function-component-definition": [
       1,
       {

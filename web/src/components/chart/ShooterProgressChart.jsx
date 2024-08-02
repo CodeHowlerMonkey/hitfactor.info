@@ -1,12 +1,11 @@
 import { ProgressSpinner } from "primereact/progressspinner";
-import { Button } from "primereact/button";
-import { Dialog } from "primereact/dialog";
+import { SelectButton } from "primereact/selectbutton";
+import { useState } from "react";
+
+import { sportForDivision } from "../../../../shared/constants/divisions";
+import { keepPreviousData, useApi } from "../../utils/client";
 
 import { Line } from "./common";
-import { useApi } from "../../utils/client";
-import { useState } from "react";
-import { SelectButton } from "primereact/selectbutton";
-import { sportForDivision } from "../../../../shared/constants/divisions";
 
 const modesMap = {
   Recommended: "recPercent",
@@ -20,7 +19,7 @@ export const ShooterProgressChart = ({ division, memberNumber }) => {
   const [mode, setMode] = useState(modes[0]);
   const { json: data, loading } = useApi(
     `/shooters/${division}/${memberNumber}/chart/progress/${modeBucketForMode(mode)}`,
-    false
+    { placeholderData: keepPreviousData },
   );
   if (loading && !data) {
     return <ProgressSpinner />;
