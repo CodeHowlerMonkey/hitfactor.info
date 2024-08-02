@@ -31,6 +31,11 @@ module.exports = {
     ],
     "import/prefer-default-export": 0,
 
+    "no-console": ["error", {allow: ['warn', 'error']}],
+
+    // support oneline async functions like delay() without {}
+    "no-promise-executor-return": 0,
+
     "react/jsx-props-no-spreading": 0,
     "react/prop-types": 0,
     "react/display-name": 0,
