@@ -30,11 +30,17 @@ const fieldModeMap = {
 };
 const fieldForMode = (mode) => fieldModeMap[mode];
 const modes = Object.keys(fieldModeMap);
+const recommendedMode = modes[2];
 
 export const ShootersDistributionChart = ({ division, style }) => {
   const isHFU = useIsHFU(division);
-  const [colorMode, setColorMode] = useState(modes[2]);
-  const [xMode, setXMode] = useState(modes[2]);
+  const [colorModeState, setColorMode] = useState(recommendedMode);
+  const [xModeState, setXMode] = useState(recommendedMode);
+
+  // only use recommended in HFU
+  const colorMode = isHFU ? recommendedMode : colorModeState;
+  const xMode = isHFU ? recommendedMode : xModeState;
+
   const { json: data, loading } = useApi(`/shooters/${division}/chart`);
 
   if (loading) {
