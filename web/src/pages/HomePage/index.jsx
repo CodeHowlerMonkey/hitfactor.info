@@ -1,8 +1,8 @@
 import { Button } from "primereact/button";
-import { useNavigate } from "react-router-dom";
 import { Divider } from "primereact/divider";
-import ReactPlayer from "react-player";
 import { useState } from "react";
+import ReactPlayer from "react-player";
+import { useNavigate } from "react-router-dom";
 
 const PricesBlock = ({ clubAffiliation = 0, membership = 0, classifier = 0 }) => (
   <>
@@ -39,9 +39,8 @@ const HomePage = () => {
               <span className="text-6xl text-primary font-bold mb-3"> We fixed it!</span>
               <span className="mt-0 mb-4 text-700 line-height-3">
                 <p>
-                  Our Classification System is 100% dynamic and calibrates High Hit
-                  Factors automatically based on Statistical Analysis and Score
-                  Distribution.
+                  Our Classification System is 100% dynamic and calibrates itself
+                  automatically using Statistical Analysis and Score Distribution.
                 </p>
 
                 <p>
@@ -116,7 +115,7 @@ const HomePage = () => {
               <div
                 className="h-full bg-blue-500"
                 style={{ width: 2, minHeight: "4rem" }}
-              ></div>
+              />
             </div>
             <div className="py-3 pl-5 lg:pl-8 pl-3 lg:w-30rem">
               <div className="text-900 text-xl mb-2 font-medium">Real Match Data</div>
@@ -170,7 +169,7 @@ const HomePage = () => {
               <div
                 className="h-full bg-yellow-500"
                 style={{ width: 2, minHeight: "4rem" }}
-              ></div>
+              />
             </div>
             <div className="py-3 pl-8 pr-3 w-30rem hidden lg:block flex-order-2">
               <img
@@ -201,7 +200,7 @@ const HomePage = () => {
               <div
                 className="h-full bg-cyan-500"
                 style={{ width: "2px", minHeight: "4rem" }}
-              ></div>
+              />
             </div>
             <div className="py-3 pl-5 lg:pl-8 pl-3 lg:w-30rem">
               <div className="text-900 text-xl mb-2 font-medium">
@@ -239,7 +238,7 @@ const HomePage = () => {
                 <div className="mb-2 line-height-3">No A/B/C/D Flags</div>
                 <div className="mb-2 line-height-3">No Tanking Protection</div>
                 <div className="mb-2 line-height-3">Same Day Dupes are Averaged Out</div>
-                <div className="mb-2 line-height-3">You're welcome, Grandbaggers</div>
+                {/* <div className="mb-2 line-height-3">You're welcome, Grandbaggers</div> */}
               </div>
               <img
                 src="/img/home/brutal.jpg"
@@ -258,7 +257,7 @@ const HomePage = () => {
               <div
                 className="h-full bg-pink-500"
                 style={{ width: 2, minHeight: "4rem" }}
-              ></div>
+              />
             </div>
             <div className="py-3 pl-8 pr-3 w-30rem hidden lg:block flex-order-2">
               <img
@@ -288,7 +287,7 @@ const HomePage = () => {
               <div
                 className="h-full bg-purple-500"
                 style={{ width: 2, minHeight: "4rem" }}
-              ></div>
+              />
             </div>
             <div className="py-3 pl-5 lg:pl-8 pl-3 lg:w-30rem">
               <div className="text-900 text-xl mb-2 font-medium">The Result?</div>
@@ -338,43 +337,43 @@ const HomePage = () => {
                   <PricesBlock />
                   <ul className="list-none p-0 m-0 flex-grow-1">
                     <li className="flex align-items-center mb-3">
-                      <i className="pi pi-check-circle text-green-500 mr-2"></i>
+                      <i className="pi pi-check-circle text-green-500 mr-2" />
                       <span>Accurate HHFs from Statistical Analysis</span>
                     </li>
                     <li className="flex align-items-center mb-3">
-                      <i className="pi pi-check-circle text-green-500 mr-2"></i>
+                      <i className="pi pi-check-circle text-green-500 mr-2" />
                       <span>Classifiaction Goes Up and Down</span>
                     </li>
                     <li className="flex align-items-center mb-3">
-                      <i className="pi pi-check-circle text-green-500 mr-2"></i>
+                      <i className="pi pi-check-circle text-green-500 mr-2" />
                       <span>Instant Reclassifiaction</span>
                     </li>
                     <li className="flex align-items-center mb-3">
-                      <i className="pi pi-check-circle text-green-500 mr-2"></i>
+                      <i className="pi pi-check-circle text-green-500 mr-2" />
                       <span>Discourages Grandbagging</span>
                     </li>
                     <li className="flex align-items-center mb-3">
-                      <i className="pi pi-check-circle text-green-500 mr-2"></i>
+                      <i className="pi pi-check-circle text-green-500 mr-2" />
                       <span>Full Division & Classifier Leaderboards</span>
                     </li>
                     <li className="flex align-items-center mb-3">
-                      <i className="pi pi-check-circle text-green-500 mr-2"></i>
+                      <i className="pi pi-check-circle text-green-500 mr-2" />
                       <span>Open-Source</span>
                     </li>
                     <li className="flex align-items-center mb-3">
-                      <i className="pi pi-check-circle text-green-500 mr-2"></i>
+                      <i className="pi pi-check-circle text-green-500 mr-2" />
                       <span>Unlimited Search By Partial Number or Name</span>
                     </li>
                     <li className="flex align-items-center mb-3">
-                      <i className="pi pi-check-circle text-green-500 mr-2"></i>
+                      <i className="pi pi-check-circle text-green-500 mr-2" />
                       <span>Find & Report Suspicious Scores</span>
                     </li>
                     <li className="flex align-items-center mb-3">
-                      <i className="pi pi-check-circle text-green-500 mr-2"></i>
+                      <i className="pi pi-check-circle text-green-500 mr-2" />
                       <span>Multi-Score "What Ifs"</span>
                     </li>
                     <li className="flex align-items-center mb-3">
-                      <i className="pi pi-check-circle text-green-500 mr-2"></i>
+                      <i className="pi pi-check-circle text-green-500 mr-2" />
                       <span>Extra Stats & Visualisation Tools</span>
                     </li>
                   </ul>
@@ -454,19 +453,19 @@ const HomePage = () => {
                   <PricesBlock membership={45} clubAffiliation={50} />
                   <ul className="list-none p-0 m-0 flex-grow-1">
                     <li className="flex align-items-center mb-3">
-                      <i className="pi pi-check-circle text-green-500 mr-2"></i>
+                      <i className="pi pi-check-circle text-green-500 mr-2" />
                       <span>Simple Timeplus Scoring</span>
                     </li>
                     <li className="flex align-items-center mb-3">
-                      <i className="pi pi-check-circle text-green-500 mr-2"></i>
+                      <i className="pi pi-check-circle text-green-500 mr-2" />
                       <span>Single Classifier</span>
                     </li>
                     <li className="flex align-items-center mb-3">
-                      <i className="pi pi-check-circle text-green-500 mr-2"></i>
+                      <i className="pi pi-check-circle text-green-500 mr-2" />
                       <span>Funny "Situational" WSBs</span>
                     </li>
                     <li className="flex align-items-center mb-3">
-                      <i className="pi pi-check-circle text-green-500 mr-2"></i>
+                      <i className="pi pi-check-circle text-green-500 mr-2" />
                       <span>Stylish Fishing Vests Always in Fashion</span>
                     </li>
                     <li className="flex align-items-center mb-3">
@@ -510,14 +509,15 @@ const HomePage = () => {
 
         <div className="text-700 text-center pb-4">
           <div className="text-blue-600 font-bold mb-3">
-            <i className="pi pi-discord"></i>&nbsp;POWERED BY DISCORD
+            <i className="pi pi-discord" />
+            &nbsp;POWERED BY DISCORD
           </div>
           <div className="text-900 font-bold text-5xl mb-3">
             Join Howler Monkey Community
           </div>
-          {/*<div className="text-700 text-2xl mb-1">
+          {/* <div className="text-700 text-2xl mb-1">
             We talk <b>Mad Shit</b> about BOC, but are <b>Super Friendly</b> to others.
-          </div>*/}
+          </div> */}
           <div className="text-700 text-xl mb-5">
             Use #hitfactor-info Channel for Any Questions or Feedback.
           </div>
