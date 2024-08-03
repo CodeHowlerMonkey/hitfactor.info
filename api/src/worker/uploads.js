@@ -798,16 +798,23 @@ const uploadsWorkerMain = async () => {
   runEvery(async () => {
     console.log("starting to fetch");
     console.time("fetchLoop");
-    const utcHours = new Date().getUTCHours();
-    if (utcHours < 7 || utcHours > 15) {
-      let numberOfNewMatches = await fetchAndSaveMoreMatchesById();
-      let numberOfUpdatedMatches = await fetchAndSaveMoreMatchesByUpdatedDate();
-      console.log("fetched " + numberOfNewMatches + " new matches");
-      console.log("fetched " + numberOfUpdatedMatches + " updated matches");
-    } else {
-      console.log("sleeping");
+    try {
+      const utcHours = new Date().getUTCHours();
+      if (utcHours < 7 || utcHours > 15) {
+        let numberOfNewMatches = await fetchAndSaveMoreMatchesById();
+        let numberOfUpdatedMatches = await fetchAndSaveMoreMatchesByUpdatedDate();
+        console.log("fetched " + numberOfNewMatches + " new matches");
+        console.log("fetched " + numberOfUpdatedMatches + " updated matches");
+      } else {
+        console.log("sleeping");
+      }
+    } catch(e) {
+      console.error('fetchLoop error:')
+      console.error(e)
+      await connect()
+    } finally {
+      console.timeEnd("fetchLoop");
     }
-    console.timeEnd("fetchLoop");
   }, 30 * MINUTES);
 
   setTimeout(() => {
@@ -815,13 +822,21 @@ const uploadsWorkerMain = async () => {
       console.log("starting upload");
       console.time("uploadLoop");
 
-      const uploadUpdates = await uploadLoop();
-      if (uploadUpdates > 0) {
-        // recalc stats after uploading all matches in the queue
-        await hydrateStats();
-      }
+      try {
+        const uploadUpdates = await uploadLoop();
+        if (uploadUpdates > 0) {
+          // recalc stats after uploading all matches in the queue
+          await hydrateStats();
+        }
+      } catch(e) {
+        console.error('uploadLoop error:')
+        console.error(e)
 
-      console.timeEnd("uploadLoop");
+        await connect()
+      }
+      finally {
+        console.timeEnd("uploadLoop");
+      }
     }, 15 * MINUTES);
   }, 5 * MINUTES);
 };
