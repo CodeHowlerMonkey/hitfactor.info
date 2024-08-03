@@ -1,14 +1,13 @@
 import { ProgressSpinner } from "primereact/progressspinner";
-import { Button } from "primereact/button";
-import { Dialog } from "primereact/dialog";
+import { SelectButton } from "primereact/selectbutton";
+import { useState } from "react";
+
+import { classForPercent } from "../../../../shared/utils/classification";
+import { useApi } from "../../utils/client";
+import { bgColorForClass } from "../../utils/color";
+import { useIsHFU } from "../../utils/useIsHFU";
 
 import { annotationColor, r5annotationColor, xLine, yLine, Scatter } from "./common";
-import { useApi } from "../../utils/client";
-import { useState } from "react";
-import { classForPercent } from "../../../../shared/utils/classification";
-import { bgColorForClass } from "../../utils/color";
-import { SelectButton } from "primereact/selectbutton";
-import { useIsHFU } from "../../utils/useIsHFU";
 
 const lines = {
   ...yLine("1th", 1.0, annotationColor(0.7)),
@@ -81,7 +80,7 @@ export const ShootersDistributionChart = ({ division, style }) => {
                 raw: { recPercent, curHHFPercent, curPercent, memberNumber, y },
               }) =>
                 `${memberNumber}; ${y.toFixed(
-                  2
+                  2,
                 )}th, Rec: ${recPercent}%, curHHF: ${curHHFPercent}%, HQ: ${curPercent}%`,
             },
           },
@@ -95,13 +94,13 @@ export const ShootersDistributionChart = ({ division, style }) => {
             data: data?.map((c) => ({
               ...c,
               x: c[fieldForMode(xMode)],
-              y: c[fieldForMode(xMode) + "Percentile"],
+              y: c[`${fieldForMode(xMode)}Percentile`],
             })),
             pointBorderColor: "white",
             pointBorderWidth: 0,
             backgroundColor: "#ae9ef1",
             pointBackgroundColor: data?.map(
-              (c) => bgColorForClass[classForPercent(c[fieldForMode(colorMode)])]
+              (c) => bgColorForClass[classForPercent(c[fieldForMode(colorMode)])],
             ),
           },
         ],
