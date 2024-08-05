@@ -20,7 +20,6 @@ module.exports = {
     "plugin:prettier/recommended",
   ],
   ignorePatterns: ["dist", ".eslintrc.cjs"],
-  //extensions: ['.js', 'jsx', '.ts', '.tsx'],
   settings: { react: { version: "18.2" } },
   plugins: ["react-refresh"],
   rules: {
