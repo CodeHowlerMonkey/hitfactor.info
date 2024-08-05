@@ -1,12 +1,11 @@
-import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
-import ScoresChart from "../../../components/chart/ScoresChart";
+import { DataTable } from "primereact/datatable";
 import { Tooltip } from "primereact/tooltip";
-import { Divider } from "primereact/divider";
+
 import { sportForDivision } from "../../../../../shared/constants/divisions";
+import { ScoresChart } from "../../../components/chart/ScoresChart";
 
 export const ClassifierInfoTable = ({
-  loading,
   division,
   classifier,
   hhf,
@@ -14,6 +13,7 @@ export const ClassifierInfoTable = ({
   recommendedHHF1,
   recommendedHHF5,
   recommendedHHF15,
+  curHHF,
   ...info
 }) => (
   <div className="flex flex-wrap gap-2 justify-content-around">
@@ -48,6 +48,15 @@ export const ClassifierInfoTable = ({
             stripedRows
             value={[
               ...(info?.hhfs || []),
+              ...(!curHHF
+                ? []
+                : [
+                    {
+                      label: "Cur. HHF",
+                      tooltip: "Current HHF",
+                      hhf: curHHF,
+                    },
+                  ]),
               ...(!recHHF
                 ? []
                 : [

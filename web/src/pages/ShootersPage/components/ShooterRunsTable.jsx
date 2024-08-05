@@ -1,18 +1,19 @@
-import { useEffect, useRef, useState } from "react";
-import { DataTable } from "primereact/datatable";
+import { Button } from "primereact/button";
 import { Column } from "primereact/column";
+import { DataTable } from "primereact/datatable";
+import { InputNumber } from "primereact/inputnumber";
+import { useEffect, useRef, useState } from "react";
+import { useDebouncedCallback } from "use-debounce";
+
+import ClassifierCell from "../../../components/ClassifierCell";
+import ClassifierDropdown from "../../../components/ClassifierDropdown";
+import ReportDialog from "../../../components/ReportDialog";
 import {
   headerTooltipOptions,
   renderHFOrNA,
   renderPercent,
   clubMatchColumn,
 } from "../../../components/Table";
-import ClassifierCell from "../../../components/ClassifierCell";
-import ReportDialog from "../../../components/ReportDialog";
-import { Button } from "primereact/button";
-import { InputNumber } from "primereact/inputnumber";
-import ClassifierDropdown from "../../../components/ClassifierDropdown";
-import { useDebouncedCallback } from "use-debounce";
 import { useIsHFU } from "../../../utils/useIsHFU";
 
 const HFEdit = ({ value: valueProp, updateWhatIfs, id }) => {
@@ -63,7 +64,7 @@ const ShooterRunsTable = ({
         sortField="sdUnix"
         loading={loading}
         stripedRows
-        /*lazy*/
+        /* lazy */
         value={(classifiers ?? []).map((c) => ({
           ...c,
           sdUnix: new Date(c.sd).getTime(),
@@ -84,7 +85,7 @@ const ShooterRunsTable = ({
     filterDisplay="row"
     */
       >
-        {/*    <Column field="sd" header="Date" />*/}
+        {/*    <Column field="sd" header="Date" /> */}
         <Column
           field="sdUnix"
           header="Date"
@@ -164,7 +165,13 @@ const ShooterRunsTable = ({
         />
         <Column
           hidden={isHFU}
-          body={renderPercent}
+          body={(c) => {
+            if (c.percent > 0) {
+              return renderPercent(c, { field: "percent" });
+            }
+
+            return renderPercent(c, { field: "curPercent" });
+          }}
           field="percent"
           header="Percent"
           sortable

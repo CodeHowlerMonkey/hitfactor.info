@@ -1,19 +1,21 @@
+import { Checkbox } from "primereact/checkbox";
+import { Column } from "primereact/column";
+import { DataTable } from "primereact/datatable";
+import { Dropdown } from "primereact/dropdown";
+import { InputText } from "primereact/inputtext";
 import qs from "query-string";
 import { useEffect, useRef, useState } from "react";
-import { DataTable } from "primereact/datatable";
-import { Checkbox } from "primereact/checkbox";
-import { InputText } from "primereact/inputtext";
-import { Column } from "primereact/column";
-import { useApi } from "../utils/client";
-import useTableSort from "./Table/useTableSort";
-import useTablePagination from "./Table/useTablePagination";
-import { clubMatchColumn, renderPercent, headerTooltipOptions } from "./Table";
-import { Dropdown } from "primereact/dropdown";
 import { useDebounce } from "use-debounce";
-import ShooterCell from "./ShooterCell";
-import ReportDialog from "./ReportDialog";
+
 import { sportForDivision } from "../../../shared/constants/divisions";
+import { useApi } from "../utils/client";
 import { useIsHFU } from "../utils/useIsHFU";
+
+import ReportDialog from "./ReportDialog";
+import ShooterCell from "./ShooterCell";
+import { clubMatchColumn, renderPercent, headerTooltipOptions } from "./Table";
+import useTablePagination from "./Table/useTablePagination";
+import useTableSort from "./Table/useTableSort";
 
 const TableFilter = ({ placeholder, onFilterChange }) => {
   const [filter, setFilter] = useState("");
@@ -84,15 +86,15 @@ export const useRunsTableData = ({ division, classifier }) => {
   // const [filterHHF, setFilterHHF] = useState(undefined);
   const [filterClub, setFilterClub] = useState(undefined);
   useEffect(() => resetPage(), [filter, filterClub]);
-  //const [legacy, setLegacy] = useState(undefined);
+  // const [legacy, setLegacy] = useState(undefined);
   const filtersQuery = qs.stringify(
     {
       filter,
-      //hhf: filterHHF,
+      // hhf: filterHHF,
       club: filterClub,
-      //legacy: legacy ? 1 : undefined,
+      // legacy: legacy ? 1 : undefined,
     },
-    {}
+    {},
   );
 
   const downloadUrl = `/api/classifiers/download/${division}/${classifier}`;
@@ -115,9 +117,9 @@ export const useRunsTableData = ({ division, classifier }) => {
     pageProps,
     filter,
     setFilter,
-    //filterHHF,
-    //setFilterHHF,
-    //setLegacy,
+    // filterHHF,
+    // setFilterHHF,
+    // setLegacy,
     filterClub,
     setFilterClub,
     downloadUrl,
@@ -135,7 +137,7 @@ const RunsTable = ({ classifier, division, clubs, onShooterSelection }) => {
     setFilter,
     // setFilterHHF,
     setFilterClub,
-    //setLegacy,
+    // setLegacy,
   } = useRunsTableData({
     division,
     classifier,
@@ -171,7 +173,7 @@ const RunsTable = ({ classifier, division, clubs, onShooterSelection }) => {
         filterDisplay="row"
       >
         <Column field="place" header="#" align="center" style={{ maxWidth: "4em" }} />
-        {/*<Column
+        {/* <Column
         field="index"
         header="#"
         headerTooltip="Index for the dataRow with current filters and sorting options applied. Can be used for manual counting of things. "
@@ -184,13 +186,13 @@ const RunsTable = ({ classifier, division, clubs, onShooterSelection }) => {
         headerTooltipOptions={headerTooltipOptions}
         body={(c) => [c.place, c.percentile].join(" / ")}
       />
-    />*/}
+    /> */}
         <Column
           field="percentile"
           header="Perc."
           headerTooltip="Percentile for this score. Shows how many percent of scores are higher than this one."
           headerTooltipOptions={headerTooltipOptions}
-          body={(c) => c.percentile.toFixed(2) + "%"}
+          body={(c) => `${c.percentile.toFixed(2)}%`}
         />
         <Column
           field="memberNumber"
@@ -231,20 +233,26 @@ const RunsTable = ({ classifier, division, clubs, onShooterSelection }) => {
         />
         <Column
           hidden={sport !== "uspsa"}
-          body={renderPercent}
+          body={(c) => {
+            if (c.percent > 0) {
+              return renderPercent(c, { field: "percent" });
+            }
+
+            return renderPercent(c, { field: "curPercent" });
+          }}
           field="percent"
           header="HQ %"
           sortable
           headerTooltip="Classifier percentage for this score during the time that it was processed by USPSA. Maxes out at 100%."
           headerTooltipOptions={headerTooltipOptions}
         />
-        {/*<Column
+        {/* <Column
         field="percentMinusCurPercent"
         header="Percent Change"
         sortable
         headerTooltip="Difference between calculated percent when run was submitted and what it would've been with current High Hit-Factor. \n Positive values mean classifier became harder, negative - easier."
         headerTooltipOptions={headerTooltipOptions}
-       />*/}
+       /> */}
         <Column
           {...clubMatchColumn}
           filter

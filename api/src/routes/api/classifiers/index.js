@@ -175,7 +175,7 @@ const classifiersRoutes = async (fastify, opts) => {
     const [extended, recHHFInfo] = await Promise.all([
       Classifier.findOne({ division, classifier: number }).lean(),
       RecHHF.findOne({ classifier: number, division })
-        .select(["recHHF", "rec1HHF", "rec5HHF", "rec15HHF"])
+        .select(["recHHF", "rec1HHF", "rec5HHF", "rec15HHF", "curHHF"])
         .lean(),
     ]);
 
@@ -183,6 +183,7 @@ const classifiersRoutes = async (fastify, opts) => {
       info: {
         ...basic,
         ...extended,
+        curHHF: recHHFInfo?.curHHF || 0,
         recHHF: recHHFInfo?.recHHF || 0,
         recommendedHHF1: recHHFInfo?.rec1HHF || 0,
         recommendedHHF5: recHHFInfo?.rec5HHF || 0,

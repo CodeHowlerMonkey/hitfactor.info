@@ -136,6 +136,13 @@ export const uspsaClassifiers = [
 
   "23-01",
   "23-02",
+
+  "24-01",
+  "24-02",
+  "24-04",
+  "24-06",
+  "24-08",
+  "24-09",
 ];
 
 // See: https://scsa.org/classification
