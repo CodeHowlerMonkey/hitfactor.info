@@ -3,7 +3,7 @@ const a11yOff = Object.keys(require("eslint-plugin-jsx-a11y").rules).reduce(
     acc[`jsx-a11y/${rule}`] = "off";
     return acc;
   },
-  {}
+  {},
 );
 module.exports = {
   root: true,
@@ -35,10 +35,13 @@ module.exports = {
     "import/prefer-default-export": 0,
     "import/extensions": 0,
 
-    "no-console": ["error", {allow: ['warn', 'error']}],
+    "no-console": ["error", { allow: ["warn", "error"] }],
 
     // support oneline async functions like delay() without {}
     "no-promise-executor-return": 0,
+
+    // we need private non-class things
+    "no-underscore-dangle": 0,
 
     "react/jsx-props-no-spreading": 0,
     "react/prop-types": 0,
