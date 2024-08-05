@@ -9,36 +9,43 @@ export const renderPercentDiff = (c, { field }) => {
     return "—";
   }
 
-  return value.toFixed(2) + "%";
+  return `${value.toFixed(2)}%`;
 };
 
 export const letterRatingForPercent = (p) => {
   if (p >= 98) {
     return "AAA";
-  } else if (p >= 95) {
-    return "AA";
-  } else if (p >= 93) {
-    return "A";
-  } else if (p >= 91) {
-    return "A-";
-  } else if (p >= 88) {
-    return "B+";
-  } else if (p >= 85) {
-    return "B";
-  } else if (p >= 80) {
-    return "B-";
-  } else if (p >= 75) {
-    return "C+";
-  } else if (p >= 70) {
-    return "C";
-  } else if (p >= 65) {
-    return "C-";
-  } else if (p >= 60) {
-    return "C--";
-  } else {
-    return "F";
   }
-
+  if (p >= 95) {
+    return "AA";
+  }
+  if (p >= 93) {
+    return "A";
+  }
+  if (p >= 91) {
+    return "A-";
+  }
+  if (p >= 88) {
+    return "B+";
+  }
+  if (p >= 85) {
+    return "B";
+  }
+  if (p >= 80) {
+    return "B-";
+  }
+  if (p >= 75) {
+    return "C+";
+  }
+  if (p >= 70) {
+    return "C";
+  }
+  if (p >= 65) {
+    return "C-";
+  }
+  if (p >= 60) {
+    return "C--";
+  }
   return "F";
 };
 
@@ -52,7 +59,7 @@ export const renderPercent = (c, { field }) => {
     value = Number(value);
   }
 
-  return value.toFixed(2) + "%";
+  return `${value.toFixed(2)}%`;
 };
 
 export const renderHFOrNA = (c, { field }) => {
@@ -71,14 +78,22 @@ export const renderHFOrNA = (c, { field }) => {
 export const renderClubIdMatchLink = (c, { field }) => {
   const content = c[field] || "";
   if (c.upload) {
-    const title = content + "\n" + (c.matchName || "");
+    const title = `${content}\n${c.matchName || ""}`;
+    const contentShort = content.split(" ").slice(0, 2).join(" ");
+    const matchNameShort = (c.matchName || "")
+      .split(" ")
+      .slice(0, 4)
+      .map((s) => s?.[0])
+      .filter(Boolean)
+      .join("");
     return (
       <a
         target="_blank"
         href={`https://practiscore.com/results/new/${c.upload}`}
         title={title}
+        rel="noreferrer"
       >
-        {content.split(" ").slice(0, 2).join(" ")}
+        {contentShort || matchNameShort}
       </a>
     );
   }
