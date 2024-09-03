@@ -1,5 +1,6 @@
 import uniqBy from "lodash.uniqby";
-import { ZenRows } from "zenrows";
+import { createGunzip } from "node:zlib";
+import { text } from "node:stream/consumers";
 import { connect } from "../db/index.js";
 import { RecHHF, hydrateRecHHFsForClassifiers } from "../db/recHHF.js";
 import { reclassifyShooters } from "../db/shooters.js";
@@ -30,6 +31,60 @@ import {
 } from "../dataUtil/classifiersData.js";
 import { minorHF } from "../../../shared/utils/hitfactor.js";
 import features from "../../../shared/features.js";
+
+import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
+
+export const _fetchPSS3ObjectJSON = async (objectKey, noGZip = false) => {
+  try {
+    const s3Client = new S3Client({
+      region: "us-east-1",
+      credentials: {
+        accessKeyId: process.env.PS_S3_ACCESS_KEY_ID,
+        secretAccessKey: process.env.PS_S3_SECRET_ACCESS_KEY,
+      },
+    });
+
+    const s3Response = await s3Client.send(
+      new GetObjectCommand({
+        Bucket: "ps-scores",
+        Key: objectKey,
+      })
+    );
+
+    // try gzip first, if that crashes - refetch and don't decompress
+    // (cause fuck node closing streams and b64 encoding and shit, I'm not dealing with this crap)
+    if (!noGZip) {
+      try {
+        const gz = createGunzip();
+        const body = s3Response.Body.pipe(gz);
+        const bodyString = await text(body);
+        return JSON.parse(bodyString);
+      } catch (e) {
+        return _fetchPSS3ObjectJSON(objectKey, true);
+      }
+    } else {
+      const bodyString = await s3Response.Body.transformToString();
+      return JSON.parse(bodyString);
+    }
+  } catch (e) {
+    console.error(`fetchPSS3ObjectJSON failed: ${objectKey}; ${e.message || ""}`);
+    return null;
+  }
+};
+
+export const fetchPS = async (uuid) => {
+  try {
+    const [matchDef, scores, results] = await Promise.all([
+      _fetchPSS3ObjectJSON(`production/${uuid}/match_def.json`),
+      _fetchPSS3ObjectJSON(`production/${uuid}/match_scores.json`),
+      _fetchPSS3ObjectJSON(`production/${uuid}/results.json`),
+    ]);
+
+    return { matchDef, scores, results };
+  } catch (e) {}
+
+  return {};
+};
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -154,60 +209,6 @@ export const afterUpload = async (classifiers, shooters, curTry = 1, maxTries = 
   }
 };
 
-const _fetchPSWithZenRows = async (uuid, tryNumber = 1, maxTries = 2) => {
-  try {
-    const client = new ZenRows(process.env.ZENROWS_API_KEY);
-    const { data, status } = await client.get(
-      "https://practiscore.com/results/new/" + uuid,
-      { js_render: "true", premium_proxy: "true" }
-    );
-    if (status !== 200) {
-      console.error("fetchPSHTML error, bad status: " + status);
-      throw new Error("tryHarder");
-      return {};
-    }
-    return data;
-  } catch (e) {
-    if (tryNumber >= maxTries) {
-      return {};
-    }
-
-    console.error(e);
-    console.error("fetchPSHTML fetch error, retrying");
-    return _fetchPSWithZenRows(uuid, tryNumber + 1);
-  }
-};
-
-export const fetchPSHTML = async (uuid) => {
-  const data = await _fetchPSWithZenRows(uuid);
-  const dataStartIndex = data.indexOf("matchDef = {");
-  if (dataStartIndex < 0) {
-    console.error("fetchPSHTML error, cant find matchDef");
-    return {};
-  }
-
-  try {
-    return Object.fromEntries(
-      data
-        .substr(dataStartIndex)
-        .split("\n")
-        .filter((s) => s.includes("= "))
-        .map((s) => {
-          const [keyRaw, value] = s.split(" = ");
-          const key = keyRaw.trim();
-          if (["matchDef", "scores", "results"].includes(key)) {
-            return [key, JSON.parse(value.trim().replace(/;$/, ""))];
-          }
-          return null;
-        })
-        .filter(Boolean)
-    );
-  } catch (e) {
-    console.error("fetchPSHTML parse error");
-    return {};
-  }
-};
-
 const normalizeDivision = (shitShowDivisionNameCanBeAnythingWTFPS) => {
   const lowercaseNoSpace = shitShowDivisionNameCanBeAnythingWTFPS
     .toLowerCase()
@@ -249,7 +250,7 @@ const scsaMatchInfo = async (matchInfo) => {
   const { uuid } = matchInfo;
 
   // Unlike USPSA, SCSA does not have results.json.
-  const { matchDef: match, scores: scoresJson } = await fetchPSHTML(matchInfo.uuid);
+  const { matchDef: match, scores: scoresJson } = await fetchPS(matchInfo.uuid);
   if (!match || !scoresJson) {
     return EmptyMatchResultsFactory();
   }
@@ -402,7 +403,7 @@ const scsaMatchInfo = async (matchInfo) => {
 
 const uspsaOrHitFactorMatchInfo = async (matchInfo) => {
   const { uuid } = matchInfo;
-  const { matchDef: match, results, scores: scoresJson } = await fetchPSHTML(uuid);
+  const { matchDef: match, results, scores: scoresJson } = await fetchPS(uuid);
   if (!match || !results) {
     return EmptyMatchResultsFactory();
   }
@@ -512,11 +513,9 @@ const EmptyMatchResultsFactory = () => ({ scores: [], matches: [], results: [] }
 const uploadResultsForMatches = async (matches) => {
   const matchResults = [];
   for (const match of matches) {
-    console.log("pulling " + match.uuid);
     switch (match.templateName) {
       case "Steel Challenge": {
-        // Steel Challenge doesn't have new results format with embedded json files
-        // skipping it entirely for now
+        // TODO: fix Steel Challenge after upload changes, will be skipped for now
         break;
         const scsaResults = await scsaMatchInfo(match);
         matchResults.push(scsaResults);
@@ -609,7 +608,7 @@ const processUploadResults = async (uploadResults) => {
     }
 
     if (!scores.length) {
-      return { classifiers: [], shooters: [] };
+      return { classifiers: [], shooters: [], matches: [] };
     }
     await Score.bulkWrite(
       scores.map((s) => ({
@@ -643,10 +642,11 @@ const processUploadResults = async (uploadResults) => {
     return {
       shooters: publicShooters,
       classifiers: publicClassifiers,
+      matches: uniqBy(scores, (s) => s.upload).map((s) => s.upload),
     };
   } catch (e) {
     console.error(e);
-    return { error: `${e.name}: ${e.message}` };
+    return { error: `${e.name}: ${e.message}`, matches: [] };
   }
 };
 
@@ -755,39 +755,57 @@ const matchesForUploadFilter = (extraFilter = {}) => ({
   $expr: { $gt: ["$updated", "$uploaded"] },
 });
 const findAFewMatches = async (extraFilter) =>
-  Matches.find(matchesForUploadFilter(extraFilter)).limit(15).sort({ updated: 1 });
+  Matches.find(matchesForUploadFilter(extraFilter)).limit(4).sort({ updated: 1 });
 
 const uploadLoop = async () => {
   // TODO: add Steel Challenge here once supported
   const onlyUSPSAOrHF = { templateName: { $in: ["USPSA", "Hit Factor"] } };
-  /*
-  const count = await Matches.countDocuments(matchesForUploadFilter(onlyUSPSAOrHF));
-  console.log(count + " uploads in the queue (USPSA or Hit Factor only)");
-  */
+  const onlyUSPSA = { templateName: { $in: ["USPSA"] } };
+  const count = await Matches.countDocuments(matchesForUploadFilter(onlyUSPSA));
+  console.log(count + " uploads in the queue (USPSA only)");
 
   let numberOfUpdates = 0;
   let fewMatches = [];
+  let totalMatchesUploaded = 0;
   do {
-    fewMatches = await findAFewMatches(onlyUSPSAOrHF);
+    fewMatches = await findAFewMatches(onlyUSPSA);
+    totalMatchesUploaded += fewMatches.length;
     if (!fewMatches.length) {
       return numberOfUpdates;
     }
-    const uuids = fewMatches.map((m) => m.uuid);
-    console.log(uuids);
     const uploadResults = await uploadMatches(fewMatches);
     numberOfUpdates += uploadResults.classifiers?.length || 0;
-    console.log(JSON.stringify(uploadResults, null, 2));
-    console.log("uploaded");
+
+    const matchesWithScoresUUIDs = uploadResults?.matches || [];
+
+    const uuidsWithStatus = Object.fromEntries(
+      fewMatches.map((m) => [
+        m.uuid,
+        matchesWithScoresUUIDs.includes(m.uuid) ? "✅" : "❌",
+      ])
+    );
+    console.log(uuidsWithStatus);
+
+    // console.log(JSON.stringify(uploadResults, null, 2));
+    console.log(
+      `${numberOfUpdates} classifiers; ${uploadResults?.shooters?.length || 0} shooters`
+    );
 
     await Matches.bulkWrite(
       fewMatches.map((m) => ({
         updateOne: {
           filter: { _id: m._id },
-          update: { $set: { ...m.toObject(), uploaded: new Date() } },
+          update: {
+            $set: {
+              ...m.toObject(),
+              uploaded: new Date(),
+              hasScores: matchesWithScoresUUIDs.includes(m.uuid),
+            },
+          },
         },
       }))
     );
-    console.log("done");
+    console.log(`done ${totalMatchesUploaded}/${count}`);
   } while (fewMatches.length);
   return numberOfUpdates;
 };
@@ -808,10 +826,10 @@ const uploadsWorkerMain = async () => {
       } else {
         console.log("sleeping");
       }
-    } catch(e) {
-      console.error('fetchLoop error:')
-      console.error(e)
-      await connect()
+    } catch (e) {
+      console.error("fetchLoop error:");
+      console.error(e);
+      await connect();
     } finally {
       console.timeEnd("fetchLoop");
     }
@@ -828,13 +846,12 @@ const uploadsWorkerMain = async () => {
           // recalc stats after uploading all matches in the queue
           await hydrateStats();
         }
-      } catch(e) {
-        console.error('uploadLoop error:')
-        console.error(e)
+      } catch (e) {
+        console.error("uploadLoop error:");
+        console.error(e);
 
-        await connect()
-      }
-      finally {
+        await connect();
+      } finally {
         console.timeEnd("uploadLoop");
       }
     }, 15 * MINUTES);

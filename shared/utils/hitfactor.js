@@ -89,12 +89,12 @@ export const minorHF = (score) => {
     } = score;
 
     if (Number.isNaN(Number(hf))) {
-      console.log("no hf" + score._id);
+      // console.log("no hf" + score._id);
       return -1;
     }
 
     if (!Array.isArray(targetHits) || !Array.isArray(strings)) {
-      console.log("bad hits/strings " + score._id);
+      // console.log("bad hits/strings " + score._id);
       return -1;
     }
 
@@ -104,7 +104,7 @@ export const minorHF = (score) => {
     }
 
     if (!totalTime) {
-      console.log("bad strings " + score._id);
+      // console.log("bad strings " + score._id);
       return -1;
     }
 
@@ -113,7 +113,7 @@ export const minorHF = (score) => {
       (steelMikes ?? 0) * pointsMike +
       (steelNS ?? 0) * pointsNoShoot;
     if (Number.isNaN(steelPoints)) {
-      console.log("bad steel hits " + score._id);
+      // console.log("bad steel hits " + score._id);
       return -1;
     }
 
@@ -141,7 +141,7 @@ export const minorHF = (score) => {
     );
 
     if (!fuzzyEqual(majorHF, hf) && !fuzzyEqual(minorHF, hf)) {
-      console.log("bad math " + score._id);
+      // console.log("bad math " + score._id);
       return -1;
     }
 
@@ -149,7 +149,7 @@ export const minorHF = (score) => {
   } catch (e) {
     console.error(e);
   }
-  console.log("something else " + score._id);
+  // console.log("something else " + score._id);
 
   return -1;
 };
