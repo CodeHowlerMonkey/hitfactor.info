@@ -155,7 +155,6 @@ const ShooterRunsTable = ({
           headerTooltipOptions={headerTooltipOptions}
         />
         <Column
-          hidden={isHFU}
           body={renderPercent}
           field="curPercent"
           header="Cur. %"
@@ -164,7 +163,6 @@ const ShooterRunsTable = ({
           headerTooltipOptions={headerTooltipOptions}
         />
         <Column
-          hidden={isHFU}
           body={(c) => {
             if (c.percent > 0) {
               return renderPercent(c, { field: "percent" });
@@ -179,7 +177,6 @@ const ShooterRunsTable = ({
           headerTooltipOptions={headerTooltipOptions}
         />
         <Column
-          hidden={isHFU}
           body={renderPercent}
           field="percentMinusCurPercent"
           header="Percent Change"

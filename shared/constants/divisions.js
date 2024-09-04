@@ -86,7 +86,7 @@ export const sportForDivision = (division) => {
 };
 
 export const sportName = (code) =>
-  ({ hfu: "Hit Factor", pcsl: "PCSL", uspsa: "USPSA" }[code] || "USPSA");
+  ({ hfu: "Hit Factor", pcsl: "PCSL", uspsa: "USPSA", scsa: "Steel Challenge" }[code] || "USPSA");
 
 export const hfuDivisionCompatabilityMap = {
   // from USPSA
@@ -109,6 +109,16 @@ export const hfuDivisionCompatabilityMap = {
   pcsl_pi: "irn",
   pcsl_pcc: "car",
   pcsl_acp: "opt",
+
+  // from SCSA
+  scsa_opn: "comp",
+  scsa_co: "opt",
+  scsa_prod: "irn",
+  scsa_isr: "irn",
+  scsa_ltd: "irn",
+  scsa_osr: "opt",
+  scsa_pcco: "car",
+  scsa_pcci: "car",
 
   // TODO: add more compatability here and/or in normalizeDivisions for
   // db.scores.distinct('division')
@@ -143,7 +153,37 @@ export const divisionChangeMap = {
     pcsl_pi: "ltd",
     pcsl_pcc: "pcc",
     pcsl_acp: "co",
+
+    // from SCSA
+    scsa_opn: "opn",
+    scsa_co: "co",
+    scsa_prod: "prod",
+    scsa_isr: "rev",
+    scsa_ltd: "ltd",
+    scsa_osr: "osr",
+    scsa_pcco: "pcc",
+    scsa_pcci: "pcc",
   },
+  scsa: {
+    // from USPSA
+    opn: "scsa_opn",
+    co: "scsa_co",
+    rev: "scsa_isr",
+    pcc: "scsa_pcco",
+
+    // from HFU
+    comp: "scsa_opn",
+    opt: "scsa_co",
+    irn: "scsa_ltd",
+    car: "scsa_pcco",
+
+    // from PCSL
+    pcsl_comp: "opn",
+    pcsl_po: "co",
+    pcsl_pi: "ltd",
+    pcsl_pcc: "pcc",
+    pcsl_acp: "co",
+  }
 };
 
 export const minorDivisions = ["co", "lo", "prod", "pcc", "comp", "opt", "irn", "car"];
@@ -253,3 +293,58 @@ export const allDivShortNames = [
 ];
 export const mapAllDivisions = (mapper) =>
   Object.fromEntries(allDivShortNames.map((div) => [div, mapper(div)]));
+
+export const scsaDivisions = [
+  {
+    long: "scsa_opn",
+    short: "OPN",
+  },
+  {
+    long: "scsa_co",
+    short: "CO",
+  },
+  {
+    long: "scsa_osr",
+    short: "OSR",
+  },
+  {
+    long: "scsa_isr",
+    short: "ISR",
+  },
+  {
+    long: "scsa_ss",
+    short: "SS",
+  },
+  {
+    long: "scsa_ltd",
+    short: "LTD",
+  },
+  {
+    long: "scsa_prod",
+    short: "PROD",
+  },
+  {
+    long: "scsa_rfpi",
+    short: "RFPI",
+  },
+  {
+    long: "scsa_rfpo",
+    short: "RFPO",
+  },
+  {
+    long: "scsa_rfri",
+    short: "RFRI",
+  },
+  {
+    long: "scsa_rfro",
+    short: "RFRO",
+  },
+  {
+    long: "scsa_pcco",
+    short: "PCCO",
+  },
+  {
+    long: "scsa_pcci",
+    short: "PCCI",
+  },
+]

@@ -16,7 +16,7 @@ const searchMatches = async (q) => {
     const index = client.initIndex("postmatches");
     const { hits } = await index.search(q, {
       hitsPerPage: 25,
-      filters: "templateName:USPSA OR templateName:'Hit Factor'",
+      filters: "templateName:USPSA OR templateName:'Hit Factor' OR templateName:'Steel Challenge'",
     });
 
     return hits

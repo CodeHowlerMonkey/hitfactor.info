@@ -85,7 +85,7 @@ const Inconsistencies = () => {
         <ModeSelect value={mode} setValue={setMode} />
         <ClassFilterSelect value={classFilter} setValue={setClassFilter} mode={mode} />
       </div>
-      <DivisionNavigation onSelect={setDivision} uspsaOnly />
+      <DivisionNavigation onSelect={setDivision} />
       {division && (
         <div>
           <ShootersTable

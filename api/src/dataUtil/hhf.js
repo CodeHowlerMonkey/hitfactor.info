@@ -1,4 +1,4 @@
-import { classifiers } from "./classifiersData.js";
+import { classifiers, scsaHhfEquivalentForDivision, scsaPeakTime } from "./classifiersData.js";
 import { divIdToShort, hfuDivisionMapForHHF } from "./divisions.js";
 import { HF } from "./numbers.js";
 import { loadJSON } from "../utils.js";
@@ -14,6 +14,9 @@ export const divShortToHHFs = loadJSON("../../data/hhf.json").hhfs.reduce((acc, 
 }, {});
 
 export const hhfsForDivision = (division) => {
+  if (division.startsWith('scsa')) {
+    return scsaHhfEquivalentForDivision(division);
+  }
   const hfuDivisionForHHF = hfuDivisionMapForHHF[division];
   if (hfuDivisionForHHF) {
     return divShortToHHFs[hfuDivisionForHHF];

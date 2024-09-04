@@ -41,6 +41,12 @@ npm i
 npm start
 ```
 
+Connect to the mongo instance via:
+
+```
+mongosh "mongodb://localhost:27017"
+```
+
 ###### In Production
 
 Currently deployed on Koyeb using Dockerfiles. To run api/web in prod mode, use:

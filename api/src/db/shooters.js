@@ -6,7 +6,7 @@ import {
   divisionsForScoresAdapter,
   hfuDivisionCompatabilityMap,
   hfuDivisionsShortNamesThatNeedMinorHF,
-  mapDivisions,
+  mapDivisions, uspsaDivShortNames
 } from "../dataUtil/divisions.js";
 import {
   calculateUSPSAClassification,
@@ -487,10 +487,10 @@ export const reclassifyShooters = async (shooters) => {
       ]);
 
     const updates = shooters
+      .filter(({ memberNumber, division, name }) => {
+        return memberNumber && uspsaDivShortNames.find((x) => x === division);
+      })
       .map(({ memberNumber, division, name }) => {
-        if (!memberNumber) {
-          return [];
-        }
         const recMemberScores = recScoresByMemberNumber[memberNumber];
         const curMemberScores = curScoresByMemberNumber[memberNumber];
         const recalcByCurPercent = calculateUSPSAClassification(

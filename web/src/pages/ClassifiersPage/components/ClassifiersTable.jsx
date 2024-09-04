@@ -6,14 +6,9 @@ import { Column } from "primereact/column";
 import { useApi } from "../../../utils/client";
 import useTableSort from "../../../components/Table/useTableSort";
 // import { headerTooltipOptions } from "../../../components/Table";
-
-import { numSort, dateSort, classifierCodeSort } from "../../../../../shared/utils/sort";
+import { classifierCodeSort, dateSort, numSort } from "../../../../../shared/utils/sort";
 import ClassifierCell from "../../../components/ClassifierCell";
-import {
-  renderHFOrNA,
-  renderPercent,
-  letterRatingForPercent,
-} from "../../../components/Table";
+import { letterRatingForPercent, renderHFOrNA, renderPercent } from "../../../components/Table";
 
 const compactPercentColumnStyle = {
   headerStyle: { width: "64px", padding: "16px 4px", fontSize: "0.8rem" },
@@ -44,7 +39,8 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
   const downloadUrl = "/api/classifiers/download/" + division;
   //division = null;
   const { json: dataRaw, loading } = useApi("/classifiers/" + (division ?? ""));
-  const data = (dataRaw ?? [])
+  const tableArray = (dataRaw === undefined || dataRaw['error'] === undefined) ? dataRaw : [];
+  const data = (tableArray || [])
     .map((d) => ({
       ...d,
       updated: new Date(d.updated).toLocaleDateString("en-us", { timeZone: "UTC" }),
@@ -171,15 +167,19 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
       />
       <Column
         field="recHHF"
-        header="Rec. HHF"
+        header={division.startsWith("scsa") ? "Rec. Peak Time" : "Rec. HHF"}
         sortable
-        body={renderHFOrNA}
         style={{ width: "100px" }}
       />
-      <Column field="hhf" header="HQ HHF" sortable style={{ width: "100px" }} />
+      <Column
+        field="hhf"
+        header={division.startsWith("scsa") ? "HQ Peak Time" : "HQ HHF"}
+        sortable
+        style={{ width: "100px" }}
+      />
       <Column
         field="recHHFChange"
-        header="HQ Minus Rec. HHF"
+        header={division.startsWith("scsa") ? "HQ Minus Rec. Peak Time" : "HQ Minus Rec. HHF"}
         sortable
         body={(c) => {
           if (!c.recHHF) {

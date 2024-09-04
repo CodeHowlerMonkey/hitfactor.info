@@ -1,30 +1,23 @@
 import uniqBy from "lodash.uniqby";
 
-import {
-  basicInfoForClassifier,
-  classifiers,
-} from "../../../dataUtil/classifiersData.js";
+import { basicInfoForClassifier, classifiers, ScsaPointsPerString } from "../../../dataUtil/classifiersData.js";
 import { HF, N, Percent, PositiveOrMinus1 } from "../../../dataUtil/numbers.js";
 import { curHHFForDivisionClassifier } from "../../../dataUtil/hhf.js";
 import { Score } from "../../../db/scores.js";
-import { Shooter } from "../../../db/shooters.js";
-import { Classifier, allDivisionClassifiersQuality } from "../../../db/classifiers.js";
-
-import { multisort } from "../../../../../shared/utils/sort.js";
-import { PAGE_SIZE } from "../../../../../shared/constants/pagination.js";
+import {
+  allDivisionClassifiersQuality,
+  allScsaDivisionClassifiersQuality,
+  Classifier
+} from "../../../db/classifiers.js";
 import { RecHHF } from "../../../db/recHHF.js";
 import {
   addPlaceAndPercentileAggregation,
   addTotalCountAggregation,
   multiSortAndPaginate,
   percentAggregationOp,
-  textSearchMatch,
+  textSearchMatch
 } from "../../../db/utils.js";
-import {
-  divisionsForRecHHFAdapter,
-  divisionsForScoresAdapter,
-  hfuDivisionsShortNamesThatNeedMinorHF,
-} from "../../../dataUtil/divisions.js";
+import { divisionsForScoresAdapter, hfuDivisionsShortNamesThatNeedMinorHF } from "../../../dataUtil/divisions.js";
 
 const _getShooterField = (field) => ({
   $getField: {
@@ -146,18 +139,27 @@ const _runsAggregation = async ({
     ...multiSortAndPaginate({ sort, order, page }),
   ]);
 
+const scsaHhfToPeakTime = (classifier, hf) => {
+  const numScoringStrings = classifier === 'SC-104' ? 3 : 4;
+  return Number(parseFloat(((ScsaPointsPerString)/(hf / numScoringStrings))).toFixed(2))
+}
+
 const classifiersRoutes = async (fastify, opts) => {
   fastify.get("/", (req, res) => classifiers.map(basicInfoForClassifier));
 
   fastify.get("/:division", async (req) => {
     const { division } = req.params;
-    const [classifiers, classifiersAllDivQuality] = await Promise.all([
+    const [ classifiers, classifiersAllDivQuality ] = await Promise.all([
       Classifier.find({ division, classifier: { $exists: true, $ne: null } }),
-      allDivisionClassifiersQuality(),
+      division.startsWith('scsa') ? allScsaDivisionClassifiersQuality() : allDivisionClassifiersQuality()
     ]);
     return classifiers.map((c) => {
       const cur = c.toObject({ virtuals: true });
       cur.allDivQuality = classifiersAllDivQuality[cur.classifier];
+      if (division.startsWith('scsa')) {
+        cur.recHHF = scsaHhfToPeakTime(c.classifier, cur.recHHF);
+        cur.hhf = scsaHhfToPeakTime(c.classifier, cur.hhf);
+      }
       return cur;
     });
   });
@@ -222,6 +224,9 @@ const classifiersRoutes = async (fastify, opts) => {
         run.percentMinusCurPercent = percent >= 100 ? 0 : percentMinusCurPercent;
         run.classifier = number;
         run.index = index;
+        if (division.startsWith('scsa')) {
+          run.hf = Number(run.stageTimeSecs);
+        }
         return run;
       }),
       runsTotal: runsFromDB[0]?.total || 0,
