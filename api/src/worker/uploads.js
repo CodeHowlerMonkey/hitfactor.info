@@ -658,7 +658,9 @@ export const uploadMatchesFromUUIDs = async (uuids) => {
   return await processUploadResults(await uploadResultsForMatchUUIDs(uuids));
 };
 
-async function runEvery(what, ms) {
+const MINUTES = 60 * 1000;
+const after = (ms, what) => setTimeout(what, ms);
+async function runEvery(ms, what) {
   while (true) {
     const start = Date.now();
 
@@ -674,8 +676,6 @@ async function runEvery(what, ms) {
     await delay(waitTime);
   }
 }
-
-const MINUTES = 60 * 1000;
 
 export const uploadsStats = async () => {
   await connect();
@@ -813,7 +813,7 @@ const uploadLoop = async () => {
 const uploadsWorkerMain = async () => {
   await connect();
 
-  runEvery(async () => {
+  runEvery(30 * MINUTES, async () => {
     console.log("starting to fetch");
     console.time("fetchLoop");
     try {
@@ -833,10 +833,10 @@ const uploadsWorkerMain = async () => {
     } finally {
       console.timeEnd("fetchLoop");
     }
-  }, 30 * MINUTES);
+  });
 
-  setTimeout(() => {
-    runEvery(async () => {
+  after(5 * MINUTES, () => {
+    runEvery(30 * MINUTES, async () => {
       console.log("starting upload");
       console.time("uploadLoop");
 
@@ -854,8 +854,8 @@ const uploadsWorkerMain = async () => {
       } finally {
         console.timeEnd("uploadLoop");
       }
-    }, 15 * MINUTES);
-  }, 5 * MINUTES);
+    });
+  });
 };
 
 export default uploadsWorkerMain;
