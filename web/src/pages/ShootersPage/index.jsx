@@ -1,16 +1,20 @@
-import { v4 as randomUUID } from "uuid";
-import { useCallback, useEffect, useState } from "react";
-import { DivisionNavigation } from "../../components";
-import { useNavigate, useParams } from "react-router-dom";
+import cx from "classnames";
 import { Button } from "primereact/button";
-import ShootersTable from "./components/ShootersTable";
-import ShooterInfoTable from "./components/ShooterInfoTable";
-import { postApi, useApi } from "../../utils/client";
-import { nameForDivision } from "../../../../api/src/dataUtil/divisions";
-import ShooterRunsTable from "./components/ShooterRunsTable";
 import { Divider } from "primereact/divider";
+import { useCallback, useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { useDebouncedCallback } from "use-debounce";
+import { v4 as randomUUID } from "uuid";
+
+import { nameForDivision } from "../../../../api/src/dataUtil/divisions";
+import { DivisionNavigation } from "../../components";
 import { renderPercent } from "../../components/Table";
+import { postApi, useApi } from "../../utils/client";
+import { useIsSCSA } from "../../utils/useIsSCSA";
+
+import ShooterInfoTable from "./components/ShooterInfoTable";
+import ShooterRunsTable from "./components/ShooterRunsTable";
+import ShootersTable from "./components/ShootersTable";
 
 // TODO: shooters table for single classifier? # attempts, low HF, high HF, same for percent, same for curPercent
 // TODO: all classifiers total number of reshoots (non-uniqueness)
@@ -19,22 +23,22 @@ const ShootersPage = () => {
   const navigate = useNavigate();
   const { division, memberNumber } = useParams();
   const onDivisionSelect = useCallback(
-    (division) => navigate(`/shooters/${division}/${memberNumber || ""}`),
-    [navigate, division, memberNumber]
+    division => navigate(`/shooters/${division}/${memberNumber || ""}`),
+    [navigate, division, memberNumber],
   );
   const onBackToShooters = useCallback(
     () => navigate(`/shooters/${division}`),
-    [navigate, division]
+    [navigate, division],
   );
 
   return (
     <div>
-      <DivisionNavigation onSelect={onDivisionSelect} />
+      <DivisionNavigation onSelect={onDivisionSelect} disableSCSA />
       <div style={{ maxWidth: 1280, margin: "auto" }}>
         {division && !memberNumber && (
           <ShootersTable
             division={division}
-            onShooterSelection={(memberNumber) => navigate("./" + memberNumber)}
+            onShooterSelection={memberNumber => navigate(`./${memberNumber}`)}
           />
         )}
         {memberNumber && (
@@ -65,9 +69,9 @@ const useShooterTableData = ({ division, memberNumber }) => {
 
   const downloadUrl = `/api/shooters/download/${division}/${memberNumber}`;
 
-  const refetchWhatIfs = async (whatIfs) => {
+  const refetchWhatIfs = async whatIfs => {
     const canRefetch =
-      whatIfs.length > 0 && whatIfs.every((c) => !c.whatIf || (c.classifier && c.hf));
+      whatIfs.length > 0 && whatIfs.every(c => !c.whatIf || (c.classifier && c.hf));
     if (canRefetch) {
       const result = await postApi("/upload/whatif", {
         scores: whatIfs,
@@ -93,13 +97,13 @@ const useShooterTableData = ({ division, memberNumber }) => {
 
   const addWhatIf = useCallback(() => {
     setWhatIf(
-      (prevWhatIf) =>
+      prevWhatIf =>
         prevWhatIf ?? {
           recPercent: info?.reclassificationsRecPercentCurrent || -1,
           curPercent: info?.reclassificationsCurPercentCurrent || -1,
-        }
+        },
     );
-    setClassifiers((existing) => {
+    setClassifiers(existing => {
       const result = [
         { _id: randomUUID(), whatIf: true, sd: new Date().toISOString() },
         ...existing,
@@ -112,7 +116,7 @@ const useShooterTableData = ({ division, memberNumber }) => {
     (id, changes = {}, noDebounce = false) => {
       let isDelete = false;
       const whatIfClassifiers = classifiers
-        .map((c) => {
+        .map(c => {
           if (c._id === id) {
             for (const key of Object.keys(changes)) {
               const value = changes[key];
@@ -136,7 +140,7 @@ const useShooterTableData = ({ division, memberNumber }) => {
         debouncedRefetchWhatIfs(whatIfClassifiers);
       }
     },
-    [classifiers]
+    [classifiers],
   );
 
   return {
@@ -154,6 +158,7 @@ const useShooterTableData = ({ division, memberNumber }) => {
 
 export const ShooterRunsAndInfo = ({ division, memberNumber, onBackToShooters }) => {
   const navigate = useNavigate();
+  const isSCSA = useIsSCSA();
   const { info, downloadUrl, addWhatIf, resetWhatIfs, ...tableData } =
     useShooterTableData({
       division,
@@ -165,28 +170,33 @@ export const ShooterRunsAndInfo = ({ division, memberNumber, onBackToShooters })
   return (
     <>
       <div className="flex justify-content-between flex-wrap">
-        <Button
-          className="text-sm md:text-lg lg:text-xl font-bold px-0 md:px-2"
-          icon="pi pi-chevron-left text-sm md:text-lg lg:text-xl "
-          rounded
-          text
-          aria-label="Back"
-          onClick={onBackToShooters}
-        >
-          Shooters List
-        </Button>
-        <h4 className="m-auto md:hidden">
-          {memberNumber} - {name} - {nameForDivision(division)}
+        {!isSCSA && (
+          <Button
+            className="text-sm md:text-lg lg:text-xl font-bold px-0 md:px-2"
+            icon="pi pi-chevron-left text-sm md:text-lg lg:text-xl "
+            rounded
+            text
+            aria-label="Back"
+            onClick={onBackToShooters}
+          >
+            Shooters List
+          </Button>
+        )}
+        <h4 className={cx("m-auto", { "md:hidden": !isSCSA })}>
+          {[memberNumber, name, nameForDivision(division)].filter(Boolean).join(" - ")}
         </h4>
       </div>
-      <ShooterInfoTable
-        info={info}
-        division={division}
-        memberNumber={memberNumber}
-        loading={loading}
-      />
-
-      <Divider />
+      {!isSCSA && (
+        <>
+          <ShooterInfoTable
+            info={info}
+            division={division}
+            memberNumber={memberNumber}
+            loading={loading}
+          />
+          <Divider />
+        </>
+      )}
       <div className="flex justify-content-between">
         <h4 className="block md:text-lg lg:text-xl">Scores</h4>
         {whatIf && (
@@ -210,21 +220,23 @@ export const ShooterRunsAndInfo = ({ division, memberNumber, onBackToShooters })
               onClick={resetWhatIfs}
             />
           )}
-          <Button
-            className="px-2 my-3 text-xs md:text-sm"
-            label="What If"
-            size="small"
-            iconPos="left"
-            icon="pi pi-plus-circle text-xs md:text-base"
-            onClick={addWhatIf}
-          />
+          {!isSCSA && (
+            <Button
+              className="px-2 my-3 text-xs md:text-sm"
+              label="What If"
+              size="small"
+              iconPos="left"
+              icon="pi pi-plus-circle text-xs md:text-base"
+              onClick={addWhatIf}
+            />
+          )}
         </div>
       </div>
 
       <ShooterRunsTable
         {...tableData}
-        onClassifierSelection={(number) => navigate(`/classifiers/${division}/${number}`)}
-        onClubSelection={(club) => navigate("/clubs/" + club)}
+        onClassifierSelection={number => navigate(`/classifiers/${division}/${number}`)}
+        onClubSelection={club => navigate(`/clubs/${club}`)}
       />
     </>
   );

@@ -15,6 +15,7 @@ import {
   clubMatchColumn,
 } from "../../../components/Table";
 import { useIsHFU } from "../../../utils/useIsHFU";
+import { useIsSCSA } from "../../../utils/useIsSCSA";
 
 const HFEdit = ({ value: valueProp, updateWhatIfs, id }) => {
   const [value, setValue] = useState(valueProp || 0);
@@ -54,6 +55,7 @@ const ShooterRunsTable = ({
   whatIf,
 }) => {
   const isHFU = useIsHFU();
+  const isSCSA = useIsSCSA();
   const reportDialogRef = useRef(null);
   return (
     <>
@@ -65,7 +67,7 @@ const ShooterRunsTable = ({
         loading={loading}
         stripedRows
         /* lazy */
-        value={(classifiers ?? []).map((c) => ({
+        value={(classifiers ?? []).map(c => ({
           ...c,
           sdUnix: new Date(c.sd).getTime(),
         }))}
@@ -90,7 +92,7 @@ const ShooterRunsTable = ({
           field="sdUnix"
           header="Date"
           sortable
-          body={(run) => {
+          body={run => {
             if (!run.whatIf) {
               return new Date(run.sd).toLocaleDateString("en-us", { timeZone: "UTC" });
             }
@@ -115,11 +117,11 @@ const ShooterRunsTable = ({
           header="Classifier"
           sortable
           bodyStyle={{ width: "12rem" }}
-          body={(c) =>
+          body={c =>
             c.whatIf ? (
               <ClassifierDropdown
                 value={c.classifier}
-                onChange={(classifier) => updateWhatIfs(c._id, { classifier })}
+                onChange={classifier => updateWhatIfs(c._id, { classifier })}
               />
             ) : (
               <ClassifierCell
@@ -133,10 +135,14 @@ const ShooterRunsTable = ({
         />
         <Column
           field="hf"
-          header="HF"
+          header={isSCSA ? "Time" : "HF"}
           style={{ maxWidth: "9.3em" }}
           sortable
           body={(c, { field }) => {
+            if (isSCSA) {
+              const time = c[field];
+              return <span>{(time || 0).toFixed(2)}</span>;
+            }
             if (c.whatIf) {
               return <HFEdit id={c._id} value={c.hf} updateWhatIfs={updateWhatIfs} />;
             }
@@ -165,7 +171,7 @@ const ShooterRunsTable = ({
         />
         <Column
           hidden={isHFU}
-          body={(c) => {
+          body={c => {
             if (c.percent > 0) {
               return renderPercent(c, { field: "percent" });
             }
@@ -191,7 +197,7 @@ const ShooterRunsTable = ({
         <Column {...clubMatchColumn} />
         <Column hidden={isHFU} field="source" header="Source" sortable />
         <Column
-          body={(c) =>
+          body={c =>
             !c.whatIf && !whatIf ? (
               <ReportDialog.Button
                 onClick={() => reportDialogRef.current.startReport(c)}

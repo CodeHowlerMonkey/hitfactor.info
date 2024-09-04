@@ -9,7 +9,7 @@ const Distribution = () => {
 
   return (
     <>
-      <DivisionNavigation onSelect={setDivision} />
+      <DivisionNavigation onSelect={setDivision} hideSCSA />
       {division && <ShootersDistributionChart division={division} />}
     </>
   );
