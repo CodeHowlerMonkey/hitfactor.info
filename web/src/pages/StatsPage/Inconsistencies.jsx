@@ -1,8 +1,9 @@
+import { SelectButton } from "primereact/selectbutton";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+
 import { DivisionNavigation } from "../../components";
 import ShootersTable from "../ShootersPage/components/ShootersTable";
-import { useEffect, useState } from "react";
-import { SelectButton } from "primereact/selectbutton";
 
 const classFilterItems = (mode) =>
   [
@@ -75,7 +76,7 @@ const Inconsistencies = () => {
 
   useEffect(() => setClassFilter(null), [mode]);
 
-  const inconsistencies = versus + "-" + mode;
+  const inconsistencies = `${versus}-${mode}`;
 
   return (
     <div>

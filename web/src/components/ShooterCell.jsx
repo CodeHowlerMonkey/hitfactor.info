@@ -1,4 +1,5 @@
 import { Tag } from "primereact/tag";
+
 import { bgColorForClass, fgColorForClass } from "../utils/color";
 
 const ClassTag = ({ value, alpha, tooltip, style }) =>
@@ -43,14 +44,14 @@ export const ShooterCell = ({ data, onClick, sport }) => (
         <ClassTag
           value={data?.recClass ?? "?"}
           tooltip={`Recommended: ${data?.reclassificationsRecPercentCurrent?.toFixed(
-            2
+            2,
           )}%`}
         />
         <ClassTag
           value={data?.curHHFClass ?? "?"}
           alpha={0.65}
           tooltip={`Current HHF: ${data?.reclassificationsCurPercentCurrent?.toFixed(
-            2
+            2,
           )}%`}
         />
         <ClassTag
@@ -65,7 +66,7 @@ export const ShooterCell = ({ data, onClick, sport }) => (
         <ClassTag
           value={data?.recClass ?? "?"}
           tooltip={`Recommended: ${data?.reclassificationsRecPercentCurrent?.toFixed(
-            2
+            2,
           )}%`}
           style={{
             fontSize: "1em",

@@ -4,9 +4,7 @@ export * from "./RunsTable";
 export * from "./UnderConstruction";
 
 export const Row = ({ children }) => (
-  <div
-    style={{ display: "flex", flexDirection: "row", justifyContent: "center" }}
-  >
+  <div style={{ display: "flex", flexDirection: "row", justifyContent: "center" }}>
     {children}
   </div>
 );

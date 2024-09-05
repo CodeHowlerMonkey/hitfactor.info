@@ -1,5 +1,5 @@
 import { Dropdown } from "primereact/dropdown";
-import { useState } from "react";
+
 import classifiers from "../../../data/classifiers/classifiers.json";
 import { classifierCodeSort } from "../../../shared/utils/sort";
 

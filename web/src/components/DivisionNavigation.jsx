@@ -1,15 +1,16 @@
+import { Menu } from "primereact/menu";
 import { TabView, TabPanel } from "primereact/tabview";
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
-import { Menu } from "primereact/menu";
+
 import {
   divisionChangeMap,
   hfuDivisions,
   uspsaDivisions,
   sportName,
 } from "../../../shared/constants/divisions";
-import usePreviousEffect from "../utils/usePreviousEffect";
 import features from "../../../shared/features";
+import usePreviousEffect from "../utils/usePreviousEffect";
 
 const SportSelector = ({ sportCode, setSportCode, uspsaOnly }) => {
   const menu = useRef(null);
@@ -74,7 +75,7 @@ const divisionForSportAndIndex = (sport, index) => {
 const sportAndDivisionIndexForDivision = (division) => {
   // hfu is only additional sport without _ in the division name
   const hfuIndex = hfuDivisions.findIndex(
-    (c) => c.short.toLowerCase() === (division || "invalid")
+    (c) => c.short.toLowerCase() === (division || "invalid"),
   );
   if (hfuIndex >= 0) {
     // plusOne the dataIndex, because TabView counts SportSelector as index 0
@@ -85,7 +86,7 @@ const sportAndDivisionIndexForDivision = (division) => {
 
   // uspsa is default
   const uspsaIndex = uspsaDivisions.findIndex(
-    (c) => c?.short_name?.toLowerCase() === (division || "invalid")
+    (c) => c?.short_name?.toLowerCase() === (division || "invalid"),
   );
   if (uspsaIndex >= 0) {
     // plusOne the dataIndex, because TabView counts SportSelector as index 0
@@ -130,26 +131,26 @@ export const DivisionNavigation = ({ onSelect, uspsaOnly }) => {
       setActiveIndex(newIndex >= 0 ? newIndex : 1);
       onSelect(newDivision, newSport);
     },
-    [sportCode]
+    [sportCode],
   );
 
   // TabView uses index off children, and even false as a child takes index
   const tabViewItems = [
     ...(sportCode !== "hfu"
       ? []
-      : hfuDivisions.map((division) => (
+      : hfuDivisions.map((hfuDiv) => (
           <TabPanel
-            key={division.short}
-            header={division.long}
+            key={hfuDiv.short}
+            header={hfuDiv.long}
             className="p-0 text-sm md:text-base"
           />
         ))),
     ...(sportCode !== "uspsa"
       ? []
-      : uspsaDivisions.map((division) => (
+      : uspsaDivisions.map((uspsaDiv) => (
           <TabPanel
-            key={division.id}
-            header={division.long_name}
+            key={uspsaDiv.id}
+            header={uspsaDiv.long_name}
             className="p-0 text-sm md:text-base"
           />
         ))),

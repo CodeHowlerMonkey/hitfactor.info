@@ -1,13 +1,15 @@
+import { Checkbox } from "primereact/checkbox";
+import { SelectButton } from "primereact/selectbutton";
+import { TabView, TabPanel } from "primereact/tabview";
 import { useState } from "react";
 import { PieChart } from "react-minimal-pie-chart";
+import MultiProgress from "react-multi-progress";
+
 import { Row, Column } from "../../components";
 import { useApi } from "../../utils/client";
-import { Checkbox } from "primereact/checkbox";
-import { TabView, TabPanel } from "primereact/tabview";
-import MultiProgress from "react-multi-progress";
-import { SelectButton } from "primereact/selectbutton";
-import Inconsistencies from "./Inconsistencies";
+
 import Distribution from "./Distribution";
+import Inconsistencies from "./Inconsistencies";
 
 export const ClassificationsChart = ({
   division,
@@ -151,7 +153,7 @@ export const ClassificationsChart = ({
           fontWeight: "bold",
         }}
         lineWidth={60}
-        label={({ dataEntry: { title, percentage, value, letter } }) =>
+        label={({ dataEntry: { percentage, value, letter } }) =>
           !value ? "" : `${letter} ${value} (${percentage.toFixed(2)}%)`
         }
         labelPosition={72}
@@ -225,7 +227,7 @@ const formatDate = (d) => {
 };
 
 const DivisionsChart = ({ year }) => {
-  const { json: apiData, loading } = useApi(`/stats/divisions?year=${year}`);
+  const { json: apiData } = useApi(`/stats/divisions?year=${year}`);
   if (!apiData) {
     return null;
   }
@@ -284,7 +286,7 @@ export const StatsPage = () => {
   const modeSwitchProps = { modes, mode, setMode };
   const modeBucket = modeBucketForMode(mode);
   const [includeU, setChecked] = useState(false);
-  const { json: apiData, loading } = useApi("/classifications");
+  const { json: apiData } = useApi("/classifications");
   const [alignBy, setAlignBy] = useState(-1);
   const items = [
     { name: "D", value: -1 },
