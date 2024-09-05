@@ -26,8 +26,14 @@ export const useApiQuery = (endpoint: string, options: UseQueryOptions) => {
     queryKey: queryKeyForPathAndQueryString(url),
     queryFn: async () => {
       const response = await window.fetch(url);
+      if (!response.ok) {
+        throw new Error("bad response");
+      }
       return response.json();
     },
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(500 * 2 ** attemptIndex, 10_000),
+    refetchOnWindowFocus: false,
   });
 
   return { json: data, loading: isPending };
