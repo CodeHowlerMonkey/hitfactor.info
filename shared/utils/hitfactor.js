@@ -130,7 +130,7 @@ export const minorHF = (score) => {
       .reduce((acc, cur) => acc + cur, 0);
 
     // TODO: (Issue #58) inconsistent penalties field in PS.
-    // Could be mikes, could be procedurals. Fuck it.
+    // Could be mikes, could be procedurals. Ignore.
     // const penaltiesPoints = Number(penalties) || 0;
 
     const majorHF = Number(

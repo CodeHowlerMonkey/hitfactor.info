@@ -72,8 +72,6 @@ export const multisortObj = (fields, orders) =>
     (fields || []).map((f, i) => [f, Number(orders?.[i] || 0) > 0 ? 1 : -1])
   );
 
-// TODO: move this somewhere more useful, maybe refactor for
-// better more generalized sorting shit can be moved to sort utils too
 export const multisort = (data = [], fields, orders) =>
   !fields?.length
     ? data

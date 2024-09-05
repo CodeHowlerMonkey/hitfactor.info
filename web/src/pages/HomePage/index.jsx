@@ -515,9 +515,6 @@ const HomePage = () => {
           <div className="text-900 font-bold text-5xl mb-3">
             Join Howler Monkey Community
           </div>
-          {/* <div className="text-700 text-2xl mb-1">
-            We talk <b>Mad Shit</b> about BOC, but are <b>Super Friendly</b> to others.
-          </div> */}
           <div className="text-700 text-xl mb-5">
             Use #hitfactor-info Channel for Any Questions or Feedback.
           </div>

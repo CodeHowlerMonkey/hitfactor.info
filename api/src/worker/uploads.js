@@ -52,7 +52,8 @@ export const _fetchPSS3ObjectJSON = async (objectKey, noGZip = false) => {
     );
 
     // try gzip first, if that crashes - refetch and don't decompress
-    // (cause fuck node closing streams and b64 encoding and shit, I'm not dealing with this crap)
+    // TODO: rewrite to re-use once fetched data for both (gz and not) pathways
+    // (refetching for now, because node closes streams and makes re-use challenging)
     if (!noGZip) {
       try {
         const gz = createGunzip();
@@ -209,11 +210,9 @@ export const afterUpload = async (classifiers, shooters, curTry = 1, maxTries = 
   }
 };
 
-const normalizeDivision = (shitShowDivisionNameCanBeAnythingWTFPS) => {
-  const lowercaseNoSpace = shitShowDivisionNameCanBeAnythingWTFPS
-    .toLowerCase()
-    .replace(/\s/g, "");
-  const anythingMap = {
+const normalizeDivision = (divisionNameRaw) => {
+  const lowercaseNoSpace = divisionNameRaw.toLowerCase().replace(/\s/g, "");
+  const normalizationMap = {
     open: "opn",
 
     limited: "ltd",
@@ -241,9 +240,11 @@ const normalizeDivision = (shitShowDivisionNameCanBeAnythingWTFPS) => {
 
     pistolcalibercarbine: "pcc",
     carbine: "pcc",
+
+    // TODO: add other sports here as well
   };
 
-  return anythingMap[lowercaseNoSpace] || lowercaseNoSpace;
+  return normalizationMap[lowercaseNoSpace] || lowercaseNoSpace;
 };
 
 const scsaMatchInfo = async (matchInfo) => {

@@ -418,7 +418,7 @@ const decidedHHFFunctions = {
 //
 // The truth for CO is somewhere between 1%/GM and 5%/M for enough data and normal risk stages.
 // 15% and A is where graph usually goes linear and it skews things, so it has to be used only
-// when there is serious lack of data, or it looks super fucky.
+// when there is serious lack of data, or if the distribution looks funny.
 const recommendedHHFFunctionFor = ({ division, number }) => {
   const decided = decidedHHFFunctions[division]?.[number];
   if (decided) {
