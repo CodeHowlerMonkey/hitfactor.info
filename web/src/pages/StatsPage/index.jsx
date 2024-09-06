@@ -8,6 +8,7 @@ import MultiProgress from "react-multi-progress";
 import { Row, Column } from "../../components";
 import { useApi } from "../../utils/client";
 
+import Activity from "./Activity";
 import Distribution from "./Distribution";
 import Inconsistencies from "./Inconsistencies";
 
@@ -524,6 +525,9 @@ export const StatsPage = () => {
         </TabPanel>
         <TabPanel header="Divisions" className="p-0 text-sm md:text-base">
           <Divisions />
+        </TabPanel>
+        <TabPanel header="Activity" className="p-0 text-sm md:text-base">
+          <Activity />
         </TabPanel>
       </TabView>
     </div>
