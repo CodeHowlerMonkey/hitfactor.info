@@ -6,7 +6,8 @@ import {
   divisionsForScoresAdapter,
   hfuDivisionCompatabilityMap,
   hfuDivisionsShortNamesThatNeedMinorHF,
-  mapDivisions, uspsaDivShortNames
+  mapDivisions,
+  uspsaDivShortNames,
 } from "../dataUtil/divisions.js";
 import {
   calculateUSPSAClassification,
@@ -139,12 +140,33 @@ export const allDivisionsScoresByMemberNumber = async (memberNumbers) => {
 };
 
 const _divisionExplosion = () => [
-  { $set: { hfuDivisionCompatabilityMap } },
+  {
+    $set: {
+      hfuDivisionCompatabilityMap: { $objectToArray: hfuDivisionCompatabilityMap },
+    },
+  },
   {
     $set: {
       division: [
         "$division",
-        { $getField: { input: "$hfuDivisionCompatabilityMap", field: "$division" } },
+        {
+          $getField: {
+            input: {
+              $arrayElemAt: [
+                {
+                  $filter: {
+                    input: "$hfuDivisionCompatabilityMap",
+                    cond: {
+                      $eq: ["$$this.k", "$division"],
+                    },
+                  },
+                },
+                0,
+              ],
+            },
+            field: "v",
+          },
+        },
       ],
     },
   },
@@ -493,6 +515,9 @@ export const reclassifyShooters = async (shooters) => {
         return memberNumber && uspsaDivShortNames.find((x) => x === division);
       })
       .map(({ memberNumber, division, name }) => {
+        if (!memberNumber || division.startsWith("scsa")) {
+          return [];
+        }
         const recMemberScores = recScoresByMemberNumber[memberNumber];
         const curMemberScores = curScoresByMemberNumber[memberNumber];
         const recalcByCurPercent = calculateUSPSAClassification(
