@@ -110,16 +110,6 @@ export const hfuDivisionCompatabilityMap = {
   pcsl_pcc: "car",
   pcsl_acp: "opt",
 
-  // from SCSA
-  scsa_opn: "comp",
-  scsa_co: "opt",
-  scsa_prod: "irn",
-  scsa_isr: "irn",
-  scsa_ltd: "irn",
-  scsa_osr: "opt",
-  scsa_pcco: "car",
-  scsa_pcci: "car",
-
   // TODO: add more compatability here and/or in normalizeDivisions for
   // db.scores.distinct('division')
 };

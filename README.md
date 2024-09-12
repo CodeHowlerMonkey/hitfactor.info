@@ -47,6 +47,18 @@ Connect to the mongo instance via:
 mongosh "mongodb://localhost:27017"
 ```
 
+#### Run the Uploads Worker locally
+
+The Uploads Worker fetches matches and populates scores.
+
+To run it locally, run the following:
+
+```
+ALGOLIA_URL='from_env' PS_S3_ACCESS_KEY_ID=from_env PS_S3_SECRET_ACCESS_KEY=from_env MONGO_URL=mongodb://localhost:27017 NODE_OPTIONS='--max-old-space-size=512' node scripts/uploadsWorker.js
+```
+
+You may need to tweak scheduling of the runner to run at more frequent intervals for testing purposes.
+
 ###### In Production
 
 Currently deployed on Koyeb using Dockerfiles. To run api/web in prod mode, use:

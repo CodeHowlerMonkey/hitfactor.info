@@ -225,6 +225,7 @@ const classifiersRoutes = async (fastify, opts) => {
         run.classifier = number;
         run.index = index;
         if (division.startsWith('scsa')) {
+          // This is the "adapter" hack that makes everything work in the frontend for SCSA.
           run.hf = Number(run.stageTimeSecs);
         }
         return run;
