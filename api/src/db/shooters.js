@@ -488,6 +488,8 @@ export const reclassifyShooters = async (shooters) => {
 
     const updates = shooters
       .filter(({ memberNumber, division, name }) => {
+        // TODO: Implement Reclassify Shooters for SCSA
+        // https://github.com/CodeHowlerMonkey/hitfactor.info/issues/69
         return memberNumber && uspsaDivShortNames.find((x) => x === division);
       })
       .map(({ memberNumber, division, name }) => {
