@@ -15,6 +15,7 @@ import {
   clubMatchColumn,
 } from "../../../components/Table";
 import { useIsHFU } from "../../../utils/useIsHFU";
+import { useIsSCSA } from "../../../utils/useIsSCSA";
 
 const HFEdit = ({ value: valueProp, updateWhatIfs, id }) => {
   const [value, setValue] = useState(valueProp || 0);
@@ -54,6 +55,7 @@ const ShooterRunsTable = ({
   whatIf,
 }) => {
   const isHFU = useIsHFU();
+  const isSCSA = useIsSCSA();
   const reportDialogRef = useRef(null);
   return (
     <>
@@ -133,10 +135,14 @@ const ShooterRunsTable = ({
         />
         <Column
           field="hf"
-          header="HF"
+          header={isSCSA ? "Time" : "HF"}
           style={{ maxWidth: "9.3em" }}
           sortable
           body={(c, { field }) => {
+            if (isSCSA) {
+              const time = c[field];
+              return <span>{time.toFixed(2)}</span>;
+            }
             if (c.whatIf) {
               return <HFEdit id={c._id} value={c.hf} updateWhatIfs={updateWhatIfs} />;
             }
