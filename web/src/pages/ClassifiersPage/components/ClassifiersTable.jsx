@@ -39,8 +39,7 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
   const downloadUrl = "/api/classifiers/download/" + division;
   //division = null;
   const { json: dataRaw, loading } = useApi("/classifiers/" + (division ?? ""));
-  const tableArray = (dataRaw === undefined || dataRaw['error'] === undefined) ? dataRaw : [];
-  const data = (tableArray || [])
+  const data = (dataRaw ?? [])
     .map((d) => ({
       ...d,
       updated: new Date(d.updated).toLocaleDateString("en-us", { timeZone: "UTC" }),

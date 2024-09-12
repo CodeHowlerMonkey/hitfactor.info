@@ -207,12 +207,14 @@ const RunsTable = ({ classifier, division, clubs, onShooterSelection }) => {
         />
         <Column field="hf" header={sport === "scsa" ? "Time" : "HF"} sortable />
         <Column
+          hidden={sport !== "hfu"}
           body={renderPercent}
           field="recPercent"
           header="Percent"
           sortable
         />
         <Column
+          hidden={sport !== "uspsa" && sport !== "scsa"}
           body={renderPercent}
           field="recPercent"
           header="Rec. %"
@@ -221,6 +223,7 @@ const RunsTable = ({ classifier, division, clubs, onShooterSelection }) => {
           headerTooltipOptions={headerTooltipOptions}
         />
         <Column
+          hidden={sport !== "uspsa" && sport !== "scsa"}
           body={renderPercent}
           field="curPercent"
           header="Cur. %"
