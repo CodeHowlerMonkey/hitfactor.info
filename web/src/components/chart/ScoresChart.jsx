@@ -1,6 +1,13 @@
-import { ProgressSpinner } from "primereact/progressspinner";
 import { Button } from "primereact/button";
 import { Dialog } from "primereact/dialog";
+import { ProgressSpinner } from "primereact/progressspinner";
+import { SelectButton } from "primereact/selectbutton";
+import { useState } from "react";
+
+import { sportForDivision } from "../../../../shared/constants/divisions";
+import { classForPercent } from "../../../../shared/utils/classification";
+import { useApi } from "../../utils/client";
+import { bgColorForClass } from "../../utils/color";
 
 import {
   point,
@@ -12,12 +19,6 @@ import {
   r15annotationColor,
   r1annotationColor,
 } from "./common";
-import { useApi } from "../../utils/client";
-import { useState } from "react";
-import { classForPercent } from "../../../../shared/utils/classification";
-import { bgColorForClass } from "../../utils/color";
-import { SelectButton } from "primereact/selectbutton";
-import { sportForDivision } from "../../../../shared/constants/divisions";
 
 const colorForPrefix = (prefix, alpha) =>
   ({
@@ -26,7 +27,7 @@ const colorForPrefix = (prefix, alpha) =>
     r1: r1annotationColor,
     r5: r5annotationColor,
     r15: r15annotationColor,
-  }[prefix](alpha));
+  })[prefix](alpha);
 const extraLabelOffsets = {
   "": 0,
   r: 5, // show close like r1
@@ -41,75 +42,75 @@ const xLinesForHHF = (prefix, hhf) =>
     ? {}
     : {
         ...xLine(
-          prefix + "HHF",
+          `${prefix}HHF`,
           hhf,
           colorForPrefix(prefix, 1),
-          extraLabelOffsets[prefix]
+          extraLabelOffsets[prefix],
         ),
         ...xLine(
-          prefix + "GM",
+          `${prefix}GM`,
           0.95 * hhf,
           colorForPrefix(prefix, 0.7),
-          extraLabelOffsets[prefix]
+          extraLabelOffsets[prefix],
         ),
         ...xLine(
-          prefix + "M",
+          `${prefix}M`,
           0.85 * hhf,
           colorForPrefix(prefix, 0.5),
-          extraLabelOffsets[prefix]
+          extraLabelOffsets[prefix],
         ),
         ...xLine(
-          prefix + "A",
+          `${prefix}A`,
           0.75 * hhf,
           colorForPrefix(prefix, 0.4),
-          extraLabelOffsets[prefix]
+          extraLabelOffsets[prefix],
         ),
         ...xLine(
-          prefix + "B",
+          `${prefix}B`,
           0.6 * hhf,
           colorForPrefix(prefix, 0.3),
-          extraLabelOffsets[prefix]
+          extraLabelOffsets[prefix],
         ),
         ...xLine(
-          prefix + "C",
+          `${prefix}C`,
           0.4 * hhf,
           colorForPrefix(prefix, 0.2),
-          extraLabelOffsets[prefix]
+          extraLabelOffsets[prefix],
         ),
         ...point(
-          prefix + "GM/1",
+          `${prefix}GM/1`,
           0.95 * hhf,
           1.0,
           colorForPrefix(prefix, 0.7),
-          extraLabelOffsets[prefix]
+          extraLabelOffsets[prefix],
         ),
         ...point(
-          prefix + "M/4.75",
+          `${prefix}M/4.75`,
           0.85 * hhf,
           4.75,
           colorForPrefix(prefix, 0.5),
-          extraLabelOffsets[prefix]
+          extraLabelOffsets[prefix],
         ),
         ...point(
-          prefix + "A/14.5",
+          `${prefix}A/14.5`,
           0.75 * hhf,
           14.5,
           colorForPrefix(prefix, 0.4),
-          extraLabelOffsets[prefix]
+          extraLabelOffsets[prefix],
         ),
         ...point(
-          prefix + "B/40",
+          `${prefix}B/40`,
           0.6 * hhf,
           40,
           colorForPrefix(prefix, 0.3),
-          extraLabelOffsets[prefix]
+          extraLabelOffsets[prefix],
         ),
         ...point(
-          prefix + "C/80",
+          `${prefix}C/80`,
           0.4 * hhf,
           80,
           colorForPrefix(prefix, 0.2),
-          extraLabelOffsets[prefix]
+          extraLabelOffsets[prefix],
         ),
       };
 
@@ -119,7 +120,7 @@ const modeBucketForMode = (mode) =>
     Official: "curPercent",
     "Current CHHF": "curHHFPercent",
     Recommended: "recPercent",
-  }[mode]);
+  })[mode];
 
 // TODO: different modes for class xLines (95/85/75-hhf, A-centric, 1/5/15/40/75-percentile, etc)
 // TODO: maybe split the modes into 2 dropdowns, one of xLines, one for yLines to play with
@@ -139,7 +140,7 @@ export const ScoresChart = ({
   const modes = ["Official", "Current CHHF", "Recommended"];
   const [mode, setMode] = useState(modes[2]);
   const { json: data, loading } = useApi(
-    `/classifiers/${division}/${classifier}/chart?full=${full ? 1 : 0}`
+    `/classifiers/${division}/${classifier}/chart?full=${full ? 1 : 0}`,
   );
 
   if (loading) {
@@ -211,9 +212,14 @@ export const ScoresChart = ({
             pointBorderColor: "white",
             pointBorderWidth: 0,
             backgroundColor: "#ae9ef1",
-            pointBackgroundColor: data?.map(
-              (c) => bgColorForClass[classForPercent(c[modeBucketForMode(mode)])]
-            ),
+            pointBackgroundColor: data?.map((c) => {
+              if (sport === "scsa") {
+                return bgColorForClass[classForPercent(c.scoreRecPercent || 0)];
+              }
+
+              const shooterClass = classForPercent(c[modeBucketForMode(mode)]);
+              return bgColorForClass[shooterClass];
+            }),
           },
         ],
       }}
