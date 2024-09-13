@@ -8,7 +8,7 @@ import {
   hfuDivisions,
   uspsaDivisions,
   sportName,
-  scsaDivisions
+  scsaDivisions,
 } from "../../../shared/constants/divisions";
 import features from "../../../shared/features";
 import usePreviousEffect from "../utils/usePreviousEffect";
@@ -58,7 +58,7 @@ const SportSelector = ({ sportCode, setSportCode, uspsaOnly, disableSCSA, hideSC
         role="tab"
         className="p-tabview-nav-link mr-4"
         tabIndex="-1"
-        onClick={(e) => {
+        onClick={e => {
           e.preventDefault();
 
           menu.current.toggle(e);
@@ -86,10 +86,10 @@ const divisionForSportAndIndex = (sport, index) => {
   return uspsaDivisions[index - 1]?.short_name?.toLowerCase?.();
 };
 
-const sportAndDivisionIndexForDivision = (division) => {
+const sportAndDivisionIndexForDivision = division => {
   // hfu is only additional sport without _ in the division name
   const hfuIndex = hfuDivisions.findIndex(
-    (c) => c.short.toLowerCase() === (division || "invalid"),
+    c => c.short.toLowerCase() === (division || "invalid"),
   );
   if (hfuIndex >= 0) {
     // plusOne the dataIndex, because TabView counts SportSelector as index 0
@@ -108,7 +108,7 @@ const sportAndDivisionIndexForDivision = (division) => {
 
   // uspsa is default
   const uspsaIndex = uspsaDivisions.findIndex(
-    (c) => c?.short_name?.toLowerCase() === (division || "invalid"),
+    c => c?.short_name?.toLowerCase() === (division || "invalid"),
   );
   if (uspsaIndex >= 0) {
     // plusOne the dataIndex, because TabView counts SportSelector as index 0
@@ -118,7 +118,7 @@ const sportAndDivisionIndexForDivision = (division) => {
   return ["uspsa", -1];
 };
 
-export const defaultDivisionForSport = (sport) => {
+export const defaultDivisionForSport = sport => {
   switch (sport) {
     case "scsa":
       return "scsa_opn";
@@ -179,7 +179,7 @@ export const DivisionNavigation = ({ onSelect, uspsaOnly, disableSCSA, hideSCSA 
   const tabViewItems = [
     ...(sportCode !== "hfu"
       ? []
-      : hfuDivisions.map((hfuDiv) => (
+      : hfuDivisions.map(hfuDiv => (
           <TabPanel
             key={hfuDiv.short}
             header={hfuDiv.long}
@@ -188,7 +188,7 @@ export const DivisionNavigation = ({ onSelect, uspsaOnly, disableSCSA, hideSCSA 
         ))),
     ...(sportCode !== "uspsa"
       ? []
-      : uspsaDivisions.map((uspsaDiv) => (
+      : uspsaDivisions.map(uspsaDiv => (
           <TabPanel
             key={uspsaDiv.id}
             header={uspsaDiv.long_name}
@@ -197,13 +197,13 @@ export const DivisionNavigation = ({ onSelect, uspsaOnly, disableSCSA, hideSCSA 
         ))),
     ...(sportCode !== "scsa"
       ? []
-      : scsaDivisions.map((division) => (
+      : scsaDivisions.map(curDiv => (
           <TabPanel
             key={curDiv.long}
             header={curDiv.long}
             className="p-0 text-sm md:text-base"
           />
-      ))),
+        ))),
   ];
 
   return (
