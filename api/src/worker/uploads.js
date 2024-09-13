@@ -817,7 +817,9 @@ export const uploadLoop = async ({
 
     // console.log(JSON.stringify(uploadResults, null, 2));
     console.log(
-      `${numberOfUpdates} classifiers; ${uploadResults?.shooters?.length || 0} shooters`
+      `${uploadResults?.classifiers?.length || 0} classifiers; ${
+        uploadResults?.shooters?.length || 0
+      } shooters`
     );
 
     await Matches.bulkWrite(
