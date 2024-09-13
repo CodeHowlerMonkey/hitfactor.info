@@ -332,7 +332,7 @@ const scsaMatchInfo = async (matchInfo) => {
               const penCountsForString = pens[idx];
               // Multiply the count of each penalties by their value, and sum the result.
               const totalStringPenalties = (penCountsForString || []).reduce(
-                (p, c, idx) => p + c * match_penalties[idx].pen_val,
+                (p, c, idx) => p + c * (match_penalties[idx] ? match_penalties[idx].pen_val : 0),
                 0
               );
               const adjustedStringTotal = s + totalStringPenalties;
