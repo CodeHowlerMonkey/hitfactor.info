@@ -75,7 +75,7 @@ const migrate = async () => {
   console.log("matchesResult = ");
   console.log(JSON.stringify(matchesUpdate, null, 2));
 
-  await uploadLoop();
+  await uploadLoop({ skipAfterUploadHydration: true, batchSize: 20 });
   await hydrateScsaClassifiers();
 };
 

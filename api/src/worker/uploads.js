@@ -519,24 +519,20 @@ const uspsaOrHitFactorMatchInfo = async (matchInfo) => {
 const EmptyMatchResultsFactory = () => ({ scores: [], matches: [], results: [] });
 
 const uploadResultsForMatches = async (matches) => {
-  const matchResults = [];
-  for (const match of matches) {
-    switch (match.templateName) {
-      case "Steel Challenge": {
-        const scsaResults = await scsaMatchInfo(match);
-        matchResults.push(scsaResults);
-        break;
-      }
+  const matchResults = await Promise.all(
+    matches.map((match) => {
+      switch (match.templateName) {
+        case "Steel Challenge":
+          return scsaMatchInfo(match);
 
-      case "USPSA":
-      case "Hit Factor":
-      default: {
-        const uspsaResults = await uspsaOrHitFactorMatchInfo(match);
-        matchResults.push(uspsaResults);
-        break;
+        case "USPSA":
+        case "Hit Factor":
+        default: {
+          return uspsaOrHitFactorMatchInfo(match);
+        }
       }
-    }
-  }
+    })
+  );
 
   return matchResults.reduce((acc, cur) => {
     acc.scores = acc.scores.concat(cur.scores);
@@ -561,7 +557,10 @@ const uploadResultsForMatchUUIDs = async (uuidsRaw) => {
   return uploadResultsForMatches(matches);
 };
 
-const processUploadResults = async (uploadResults) => {
+const processUploadResults = async ({
+  uploadResults,
+  skipAfterUploadHydration = false,
+}) => {
   try {
     const { scores: scoresRaw, matches: matchesRaw } = uploadResults;
     const scores = scoresRaw.filter(Boolean);
@@ -636,7 +635,9 @@ const processUploadResults = async (uploadResults) => {
       shooterNameMap,
       true
     );
-    await afterUpload(classifiers, shooters);
+    if (!skipAfterUploadHydration) {
+      await afterUpload(classifiers, shooters);
+    }
 
     const publicShooters = features.hfu
       ? shooters
@@ -656,12 +657,18 @@ const processUploadResults = async (uploadResults) => {
   }
 };
 
-export const uploadMatches = async (matches) => {
-  return await processUploadResults(await uploadResultsForMatches(matches));
+export const uploadMatches = async ({ matches, skipAfterUploadHydration = false }) => {
+  return await processUploadResults({
+    uploadResults: await uploadResultsForMatches(matches),
+    skipAfterUploadHydration,
+  });
 };
 
+// legacy upload from frontend, not used anymore
 export const uploadMatchesFromUUIDs = async (uuids) => {
-  return await processUploadResults(await uploadResultsForMatchUUIDs(uuids));
+  return await processUploadResults({
+    uploadResults: await uploadResultsForMatchUUIDs(uuids),
+  });
 };
 
 const MINUTES = 60 * 1000;
@@ -760,10 +767,13 @@ const matchesForUploadFilter = (extraFilter = {}) => ({
   ...extraFilter,
   $expr: { $gt: ["$updated", "$uploaded"] },
 });
-const findAFewMatches = async (extraFilter) =>
-  Matches.find(matchesForUploadFilter(extraFilter)).limit(4).sort({ updated: 1 });
+const findAFewMatches = async (extraFilter, batchSize) =>
+  Matches.find(matchesForUploadFilter(extraFilter)).limit(batchSize).sort({ updated: 1 });
 
-export const uploadLoop = async () => {
+export const uploadLoop = async ({
+  skipAfterUploadHydration = false,
+  batchSize = 4,
+} = {}) => {
   // TODO: add Steel Challenge here once supported
   const onlyUSPSAorSCSA = { templateName: { $in: ["USPSA", "Steel Challenge"] } };
   const count = await Matches.countDocuments(matchesForUploadFilter(onlyUSPSAorSCSA));
@@ -773,12 +783,15 @@ export const uploadLoop = async () => {
   let fewMatches = [];
   let totalMatchesUploaded = 0;
   do {
-    fewMatches = await findAFewMatches(onlyUSPSAorSCSA);
+    fewMatches = await findAFewMatches(onlyUSPSAorSCSA, batchSize);
     totalMatchesUploaded += fewMatches.length;
     if (!fewMatches.length) {
       return numberOfUpdates;
     }
-    const uploadResults = await uploadMatches(fewMatches);
+    const uploadResults = await uploadMatches({
+      matches: fewMatches,
+      skipAfterUploadHydration,
+    });
     numberOfUpdates += uploadResults.classifiers?.length || 0;
 
     const matchesWithScoresUUIDs = uploadResults?.matches || [];
