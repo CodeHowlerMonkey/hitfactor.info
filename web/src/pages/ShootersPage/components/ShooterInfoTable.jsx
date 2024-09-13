@@ -1,7 +1,6 @@
-import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
-import ShooterChart from "../../../components/chart/ShooterChart";
-import { ShooterProgressChart } from "../../../components/chart/ShooterProgressChart";
+import { DataTable } from "primereact/datatable";
+
 import {
   divShortToLong,
   hfuDivisionsShortNames,
@@ -9,6 +8,8 @@ import {
   sportForDivision,
   uspsaDivShortNames,
 } from "../../../../../api/src/dataUtil/divisions";
+import ShooterChart from "../../../components/chart/ShooterChart";
+import { ShooterProgressChart } from "../../../components/chart/ShooterProgressChart";
 
 const tableNameForDiv = {
   opn: "Open",
@@ -35,7 +36,7 @@ const toFixedWithSuffixValueOrPlaceholder = (value, length, suffix, empty = "—
   return value.toFixed(length) + suffix;
 };
 
-const percentValueOrEmpty = (value) =>
+const percentValueOrEmpty = value =>
   toFixedWithSuffixValueOrPlaceholder(value, 2, "%", "");
 
 const cardRow = (classificationByDivision, div) => {
@@ -75,7 +76,7 @@ const cardRow = (classificationByDivision, div) => {
   };
 };
 
-const dateValue = (value) =>
+const dateValue = value =>
   !value ? "" : new Date(value).toLocaleDateString("en-us", { timeZone: "UTC" });
 
 export const ShooterInfoTable = ({ info, division, memberNumber, loading }) => {
@@ -114,6 +115,7 @@ export const ShooterInfoTable = ({ info, division, memberNumber, loading }) => {
                       k: "Joined",
                       v: dateValue(info?.data?.joined_date),
                     },
+
                     {
                       k: "Expires",
                       v: dateValue(info?.data?.expiration_date),
@@ -133,7 +135,7 @@ export const ShooterInfoTable = ({ info, division, memberNumber, loading }) => {
             value={
               loading || !info?.classificationByDivision
                 ? []
-                : divisions.map((d) => cardRow(info.classificationByDivision, d))
+                : divisions.map(d => cardRow(info.classificationByDivision, d))
             }
           >
             <Column field="division" header={isHFU ? "Division" : "Div"} />
@@ -150,7 +152,10 @@ export const ShooterInfoTable = ({ info, division, memberNumber, loading }) => {
             <h4 className="md:text-center mb-0 md:text-lg lg:text-xl">
               Classification Progress
             </h4>
-            <ShooterProgressChart division={info.division} memberNumber={info.memberNumber} />
+            <ShooterProgressChart
+              division={info.division}
+              memberNumber={info.memberNumber}
+            />
           </div>
 
           <div className="w-12 h-32rem">
