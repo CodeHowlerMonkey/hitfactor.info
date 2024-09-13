@@ -17,7 +17,7 @@ import {
 
 import { Score } from "./scores.js";
 import uniqBy from "lodash.uniqby";
-import { percentAggregationOp } from "./utils.js";
+import { getField, percentAggregationOp } from "./utils.js";
 import { psClassUpdatesByMemberNumber } from "../dataUtil/uspsa.js";
 
 const memberIdToNumberMap = loadJSON("../../data/meta/memberIdToNumber.json");
@@ -149,24 +149,7 @@ const _divisionExplosion = () => [
     $set: {
       division: [
         "$division",
-        {
-          $getField: {
-            input: {
-              $arrayElemAt: [
-                {
-                  $filter: {
-                    input: "$hfuDivisionCompatabilityMap",
-                    cond: {
-                      $eq: ["$$this.k", "$division"],
-                    },
-                  },
-                },
-                0,
-              ],
-            },
-            field: "v",
-          },
-        },
+        getField({ input: "$hfuDivisionCompatabilityMap", field: "$division" }),
       ],
     },
   },

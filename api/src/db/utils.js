@@ -52,3 +52,25 @@ export const textSearchMatch = (fields, filterString) => ({
     [f]: new RegExp(".*" + escapeRegExp(filterString) + ".*", "i"),
   })),
 });
+
+/** reimplements $getField aggregation operator that works in 7.0
+ * (we need this because mongo doens't publish 7.x releases for docker/apt)
+ */
+export const getField = ({ input, field }) => ({
+  $getField: {
+    input: {
+      $arrayElemAt: [
+        {
+          $filter: {
+            input,
+            cond: {
+              $eq: ["$$this.k", field],
+            },
+          },
+        },
+        0,
+      ],
+    },
+    field: "v",
+  },
+});
