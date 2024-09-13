@@ -5,8 +5,10 @@ import {
   Classifier,
   singleClassifierExtendedMetaDoc,
 } from "../api/src/db/classifiers.js";
+import { uploadLoop } from "../api/src/worker/uploads.js";
+import { Matches } from "../api/src/db/matches.js";
 
-const hydrateScsa = async () => {
+const hydrateScsaClassifiers = async () => {
   const scsaLongNames = scsaDivisions.map((x) => x.long);
   await rehydrateRecHHF(scsaLongNames, [
     "SC-101",
@@ -64,7 +66,17 @@ const hydrateScsa = async () => {
 
 const migrate = async () => {
   await connect();
-  await hydrateScsa();
+
+  console.log("marking all SCSA as not uploaded");
+  const matchesUpdate = await Matches.updateMany(
+    { templateName: "Steel Challenge" },
+    { $unset: { uploaded: true } }
+  );
+  console.log("matchesResult = ");
+  console.log(JSON.stringify(matchesUpdate, null, 2));
+
+  await uploadLoop();
+  await hydrateScsaClassifiers();
 };
 
 migrate();

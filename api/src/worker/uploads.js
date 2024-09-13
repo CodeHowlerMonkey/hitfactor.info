@@ -763,7 +763,7 @@ const matchesForUploadFilter = (extraFilter = {}) => ({
 const findAFewMatches = async (extraFilter) =>
   Matches.find(matchesForUploadFilter(extraFilter)).limit(4).sort({ updated: 1 });
 
-const uploadLoop = async () => {
+export const uploadLoop = async () => {
   // TODO: add Steel Challenge here once supported
   const onlyUSPSAorSCSA = { templateName: { $in: ["USPSA", "Steel Challenge"] } };
   const count = await Matches.countDocuments(matchesForUploadFilter(onlyUSPSAorSCSA));
