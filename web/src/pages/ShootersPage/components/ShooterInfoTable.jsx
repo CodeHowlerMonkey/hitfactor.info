@@ -91,7 +91,7 @@ export const ShooterInfoTable = ({ info, division, memberNumber, loading }) => {
     <div className="h-full flex flex-wrap">
       <div className="flex-grow-1 md:w-min md:max-w-min">
         <h4 className="hidden mx-3 md:block md:text-lg lg:text-xl w-max">
-          {memberNumber} - {name} - {nameForDivision(division)}
+          {[memberNumber, name, nameForDivision(division)].filter(Boolean).join(" - ")}
         </h4>
         {!isHFU && !isSCSA && (
           <DataTable
@@ -147,7 +147,7 @@ export const ShooterInfoTable = ({ info, division, memberNumber, loading }) => {
         )}
       </div>
       {!isSCSA && (
-        <div>
+        <>
           <div className="w-12 md:w-5 flex-grow-1 flex flex-column">
             <h4 className="md:text-center mb-0 md:text-lg lg:text-xl">
               Classification Progress
@@ -164,7 +164,7 @@ export const ShooterInfoTable = ({ info, division, memberNumber, loading }) => {
               <ShooterChart division={info.division} memberNumber={info.memberNumber} />
             </div>
           </div>
-        </div>
+        </>
       )}
     </div>
   );

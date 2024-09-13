@@ -141,7 +141,7 @@ const ShooterRunsTable = ({
           body={(c, { field }) => {
             if (isSCSA) {
               const time = c[field];
-              return <span>{time.toFixed(2)}</span>;
+              return <span>{(time || 0).toFixed(2)}</span>;
             }
             if (c.whatIf) {
               return <HFEdit id={c._id} value={c.hf} updateWhatIfs={updateWhatIfs} />;

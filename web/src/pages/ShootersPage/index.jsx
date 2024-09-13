@@ -29,7 +29,7 @@ const ShootersPage = () => {
 
   return (
     <div>
-      <DivisionNavigation onSelect={onDivisionSelect} />
+      <DivisionNavigation onSelect={onDivisionSelect} disableSCSA />
       <div style={{ maxWidth: 1280, margin: "auto" }}>
         {division && !memberNumber && (
           <ShootersTable
@@ -154,6 +154,7 @@ const useShooterTableData = ({ division, memberNumber }) => {
 
 export const ShooterRunsAndInfo = ({ division, memberNumber, onBackToShooters }) => {
   const navigate = useNavigate();
+  const isSCSA = useIsSCSA();
   const { info, downloadUrl, addWhatIf, resetWhatIfs, ...tableData } =
     useShooterTableData({
       division,
@@ -165,28 +166,33 @@ export const ShooterRunsAndInfo = ({ division, memberNumber, onBackToShooters })
   return (
     <>
       <div className="flex justify-content-between flex-wrap">
-        <Button
-          className="text-sm md:text-lg lg:text-xl font-bold px-0 md:px-2"
-          icon="pi pi-chevron-left text-sm md:text-lg lg:text-xl "
-          rounded
-          text
-          aria-label="Back"
-          onClick={onBackToShooters}
-        >
-          Shooters List
-        </Button>
-        <h4 className="m-auto md:hidden">
-          {memberNumber} - {name} - {nameForDivision(division)}
+        {!isSCSA && (
+          <Button
+            className="text-sm md:text-lg lg:text-xl font-bold px-0 md:px-2"
+            icon="pi pi-chevron-left text-sm md:text-lg lg:text-xl "
+            rounded
+            text
+            aria-label="Back"
+            onClick={onBackToShooters}
+          >
+            Shooters List
+          </Button>
+        )}
+        <h4 className={cx("m-auto", { "md:hidden": !isSCSA })}>
+          {[memberNumber, name, nameForDivision(division)].filter(Boolean).join(" - ")}
         </h4>
       </div>
-      <ShooterInfoTable
-        info={info}
-        division={division}
-        memberNumber={memberNumber}
-        loading={loading}
-      />
-
-      <Divider />
+      {!isSCSA && (
+        <>
+          <ShooterInfoTable
+            info={info}
+            division={division}
+            memberNumber={memberNumber}
+            loading={loading}
+          />
+          <Divider />
+        </>
+      )}
       <div className="flex justify-content-between">
         <h4 className="block md:text-lg lg:text-xl">Scores</h4>
         {whatIf && (
@@ -210,14 +216,16 @@ export const ShooterRunsAndInfo = ({ division, memberNumber, onBackToShooters })
               onClick={resetWhatIfs}
             />
           )}
-          <Button
-            className="px-2 my-3 text-xs md:text-sm"
-            label="What If"
-            size="small"
-            iconPos="left"
-            icon="pi pi-plus-circle text-xs md:text-base"
-            onClick={addWhatIf}
-          />
+          {!isSCSA && (
+            <Button
+              className="px-2 my-3 text-xs md:text-sm"
+              label="What If"
+              size="small"
+              iconPos="left"
+              icon="pi pi-plus-circle text-xs md:text-base"
+              onClick={addWhatIf}
+            />
+          )}
         </div>
       </div>
 

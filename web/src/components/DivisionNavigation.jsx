@@ -13,7 +13,7 @@ import {
 import features from "../../../shared/features";
 import usePreviousEffect from "../utils/usePreviousEffect";
 
-const SportSelector = ({ sportCode, setSportCode, uspsaOnly }) => {
+const SportSelector = ({ sportCode, setSportCode, uspsaOnly, disableSCSA, hideSCSA }) => {
   const menu = useRef(null);
   const items = [
     {
@@ -23,13 +23,18 @@ const SportSelector = ({ sportCode, setSportCode, uspsaOnly }) => {
           className: sportCode === "uspsa" && "focused-menu-item",
           command: () => setSportCode("uspsa"),
         },
+        ...(hideSCSA
+          ? []
+          : [
+              {
+                label: "Steel Challenge",
+                className: sportCode === "scsa" && "focused-menu-item",
+                command: () => setSportCode("scsa"),
+                disabled: !!disableSCSA,
+              },
+            ]),
         {
-          label: "Steel Challenge (beta)",
-          className: sportCode === "scsa" && "focused-menu-item",
-          command: () => setSportCode("scsa"),
-        },
-        {
-          label: "HitFactor (Unified)",
+          label: "Hit-Factor Unified",
           className: sportCode === "hfu" && "focused-menu-item",
           command: () => setSportCode("hfu"),
         },
@@ -126,7 +131,7 @@ export const defaultDivisionForSport = (sport) => {
   }
 };
 
-export const DivisionNavigation = ({ onSelect, uspsaOnly }) => {
+export const DivisionNavigation = ({ onSelect, uspsaOnly, disableSCSA, hideSCSA }) => {
   // TODO: save in localStorage last sport/division selection
   const { division } = useParams();
 
@@ -219,6 +224,8 @@ export const DivisionNavigation = ({ onSelect, uspsaOnly }) => {
               sportCode={sportCode}
               setSportCode={setSportCode}
               uspsaOnly={uspsaOnly}
+              disableSCSA={disableSCSA}
+              hideSCSA={hideSCSA}
             />
           }
         />
