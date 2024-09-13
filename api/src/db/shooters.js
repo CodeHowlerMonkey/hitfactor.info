@@ -515,7 +515,7 @@ export const reclassifyShooters = async (shooters) => {
         return memberNumber && uspsaDivShortNames.find((x) => x === division);
       })
       .map(({ memberNumber, division, name }) => {
-        if (!memberNumber || division.startsWith("scsa")) {
+        if (!memberNumber) {
           return [];
         }
         const recMemberScores = recScoresByMemberNumber[memberNumber];
