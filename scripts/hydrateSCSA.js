@@ -1,5 +1,5 @@
 import { connect } from "../api/src/db/index.js";
-import { allDivShortNames, scsaDivisions } from "../shared/constants/divisions.js";
+import { scsaDivisionsShortNames } from "../shared/constants/divisions.js";
 import { RecHHF, rehydrateRecHHF } from "../api/src/db/recHHF.js";
 import {
   Classifier,
@@ -9,8 +9,7 @@ import { uploadLoop } from "../api/src/worker/uploads.js";
 import { Matches } from "../api/src/db/matches.js";
 
 const hydrateScsaClassifiers = async () => {
-  const scsaLongNames = scsaDivisions.map((x) => x.long);
-  await rehydrateRecHHF(scsaLongNames, [
+  await rehydrateRecHHF(scsaDivisionsShortNames, [
     "SC-101",
     "SC-102",
     "SC-103",
@@ -31,7 +30,7 @@ const hydrateScsaClassifiers = async () => {
     "SC-107",
     "SC-108",
   ]
-    .map((classifier) => scsaLongNames.map((div) => [classifier, div].join(":")))
+    .map(classifier => scsaDivisionsShortNames.map(div => [classifier, div].join(":")))
     .flat();
 
   const recHHFs = await RecHHF.find({ classifierDivision: { $in: classifierDivisions } })

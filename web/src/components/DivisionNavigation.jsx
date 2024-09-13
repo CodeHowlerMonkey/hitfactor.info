@@ -79,7 +79,7 @@ const divisionForSportAndIndex = (sport, index) => {
     return hfuDivisions[index - 1]?.short.toLowerCase();
   }
   if (sport === "scsa") {
-    return scsaDivisions[index - 1]?.long.toLowerCase();
+    return scsaDivisions[index - 1]?.short.toLowerCase();
   }
 
   // minus1 the tabViewIndex, because it counts SportSelector as index 0
@@ -97,7 +97,7 @@ const sportAndDivisionIndexForDivision = (division) => {
   }
 
   const scsaIndex = scsaDivisions.findIndex(
-    (c) => c.long?.toLowerCase() === (division || "invalid")
+    c => c.short?.toLowerCase() === (division || "invalid"),
   );
   if (scsaIndex >= 0) {
     // plusOne the dataIndex, because TabView counts SportSelector as index 0
@@ -199,8 +199,8 @@ export const DivisionNavigation = ({ onSelect, uspsaOnly, disableSCSA, hideSCSA 
       ? []
       : scsaDivisions.map((division) => (
           <TabPanel
-            key={division.long}
-            header={division.short}
+            key={curDiv.long}
+            header={curDiv.long}
             className="p-0 text-sm md:text-base"
           />
       ))),

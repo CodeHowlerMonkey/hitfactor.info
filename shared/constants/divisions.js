@@ -286,55 +286,57 @@ export const mapAllDivisions = (mapper) =>
 
 export const scsaDivisions = [
   {
-    long: "scsa_opn",
-    short: "OPN",
+    short: "scsa_opn",
+    long: "OPN",
   },
   {
-    long: "scsa_co",
-    short: "CO",
+    short: "scsa_co",
+    long: "CO",
   },
   {
-    long: "scsa_osr",
-    short: "OSR",
+    short: "scsa_osr",
+    long: "OSR",
   },
   {
-    long: "scsa_isr",
-    short: "ISR",
+    short: "scsa_isr",
+    long: "ISR",
   },
   {
-    long: "scsa_ss",
-    short: "SS",
+    short: "scsa_ss",
+    long: "SS",
   },
   {
-    long: "scsa_ltd",
-    short: "LTD",
+    short: "scsa_ltd",
+    long: "LTD",
   },
   {
-    long: "scsa_prod",
-    short: "PROD",
+    short: "scsa_prod",
+    long: "PROD",
   },
   {
-    long: "scsa_rfpi",
-    short: "RFPI",
+    short: "scsa_rfpi",
+    long: "RFPI",
   },
   {
-    long: "scsa_rfpo",
-    short: "RFPO",
+    short: "scsa_rfpo",
+    long: "RFPO",
   },
   {
-    long: "scsa_rfri",
-    short: "RFRI",
+    short: "scsa_rfri",
+    long: "RFRI",
   },
   {
-    long: "scsa_rfro",
-    short: "RFRO",
+    short: "scsa_rfro",
+    long: "RFRO",
   },
   {
-    long: "scsa_pcco",
-    short: "PCCO",
+    short: "scsa_pcco",
+    long: "PCCO",
   },
   {
-    long: "scsa_pcci",
-    short: "PCCI",
+    short: "scsa_pcci",
+    long: "PCCI",
   },
-]
+];
+
+export const scsaDivisionsShortNames = scsaDivisions.map(div => div.short);
