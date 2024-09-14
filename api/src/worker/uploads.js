@@ -412,6 +412,7 @@ const scsaMatchInfo = async (matchInfo) => {
       .flat()
       .filter(
         (r) =>
+          r.percent < 175.0 &&
           r.strings.every(x => x > 0) &&
           r.stageTimeSecs > 0 &&
           !!r.memberNumber &&
