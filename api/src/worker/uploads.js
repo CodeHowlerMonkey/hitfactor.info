@@ -343,7 +343,7 @@ const scsaMatchInfo = async (matchInfo) => {
                   const penCountsForString = pens[idx];
                   // Multiply the count of each penalties by their value, and sum the result.
                   const totalStringPenalties = (penCountsForString || []).reduce(
-                    (p, c, idx) => p + c * match_penalties[idx].pen_val,
+                    (p, c, idx) => p + c * (match_penalties[idx] ? match_penalties[idx].pen_val : 0),
                     0
                   );
                   const adjustedStringTotal = s + totalStringPenalties;
@@ -851,7 +851,7 @@ export const uploadLoop = async ({
 const uploadsWorkerMain = async () => {
   await connect();
 
-  runEvery(30 * MINUTES, async () => {
+  runEvery(5000, async () => {
     console.log("starting to fetch");
     console.time("fetchLoop");
     try {
@@ -873,8 +873,8 @@ const uploadsWorkerMain = async () => {
     }
   });
 
-  after(5 * MINUTES, () => {
-    runEvery(30 * MINUTES, async () => {
+  after(5000, () => {
+    runEvery(5000, async () => {
       console.log("starting upload");
       console.time("uploadLoop");
 
