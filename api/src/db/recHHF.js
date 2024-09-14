@@ -440,7 +440,7 @@ const runsForRecs = async ({ division, number }) =>
       classifier: number,
       division: { $in: divisionsForRecHHFAdapter(division) },
       hf: { $gt: 0 },
-      bad: { $exists: false },
+      bad: { $ne: true },
     })
       .sort({ hf: -1 })
       .limit(0)
@@ -452,7 +452,7 @@ const runsForRecs = async ({ division, number }) =>
 
 const runsForRecsMultiByClassifierDivision = async (classifiers) => {
   const runs = await Score.find({
-    bad: { $exists: false },
+    bad: { $ne: true },
     classifierDivision: {
       $in: classifierDivisionArrayForHFURecHHFs(classifiers),
     },

@@ -40,7 +40,7 @@ const scoresAgeAggr = async (memberNumber, division, maxScores) => {
       $match: {
         memberNumber,
         division: { $in: divisionsForScoresAdapter(division) },
-        bad: { $exists: false },
+        bad: { $ne: true },
       },
     },
     {
@@ -118,7 +118,7 @@ export const reduceByDiv = (classifications, valueFn) =>
 export const allDivisionsScores = async (memberNumbers) => {
   const query = Score.find({
     memberNumber: { $in: memberNumbers },
-    bad: { $exists: false },
+    bad: { $ne: true },
   })
     .populate("HHFs")
     .limit(0)
@@ -181,7 +181,7 @@ export const scoresForRecommendedClassification = (memberNumbers) =>
   Score.aggregate([
     {
       $match: {
-        bad: { $exists: false },
+        bad: { $ne: true },
         memberNumber: { $in: memberNumbers },
         $or: [{ hf: { $gt: 0 } }, { percent: { $gt: 0 } }],
       },

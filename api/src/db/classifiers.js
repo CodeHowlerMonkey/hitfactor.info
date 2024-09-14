@@ -187,7 +187,7 @@ export const singleClassifierExtendedMetaDoc = async (
       division: { $in: divisionsForScoresAdapter(division) },
       classifier,
       hf: { $gte: 0 },
-      bad: { $exists: false },
+      bad: { $ne: true },
     })
       .sort({ hf: -1 })
       .limit(0)

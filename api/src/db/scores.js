@@ -241,7 +241,7 @@ export const shooterScoresChartData = async ({ memberNumber, division }) => {
   const scores = await Score.find({
     memberNumber,
     division: { $in: divisionsForScoresAdapter(division) },
-    bad: { $exists: false },
+    bad: { $ne: true },
   })
     .populate("HHFs")
     .limit(0)
@@ -265,7 +265,7 @@ export const scoresForDivisionForShooter = async ({ division, memberNumber }) =>
   const scores = await Score.find({
     division: { $in: divisionsForScoresAdapter(division) },
     memberNumber,
-    bad: { $exists: false },
+    bad: { $ne: true },
   })
     .populate("HHFs")
     .sort({ sd: -1, hf: -1 })
