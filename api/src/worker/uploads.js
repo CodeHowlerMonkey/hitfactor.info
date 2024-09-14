@@ -312,6 +312,13 @@ const scsaMatchInfo = async (matchInfo) => {
                 undefined
             );
           })
+          .filter((ss) => {
+            const expectedNumStrings = classifier === 'SC-104' ? 4 : 5;
+            const strings = ss.str;
+            // Exclude any score where the string count does not match
+            // the official string count for the stated classifier.
+            return strings.length === expectedNumStrings;
+          })
           .map((ss) => {
             // str is the array of all strings for the stage
             // e.g. [7, 5.46, 6.17, 23.13]
@@ -336,7 +343,7 @@ const scsaMatchInfo = async (matchInfo) => {
                   const penCountsForString = pens[idx];
                   // Multiply the count of each penalties by their value, and sum the result.
                   const totalStringPenalties = (penCountsForString || []).reduce(
-                    (p, c, idx) => p + c * match_penalties[idx].pen_val,
+                    (p, c, idx) => p + c * (match_penalties[idx] ? match_penalties[idx]?.pen_val || 0),
                     0
                   );
                   const adjustedStringTotal = s + totalStringPenalties;
@@ -367,6 +374,8 @@ const scsaMatchInfo = async (matchInfo) => {
 
             const classifierPeakTime = scsaPeakTime(divisionCode, classifier);
             const shooterFullName = match.memberNumberToNamesMap[memberNumber];
+            const classificationPercent = Percent(classifierPeakTime, stageTotal);
+
             return {
               stageTimeSecs: stageTotal,
               stagePeakTimeSecs: classifierPeakTime,
@@ -380,12 +389,12 @@ const scsaMatchInfo = async (matchInfo) => {
 
               // from /match_scores.json
               modified,
-              strings: detailedScores.str,
+              strings: adjustedStrings,
               targetHits: detailedScores.ts,
               device: detailedScores.dname,
-
+              bad: classificationPercent >= 175.0,
               hf: pseudoHf,
-              percent: Percent(classifierPeakTime, stageTotal),
+              percent: classificationPercent,
               shooterFullName,
               memberNumber,
               classifier,
@@ -405,6 +414,7 @@ const scsaMatchInfo = async (matchInfo) => {
       .flat()
       .filter(
         (r) =>
+          r.strings.every(x => x > 0) &&
           r.stageTimeSecs > 0 &&
           !!r.memberNumber &&
           !!r.classifier &&
@@ -421,7 +431,7 @@ const scsaMatchInfo = async (matchInfo) => {
 const uspsaOrHitFactorMatchInfo = async (matchInfo) => {
   const { uuid } = matchInfo;
   const { matchDef: match, results, scores: scoresJson } = await fetchPS(uuid);
-  if (!match || !results) {
+  if (!match || !results || !scoresJson) {
     return EmptyMatchResultsFactory();
   }
   const { match_shooters, match_stages } = match;
