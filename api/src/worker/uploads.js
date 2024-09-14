@@ -312,6 +312,13 @@ const scsaMatchInfo = async (matchInfo) => {
                 undefined
             );
           })
+          .filter((ss) => {
+            const expectedNumStrings = classifier === 'SC-104' ? 4 : 5;
+            const strings = ss.str;
+            // Exclude any score where the string count does not match
+            // the official string count for the stated classifier.
+            return strings.length === expectedNumStrings;
+          })
           .map((ss) => {
             // str is the array of all strings for the stage
             // e.g. [7, 5.46, 6.17, 23.13]
