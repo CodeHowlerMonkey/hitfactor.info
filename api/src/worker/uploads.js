@@ -374,6 +374,7 @@ const scsaMatchInfo = async (matchInfo) => {
 
             const classifierPeakTime = scsaPeakTime(divisionCode, classifier);
             const shooterFullName = match.memberNumberToNamesMap[memberNumber];
+            const classificationPercent = Percent(classifierPeakTime, stageTotal);
             return {
               stageTimeSecs: stageTotal,
               stagePeakTimeSecs: classifierPeakTime,
@@ -390,9 +391,9 @@ const scsaMatchInfo = async (matchInfo) => {
               strings: adjustedStrings,
               targetHits: detailedScores.ts,
               device: detailedScores.dname,
-
+              bad: classificationPercent >= 175.0,
               hf: pseudoHf,
-              percent: Percent(classifierPeakTime, stageTotal),
+              percent: classificationPercent,
               shooterFullName,
               memberNumber,
               classifier,
@@ -412,8 +413,6 @@ const scsaMatchInfo = async (matchInfo) => {
       .flat()
       .filter(
         (r) =>
-          // Current highest % runs in easiest divisions of RFRI/PCCI are around 160%
-          r.percent < 175.0 &&
           r.strings.every(x => x > 0) &&
           r.stageTimeSecs > 0 &&
           !!r.memberNumber &&
