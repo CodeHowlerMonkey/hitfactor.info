@@ -412,6 +412,7 @@ const scsaMatchInfo = async (matchInfo) => {
       .flat()
       .filter(
         (r) =>
+          // Current highest % runs in easiest divisions of RFRI/PCCI are around 160%
           r.percent < 175.0 &&
           r.strings.every(x => x > 0) &&
           r.stageTimeSecs > 0 &&
@@ -430,7 +431,7 @@ const scsaMatchInfo = async (matchInfo) => {
 const uspsaOrHitFactorMatchInfo = async (matchInfo) => {
   const { uuid } = matchInfo;
   const { matchDef: match, results, scores: scoresJson } = await fetchPS(uuid);
-  if (!match || !results) {
+  if (!match || !results || !scoresJson) {
     return EmptyMatchResultsFactory();
   }
   const { match_shooters, match_stages } = match;
