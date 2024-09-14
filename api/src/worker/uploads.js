@@ -853,7 +853,7 @@ export const uploadLoop = async ({
 const uploadsWorkerMain = async () => {
   await connect();
 
-  runEvery(5000, async () => {
+  runEvery(30 * MINUTES, async () => {
     console.log("starting to fetch");
     console.time("fetchLoop");
     try {
@@ -875,8 +875,8 @@ const uploadsWorkerMain = async () => {
     }
   });
 
-  after(5000, () => {
-    runEvery(5000, async () => {
+  after(5 * MINUTES, () => {
+    runEvery(30 * MINUTES, async () => {
       console.log("starting upload");
       console.time("uploadLoop");
 
