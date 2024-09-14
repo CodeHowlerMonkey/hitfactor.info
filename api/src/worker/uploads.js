@@ -387,7 +387,7 @@ const scsaMatchInfo = async (matchInfo) => {
 
               // from /match_scores.json
               modified,
-              strings: detailedScores.str,
+              strings: adjustedStrings,
               targetHits: detailedScores.ts,
               device: detailedScores.dname,
 
@@ -412,6 +412,7 @@ const scsaMatchInfo = async (matchInfo) => {
       .flat()
       .filter(
         (r) =>
+          r.strings.every(x => x > 0) &&
           r.stageTimeSecs > 0 &&
           !!r.memberNumber &&
           !!r.classifier &&
