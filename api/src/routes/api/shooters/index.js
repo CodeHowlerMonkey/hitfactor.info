@@ -12,7 +12,6 @@ import {
 import { Shooter, reclassificationForProgressMode } from "../../../db/shooters.js";
 import {
   addPlaceAndPercentileAggregation,
-  addTotalCountAggregation,
   multiSortAndPaginate,
   textSearchMatch,
 } from "../../../db/utils.js";
