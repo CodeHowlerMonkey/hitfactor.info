@@ -7,6 +7,7 @@ import {
   hfuDivisionCompatabilityMap,
   hfuDivisionsShortNamesThatNeedMinorHF,
   mapDivisions,
+  uspsaDivShortNames,
 } from "../dataUtil/divisions.js";
 import {
   calculateUSPSAClassification,
@@ -16,7 +17,7 @@ import {
 
 import { Score } from "./scores.js";
 import uniqBy from "lodash.uniqby";
-import { percentAggregationOp } from "./utils.js";
+import { getField, percentAggregationOp } from "./utils.js";
 import { psClassUpdatesByMemberNumber } from "../dataUtil/uspsa.js";
 
 const memberIdToNumberMap = loadJSON("../../data/meta/memberIdToNumber.json");
@@ -139,12 +140,16 @@ export const allDivisionsScoresByMemberNumber = async (memberNumbers) => {
 };
 
 const _divisionExplosion = () => [
-  { $set: { hfuDivisionCompatabilityMap } },
+  {
+    $set: {
+      hfuDivisionCompatabilityMap: { $objectToArray: hfuDivisionCompatabilityMap },
+    },
+  },
   {
     $set: {
       division: [
         "$division",
-        { $getField: { input: "$hfuDivisionCompatabilityMap", field: "$division" } },
+        getField({ input: "$hfuDivisionCompatabilityMap", field: "$division" }),
       ],
     },
   },
@@ -487,6 +492,11 @@ export const reclassifyShooters = async (shooters) => {
       ]);
 
     const updates = shooters
+      .filter(({ memberNumber, division, name }) => {
+        // TODO: Implement Reclassify Shooters for SCSA
+        // https://github.com/CodeHowlerMonkey/hitfactor.info/issues/69
+        return memberNumber && uspsaDivShortNames.find((x) => x === division);
+      })
       .map(({ memberNumber, division, name }) => {
         if (!memberNumber) {
           return [];

@@ -1,14 +1,14 @@
-import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
-import ShooterChart from "../../../components/chart/ShooterChart";
-import { ShooterProgressChart } from "../../../components/chart/ShooterProgressChart";
+import { DataTable } from "primereact/datatable";
+
 import {
-  divShortToLong,
   hfuDivisionsShortNames,
   nameForDivision,
   sportForDivision,
   uspsaDivShortNames,
 } from "../../../../../api/src/dataUtil/divisions";
+import ShooterChart from "../../../components/chart/ShooterChart";
+import { ShooterProgressChart } from "../../../components/chart/ShooterProgressChart";
 
 const tableNameForDiv = {
   opn: "Open",
@@ -35,7 +35,7 @@ const toFixedWithSuffixValueOrPlaceholder = (value, length, suffix, empty = "—
   return value.toFixed(length) + suffix;
 };
 
-const percentValueOrEmpty = (value) =>
+const percentValueOrEmpty = value =>
   toFixedWithSuffixValueOrPlaceholder(value, 2, "%", "");
 
 const cardRow = (classificationByDivision, div) => {
@@ -75,7 +75,7 @@ const cardRow = (classificationByDivision, div) => {
   };
 };
 
-const dateValue = (value) =>
+const dateValue = value =>
   !value ? "" : new Date(value).toLocaleDateString("en-us", { timeZone: "UTC" });
 
 export const ShooterInfoTable = ({ info, division, memberNumber, loading }) => {
@@ -83,14 +83,16 @@ export const ShooterInfoTable = ({ info, division, memberNumber, loading }) => {
   const sport = sportForDivision(division);
   const isHFU = sport === "hfu";
   const divisions = isHFU ? hfuDivisionsShortNames : uspsaDivShortNames;
+  const isUspsa = sport === "uspsa";
+  const isSCSA = sport === "scsa";
 
   return (
     <div className="h-full flex flex-wrap">
       <div className="flex-grow-1 md:w-min md:max-w-min">
         <h4 className="hidden mx-3 md:block md:text-lg lg:text-xl w-max">
-          {memberNumber} - {name} - {nameForDivision(division)}
+          {[memberNumber, name, nameForDivision(division)].filter(Boolean).join(" - ")}
         </h4>
-        {!isHFU && (
+        {isUspsa && (
           <DataTable
             loading={loading}
             className="text-xs md:text-base"
@@ -112,6 +114,7 @@ export const ShooterInfoTable = ({ info, division, memberNumber, loading }) => {
                       k: "Joined",
                       v: dateValue(info?.data?.joined_date),
                     },
+
                     {
                       k: "Expires",
                       v: dateValue(info?.data?.expiration_date),
@@ -123,36 +126,45 @@ export const ShooterInfoTable = ({ info, division, memberNumber, loading }) => {
             <Column field="v" align="right" />
           </DataTable>
         )}
-        <DataTable
-          className="text-xs md:text-base"
-          size="small"
-          stripedRows
-          value={
-            loading || !info?.classificationByDivision
-              ? []
-              : divisions.map((d) => cardRow(info.classificationByDivision, d))
-          }
-        >
-          <Column field="division" header={isHFU ? "Division" : "Div"} />
-          <Column field="rec" header={isHFU ? "Percent" : "Rec."} />
-          <Column field="curHHF" header="Cur.HHF" hidden={isHFU} />
-          <Column field="hq" header="HQ" hidden={isHFU} />
-          <Column field="age" header="Age" />
-        </DataTable>
+        {(isUspsa || isHFU) && (
+          <DataTable
+            className="text-xs md:text-base"
+            size="small"
+            stripedRows
+            value={
+              loading || !info?.classificationByDivision
+                ? []
+                : divisions.map(d => cardRow(info.classificationByDivision, d))
+            }
+          >
+            <Column field="division" header={isHFU ? "Division" : "Div"} />
+            <Column field="rec" header={isHFU ? "Percent" : "Rec."} />
+            <Column field="curHHF" header="Cur.HHF" hidden={isHFU} />
+            <Column field="hq" header="HQ" hidden={isHFU} />
+            <Column field="age" header="Age" />
+          </DataTable>
+        )}
       </div>
-      <div className="w-12 md:w-5 flex-grow-1 flex flex-column">
-        <h4 className="md:text-center mb-0 md:text-lg lg:text-xl">
-          Classification Progress
-        </h4>
-        <ShooterProgressChart division={info.division} memberNumber={info.memberNumber} />
-      </div>
+      {!isSCSA && (
+        <>
+          <div className="w-12 md:w-5 flex-grow-1 flex flex-column">
+            <h4 className="md:text-center mb-0 md:text-lg lg:text-xl">
+              Classification Progress
+            </h4>
+            <ShooterProgressChart
+              division={info.division}
+              memberNumber={info.memberNumber}
+            />
+          </div>
 
-      <div className="w-12 h-32rem">
-        <h4 className="mb-0 md:text-lg lg:text-xl w-max">Scores Distribution</h4>
-        <div className="relative h-32rem bg-primary-reverse">
-          <ShooterChart division={info.division} memberNumber={info.memberNumber} />
-        </div>
-      </div>
+          <div className="w-12 h-32rem">
+            <h4 className="mb-0 md:text-lg lg:text-xl w-max">Scores Distribution</h4>
+            <div className="relative h-32rem bg-primary-reverse">
+              <ShooterChart division={info.division} memberNumber={info.memberNumber} />
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 };

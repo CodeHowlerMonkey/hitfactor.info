@@ -78,7 +78,7 @@ export const ShooterCell = ({ data, onClick, sport }) => (
       {data.memberNumber}
       <DivisionNameIfNeeded sport={sport} division={data?.originalDivision} />
     </div>
-    <div style={{ fontSize: "1.125em" }}>{data.name}</div>
+    <div style={{ fontSize: "1.125em" }}>{data.name || data.shooterFullName}</div>
   </div>
 );
 

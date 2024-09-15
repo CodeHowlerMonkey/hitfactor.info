@@ -109,6 +109,7 @@ const shootersRoutes = async (fastify, opts) => {
       (c) => ({
         ...c,
         classifierInfo: basicInfoForClassifierCode(c?.classifier),
+        hf: division.startsWith('scsa') ? Number(c.stageTimeSecs) : c.hf
       })
     );
 

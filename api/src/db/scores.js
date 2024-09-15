@@ -24,6 +24,7 @@ const ScoreSchema = new mongoose.Schema(
     minorHF: Number,
     code: { type: String, maxLength: 1 },
     source: String,
+    shooterFullName: String,
     memberNumber: String,
     division: String,
 

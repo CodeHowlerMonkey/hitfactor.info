@@ -168,6 +168,23 @@ export const ScsaPeakTimesMap = {
 export const scsaDivisionWithPrefix = (scsaDivision) =>
   `scsa_${scsaDivision.toLowerCase()}`;
 
+export const scsaDivisions = Object.keys(ScsaPeakTimesMap).map((x) => x.toLowerCase()).map(scsaDivisionWithPrefix)
+
+export const ScsaPointsPerString = 25;
+
+export const scsaHhfEquivalentForDivision = (division) =>
+  ScsaPeakTimesMap[division.replace('scsa_', '').toUpperCase()]
+    .map((divisionStageTotalPeakTime, idx) => {
+      // SC-104 Outer Limits, at idx 3, has 3 scoring strings instead of 4;
+      const numberOfScoringStringsForClassifier = (idx === 3 ? 3 : 4);
+      return {
+        classifier: `SC-${100+idx+1}`,
+        id: `SC-${100+idx+1}`,
+        // Numerator
+        hhf: Number(parseFloat(((ScsaPointsPerString)/(divisionStageTotalPeakTime / numberOfScoringStringsForClassifier))).toFixed(4))
+      }
+    });
+
 export const scsaPeakTime = (scsaDivision, scsaClassifierCode) => {
   // Indexing scheme based on the fact that the division peak times in the above structure are sorted in ascending order.
   return ScsaPeakTimesMap[scsaDivision][parseInt(scsaClassifierCode.substr(3, 4)) - 101];

@@ -279,3 +279,38 @@ export const allDivisionClassifiersQuality = async () => {
 
   return _allDivQuality;
 };
+
+let _allDivQualityScsa = null;
+export const allScsaDivisionClassifiersQuality = async () => {
+  let [co, opn, rfro, rfpo] = await Promise.all([
+    Classifier.find({ division: "scsa_co" }),
+    Classifier.find({ division: "scsa_opn" }),
+    Classifier.find({ division: "scsa_rfro" }),
+    Classifier.find({ division: "scsa_rfpo" }),
+  ]);
+
+  co = co.map((c) => c.toObject({ virtuals: true }));
+  opn = opn.map((c) => c.toObject({ virtuals: true }));
+  opn = opn.reduce((acc, cur) => {
+    acc[cur.classifier] = cur;
+    return acc;
+  }, {});
+  rfro = rfro.map((c) => c.toObject({ virtuals: true }));
+  rfro = rfro.reduce((acc, cur) => {
+    acc[cur.classifier] = cur;
+    return acc;
+  }, {});
+  rfpo = rfpo.map((c) => c.toObject({ virtuals: true }));
+  rfpo = rfpo.reduce((acc, cur) => {
+    acc[cur.classifier] = cur;
+    return acc;
+  }, {});
+
+  _allDivQualityScsa = co.reduce((acc, c) => {
+    const id = c.classifier;
+    acc[id] = (c.quality + opn[id].quality + rfro[id].quality + rfpo[id].quality) / 4;
+    return acc;
+  }, {});
+
+  return _allDivQualityScsa;
+};

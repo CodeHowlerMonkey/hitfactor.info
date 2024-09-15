@@ -1,25 +1,25 @@
 import divisionsFromJson from "../../data/division.json" assert { type: "json" };
 
 /** Extracts division from memberNumberDivision or classifierDivision */
-export const pairToDivision = (pair) => pair.split(":")[1];
+export const pairToDivision = pair => pair.split(":")[1];
 
 // TODO: add allDivisions for multisport, use uspsaDivisions for USPSA only
 export const uspsaDivisions = divisionsFromJson.divisions;
 /** ["opn", "ltd", "l10", "prod", "rev", "ss", "co", "lo", "pcc"] */
-export const divShortNames = uspsaDivisions.map((c) => c.short_name.toLowerCase());
+export const divShortNames = uspsaDivisions.map(c => c.short_name.toLowerCase());
 export const uspsaDivShortNames = divShortNames;
 
-export const mapDivisions = (mapper) =>
-  Object.fromEntries(divShortNames.map((div) => [div, mapper(div)]));
+export const mapDivisions = mapper =>
+  Object.fromEntries(divShortNames.map(div => [div, mapper(div)]));
 
-export const mapDivisionsFlat = (mapper) => divShortNames.map((div) => mapper(div));
+export const mapDivisionsFlat = mapper => divShortNames.map(div => mapper(div));
 
-export const mapDivisionsAsync = async (mapper) =>
+export const mapDivisionsAsync = async mapper =>
   Object.fromEntries(
-    await Promise.all(divShortNames.map(async (div) => [div, await mapper(div)]))
+    await Promise.all(divShortNames.map(async div => [div, await mapper(div)]))
   );
 
-export const forEachDivisionSeq = async (cb) => {
+export const forEachDivisionSeq = async cb => {
   for (const division of divShortNames) {
     await cb(division);
   }
@@ -42,7 +42,7 @@ export const divShortToLong = uspsaDivisions.reduce(
 export const uspsaDivShortToLong = divShortToLong;
 
 export const divIdToShort = Object.fromEntries(
-  Object.entries(divShortToId).map((flip) => [flip[1], flip[0]])
+  Object.entries(divShortToId).map(flip => [flip[1], flip[0]])
 );
 export const uspsaDivIdToShort = divIdToShort;
 
@@ -65,14 +65,16 @@ export const hfuDivisions = [
     short: "car",
   },
 ];
-export const hfuDivisionsShortNames = hfuDivisions.map((d) => d.short);
+export const hfuDivisionsShortNames = hfuDivisions.map(d => d.short);
 export const hfuDivisionsShortNamesThatNeedMinorHF = ["comp", "irn"];
 
 /** All divisions  */
-export const nameForDivision = (div) =>
-  uspsaDivShortToLong[div] || hfuDivisions.find((d) => d.short === div)?.long;
+export const nameForDivision = div =>
+  uspsaDivShortToLong[div] ||
+  hfuDivisions.find(d => d.short === div)?.long ||
+  scsaDivisions.find(d => d.short === div)?.long;
 
-export const sportForDivision = (division) => {
+export const sportForDivision = division => {
   if (hfuDivisionsShortNames.indexOf(division) >= 0) {
     return "hfu";
   }
@@ -85,8 +87,9 @@ export const sportForDivision = (division) => {
   return "uspsa";
 };
 
-export const sportName = (code) =>
-  ({ hfu: "Hit Factor", pcsl: "PCSL", uspsa: "USPSA" }[code] || "USPSA");
+export const sportName = code =>
+  ({ hfu: "Hit Factor", pcsl: "PCSL", uspsa: "USPSA", scsa: "Steel Challenge" }[code] ||
+  "USPSA");
 
 export const hfuDivisionCompatabilityMap = {
   // from USPSA
@@ -143,6 +146,36 @@ export const divisionChangeMap = {
     pcsl_pi: "ltd",
     pcsl_pcc: "pcc",
     pcsl_acp: "co",
+
+    // from SCSA
+    scsa_opn: "opn",
+    scsa_co: "co",
+    scsa_prod: "prod",
+    scsa_isr: "rev",
+    scsa_ltd: "ltd",
+    scsa_osr: "osr",
+    scsa_pcco: "pcc",
+    scsa_pcci: "pcc",
+  },
+  scsa: {
+    // from USPSA
+    opn: "scsa_opn",
+    co: "scsa_co",
+    rev: "scsa_isr",
+    pcc: "scsa_pcco",
+
+    // from HFU
+    comp: "scsa_opn",
+    opt: "scsa_co",
+    irn: "scsa_ltd",
+    car: "scsa_pcco",
+
+    // from PCSL
+    pcsl_comp: "opn",
+    pcsl_po: "co",
+    pcsl_pi: "ltd",
+    pcsl_pcc: "pcc",
+    pcsl_acp: "co",
   },
 };
 
@@ -150,7 +183,7 @@ export const minorDivisions = ["co", "lo", "prod", "pcc", "comp", "opt", "irn", 
 
 export const hfuDivisionCompatabilityMapInversion = (excludedDivisions = []) =>
   Object.keys(hfuDivisionCompatabilityMap)
-    .filter((div) => !excludedDivisions.includes(div))
+    .filter(div => !excludedDivisions.includes(div))
     .reduce((acc, curKey) => {
       const curValue = hfuDivisionCompatabilityMap[curKey];
       const invertedArray = acc[curValue] || [curValue];
@@ -177,7 +210,7 @@ export const hfuDivisionMapForHHF = Object.fromEntries(
   Object.entries(hfuDivisionExplosionForRecHHF).map(([key, value]) => [key, value[1]])
 );
 
-const defaultDivisionAccess = (something) => something.division;
+const defaultDivisionAccess = something => something.division;
 /**
  * Takes array of something and makes it bigger by including additional divisions
  * from provided mapping.
@@ -189,12 +222,12 @@ export const arrayWithExplodedDivisions = (
   arrResultCb
 ) => {
   const withExtras = arr
-    .map((c) => {
+    .map(c => {
       const division = arrDivCb(c);
       const extraDivisions = [].concat(divisionExplosionMap[division] || []);
       return [
         arrResultCb(c, division),
-        ...extraDivisions.map((extraDiv) => arrResultCb(c, extraDiv)),
+        ...extraDivisions.map(extraDiv => arrResultCb(c, extraDiv)),
       ];
     })
     .flat()
@@ -218,16 +251,16 @@ export const classifierDivisionArrayWithExplodedDivisions = (
     (classifierObj, division) => [classifierObj.classifier, division].join(":")
   );
 
-export const classifierDivisionArrayWithHFUExtras = (classifiers) =>
+export const classifierDivisionArrayWithHFUExtras = classifiers =>
   classifierDivisionArrayWithExplodedDivisions(classifiers, hfuDivisionCompatabilityMap);
 
-export const classifierDivisionArrayForHFURecHHFs = (classifiers) =>
+export const classifierDivisionArrayForHFURecHHFs = classifiers =>
   classifierDivisionArrayWithExplodedDivisions(
     classifiers,
     hfuDivisionExplosionForRecHHF
   );
 
-export const divisionsForScoresAdapter = (division) => {
+export const divisionsForScoresAdapter = division => {
   const hfuDivisions = hfuDivisionExplosionForScores[division];
   if (hfuDivisions) {
     return hfuDivisions;
@@ -236,7 +269,7 @@ export const divisionsForScoresAdapter = (division) => {
   return [division];
 };
 
-export const divisionsForRecHHFAdapter = (division) => {
+export const divisionsForRecHHFAdapter = division => {
   const hfuDivisions = hfuDivisionExplosionForRecHHF[division];
   if (hfuDivisions) {
     return hfuDivisions;
@@ -251,5 +284,62 @@ export const allDivShortNames = [
   // TODO: pcsl
   // TODO: scsa
 ];
-export const mapAllDivisions = (mapper) =>
-  Object.fromEntries(allDivShortNames.map((div) => [div, mapper(div)]));
+export const mapAllDivisions = mapper =>
+  Object.fromEntries(allDivShortNames.map(div => [div, mapper(div)]));
+
+export const scsaDivisions = [
+  {
+    short: "scsa_opn",
+    long: "OPN",
+  },
+  {
+    short: "scsa_co",
+    long: "CO",
+  },
+  {
+    short: "scsa_osr",
+    long: "OSR",
+  },
+  {
+    short: "scsa_isr",
+    long: "ISR",
+  },
+  {
+    short: "scsa_ss",
+    long: "SS",
+  },
+  {
+    short: "scsa_ltd",
+    long: "LTD",
+  },
+  {
+    short: "scsa_prod",
+    long: "PROD",
+  },
+  {
+    short: "scsa_rfpi",
+    long: "RFPI",
+  },
+  {
+    short: "scsa_rfpo",
+    long: "RFPO",
+  },
+  {
+    short: "scsa_rfri",
+    long: "RFRI",
+  },
+  {
+    short: "scsa_rfro",
+    long: "RFRO",
+  },
+  {
+    short: "scsa_pcco",
+    long: "PCCO",
+  },
+  {
+    short: "scsa_pcci",
+    long: "PCCI",
+  },
+];
+
+export const scsaDivisionsShortNames = scsaDivisions.map(div => div.short);
