@@ -73,12 +73,14 @@ export const _fetchPSS3ObjectJSON = async (objectKey, noGZip = false) => {
   }
 };
 
-export const fetchPS = async (uuid) => {
+export const fetchPS = async (uuid, { skipResults = false } = {}) => {
   try {
     const [matchDef, scores, results] = await Promise.all([
       _fetchPSS3ObjectJSON(`production/${uuid}/match_def.json`),
       _fetchPSS3ObjectJSON(`production/${uuid}/match_scores.json`),
-      _fetchPSS3ObjectJSON(`production/${uuid}/results.json`),
+      skipResults
+        ? Promise.resolve(null)
+        : _fetchPSS3ObjectJSON(`production/${uuid}/results.json`),
     ]);
 
     return { matchDef, scores, results };
@@ -251,7 +253,9 @@ const scsaMatchInfo = async (matchInfo) => {
   const { uuid } = matchInfo;
 
   // Unlike USPSA, SCSA does not have results.json.
-  const { matchDef: match, scores: scoresJson } = await fetchPS(matchInfo.uuid);
+  const { matchDef: match, scores: scoresJson } = await fetchPS(matchInfo.uuid, {
+    skipResults: true,
+  });
   if (!match || !scoresJson) {
     return EmptyMatchResultsFactory();
   }
