@@ -11,27 +11,53 @@ export const percentAggregationOp = (value, total, round = 2) => ({
   ],
 });
 
-export const addPlaceAndPercentileAggregation = (placeByField) => [
-  { $sort: { [placeByField]: -1 } },
-  { $group: { _id: 1, docs: { $push: "$$CURRENT" } } },
-  { $addFields: { total: { $size: "$docs" } } },
+/**
+ * Final step aggregation for classifier runs and shooters.
+ * Accepts other final aggregations as it's param, in order to avoid OOM query errors in mongo.
+ *
+ * Sorts by placeByField, and calculates extra fields for each doc returned by the query:
+ *  - "place" - index + 1 in current sort mode, before applying filtersAggregation or paginationAggregation
+ *  - "total" - total number of docs before applying filtersAggregation,
+ *  - "totalWithFilters" - total number of docs after aplying filtersAggregation, but before paginationAggregation
+ *  - "percentile" - percentile, determined by "place" and "total" fields
+ *
+ * @param {string} placeByField  - field to pre-sort and determine place by
+ * @param {array} filtersAggregation - aggregation that applies filters
+ * @param {*} paginationAggregation - final aggregation that applies sort, skip(page) and limit at the end of aggregation
+ * @returns {array} aggregation array, that should be spread at the end of Collection.aggregate() arg
+ */
+export const addPlaceAndPercentileAggregation = (
+  placeByField,
+  filtersAggregation,
+  paginationAggregation
+) => [
+  {
+    $facet: {
+      docs: [
+        { $sort: { [placeByField]: -1 } },
+        ...filtersAggregation,
+        ...paginationAggregation,
+      ],
+      meta: [{ $count: "total" }],
+      metaWithFilters: [...filtersAggregation, { $count: "total" }],
+    },
+  },
+  { $unwind: "$meta" },
+  { $unwind: "$metaWithFilters" },
   { $unwind: { path: "$docs", includeArrayIndex: "place" } },
   {
     $addFields: {
-      "docs.place": { $add: ["$place", 1] },
-      "docs.total": "$total",
-      "docs.percentile": percentAggregationOp("$place", "$total", 2),
+      "docs.total": "$meta.total",
+      "docs.totalWithFilters": "$metaWithFilters.total",
+      "docs.place": "$place",
     },
   },
   { $replaceRoot: { newRoot: "$docs" } },
-];
-
-export const addTotalCountAggregation = (totalCountField) => [
-  { $group: { _id: 1, docs: { $push: "$$CURRENT" } } },
-  { $addFields: { total: { $size: "$docs" } } },
-  { $unwind: { path: "$docs" } },
-  { $addFields: { [`docs.${totalCountField}`]: "$total" } },
-  { $replaceRoot: { newRoot: "$docs" } },
+  {
+    $addFields: {
+      percentile: percentAggregationOp("$place", "$total", 2),
+    },
+  },
 ];
 
 export const paginate = (page) => [

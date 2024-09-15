@@ -66,18 +66,17 @@ const shootersQueryAggregation = (params, query) => {
         [placeByField]: { $gt: 0 },
       },
     },
-
-    // filters
-    ...addPlaceAndPercentileAggregation(placeByField),
-    ...(!classFilter ? [] : [{ $match: { class: classFilter } }]),
-    ...(!filterString
-      ? []
-      : [{ $match: textSearchMatch(["memberNumber", "name"], filterString) }]),
-    ..._inconsistencyFilter(inconString),
-
-    // meta
-    ...addTotalCountAggregation("totalWithFilters"),
-    ...multiSortAndPaginate({ sort, order, page }),
+    ...addPlaceAndPercentileAggregation(
+      placeByField,
+      [
+        ...(!classFilter ? [] : [{ $match: { class: classFilter } }]),
+        ...(!filterString
+          ? []
+          : [{ $match: textSearchMatch(["memberNumber", "name"], filterString) }]),
+        ..._inconsistencyFilter(inconString),
+      ],
+      multiSortAndPaginate({ sort, order, page })
+    ),
   ]);
 };
 

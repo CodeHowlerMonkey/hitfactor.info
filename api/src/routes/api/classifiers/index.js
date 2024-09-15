@@ -137,13 +137,16 @@ const _runsAggregation = async ({
       },
     },
 
-    ...addPlaceAndPercentileAggregation("hf"),
-    ...(!filterString
-      ? []
-      : [{ $match: textSearchMatch(["memberNumber", "name"], filterString) }]),
-    ...(!filterClubString ? [] : [{ $match: { clubid: filterClubString } }]),
-    ...addTotalCountAggregation("totalWithFilters"),
-    ...multiSortAndPaginate({ sort, order, page }),
+    ...addPlaceAndPercentileAggregation(
+      "hf",
+      [
+        ...(!filterString
+          ? []
+          : [{ $match: textSearchMatch(["memberNumber", "name"], filterString) }]),
+        ...(!filterClubString ? [] : [{ $match: { clubid: filterClubString } }]),
+      ],
+      multiSortAndPaginate({ sort, order, page })
+    ),
   ]);
 
 const scsaHhfToPeakTime = (classifier, hf) => {
