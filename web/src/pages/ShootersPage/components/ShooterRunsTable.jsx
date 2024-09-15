@@ -67,7 +67,7 @@ const ShooterRunsTable = ({
         loading={loading}
         stripedRows
         /* lazy */
-        value={(classifiers ?? []).map((c) => ({
+        value={(classifiers ?? []).map(c => ({
           ...c,
           sdUnix: new Date(c.sd).getTime(),
         }))}
@@ -92,7 +92,7 @@ const ShooterRunsTable = ({
           field="sdUnix"
           header="Date"
           sortable
-          body={(run) => {
+          body={run => {
             if (!run.whatIf) {
               return new Date(run.sd).toLocaleDateString("en-us", { timeZone: "UTC" });
             }
@@ -117,11 +117,11 @@ const ShooterRunsTable = ({
           header="Classifier"
           sortable
           bodyStyle={{ width: "12rem" }}
-          body={(c) =>
+          body={c =>
             c.whatIf ? (
               <ClassifierDropdown
                 value={c.classifier}
-                onChange={(classifier) => updateWhatIfs(c._id, { classifier })}
+                onChange={classifier => updateWhatIfs(c._id, { classifier })}
               />
             ) : (
               <ClassifierCell
@@ -141,7 +141,7 @@ const ShooterRunsTable = ({
           body={(c, { field }) => {
             if (isSCSA) {
               const time = c[field];
-              return <span>{time.toFixed(2)}</span>;
+              return <span>{(time || 0).toFixed(2)}</span>;
             }
             if (c.whatIf) {
               return <HFEdit id={c._id} value={c.hf} updateWhatIfs={updateWhatIfs} />;
@@ -171,7 +171,7 @@ const ShooterRunsTable = ({
         />
         <Column
           hidden={isHFU}
-          body={(c) => {
+          body={c => {
             if (c.percent > 0) {
               return renderPercent(c, { field: "percent" });
             }
@@ -197,7 +197,7 @@ const ShooterRunsTable = ({
         <Column {...clubMatchColumn} />
         <Column hidden={isHFU} field="source" header="Source" sortable />
         <Column
-          body={(c) =>
+          body={c =>
             !c.whatIf && !whatIf ? (
               <ReportDialog.Button
                 onClick={() => reportDialogRef.current.startReport(c)}

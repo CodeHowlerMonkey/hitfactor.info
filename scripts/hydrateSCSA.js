@@ -1,14 +1,15 @@
 import { connect } from "../api/src/db/index.js";
-import { allDivShortNames, scsaDivisions } from "../shared/constants/divisions.js";
+import { scsaDivisionsShortNames } from "../shared/constants/divisions.js";
 import { RecHHF, rehydrateRecHHF } from "../api/src/db/recHHF.js";
 import {
   Classifier,
   singleClassifierExtendedMetaDoc,
 } from "../api/src/db/classifiers.js";
+import { uploadLoop } from "../api/src/worker/uploads.js";
+import { Matches } from "../api/src/db/matches.js";
 
-const hydrateScsa = async () => {
-  const scsaLongNames = scsaDivisions.map((x) => x.long);
-  await rehydrateRecHHF(scsaLongNames, [
+const hydrateScsaClassifiers = async () => {
+  await rehydrateRecHHF(scsaDivisionsShortNames, [
     "SC-101",
     "SC-102",
     "SC-103",
@@ -29,7 +30,7 @@ const hydrateScsa = async () => {
     "SC-107",
     "SC-108",
   ]
-    .map((classifier) => scsaLongNames.map((div) => [classifier, div].join(":")))
+    .map(classifier => scsaDivisionsShortNames.map(div => [classifier, div].join(":")))
     .flat();
 
   const recHHFs = await RecHHF.find({ classifierDivision: { $in: classifierDivisions } })
@@ -64,7 +65,17 @@ const hydrateScsa = async () => {
 
 const migrate = async () => {
   await connect();
-  await hydrateScsa();
+
+  console.log("marking all SCSA as not uploaded");
+  const matchesUpdate = await Matches.updateMany(
+    { templateName: "Steel Challenge" },
+    { $unset: { uploaded: true } }
+  );
+  console.log("matchesResult = ");
+  console.log(JSON.stringify(matchesUpdate, null, 2));
+
+  await uploadLoop({ skipAfterUploadHydration: true, batchSize: 20 });
+  await hydrateScsaClassifiers();
 };
 
 migrate();
