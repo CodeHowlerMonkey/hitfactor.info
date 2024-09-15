@@ -2,7 +2,6 @@ import { Column } from "primereact/column";
 import { DataTable } from "primereact/datatable";
 
 import {
-  divShortToLong,
   hfuDivisionsShortNames,
   nameForDivision,
   sportForDivision,
@@ -83,9 +82,9 @@ export const ShooterInfoTable = ({ info, division, memberNumber, loading }) => {
   const { name } = info;
   const sport = sportForDivision(division);
   const isHFU = sport === "hfu";
-  const isSCSA = sport === "scsa";
-
   const divisions = isHFU ? hfuDivisionsShortNames : uspsaDivShortNames;
+  const isUspsa = sport === "uspsa";
+  const isSCSA = sport === "scsa";
 
   return (
     <div className="h-full flex flex-wrap">
@@ -93,7 +92,7 @@ export const ShooterInfoTable = ({ info, division, memberNumber, loading }) => {
         <h4 className="hidden mx-3 md:block md:text-lg lg:text-xl w-max">
           {[memberNumber, name, nameForDivision(division)].filter(Boolean).join(" - ")}
         </h4>
-        {!isHFU && !isSCSA && (
+        {isUspsa && (
           <DataTable
             loading={loading}
             className="text-xs md:text-base"
@@ -127,7 +126,7 @@ export const ShooterInfoTable = ({ info, division, memberNumber, loading }) => {
             <Column field="v" align="right" />
           </DataTable>
         )}
-        {!isSCSA && (
+        {(isUspsa || isHFU) && (
           <DataTable
             className="text-xs md:text-base"
             size="small"
