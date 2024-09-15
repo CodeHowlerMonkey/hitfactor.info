@@ -20,7 +20,7 @@ import { classForPercent } from "../../../../../shared/utils/classification.js";
 import { sportForDivision } from "../../../dataUtil/divisions.js";
 
 const DEFAULT_PLACE_BY = "reclassificationsRecPercentCurrent";
-const placeByFieldForSort = (sort) => {
+const placeByFieldForSort = sort => {
   if (sort && ["current", "reclassificationsCurPercentCurrent"].includes(sort)) {
     return sort;
   }
@@ -28,7 +28,7 @@ const placeByFieldForSort = (sort) => {
   return DEFAULT_PLACE_BY;
 };
 
-const _inconsistencyFilter = (inconString) => {
+const _inconsistencyFilter = inconString => {
   if (!inconString) {
     return [];
   }
@@ -105,14 +105,14 @@ const shootersRoutes = async (fastify, opts) => {
     ]);
 
     const data = multisort(scoresData, sort?.split?.(","), order?.split?.(",")).map(
-      (c) => ({
+      c => ({
         ...c,
         classifierInfo: basicInfoForClassifierCode(c?.classifier),
-        hf: division.startsWith('scsa') ? Number(c.stageTimeSecs) : c.hf
+        hf: division.startsWith("scsa") ? Number(c.stageTimeSecs) : c.hf,
       })
     );
 
-    const info = infos.find((s) => s.division === division) || {};
+    const info = infos.find(s => s.division === division) || {};
     info.classificationByDivision = infos.reduce((acc, cur) => {
       const {
         reclassificationsCurPercentCurrent: curHHFCurrent,
@@ -172,7 +172,7 @@ const shootersRoutes = async (fastify, opts) => {
       .limit(0);
 
     return shootersTable
-      .map((c) => ({
+      .map(c => ({
         curPercent: c.current,
         curHHFPercent: c.reclassificationsCurPercentCurrent,
         recPercent: c.reclassificationsRecPercentCurrent,

@@ -60,7 +60,7 @@ export const addPlaceAndPercentileAggregation = (
   },
 ];
 
-export const paginate = (page) => [
+export const paginate = page => [
   { $skip: ((Number(page) || 1) - 1) * PAGE_SIZE },
   { $limit: PAGE_SIZE },
 ];
@@ -74,7 +74,7 @@ export const multiSortAndPaginate = ({ sort, order, page }) => [
 
 // 🤌🤌🤌
 export const textSearchMatch = (fields, filterString) => ({
-  $or: fields.map((f) => ({
+  $or: fields.map(f => ({
     [f]: new RegExp(".*" + escapeRegExp(filterString) + ".*", "i"),
   })),
 });

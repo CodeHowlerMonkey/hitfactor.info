@@ -16,7 +16,6 @@ import {
 import { RecHHF } from "../../../db/recHHF.js";
 import {
   addPlaceAndPercentileAggregation,
-  addTotalCountAggregation,
   multiSortAndPaginate,
   percentAggregationOp,
   textSearchMatch,
@@ -26,20 +25,20 @@ import {
   hfuDivisionsShortNamesThatNeedMinorHF,
 } from "../../../dataUtil/divisions.js";
 
-const _getShooterField = (field) => ({
+const _getShooterField = field => ({
   $getField: {
     input: { $arrayElemAt: ["$shooters", 0] },
     field,
   },
 });
-const _getRecHHFField = (field) => ({
+const _getRecHHFField = field => ({
   $getField: {
     input: { $arrayElemAt: ["$rechhfs", 0] },
     field,
   },
 });
 
-const _replaceHFWithMinorHFIfNeeded = (division) =>
+const _replaceHFWithMinorHFIfNeeded = division =>
   !hfuDivisionsShortNamesThatNeedMinorHF.includes(division)
     ? []
     : [
@@ -52,7 +51,7 @@ const _replaceHFWithMinorHFIfNeeded = (division) =>
       ];
 
 // override division and all division-derived fields to given division, used for correct lookup of HFU scores, even when they came from another division
-const _overwriteDivision = (division) => ({
+const _overwriteDivision = division => ({
   $addFields: {
     originalDivision: "$division",
     division,
@@ -157,7 +156,7 @@ const scsaHhfToPeakTime = (classifier, hf) => {
 const classifiersRoutes = async (fastify, opts) => {
   fastify.get("/", (req, res) => classifiers.map(basicInfoForClassifier));
 
-  fastify.get("/:division", async (req) => {
+  fastify.get("/:division", async req => {
     const { division } = req.params;
     const [classifiers, classifiersAllDivQuality] = await Promise.all([
       Classifier.find({ division, classifier: { $exists: true, $ne: null } }),
@@ -165,7 +164,7 @@ const classifiersRoutes = async (fastify, opts) => {
         ? allScsaDivisionClassifiersQuality()
         : allDivisionClassifiersQuality(),
     ]);
-    return classifiers.map((c) => {
+    return classifiers.map(c => {
       const cur = c.toObject({ virtuals: true });
       cur.allDivQuality = classifiersAllDivQuality[cur.classifier];
       if (division.startsWith("scsa")) {
@@ -178,7 +177,7 @@ const classifiersRoutes = async (fastify, opts) => {
 
   fastify.get("/info/:division/:number", async (req, res) => {
     const { division, number } = req.params;
-    const c = classifiers.find((cur) => cur.classifier === number);
+    const c = classifiers.find(cur => cur.classifier === number);
 
     if (!c) {
       res.statusCode = 404;
