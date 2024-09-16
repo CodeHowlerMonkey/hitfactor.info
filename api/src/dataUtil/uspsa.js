@@ -5,7 +5,7 @@ const fallbackData = loadJSON("../../data/meta/all.json");
 const _psClassUpdatesByMemberNumber = async () => {
   let shooterObjects = fallbackData;
   try {
-    shooterObjects = await fetchPSClassUpdates();
+    // shooterObjects = await fetchPSClassUpdates();
   } catch (e) {
     console.log("fallback crash");
   }
