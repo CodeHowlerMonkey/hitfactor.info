@@ -33,7 +33,7 @@ export const fetchPSClassUpdateCSVTextFile = async () => {
   return [];
 };
 
-export const practiscoreClassUpdateFromTextFile = async text => {
+export const practiscoreClassUpdateFromTextFile = (text) => {
   const lines = text.split("\n");
   if (!lines.length) {
     return null;
