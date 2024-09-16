@@ -78,3 +78,8 @@ export const practiscoreClassUpdateFromTextFile = (text) => {
       };
     });
 };
+
+export const fetchPSClassUpdates = async () => {
+  const text = await fetchPSClassUpdateCSVTextFile();
+  return practiscoreClassUpdateFromTextFile(text);
+};
