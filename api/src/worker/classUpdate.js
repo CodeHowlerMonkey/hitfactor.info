@@ -21,16 +21,14 @@ const isValidDate = (jsDate) => !Number.isNaN(jsDate.getTime());
 
 export const fetchPSClassUpdateCSVTextFile = async () => {
   try {
-    const response = await fetch(
-      "https://uspsa.org/practiscore/practiscore_class_update.txt"
-    );
+    const response = await fetch(process.env.PS_CLASS_UPDATE_URL);
     return response.text();
   } catch (err) {
     console.error("failed to fetch text lines");
     console.error(err);
   }
 
-  return [];
+  return "";
 };
 
 export const practiscoreClassUpdateFromTextFile = (text) => {
