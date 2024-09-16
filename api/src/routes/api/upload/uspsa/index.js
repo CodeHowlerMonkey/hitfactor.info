@@ -10,6 +10,11 @@ import {
   afterUpload,
   classifiersAndShootersFromScores,
 } from "../../../../worker/uploads.js";
+import {
+  fetchPSClassUpdateCSVTextFile,
+  practiscoreClassUpdateFromTextFile,
+} from "../../../../worker/classUpdate.js";
+import { saveActiveMembersFromPSClassUpdate } from "../../../../db/activeMembers.js";
 
 const delay = (ms) => {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -83,6 +88,21 @@ const loginToUSPSA = async (username, password) => {
 };
 
 const uspsaUploadRoutes = async (fastify, opts) => {
+  fastify.post("/activeMembers", async (req, res) => {
+    const text = await fetchPSClassUpdateCSVTextFile();
+    if (!text) {
+      return { error: "no text" };
+    }
+    const update = practiscoreClassUpdateFromTextFile(text);
+    if (!update) {
+      console.log(text);
+      return { error: "failed to parse", text };
+    }
+
+    const result = await saveActiveMembersFromPSClassUpdate(update);
+    return { result };
+  });
+
   fastify.post("/", async (req, res) => {
     return {
       error:
