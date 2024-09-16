@@ -17,7 +17,7 @@ const fieldNameMap = {
   Generated: "generated",
 };
 
-const isValidDate = jsDate => !Number.isNaN(jsDate.getTime());
+const isValidDate = (jsDate) => !Number.isNaN(jsDate.getTime());
 
 export const fetchPSClassUpdateCSVTextFile = async () => {
   try {
@@ -40,9 +40,9 @@ export const practiscoreClassUpdateFromTextFile = (text) => {
   }
 
   // parse $INFO & generated date
-  const infoLines = lines.filter(line => line.startsWith("$INFO"));
+  const infoLines = lines.filter((line) => line.startsWith("$INFO"));
   const infoLinesObject = Object.fromEntries(
-    infoLines.map(line => {
+    infoLines.map((line) => {
       const [infoLineKey, infoLineValue] = line.replace(/^\$INFO\s/, "").split(" ");
       return [fieldNameMap[infoLineKey] || infoLineKey, infoLineValue];
     })
@@ -54,15 +54,15 @@ export const practiscoreClassUpdateFromTextFile = (text) => {
   }
 
   // parse & return CSV with extra & transformed values
-  const fieldsLine = lines.find(line => line.startsWith("$FIELDS"));
+  const fieldsLine = lines.find((line) => line.startsWith("$FIELDS"));
   if (!fieldsLine) {
     console.error("no $FIELDS detected");
     return null;
   }
   const fields = fieldsLine.split("$FIELDS ").filter(Boolean)[0].split(",");
   return lines
-    .filter(curLine => !curLine.startsWith("$"))
-    .map(curLine => {
+    .filter((curLine) => !curLine.startsWith("$"))
+    .map((curLine) => {
       const curLineAsObject = Object.fromEntries(
         curLine.split(",").map((value, index) => [fieldNameMap[fields[index]], value])
       );
