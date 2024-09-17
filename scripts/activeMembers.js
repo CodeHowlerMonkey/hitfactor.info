@@ -27,6 +27,8 @@ const go = async () => {
   await connect();
   const dbResult = await saveActiveMembersFromPSClassUpdate(update);
   console.log(dbResult);
+
+  process.exit(0);
 };
 
 go();
