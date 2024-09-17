@@ -9,7 +9,7 @@ export const connect = async () => {
   const { LOCAL_DEV, MONGO_URL, MONGO_URL_LOCAL } = process.env;
   const url = !LOCAL_DEV ? MONGO_URL : MONGO_URL_LOCAL;
 
-  const publicLogsDBName = url.split("@")[1].split(".")[0];
+  const publicLogsDBName = url.split("@")[1]?.split(".")[0] || "local";
 
   if (!LOCAL_DEV && !MONGO_URL) {
     throw new Error(
