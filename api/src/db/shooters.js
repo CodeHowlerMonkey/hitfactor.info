@@ -21,7 +21,7 @@ import { getField, percentAggregationOp } from "./utils.js";
 import { psClassUpdatesByMemberNumber } from "../dataUtil/uspsa.js";
 
 const memberIdToNumberMap = loadJSON("../../data/meta/memberIdToNumber.json");
-const memberNumberFromMemberData = (memberData) => {
+const memberNumberFromMemberData = memberData => {
   try {
     const easy = memberData.member_number;
     if (!easy || easy.trim().toLowerCase() === "private") {
@@ -116,7 +116,7 @@ export const reduceByDiv = (classifications, valueFn) =>
  * Selects all scores of multiple shooters (all divisions).
  * Used for reclassification (HQ alg makes divisions cross-dependent for C flag)
  */
-export const allDivisionsScores = async (memberNumbers) => {
+export const allDivisionsScores = async memberNumbers => {
   const query = Score.find({
     memberNumber: { $in: memberNumbers },
     bad: { $ne: true },
@@ -126,10 +126,10 @@ export const allDivisionsScores = async (memberNumbers) => {
     .sort({ sd: -1 });
   const data = await query;
 
-  return data.map((doc) => doc.toObject({ virtuals: true }));
+  return data.map(doc => doc.toObject({ virtuals: true }));
 };
 
-export const allDivisionsScoresByMemberNumber = async (memberNumbers) => {
+export const allDivisionsScoresByMemberNumber = async memberNumbers => {
   const scores = await allDivisionsScores(memberNumbers);
   return scores.reduce((acc, cur) => {
     let curMemberScores = acc[cur.memberNumber] ?? [];
@@ -182,7 +182,7 @@ const _addHFUDivisions = () => [
   },
 ];
 
-export const scoresForRecommendedClassification = (memberNumbers) =>
+export const scoresForRecommendedClassification = memberNumbers =>
   Score.aggregate([
     {
       $match: {
@@ -315,7 +315,7 @@ export const scoresForRecommendedClassification = (memberNumbers) =>
     { $sort: { sd: -1, recPercent: -1 } },
   ]);
 
-export const scoresForRecommendedClassificationByMemberNumber = async (memberNumbers) => {
+export const scoresForRecommendedClassificationByMemberNumber = async memberNumbers => {
   const scores = await scoresForRecommendedClassification(memberNumbers);
   return scores.reduce((acc, cur) => {
     let curMemberScores = acc[cur.memberNumber] ?? [];
@@ -327,13 +327,13 @@ export const scoresForRecommendedClassificationByMemberNumber = async (memberNum
 
 const reclassificationBreakdown = (reclassificationInfo, division) => ({
   current: reclassificationInfo?.[division]?.percent,
-  currents: mapDivisions((div) => reclassificationInfo?.[div]?.percent),
+  currents: mapDivisions(div => reclassificationInfo?.[div]?.percent),
   class: classForPercent(reclassificationInfo?.[division]?.percent),
-  classes: mapDivisions((div) => classForPercent(reclassificationInfo?.[div]?.percent)),
+  classes: mapDivisions(div => classForPercent(reclassificationInfo?.[div]?.percent)),
 });
 
 // upload from uspsa api
-export const shooterObjectsFromClassificationFile = async (c) => {
+export const shooterObjectsFromClassificationFile = async c => {
   if (!c?.member_data) {
     return [];
   }
@@ -349,13 +349,13 @@ const shooterObjectsForMemberNumber = (c, recMemberScores, curMemberScores) => {
     return [];
   }
   const memberNumber = memberNumberFromMemberData(c.member_data);
-  const hqClasses = reduceByDiv(c.classifications, (r) => r.class);
-  const hqCurrents = reduceByDiv(c.classifications, (r) => Number(r.current_percent));
+  const hqClasses = reduceByDiv(c.classifications, r => r.class);
+  const hqCurrents = reduceByDiv(c.classifications, r => Number(r.current_percent));
   const recalcByCurPercent = calculateUSPSAClassification(curMemberScores, "curPercent");
   const recalcByRecPercent = calculateUSPSAClassification(recMemberScores, "recPercent");
 
   return Object.values(
-    mapDivisions((division) => {
+    mapDivisions(division => {
       const recalcDivCur = reclassificationBreakdown(recalcByCurPercent, division);
       const recalcDivRec = reclassificationBreakdown(recalcByRecPercent, division);
 
@@ -405,16 +405,16 @@ const shooterObjectsForMemberNumber = (c, recMemberScores, curMemberScores) => {
 };
 
 // hydration from uspsa json files
-const processBatchHydrateShooters = async (batch) => {
-  batch = batch.filter((c) => !!c?.member_data);
-  const memberNumbers = batch.map((c) => memberNumberFromMemberData(c.member_data));
+const processBatchHydrateShooters = async batch => {
+  batch = batch.filter(c => !!c?.member_data);
+  const memberNumbers = batch.map(c => memberNumberFromMemberData(c.member_data));
   const [recScoresByMemberNumber, curScoresByMemberNumber] = await Promise.all([
     scoresForRecommendedClassificationByMemberNumber(memberNumbers),
     allDivisionsScoresByMemberNumber(memberNumbers),
   ]);
 
   const shooterObjects = batch
-    .map((c) => {
+    .map(c => {
       const memberNumber = memberNumberFromMemberData(c.member_data);
       return shooterObjectsForMemberNumber(
         c,
@@ -425,7 +425,7 @@ const processBatchHydrateShooters = async (batch) => {
     .flat();
 
   await Shooter.bulkWrite(
-    shooterObjects.map((s) => ({
+    shooterObjects.map(s => ({
       updateOne: {
         filter: {
           memberNumber: s.memberNumber,
@@ -440,7 +440,7 @@ const processBatchHydrateShooters = async (batch) => {
 };
 
 // hydration from uspsa json files
-const batchHydrateShooters = async (letter) => {
+const batchHydrateShooters = async letter => {
   process.stdout.write("\n");
   process.stdout.write(letter);
   process.stdout.write(": ");
@@ -450,7 +450,7 @@ const batchHydrateShooters = async (letter) => {
   await processImportAsyncSeq(
     "../../data/imported",
     new RegExp(`classification\\.${letter}\\.\\d+\\.json`),
-    async (obj) => {
+    async obj => {
       curBatch.push(obj.value);
       if (curBatch.length >= 128) {
         await processBatchHydrateShooters(curBatch);
@@ -479,11 +479,9 @@ export const hydrateShooters = async () => {
   console.timeEnd("shooters");
 };
 
-export const reclassifyShooters = async (shooters) => {
+export const reclassifyShooters = async shooters => {
   try {
-    const memberNumbers = uniqBy(shooters, (s) => s.memberNumber).map(
-      (s) => s.memberNumber
-    );
+    const memberNumbers = uniqBy(shooters, s => s.memberNumber).map(s => s.memberNumber);
     const [recScoresByMemberNumber, curScoresByMemberNumber, psClassUpdates] =
       await Promise.all([
         scoresForRecommendedClassificationByMemberNumber(memberNumbers),
@@ -495,7 +493,7 @@ export const reclassifyShooters = async (shooters) => {
       .filter(({ memberNumber, division, name }) => {
         // TODO: Implement Reclassify Shooters for SCSA
         // https://github.com/CodeHowlerMonkey/hitfactor.info/issues/69
-        return memberNumber && uspsaDivShortNames.find((x) => x === division);
+        return memberNumber && uspsaDivShortNames.find(x => x === division);
       })
       .map(({ memberNumber, division, name }) => {
         if (!memberNumber) {

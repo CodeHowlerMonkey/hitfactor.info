@@ -89,6 +89,7 @@ const loginToUSPSA = async (username, password) => {
 
 const uspsaUploadRoutes = async (fastify, opts) => {
   fastify.post("/activeMembers", async (req, res) => {
+    return { error: "disabled" };
     const text = await fetchPSClassUpdateCSVTextFile();
     if (!text) {
       return { error: "no text" };

@@ -9,6 +9,8 @@ export const connect = async () => {
   const { LOCAL_DEV, MONGO_URL, MONGO_URL_LOCAL } = process.env;
   const url = !LOCAL_DEV ? MONGO_URL : MONGO_URL_LOCAL;
 
+  const publicLogsDBName = url.split("@")[1].split(".")[0];
+
   if (!LOCAL_DEV && !MONGO_URL) {
     throw new Error(
       `Environment Variable MONGO_URL must be specified in top-level environment variables in sandbox mode.`
@@ -32,7 +34,7 @@ export const connect = async () => {
     await _connect();
   });
   mongoose.connection.on("connected", function () {
-    console.error("DB: connected");
+    console.error(`DB: connected to ${publicLogsDBName}`);
   });
 
   mongoose.connection.on("reconnected", function () {

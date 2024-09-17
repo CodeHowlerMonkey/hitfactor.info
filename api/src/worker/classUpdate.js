@@ -30,7 +30,7 @@ export const fetchPSClassUpdateCSVTextFile = async () => {
     console.error(err);
   }
 
-  return [];
+  return "";
 };
 
 export const practiscoreClassUpdateFromTextFile = (text) => {
@@ -79,4 +79,9 @@ export const practiscoreClassUpdateFromTextFile = (text) => {
         generated,
       };
     });
+};
+
+export const fetchPSClassUpdates = async () => {
+  const text = await fetchPSClassUpdateCSVTextFile();
+  return practiscoreClassUpdateFromTextFile(text);
 };

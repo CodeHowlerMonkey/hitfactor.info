@@ -22,6 +22,7 @@
     "uploadsWorkerLocal": "MONGO_URL=mongodb://localhost:27017 NODE_OPTIONS='--max-old-space-size=512' node scripts/uploadsWorker.js",
     "========================= USPSA Import Scripts ============================": "",
     "import": "node scripts/import.js",
+    "members": "node scripts/activeMembers.js",
     "========================= Database Scripts ============================": "",
     "hydrate-local": "LOCAL_DEV=1 node scripts/hydrateMongo.js",
     "hydrate": "node scripts/hydrateMongo.js",
