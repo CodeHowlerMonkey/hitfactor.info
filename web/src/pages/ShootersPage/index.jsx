@@ -23,8 +23,8 @@ const ShootersPage = () => {
   const navigate = useNavigate();
   const { division, memberNumber } = useParams();
   const onDivisionSelect = useCallback(
-    division => navigate(`/shooters/${division}/${memberNumber || ""}`),
-    [navigate, division, memberNumber],
+    curDivision => navigate(`/shooters/${curDivision}/${memberNumber || ""}`),
+    [navigate, memberNumber],
   );
   const onBackToShooters = useCallback(
     () => navigate(`/shooters/${division}`),
@@ -38,7 +38,9 @@ const ShootersPage = () => {
         {division && !memberNumber && (
           <ShootersTable
             division={division}
-            onShooterSelection={memberNumber => navigate(`./${memberNumber}`)}
+            onShooterSelection={selectedMemberNumber =>
+              navigate(`./${selectedMemberNumber}`)
+            }
           />
         )}
         {memberNumber && (
@@ -80,7 +82,6 @@ const useShooterTableData = ({ division, memberNumber }) => {
       });
       setClassifiers(result.scores);
       setWhatIf(result.whatIf);
-      // console.log(JSON.stringify({ result }, null, 2));
     }
   };
   const debouncedRefetchWhatIfs = useDebouncedCallback(refetchWhatIfs, 500);
@@ -95,7 +96,7 @@ const useShooterTableData = ({ division, memberNumber }) => {
     setWhatIf(null);
   }, [division, memberNumber]);
 
-  const addWhatIf = useCallback(() => {
+  const addWhatIf = () => {
     setWhatIf(
       prevWhatIf =>
         prevWhatIf ?? {
@@ -110,11 +111,10 @@ const useShooterTableData = ({ division, memberNumber }) => {
       ];
       return result;
     });
-  });
+  };
 
   const updateWhatIfs = useCallback(
     (id, changes = {}, noDebounce = false) => {
-      let isDelete = false;
       const whatIfClassifiers = classifiers
         .map(c => {
           if (c._id === id) {
@@ -124,7 +124,6 @@ const useShooterTableData = ({ division, memberNumber }) => {
             }
 
             if (c.delete) {
-              isDelete = true;
               return null;
             }
           }
@@ -140,7 +139,7 @@ const useShooterTableData = ({ division, memberNumber }) => {
         debouncedRefetchWhatIfs(whatIfClassifiers);
       }
     },
-    [classifiers],
+    [classifiers], // eslint-disable-line
   );
 
   return {
@@ -159,11 +158,10 @@ const useShooterTableData = ({ division, memberNumber }) => {
 export const ShooterRunsAndInfo = ({ division, memberNumber, onBackToShooters }) => {
   const navigate = useNavigate();
   const isSCSA = useIsSCSA();
-  const { info, downloadUrl, addWhatIf, resetWhatIfs, ...tableData } =
-    useShooterTableData({
-      division,
-      memberNumber,
-    });
+  const { info, addWhatIf, resetWhatIfs, ...tableData } = useShooterTableData({
+    division,
+    memberNumber,
+  });
   const { loading, whatIf } = tableData;
   const { name } = info;
 

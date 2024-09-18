@@ -115,7 +115,7 @@ const xLinesForHHF = (prefix, hhf) =>
       };
 
 // "Cur. HHF Percent" => curHHFPercent
-const modeBucketForMode = (mode) =>
+const modeBucketForMode = mode =>
   ({
     Official: "curPercent",
     "Current CHHF": "curHHFPercent",
@@ -212,7 +212,7 @@ export const ScoresChart = ({
             pointBorderColor: "white",
             pointBorderWidth: 0,
             backgroundColor: "#ae9ef1",
-            pointBackgroundColor: data?.map((c) => {
+            pointBackgroundColor: data?.map(c => {
               if (sport === "scsa") {
                 return bgColorForClass[classForPercent(c.scoreRecPercent || 0)];
               }
@@ -252,7 +252,7 @@ export const ScoresChart = ({
               allowEmpty={false}
               options={modes}
               value={mode}
-              onChange={(e) => setMode(e.value)}
+              onChange={e => setMode(e.value)}
               style={{ margin: "auto", transform: "scale(0.65)" }}
             />
           </div>
@@ -271,7 +271,7 @@ export const ScoresChart = ({
             allowEmpty={false}
             options={modes}
             value={mode}
-            onChange={(e) => setMode(e.value)}
+            onChange={e => setMode(e.value)}
             style={{ transform: "scale(0.65)" }}
           />
         </div>
