@@ -178,10 +178,12 @@ export const ScoresChart = ({
           },
           tooltip: {
             callbacks: {
-              label: ({ raw, raw: { x, y, memberNumber } }) =>
-                `HF ${x}, Top ${y}%: ${memberNumber}(${raw[
-                  modeBucketForMode(mode)
-                ].toFixed(2)}%)`,
+              label: ({ raw, raw: { x, y, memberNumber } }) => {
+                // TODO: show classificaiton for SCSA when available
+                const classification =
+                  sport !== "scsa" ? `(${raw[modeBucketForMode(mode)].toFixed(2)}%)` : "";
+                return `HF ${x}, Top ${y}%: ${memberNumber}${classification}`;
+              },
             },
           },
           annotation: {
