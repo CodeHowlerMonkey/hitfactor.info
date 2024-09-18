@@ -182,21 +182,23 @@ export const ShooterRunsAndInfo = ({ division, memberNumber, onBackToShooters })
             Shooters List
           </Button>
         )}
-        <h4 className={cx("m-auto", { "md:hidden": !isSCSA })}>
+        <h3 className={cx("m-auto mt-4", { "md:hidden": !isSCSA })}>
           {[memberNumber, name, nameForDivision(division)].filter(Boolean).join(" - ")}
-        </h4>
+        </h3>
       </div>
-      {!isSCSA && (
-        <>
-          <ShooterInfoTable
-            info={info}
-            division={division}
-            memberNumber={memberNumber}
-            loading={loading}
-          />
-          <Divider />
-        </>
+      {!isSCSA ? (
+        <ShooterInfoTable
+          info={info}
+          division={division}
+          memberNumber={memberNumber}
+          loading={loading}
+        />
+      ) : (
+        <h5 className="text-color-secondary text-center">
+          Steel Challenge Classification & Ratings Coming Soon
+        </h5>
       )}
+      <Divider />
       <div className="flex justify-content-between">
         <h4 className="block md:text-lg lg:text-xl">Scores</h4>
         {whatIf && (
