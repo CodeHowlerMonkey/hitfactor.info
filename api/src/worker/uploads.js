@@ -793,7 +793,6 @@ export const uploadLoop = async ({
   skipAfterUploadHydration = false,
   batchSize = 4,
 } = {}) => {
-  // TODO: add Steel Challenge here once supported
   const onlyUSPSAorSCSA = { templateName: { $in: ["USPSA", "Steel Challenge"] } };
   const count = await Matches.countDocuments(matchesForUploadFilter(onlyUSPSAorSCSA));
   console.log(count + " uploads in the queue (USPSA, SCSA only)");
