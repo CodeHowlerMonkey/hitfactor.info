@@ -192,7 +192,7 @@ export const ScoresChart = ({
               ...yLine("40th", 40, annotationColor(0.3)),
               ...yLine("80th", 80, annotationColor(0.2)),
 
-              ...(sport === "uspsa" ? xLinesForHHF("", hhf) : []),
+              ...(sport === "uspsa" || sport === "scsa" ? xLinesForHHF("", hhf) : []),
               ...(recHHF
                 ? xLinesForHHF("r", recHHF)
                 : {
