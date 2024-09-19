@@ -1,11 +1,13 @@
-import { useCallback } from "react";
-import { DivisionNavigation } from "../../components";
-import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "primereact/button";
-import ClassifiersTable from "./components/ClassifiersTable";
-import RunsTable, { useRunsTableData } from "../../components/RunsTable";
-import ClassifierInfoTable from "./components/ClassifierInfoTable";
+import { useCallback } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+
+import { DivisionNavigation } from "../../components";
+import RunsTable from "../../components/RunsTable";
 import { useApi } from "../../utils/client";
+
+import ClassifierInfoTable from "./components/ClassifierInfoTable";
+import ClassifiersTable from "./components/ClassifiersTable";
 
 // TODO: shooters table for single classifier? # attempts, low HF, high HF, same for percent, same for curPercent
 // TODO: all classifiers total number of reshoots (non-uniqueness)
@@ -35,12 +37,12 @@ const ClassifiersPage = () => {
   );
   const onBackToClassifiers = useCallback(
     () => navigate(`/classifiers/${division}`),
-    [navigate, division]
+    [navigate, division],
   );
-  const onShooterSelection = (memberNumber) =>
+  const onShooterSelection = memberNumber =>
     navigate(`/shooters/${division}/${memberNumber}`);
 
-  const onClubSelection = (club) => navigate("/clubs/" + club);
+  const onClubSelection = club => navigate(`/clubs/${club}`);
 
   return (
     <div>
@@ -49,7 +51,7 @@ const ClassifiersPage = () => {
         {division && !classifier && (
           <ClassifiersTable
             division={division}
-            onClassifierSelection={(classifierCode) => navigate("./" + classifierCode)}
+            onClassifierSelection={classifierCode => navigate(`./${classifierCode}`)}
           />
         )}
         {classifier && (
