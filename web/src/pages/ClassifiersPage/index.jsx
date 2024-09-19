@@ -10,12 +10,28 @@ import { useApi } from "../../utils/client";
 // TODO: shooters table for single classifier? # attempts, low HF, high HF, same for percent, same for curPercent
 // TODO: all classifiers total number of reshoots (non-uniqueness)
 
+const divisionsHaveSameClassifiers = (a, b) => {
+  if (a.startsWith("scsa_") && !b.startsWith("scsa_")) {
+    return false;
+  }
+  if (b.startsWith("scsa_") && !a.startsWith("scsa_")) {
+    return false;
+  }
+
+  return true;
+};
+
 const ClassifiersPage = () => {
   const navigate = useNavigate();
   const { division, classifier } = useParams();
   const onDivisionSelect = useCallback(
-    (division) => navigate(`/classifiers/${division}/${classifier || ""}`),
-    [navigate, division, classifier]
+    newDivision => {
+      const newClassifier = divisionsHaveSameClassifiers(division || "", newDivision)
+        ? classifier
+        : "";
+      navigate(`/classifiers/${newDivision}/${newClassifier || ""}`);
+    },
+    [navigate, division, classifier],
   );
   const onBackToClassifiers = useCallback(
     () => navigate(`/classifiers/${division}`),
