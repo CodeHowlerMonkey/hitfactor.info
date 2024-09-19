@@ -1,50 +1,36 @@
-import { useState } from "react";
+import { Column } from "primereact/column";
 import { DataTable } from "primereact/datatable";
 import { InputText } from "primereact/inputtext";
-import { Column } from "primereact/column";
+import { useState } from "react";
 
-import { useApi } from "../../../utils/client";
-import useTableSort from "../../../components/Table/useTableSort";
-// import { headerTooltipOptions } from "../../../components/Table";
-import { classifierCodeSort, dateSort, numSort } from "../../../../../shared/utils/sort";
+import {
+  classifierCodeSort,
+  dateSort,
+  numSort,
+  stringSort,
+} from "../../../../../shared/utils/sort";
 import ClassifierCell from "../../../components/ClassifierCell";
-import { letterRatingForPercent, renderHFOrNA, renderPercent } from "../../../components/Table";
-
-const compactPercentColumnStyle = {
-  headerStyle: { width: "64px", padding: "16px 4px", fontSize: "0.8rem" },
-  bodyStyle: {
-    width: "64px",
-    padding: "16px 4px",
-    fontSize: "0.85rem",
-    textAlign: "center",
-  },
-};
-
-const compactNumberColumnStyle = {
-  headerStyle: { width: "100px", padding: "16px 8px", fontSize: "0.85rem" },
-  bodyStyle: {
-    width: "100px",
-    padding: "16px 8px",
-    textAlign: "right",
-  },
-};
+import { letterRatingForPercent, renderPercent } from "../../../components/Table";
+import useTableSort from "../../../components/Table/useTableSort";
+import { useApi } from "../../../utils/client";
 
 const ClassifiersTable = ({ division, onClassifierSelection }) => {
   const isSCSA = division.startsWith("scsa");
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { resetSort, ...sortProps } = useTableSort({
     initial: { field: "code", order: 1 },
   });
   const [filter, setFilter] = useState("");
   const sortState = sortProps;
 
-  const downloadUrl = "/api/classifiers/download/" + division;
-  //division = null;
-  const { json: dataRaw, loading } = useApi("/classifiers/" + (division ?? ""));
+  const { json: dataRaw, loading } = useApi(`/classifiers/${division ?? ""}`);
   const data = (dataRaw ?? [])
-    .map((d) => ({
+    .map(d => ({
       ...d,
       updated: new Date(d.updated).toLocaleDateString("en-us", { timeZone: "UTC" }),
       recHHFChange: d.hhf - d.recHHF,
+      recHHFChangePercent: 100 * (d.hhf / d.recHHF - 1),
     }))
     .sort((a, b) => {
       switch (sortState.sortField) {
@@ -57,15 +43,14 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
         default:
           if (typeof a[sortState.sortField] === "string") {
             return stringSort(a, b, sortState.sortField, sortState.sortOrder);
-          } else {
-            return numSort(a, b, sortState.sortField, sortState.sortOrder);
           }
+          return numSort(a, b, sortState.sortField, sortState.sortOrder);
       }
     })
     .filter(
-      (cur) =>
+      cur =>
         !filter ||
-        (cur.code + "###" + cur.name).toLowerCase().includes(filter.toLowerCase())
+        `${cur.code}###${cur.name}`.toLowerCase().includes(filter.toLowerCase()),
     );
 
   return (
@@ -75,7 +60,7 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
       style={{ maxWidth: "840px", margin: "auto" }}
       loading={loading}
       showGridlines
-      selectionMode={"single"}
+      selectionMode="single"
       selection={null}
       onSelectionChange={({ value }) => onClassifierSelection(value.code)}
       stripedRows
@@ -87,20 +72,10 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
             <InputText
               className="w-12"
               value={filter}
-              onChange={(e) => setFilter(e.target.value)}
+              onChange={e => setFilter(e.target.value)}
               placeholder="Search"
             />
           </span>
-          {/*<a href={downloadUrl} download className="px-5 py-2">
-            <i
-              className="pi pi-download"
-              style={{
-                fontSize: "1.2rem",
-                fontWeight: "bold",
-                color: "#ae9ef1",
-              }}
-            />
-          </a>*/}
         </div>
       }
       lazy
@@ -112,51 +87,47 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
         field="code"
         header="Classifier"
         sortable
-        body={(c) => <ClassifierCell info={c} showScoring />}
+        body={c => <ClassifierCell info={c} showScoring />}
       />
       <Column
         field="quality"
         header="Div. Qual."
         sortable
         style={{ width: "9em", minWidth: "9em", maxWidth: "9em" }}
-        body={(c, { field }) => {
-          return (
-            <div className="flex gap-2 text-sm">
-              <div className="flex flex-column">
-                <div style={{ fontSize: "1.5em", textAlign: "center" }}>
-                  {letterRatingForPercent(c[field])}
-                </div>
-                <div>{renderPercent(c, { field })}</div>
+        body={(c, { field }) => (
+          <div className="flex gap-2 text-sm">
+            <div className="flex flex-column">
+              <div style={{ fontSize: "1.5em", textAlign: "center" }}>
+                {letterRatingForPercent(c[field])}
               </div>
-              <div
-                style={{ fontSize: "0.65em" }}
-                className="flex flex-column justify-content-between"
-              >
-                <div>G {c.inverse95RecPercentPercentile}%</div>
-                <div>M {c.inverse85RecPercentPercentile}%</div>
-                <div>A {c.inverse75RecPercentPercentile}%</div>
-              </div>
+              <div>{renderPercent(c, { field })}</div>
             </div>
-          );
-        }}
+            <div
+              style={{ fontSize: "0.65em" }}
+              className="flex flex-column justify-content-between"
+            >
+              <div>G {c.inverse95RecPercentPercentile}%</div>
+              <div>M {c.inverse85RecPercentPercentile}%</div>
+              <div>A {c.inverse75RecPercentPercentile}%</div>
+            </div>
+          </div>
+        )}
       />
       <Column
         field="allDivQuality"
         header="OA Qual."
         sortable
         style={{ width: "7em" }}
-        body={(c, { field }) => {
-          return (
-            <div className="flex gap-2 justify-content-center text-xs">
-              <div className="flex flex-column">
-                <div style={{ fontSize: "1.5em", textAlign: "center" }}>
-                  {letterRatingForPercent(c[field])}
-                </div>
-                <div>{renderPercent(c, { field })}</div>
+        body={(c, { field }) => (
+          <div className="flex gap-2 justify-content-center text-xs">
+            <div className="flex flex-column">
+              <div style={{ fontSize: "1.5em", textAlign: "center" }}>
+                {letterRatingForPercent(c[field])}
               </div>
+              <div>{renderPercent(c, { field })}</div>
             </div>
-          );
-        }}
+          </div>
+        )}
       />
       <Column
         field="runs"
@@ -167,13 +138,13 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
       />
       <Column
         field="recHHF"
-        header={division.startsWith("scsa") ? "Rec. Peak Time" : "Rec. HHF"}
+        header={isSCSA ? "Rec. Peak Time" : "Rec. HHF"}
         sortable
         style={{ width: "100px" }}
       />
       <Column
         field="hhf"
-        header={division.startsWith("scsa") ? "HQ Peak Time" : "HQ HHF"}
+        header={isSCSA ? "HQ Peak Time" : "HQ HHF"}
         sortable
         style={{ width: "100px" }}
       />
@@ -200,144 +171,6 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
           );
         }}
       />
-      {/*<Column field="prevHHF" header="Prev. HHF" sortable />*/}
-      {/*<Column field="updated" header="Updated" sortable />*/}
-      {/*<Column
-        field="runsLegacy"
-        header="Legacy Scores"
-        sortable
-        headerTooltip="Total number of scores without HF data, only historical percentage (sus ඞ)."
-        headerTooltipOptions={headerTooltipOptions}
-      />*/}
-
-      {/*
-      <Column
-        field="inverse100CurPercentPercentile"
-        {...compactPercentColumnStyle}
-        header="100%"
-        body={renderPercent}
-        sortable
-        headerTooltip="Total percentage of scores that are equal or higher to the current HHF."
-        headerTooltipOptions={headerTooltipOptions}
-      />
-      <Column
-        field="inverse95CurPercentPercentile"
-        {...compactPercentColumnStyle}
-        header="GM+"
-        body={renderPercent}
-        sortable
-        headerTooltip="Total percentage of scores that are equal or higher to the 95% of the current HHF."
-        headerTooltipOptions={headerTooltipOptions}
-      />
-      <Column
-        field="inverse85CurPercentPercentile"
-        {...compactPercentColumnStyle}
-        header="M+"
-        body={renderPercent}
-        sortable
-        headerTooltip="Total percentage of scores that are equal or higher to the 85% of the current HHF."
-        headerTooltipOptions={headerTooltipOptions}
-      />
-      <Column
-        field="inverse75CurPercentPercentile"
-        {...compactPercentColumnStyle}
-        header="A+"
-        body={renderPercent}
-        sortable
-        headerTooltip="Total percentage of scores that are equal or higher to the 75% of the current HHF."
-        headerTooltipOptions={headerTooltipOptions}
-      />
-
-      <Column
-        field="inverse100RecPercentPercentile"
-        {...compactPercentColumnStyle}
-        header="Rec. 100%"
-        body={renderPercent}
-        sortable
-        headerTooltip="Total percentage of scores that are equal or higher to the recommended HHF."
-        headerTooltipOptions={headerTooltipOptions}
-      />
-      <Column
-        field="inverse95RecPercentPercentile"
-        {...compactPercentColumnStyle}
-        header="Rec. GM+"
-        body={renderPercent}
-        sortable
-        headerTooltip="Total percentage of scores that are equal or higher to the 95% of the recommended HHF."
-        headerTooltipOptions={headerTooltipOptions}
-      />
-      <Column
-        field="inverse85RecPercentPercentile"
-        {...compactPercentColumnStyle}
-        header="Rec. M+"
-        body={renderPercent}
-        sortable
-        headerTooltip="Total percentage of scores that are equal or higher to the 85% of the recommended HHF."
-        headerTooltipOptions={headerTooltipOptions}
-      />
-      <Column
-        field="inverse75RecPercentPercentile"
-        {...compactPercentColumnStyle}
-        header="Rec A+"
-        body={renderPercent}
-        sortable
-        headerTooltip="Total percentage of scores that are equal or higher to the 75% of the recommended HHF."
-        headerTooltipOptions={headerTooltipOptions}
-      />
-      <Column
-        field="inverse60CurPercentPercentile"
-        {...compactPercentColumnStyle}
-        header="B+ Scores%"
-        body={renderPercent}
-        sortable
-        headerTooltip="Total percentage of scores that are equal or higher to the 60% of the current HHF."
-        headerTooltipOptions={headerTooltipOptions}
-      />
-      <Column
-        field="inverse40CurPercentPercentile"
-        {...compactPercentColumnStyle}
-        header="C+ Scores%"
-        body={renderPercent}
-        sortable
-        headerTooltip="Total percentage of scores that are equal or higher to the 40% of the current HHF."
-        headerTooltipOptions={headerTooltipOptions}
-      />
-      <Column
-        align="right"
-        {...compactNumberColumnStyle}
-        field="runsTotalsLegitGM"
-        header="GM"
-        sortable
-        headerTooltip="Number of runs that WOULD BE scored as 95% or more, using CURRENT HHF."
-        headerTooltipOptions={headerTooltipOptions}
-      />
-      <Column
-        align="right"
-        {...compactNumberColumnStyle}
-        field="runsTotalsGM"
-        header="Old GM"
-        sortable
-        headerTooltip="Number of runs that WERE scored as 95% or more, potentially using Older Historical HHF when the score was processed."
-        headerTooltipOptions={headerTooltipOptions}
-      />
-      <Column
-        align="right"
-        {...compactNumberColumnStyle}
-        field="runsTotalsLegitHundo"
-        header="100%"
-        sortable
-        headerTooltip="Number of runs that WOULD BE scored as 100% or more, using CURRENT HHF."
-        headerTooltipOptions={headerTooltipOptions}
-      />
-      <Column
-        align="right"
-        {...compactNumberColumnStyle}
-        field="runsTotalsHundo"
-        header="Old 100%"
-        sortable
-        headerTooltip="Number of runs that WERE scored as 100% or more, potentially using Older Historical HHF when the score was processed."
-        headerTooltipOptions={headerTooltipOptions}
-      />*/}
     </DataTable>
   );
 };
