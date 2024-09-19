@@ -30,6 +30,7 @@ const compactNumberColumnStyle = {
 };
 
 const ClassifiersTable = ({ division, onClassifierSelection }) => {
+  const isSCSA = division.startsWith("scsa");
   const { resetSort, ...sortProps } = useTableSort({
     initial: { field: "code", order: 1 },
   });
@@ -177,10 +178,10 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
         style={{ width: "100px" }}
       />
       <Column
-        field="recHHFChange"
-        header={division.startsWith("scsa") ? "HQ Minus Rec. Peak Time" : "HQ Minus Rec. HHF"}
+        field="recHHFChangePercent" /** field is Percent for sorting, still shows like PeakTime/HHF */
+        header={isSCSA ? "HQ Minus Rec. Peak Time" : "HQ Minus Rec. HHF"}
         sortable
-        body={(c) => {
+        body={c => {
           if (!c.recHHF) {
             return "—";
           }
@@ -188,8 +189,8 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
           const diff = c.hhf - c.recHHF;
           const diffPercent = 100 * (c.hhf / c.recHHF - 1);
 
-          const hfDifference = diff.toFixed(4);
-          const percentDifference = sign + " " + diffPercent.toFixed(2);
+          const hfDifference = `${sign} ${diff.toFixed(isSCSA ? 2 : 4)}${isSCSA ? "s" : ""}`;
+          const percentDifference = `${sign} ${diffPercent.toFixed(2)}`;
 
           return (
             <div>
