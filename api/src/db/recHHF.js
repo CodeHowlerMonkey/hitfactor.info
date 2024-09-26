@@ -12,6 +12,15 @@ import {
 } from "../dataUtil/divisions.js";
 import { uspsaClassifiers } from "../dataUtil/classifiersData.js";
 
+const LOW_SAMPLE_SIZE_DIVISIONS = new Set([
+  'rev',
+  'scsa_ss',
+  'scsa_osr',
+  'scsa_isr',
+  'scsa_pcci',
+  'scsa_rfri'
+]);
+
 /**
  * Calculated recommended HHF by matching lower percent of the score to percentile of shooters
  * who should be able to get that score.
@@ -426,7 +435,7 @@ const recommendedHHFFunctionFor = ({ division, number }) => {
   }
 
   // Not enough data for revolver in ANY of the classifiers, drop to r5 for defaults
-  if (division === "rev") {
+  if (LOW_SAMPLE_SIZE_DIVISIONS.has(division)) {
     return r5;
   }
 
