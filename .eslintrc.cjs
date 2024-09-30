@@ -7,7 +7,7 @@ const a11yOff = Object.keys(require("eslint-plugin-jsx-a11y").rules).reduce(
 );
 module.exports = {
   root: true,
-  env: { browser: true, es2020: true },
+  env: { browser: true, es2020: true, node: true },
   parser: "@typescript-eslint/parser",
   parserOptions: { ecmaVersion: "latest", sourceType: "module" },
   extends: [
@@ -24,7 +24,8 @@ module.exports = {
   rules: {
     "arrow-parens": ["error", "as-needed"],
     "no-console": ["error", { allow: ["error"] }],
-    "@typescript-eslint/no-unused-vars": "error",
+    "no-empty": ["error", {allowEmptyCatch: true}],
+    "@typescript-eslint/no-unused-vars": ["error",{ caughtErrors: "none"}],
     "no-use-before-define": "off",
 
     // constants / variables

@@ -1,46 +1,51 @@
-import uniqBy from "lodash.uniqby";
-import { createGunzip } from "node:zlib";
+/* eslint-disable no-console */
+
 import { text } from "node:stream/consumers";
-import { connect } from "../db/index.js";
-import { RecHHF, hydrateRecHHFsForClassifiers } from "../db/recHHF.js";
-import { reclassifyShooters } from "../db/shooters.js";
-import { hydrateStats } from "../db/stats.js";
-import { Classifier, singleClassifierExtendedMetaDoc } from "../db/classifiers.js";
+import { createGunzip } from "node:zlib";
+import { Readable } from "stream";
+
+import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
+import uniqBy from "lodash.uniqby";
+
+import features from "../../../shared/features.js";
 import { UTCDate } from "../../../shared/utils/date.js";
-import { Score } from "../db/scores.js";
-import { DQs } from "../db/dq.js";
+import { minorHF } from "../../../shared/utils/hitfactor.js";
 import { uuidsFromUrlString } from "../../../shared/utils/uuid.js";
-import { curHHFForDivisionClassifier } from "../dataUtil/hhf.js";
-import { HF, N, Percent } from "../dataUtil/numbers.js";
 import {
-  Matches,
-  fetchAndSaveMoreMatchesById,
-  fetchAndSaveMoreMatchesByUpdatedDate,
-} from "../db/matches.js";
+  scsaDivisionWithPrefix,
+  scsaPeakTime,
+  ScsaPeakTimesMap,
+} from "../dataUtil/classifiersData.js";
 import {
   arrayWithExplodedDivisions,
   hfuDivisionCompatabilityMap,
   hfuDivisionsShortNames,
   pairToDivision,
 } from "../dataUtil/divisions.js";
-
+import { curHHFForDivisionClassifier } from "../dataUtil/hhf.js";
+import { HF, N, Percent } from "../dataUtil/numbers.js";
+import { AfterUploadClassifier } from "../db/afterUploadClassifiers.js";
+import { AfterUploadShooter } from "../db/afterUploadShooters.js";
+import { Classifier, singleClassifierExtendedMetaDoc } from "../db/classifiers.js";
+import { DQs } from "../db/dq.js";
+import { connect } from "../db/index.js";
 import {
-  scsaDivisionWithPrefix,
-  scsaPeakTime,
-  ScsaPeakTimesMap,
-} from "../dataUtil/classifiersData.js";
-import { minorHF } from "../../../shared/utils/hitfactor.js";
-import features from "../../../shared/features.js";
+  Matches,
+  fetchAndSaveMoreMatchesById,
+  fetchAndSaveMoreMatchesByUpdatedDate,
+} from "../db/matches.js";
+import { RecHHF, hydrateRecHHFsForClassifiers } from "../db/recHHF.js";
+import { Score } from "../db/scores.js";
+import { reclassifyShooters } from "../db/shooters";
+import { hydrateStats } from "../db/stats.js";
 
-import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
-
-export const _fetchPSS3ObjectJSON = async (objectKey, noGZip = false) => {
+export const _fetchPSS3ObjectJSON = async (objectKey: string, noGZip = false) => {
   try {
     const s3Client = new S3Client({
       region: "us-east-1",
       credentials: {
-        accessKeyId: process.env.PS_S3_ACCESS_KEY_ID,
-        secretAccessKey: process.env.PS_S3_SECRET_ACCESS_KEY,
+        accessKeyId: process.env.PS_S3_ACCESS_KEY_ID!,
+        secretAccessKey: process.env.PS_S3_SECRET_ACCESS_KEY!,
       },
     });
 
@@ -48,8 +53,13 @@ export const _fetchPSS3ObjectJSON = async (objectKey, noGZip = false) => {
       new GetObjectCommand({
         Bucket: "ps-scores",
         Key: objectKey,
-      })
+      }),
     );
+
+    const bodyStream = s3Response.Body;
+    if (!bodyStream) {
+      return null;
+    }
 
     // try gzip first, if that crashes - refetch and don't decompress
     // TODO: rewrite to re-use once fetched data for both (gz and not) pathways
@@ -57,18 +67,20 @@ export const _fetchPSS3ObjectJSON = async (objectKey, noGZip = false) => {
     if (!noGZip) {
       try {
         const gz = createGunzip();
-        const body = s3Response.Body.pipe(gz);
+        const body = (bodyStream as Readable).pipe(gz);
         const bodyString = await text(body);
         return JSON.parse(bodyString);
       } catch (e) {
         return _fetchPSS3ObjectJSON(objectKey, true);
       }
     } else {
-      const bodyString = await s3Response.Body.transformToString();
+      const bodyString = await bodyStream.transformToString();
       return JSON.parse(bodyString);
     }
   } catch (e) {
-    console.error(`fetchPSS3ObjectJSON failed: ${objectKey}; ${e.message || ""}`);
+    console.error(
+      `fetchPSS3ObjectJSON failed: ${objectKey}; ${(e as Error)?.message || ""}`,
+    );
     return null;
   }
 };
@@ -107,16 +119,16 @@ export const arrayCombination = (arr1, arr2, cb) => {
 export const classifiersAndShootersFromScores = (
   scores,
   memberNumberToNameMap = {},
-  includeHFUDivisions = false
+  includeHFUDivisions = false,
 ) => {
   const divisionExplosionMap = includeHFUDivisions ? hfuDivisionCompatabilityMap : {};
   const uniqueClassifierDivisionPairs = uniqByTruthyMap(
     scores,
-    s => s.classifierDivision
+    s => s.classifierDivision,
   );
   const uniqueMemberNumberDivisionPairs = uniqByTruthyMap(
     scores,
-    s => s.memberNumberDivision
+    s => s.memberNumberDivision,
   );
 
   const classifiers = arrayWithExplodedDivisions(
@@ -130,7 +142,7 @@ export const classifiersAndShootersFromScores = (
         classifier,
         division,
       };
-    }
+    },
   );
 
   const shooters = arrayWithExplodedDivisions(
@@ -145,12 +157,12 @@ export const classifiersAndShootersFromScores = (
         division,
         name: memberNumberToNameMap[memberNumber],
       };
-    }
+    },
   );
 
   return {
     classifiers: uniqBy(classifiers, c => c.classifierDivision).filter(
-      c => !!c.classifier
+      c => !!c.classifier,
     ),
     shooters: uniqBy(shooters, s => s.memberNumberDivision).filter(s => !!s.memberNumber),
   };
@@ -160,6 +172,7 @@ export const afterUpload = async (classifiers, shooters, curTry = 1, maxTries = 
   try {
     console.time("afterUploadWorker");
     // recalc recHHF
+
     await hydrateRecHHFsForClassifiers(classifiers);
     console.timeLog("afterUploadWorker", "recHHFs");
 
@@ -184,9 +197,9 @@ export const afterUpload = async (classifiers, shooters, curTry = 1, maxTries = 
         singleClassifierExtendedMetaDoc(
           division,
           classifier,
-          recHHFsByClassifierDivision[[classifier, division].join(":")]
-        )
-      )
+          recHHFsByClassifierDivision[[classifier, division].join(":")],
+        ),
+      ),
     );
     await Classifier.bulkWrite(
       classifierDocs.map(doc => ({
@@ -195,7 +208,7 @@ export const afterUpload = async (classifiers, shooters, curTry = 1, maxTries = 
           update: { $set: doc },
           upsert: true,
         },
-      }))
+      })),
     );
     console.timeLog("afterUploadWorker", "classifiers");
 
@@ -270,15 +283,15 @@ const scsaMatchInfo = async matchInfo => {
     const { match_shooters, match_stages, match_penalties } = match;
     const shootersMap = Object.fromEntries(match_shooters.map(s => [s.sh_uuid, s.sh_id]));
     const shootersDivisionMap = Object.fromEntries(
-      match_shooters.map(s => [s.sh_uuid, s.sh_dvp])
+      match_shooters.map(s => [s.sh_uuid, s.sh_dvp]),
     );
     match.memberNumberToNamesMap = Object.fromEntries(
-      match_shooters.map(s => [s.sh_id, [s.sh_fn, s.sh_ln].filter(Boolean).join(" ")])
+      match_shooters.map(s => [s.sh_id, [s.sh_fn, s.sh_ln].filter(Boolean).join(" ")]),
     );
     const classifiersMap = Object.fromEntries(
       match_stages
         .filter(s => !!s.stage_classifiercode)
-        .map(s => [s.stage_uuid, s.stage_classifiercode])
+        .map(s => [s.stage_uuid, s.stage_classifiercode]),
     );
 
     const { match_scores } = scoresJson;
@@ -343,8 +356,8 @@ const scsaMatchInfo = async matchInfo => {
                   const penCountsForString = pens[idx];
                   // Multiply the count of each penalties by their value, and sum the result.
                   const totalStringPenalties = (penCountsForString || []).reduce(
-                    (p, c, idx) => p + c * (match_penalties[idx]?.pen_val || 0),
-                    0
+                    (p, c, penIdx) => p + c * (match_penalties[penIdx]?.pen_val || 0),
+                    0,
                   );
                   const adjustedStringTotal = s + totalStringPenalties;
                   // Strings max out at 30 seconds in SCSA.
@@ -419,7 +432,7 @@ const scsaMatchInfo = async matchInfo => {
           !!r.memberNumber &&
           !!r.classifier &&
           !!r.division &&
-          !!r.memberNumberDivision
+          !!r.memberNumberDivision,
       );
 
     return { scores, match, results: [] };
@@ -437,12 +450,12 @@ const uspsaOrHitFactorMatchInfo = async matchInfo => {
   const { match_shooters, match_stages } = match;
   const shootersMap = Object.fromEntries(match_shooters.map(s => [s.sh_uuid, s.sh_id]));
   match.memberNumberToNamesMap = Object.fromEntries(
-    match_shooters.map(s => [s.sh_id, [s.sh_fn, s.sh_ln].filter(Boolean).join(" ")])
+    match_shooters.map(s => [s.sh_id, [s.sh_fn, s.sh_ln].filter(Boolean).join(" ")]),
   );
   const classifiersMap = Object.fromEntries(
     match_stages
       .filter(s => !!s.stage_classifiercode)
-      .map(s => [s.stage_uuid, s.stage_classifiercode])
+      .map(s => [s.stage_uuid, s.stage_classifiercode]),
   );
   const classifierUUIDs = Object.keys(classifiersMap);
   const classifierResults = results.filter(r => classifierUUIDs.includes(r.stageUUID));
@@ -464,7 +477,7 @@ const uspsaOrHitFactorMatchInfo = async matchInfo => {
       const classifier = classifiersMap[stageUUID];
 
       // my borther in Christ, this is nested AF!
-      return Object.values(varNameResult)[0][0].Overall.map(a => {
+      return Object.values(varNameResult)[0]?.[0].Overall.map(a => {
         const memberNumber = shootersMap[a.shooter]?.toUpperCase();
         const division = normalizeDivision(a.division);
         const hhf = curHHFForDivisionClassifier({
@@ -520,8 +533,11 @@ const uspsaOrHitFactorMatchInfo = async matchInfo => {
           memberNumberDivision: [memberNumber, division].join(":"),
           classifierDivision: [classifier, division].join(":"),
         };
-        curScore.minorHF = minorHF(curScore);
-        return curScore;
+
+        return {
+          ...curScore,
+          minorHF: minorHF(curScore),
+        };
       });
     })
     .flat()
@@ -531,7 +547,7 @@ const uspsaOrHitFactorMatchInfo = async matchInfo => {
         !!r.memberNumber &&
         !!r.classifier &&
         !!r.division &&
-        !!r.memberNumberDivision
+        !!r.memberNumberDivision,
     );
 
   return { scores, match, results };
@@ -552,7 +568,7 @@ const uploadResultsForMatches = async matches => {
           return uspsaOrHitFactorMatchInfo(match);
         }
       }
-    })
+    }),
   );
 
   return matchResults.reduce((acc, cur) => {
@@ -584,12 +600,13 @@ export const processUploadResults = async ({
     const { scores: scoresRaw, matches: matchesRaw } = uploadResults;
     const scores = scoresRaw.filter(Boolean);
     const matches = matchesRaw.filter(Boolean);
-    const shooterNameMap = matches.reduce((acc, cur) => {
-      return {
+    const shooterNameMap = matches.reduce(
+      (acc, cur) => ({
         ...acc,
         ...cur.memberNumberToNamesMap,
-      };
-    }, {});
+      }),
+      {},
+    );
 
     try {
       const dqDocs = matches.reduce((acc, match) => {
@@ -624,7 +641,7 @@ export const processUploadResults = async ({
             update: { $set: dq },
             upsert: true,
           },
-        }))
+        })),
       );
     } catch (e) {
       console.error("failed to save dqs");
@@ -634,6 +651,7 @@ export const processUploadResults = async ({
     if (!scores.length) {
       return { classifiers: [], shooters: [], matches: [] };
     }
+    console.time("scoreWrite");
     await Score.bulkWrite(
       scores.map(s => ({
         updateOne: {
@@ -646,16 +664,22 @@ export const processUploadResults = async ({
           update: { $setOnInsert: s },
           upsert: true,
         },
-      }))
+      })),
     );
+    console.timeEnd("scoreWrite");
 
     const { classifiers, shooters } = classifiersAndShootersFromScores(
       scores,
       shooterNameMap,
-      true
+      true,
     );
     if (!skipAfterUploadHydration) {
-      await afterUpload(classifiers, shooters);
+      await Promise.all([
+        AfterUploadClassifier.insertMany(classifiers),
+        AfterUploadShooter.insertMany(shooters),
+      ]);
+
+      //await afterUpload(classifiers, shooters);
     }
 
     const publicShooters = features.hfu
@@ -670,29 +694,29 @@ export const processUploadResults = async ({
       classifiers: publicClassifiers,
       matches: uniqBy(scores, s => s.upload).map(s => s.upload),
     };
-  } catch (e) {
+  } catch (err) {
+    const e = err as Error;
     console.error(e);
     return { error: `${e.name}: ${e.message}`, matches: [] };
   }
 };
 
-export const uploadMatches = async ({ matches, skipAfterUploadHydration = false }) => {
-  return await processUploadResults({
+export const uploadMatches = async ({ matches, skipAfterUploadHydration = false }) =>
+  processUploadResults({
     uploadResults: await uploadResultsForMatches(matches),
     skipAfterUploadHydration,
   });
-};
 
 // legacy upload from frontend, not used anymore
-export const uploadMatchesFromUUIDs = async uuids => {
-  return await processUploadResults({
+export const uploadMatchesFromUUIDs = async uuids =>
+  processUploadResults({
     uploadResults: await uploadResultsForMatchUUIDs(uuids),
   });
-};
 
 const MINUTES = 60 * 1000;
 const after = (ms, what) => setTimeout(what, ms);
-async function runEvery(ms, what) {
+const runEvery = async (ms, what) => {
+  // eslint-disable-next-line no-constant-condition
   while (true) {
     const start = Date.now();
 
@@ -707,7 +731,7 @@ async function runEvery(ms, what) {
 
     await delay(waitTime);
   }
-}
+};
 
 export const uploadsStats = async () => {
   await connect();
@@ -793,29 +817,38 @@ export const uploadLoop = async ({
   skipAfterUploadHydration = false,
   batchSize = 4,
 } = {}) => {
+  console.time("count matches");
   const onlyUSPSAorSCSA = { templateName: { $in: ["USPSA", "Steel Challenge"] } };
   const count = await Matches.countDocuments(matchesForUploadFilter(onlyUSPSAorSCSA));
-  console.log(count + " uploads in the queue (USPSA, SCSA only)");
+  console.log(`${count} uploads in the queue (USPSA, SCSA only)`);
+  console.timeEnd("count matches");
 
   let numberOfUpdates = 0;
   let fewMatches = [];
   let totalMatchesUploaded = 0;
   do {
+    console.time("findMatches");
     fewMatches = await findAFewMatches(onlyUSPSAorSCSA, batchSize);
     totalMatchesUploaded += fewMatches.length;
+    console.timeEnd("findMatches");
     if (!fewMatches.length) {
       return numberOfUpdates;
     }
+    console.time("uploadMatches");
     const uploadResults = await uploadMatches({
       matches: fewMatches,
       skipAfterUploadHydration,
     });
     numberOfUpdates += uploadResults.classifiers?.length || 0;
+    console.timeEnd("uploadMatches");
 
     const matchesWithScoresUUIDs = uploadResults?.matches || [];
 
     const uuidsWithStatus = Object.fromEntries(
-      fewMatches.map(m => [m.uuid, matchesWithScoresUUIDs.includes(m.uuid) ? "✅" : "❌"])
+      fewMatches.map(m => [
+        m.uuid,
+        matchesWithScoresUUIDs.includes(m.uuid) ? "✅" : "❌",
+      ]),
     );
     console.log(uuidsWithStatus);
 
@@ -823,9 +856,10 @@ export const uploadLoop = async ({
     console.log(
       `${uploadResults?.classifiers?.length || 0} classifiers; ${
         uploadResults?.shooters?.length || 0
-      } shooters`
+      } shooters`,
     );
 
+    console.time("writeMatches");
     await Matches.bulkWrite(
       fewMatches.map(m => ({
         updateOne: {
@@ -838,8 +872,9 @@ export const uploadLoop = async ({
             },
           },
         },
-      }))
+      })),
     );
+    console.timeEnd("writeMatches");
     console.log(`done ${totalMatchesUploaded}/${count}`);
   } while (fewMatches.length);
   return numberOfUpdates;
@@ -854,10 +889,10 @@ const uploadsWorkerMain = async () => {
     try {
       const utcHours = new Date().getUTCHours();
       if (utcHours < 7 || utcHours > 15) {
-        let numberOfNewMatches = await fetchAndSaveMoreMatchesById();
-        let numberOfUpdatedMatches = await fetchAndSaveMoreMatchesByUpdatedDate();
-        console.log("fetched " + numberOfNewMatches + " new matches");
-        console.log("fetched " + numberOfUpdatedMatches + " updated matches");
+        const numberOfNewMatches = await fetchAndSaveMoreMatchesById();
+        const numberOfUpdatedMatches = await fetchAndSaveMoreMatchesByUpdatedDate();
+        console.log(`fetched ${numberOfNewMatches} new matches`);
+        console.log(`fetched ${numberOfUpdatedMatches} updated matches`);
       } else {
         console.log("sleeping");
       }
@@ -870,7 +905,7 @@ const uploadsWorkerMain = async () => {
     }
   });
 
-  after(5 * MINUTES, () => {
+  after(0.05 * MINUTES, () => {
     runEvery(30 * MINUTES, async () => {
       console.log("starting upload");
       console.time("uploadLoop");
