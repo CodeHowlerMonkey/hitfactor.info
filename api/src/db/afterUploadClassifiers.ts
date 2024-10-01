@@ -1,21 +1,21 @@
 import mongoose, { Schema } from "mongoose";
 
-interface IAfterUploadClassifier {
-  classifierDivision: string,
-  classifier: string,
-  division: string,
+export interface AfterUploadClassifier {
+  classifierDivision: string;
+  classifier: string;
+  division: string;
 }
 
-const AfterUploadClassifierSchema = new Schema<IAfterUploadClassifier>(
+const AfterUploadClassifierSchema = new Schema<AfterUploadClassifier>(
   {
     classifierDivision: String,
     classifier: String,
     division: String,
   },
-  { strict: false }
+  { strict: false },
 );
 
-export const AfterUploadClassifier = mongoose.model(
-  "AfterUploadClassifier",
-  AfterUploadClassifierSchema
+export const AfterUploadClassifiers = mongoose.model(
+  "AfterUploadClassifiers",
+  AfterUploadClassifierSchema,
 );

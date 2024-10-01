@@ -1,23 +1,23 @@
 import mongoose, { Schema } from "mongoose";
 
-interface IAfterUploadShooter {
-  memberNumberDivision: string,
-  memberNumber: string,
-  division: string
-  name: string
+export interface AfterUploadShooter {
+  memberNumberDivision: string;
+  memberNumber: string;
+  division: string;
+  name: string;
 }
 
-const AfterUploadShooterSchema = new Schema<IAfterUploadShooter>(
+const AfterUploadShooterSchema = new Schema<AfterUploadShooter>(
   {
     memberNumberDivision: String,
     memberNumber: String,
     division: String,
     name: String,
   },
-  { strict: true }
+  { strict: true },
 );
 
-export const AfterUploadShooter = mongoose.model(
-  "AfterUploadShooter",
-  AfterUploadShooterSchema
+export const AfterUploadShooters = mongoose.model(
+  "AfterUploadShooters",
+  AfterUploadShooterSchema,
 );

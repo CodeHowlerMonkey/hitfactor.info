@@ -1,6 +1,28 @@
+/* eslint-disable no-console */
 import mongoose from "mongoose";
 
-const MatchesSchema = new mongoose.Schema(
+export interface Match {
+  updated: Date;
+  created: Date;
+  uuid: string;
+  id: number;
+  name: string;
+
+  type: string;
+  subType: string;
+  templateName: string;
+
+  /* match_date string as-is e.g. "2024-01-01" */
+  date: string;
+  fetched?: Date;
+  uploaded?: Date;
+}
+
+interface AlgoliaMatchNumericFilters {
+  timestamp_utc_updated: number;
+}
+
+const MatchesSchema = new mongoose.Schema<Match>(
   {
     updated: Date,
     created: Date,
@@ -12,12 +34,12 @@ const MatchesSchema = new mongoose.Schema(
     templateName: String,
 
     uuid: { type: String, required: true, unique: true },
-    date: String, // match_date string as-is e.g. 2024-01-01
+    date: String,
 
     fetched: Date,
     uploaded: Date,
   },
-  { strict: false }
+  { strict: false },
 );
 MatchesSchema.index({ id: -1 });
 MatchesSchema.index({ fetched: 1, uploaded: 1 });
@@ -27,9 +49,9 @@ MatchesSchema.index({ fetched: 1 });
 export const Matches = mongoose.model("Matches", MatchesSchema);
 
 const MATCHES_PER_FETCH = 1000;
-const _idRange = (fromId) =>
+const _idRange = fromId =>
   encodeURIComponent(`id: ${fromId + 1} TO ${fromId + MATCHES_PER_FETCH + 1}`);
-const filtersForTemplate = (template) => {
+const filtersForTemplate = template => {
   if (!template) {
     return "";
   }
@@ -37,18 +59,21 @@ const filtersForTemplate = (template) => {
   return `"templateName:${template}"`;
 };
 
-const fetchMatchesRange = async (fromId, template = "USPSA") => {
-  console.log("fetching from " + fromId);
+const fetchMatchesRange = async (
+  fromId,
+  template = "USPSA",
+): Promise<(Match & AlgoliaMatchNumericFilters)[]> => {
+  console.log(`fetching from ${fromId}`);
   const {
     results: [{ hits }],
   } = await (
-    await fetch(process.env.ALGOLIA_URL, {
+    await fetch(process.env.ALGOLIA_URL!, {
       body: JSON.stringify({
         requests: [
           {
             indexName: "postmatches",
             params: `hitsPerPage=${MATCHES_PER_FETCH}&query=&numericFilters=${_idRange(
-              fromId
+              fromId,
             )}&facetFilters=${filtersForTemplate(template)}`,
           },
         ],
@@ -57,9 +82,9 @@ const fetchMatchesRange = async (fromId, template = "USPSA") => {
     })
   ).json();
 
-  return hits.map((h) => ({
-    updated: new Date(h.updated + "Z"),
-    created: new Date(h.created + "Z"),
+  return hits.map(h => ({
+    updated: new Date(`${h.updated}Z`),
+    created: new Date(`${h.created}Z`),
     id: h.id,
     name: h.match_name,
     uuid: h.match_id,
@@ -71,18 +96,21 @@ const fetchMatchesRange = async (fromId, template = "USPSA") => {
   }));
 };
 
-const fetchMatchesRangeByTimestamp = async (timestamp, template = "USPSA") => {
-  console.log("fetching since " + timestamp);
+const fetchMatchesRangeByTimestamp = async (
+  timestamp: number,
+  template = "USPSA",
+): Promise<(Match & AlgoliaMatchNumericFilters)[]> => {
+  console.log(`fetching since ${timestamp}`);
   const {
     results: [{ hits }],
   } = await (
-    await fetch(process.env.ALGOLIA_URL, {
+    await fetch(process.env.ALGOLIA_URL!, {
       body: JSON.stringify({
         requests: [
           {
             indexName: "postmatches",
             params: `hitsPerPage=${MATCHES_PER_FETCH}&query=&numericFilters=${encodeURIComponent(
-              "timestamp_utc_updated > " + timestamp
+              `timestamp_utc_updated > ${timestamp}`,
             )}&facetFilters=${filtersForTemplate(template)}`,
           },
         ],
@@ -91,9 +119,9 @@ const fetchMatchesRangeByTimestamp = async (timestamp, template = "USPSA") => {
     })
   ).json();
 
-  return hits.map((h) => ({
-    updated: new Date(h.updated + "Z"),
-    created: new Date(h.created + "Z"),
+  return hits.map(h => ({
+    updated: new Date(`${h.updated}Z`),
+    created: new Date(`${h.created}Z`),
     id: h.id,
     name: h.match_name,
     uuid: h.match_id,
@@ -109,7 +137,7 @@ const fetchMatchesRangeByTimestamp = async (timestamp, template = "USPSA") => {
 const fetchMoreMatches = async (startId = 220000, template, onPageCallback) => {
   let resultsCount = 0;
 
-  let lastResults = [];
+  let lastResults: Match[] = [];
   let curId = startId;
   do {
     lastResults = (await fetchMatchesRange(curId, template)).sort((a, b) => b.id - a.id);
@@ -129,14 +157,15 @@ const fetchMoreMatches = async (startId = 220000, template, onPageCallback) => {
 const fetchMoreMatchesByTimestamp = async (startTimestamp, template, onPageCallback) => {
   let resultsCount = 0;
 
-  let lastResults = [];
+  let lastResults: (Match & AlgoliaMatchNumericFilters)[] = [];
   let curTimestamp = startTimestamp;
   do {
     lastResults = (await fetchMatchesRangeByTimestamp(curTimestamp, template)).sort(
-      (a, b) => b.timestamp_utc_updated - a.timestamp_utc_updated
+      (a, b) => b.timestamp_utc_updated - a.timestamp_utc_updated,
     );
 
-    curTimestamp = lastResults[0]?.timestamp_utc_updated || new Date() / 1000;
+    curTimestamp =
+      lastResults[0]?.timestamp_utc_updated || Math.floor(new Date().getTime() / 1000);
 
     resultsCount += lastResults.length;
     await onPageCallback(lastResults);
@@ -155,10 +184,10 @@ const fetchMoreMatchesByTimestamp = async (startTimestamp, template, onPageCallb
  */
 export const fetchAndSaveMoreMatchesById = async () => {
   const lastMatch = await Matches.findOne().sort({ id: -1 });
-  console.log("lastMatchId = " + lastMatch?.id);
-  return fetchMoreMatches(lastMatch?.id, "", async (matches) =>
+  console.log(`lastMatchId = ${lastMatch?.id}`);
+  return fetchMoreMatches(lastMatch?.id, "", async matches =>
     Matches.bulkWrite(
-      matches.map((m) => ({
+      matches.map(m => ({
         updateOne: {
           filter: {
             uuid: m.uuid,
@@ -166,8 +195,8 @@ export const fetchAndSaveMoreMatchesById = async () => {
           update: { $set: m },
           upsert: true,
         },
-      }))
-    )
+      })),
+    ),
   );
 };
 
@@ -179,15 +208,16 @@ export const fetchAndSaveMoreMatchesById = async () => {
 export const fetchAndSaveMoreMatchesByUpdatedDate = async () => {
   const lastMatch = await Matches.findOne().sort({ updated: -1 });
   console.log(
-    "lastUpdatedMatch= " +
-      lastMatch?.updated?.toLocaleDateString?.("en-us", { timeZone: "UTC" })
+    `lastUpdatedMatch= ${lastMatch?.updated?.toLocaleDateString?.("en-us", {
+      timeZone: "UTC",
+    })}`,
   );
   return fetchMoreMatchesByTimestamp(
-    (lastMatch?.updated || new Date()) / 1000,
+    Math.floor((lastMatch?.updated || new Date()).getTime() / 1000),
     "",
-    async (matches) =>
+    async matches =>
       Matches.bulkWrite(
-        matches.map((m) => ({
+        matches.map(m => ({
           updateOne: {
             filter: {
               uuid: m.uuid,
@@ -195,7 +225,7 @@ export const fetchAndSaveMoreMatchesByUpdatedDate = async () => {
             update: { $set: m },
             upsert: true,
           },
-        }))
-      )
+        })),
+      ),
   );
 };

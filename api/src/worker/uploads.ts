@@ -24,8 +24,14 @@ import {
 } from "../dataUtil/divisions.js";
 import { curHHFForDivisionClassifier } from "../dataUtil/hhf.js";
 import { HF, N, Percent } from "../dataUtil/numbers.js";
-import { AfterUploadClassifier } from "../db/afterUploadClassifiers.js";
-import { AfterUploadShooter } from "../db/afterUploadShooters.js";
+import {
+  AfterUploadClassifiers,
+  type AfterUploadClassifier,
+} from "../db/afterUploadClassifiers.js";
+import {
+  AfterUploadShooters,
+  type AfterUploadShooter,
+} from "../db/afterUploadShooters.js";
 import { Classifier, singleClassifierExtendedMetaDoc } from "../db/classifiers.js";
 import { DQs } from "../db/dq.js";
 import { connect } from "../db/index.js";
@@ -34,6 +40,7 @@ import {
   fetchAndSaveMoreMatchesById,
   fetchAndSaveMoreMatchesByUpdatedDate,
 } from "../db/matches.js";
+import { Match } from "../db/matches.js";
 import { RecHHF, hydrateRecHHFsForClassifiers } from "../db/recHHF.js";
 import { Score } from "../db/scores.js";
 import { reclassifyShooters } from "../db/shooters";
@@ -120,7 +127,7 @@ export const classifiersAndShootersFromScores = (
   scores,
   memberNumberToNameMap = {},
   includeHFUDivisions = false,
-) => {
+): { shooters: AfterUploadShooter[]; classifiers: AfterUploadClassifier[] } => {
   const divisionExplosionMap = includeHFUDivisions ? hfuDivisionCompatabilityMap : {};
   const uniqueClassifierDivisionPairs = uniqByTruthyMap(
     scores,
@@ -675,8 +682,8 @@ export const processUploadResults = async ({
     );
     if (!skipAfterUploadHydration) {
       await Promise.all([
-        AfterUploadClassifier.insertMany(classifiers),
-        AfterUploadShooter.insertMany(shooters),
+        AfterUploadClassifiers.insertMany(classifiers),
+        AfterUploadShooters.insertMany(shooters),
       ]);
 
       //await afterUpload(classifiers, shooters);
@@ -824,7 +831,7 @@ export const uploadLoop = async ({
   console.timeEnd("count matches");
 
   let numberOfUpdates = 0;
-  let fewMatches = [];
+  let fewMatches: Match[] = [];
   let totalMatchesUploaded = 0;
   do {
     console.time("findMatches");
