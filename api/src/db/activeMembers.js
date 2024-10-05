@@ -18,7 +18,7 @@ const ActiveMemberShema = new mongoose.Schema(
     rev: String,
     ss: String,
   },
-  { strict: false }
+  { strict: false },
 );
 
 ActiveMemberShema.index({ generated: 1, memberId: 1 }, { unique: true });
@@ -26,7 +26,7 @@ ActiveMemberShema.index({ generated: -1, memberId: 1 });
 ActiveMemberShema.index({ generated: 1, memberId: -1 });
 ActiveMemberShema.index({ generated: -1, memberId: -1 });
 
-export const ActiveMember = mongoose.model("ActiveMember", ActiveMemberShema);
+export const ActiveMember = mongoose.model("ActiveMembers", ActiveMemberShema);
 
 export const saveActiveMembersFromPSClassUpdate = async psClassUpdate =>
   ActiveMember.bulkWrite(
@@ -38,5 +38,5 @@ export const saveActiveMembersFromPSClassUpdate = async psClassUpdate =>
         },
         upsert: true,
       },
-    }))
+    })),
   );

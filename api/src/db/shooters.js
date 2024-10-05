@@ -102,7 +102,7 @@ ShooterSchema.index({
   reclassificationsCurPercentCurrent: 1,
 });
 
-export const Shooter = mongoose.model("Shooter", ShooterSchema);
+export const Shooter = mongoose.model("Shooters", ShooterSchema);
 
 export const reduceByDiv = (classifications, valueFn) =>
   classifications.reduce(
