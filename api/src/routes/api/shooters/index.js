@@ -1,10 +1,12 @@
-import { basicInfoForClassifierCode } from "../../../dataUtil/classifiersData.js";
+import { PAGE_SIZE } from "../../../../../shared/constants/pagination.js";
+import { classForPercent } from "../../../../../shared/utils/classification.js";
 import {
   multisort,
   multisortObj,
   safeNumSort,
 } from "../../../../../shared/utils/sort.js";
-import { PAGE_SIZE } from "../../../../../shared/constants/pagination.js";
+import { basicInfoForClassifierCode } from "../../../dataUtil/classifiersData.js";
+import { sportForDivision } from "../../../dataUtil/divisions.js";
 import {
   scoresForDivisionForShooter,
   shooterScoresChartData,
@@ -15,8 +17,6 @@ import {
   multiSortAndPaginate,
   textSearchMatch,
 } from "../../../db/utils.js";
-import { classForPercent } from "../../../../../shared/utils/classification.js";
-import { sportForDivision } from "../../../dataUtil/divisions.js";
 
 const DEFAULT_PLACE_BY = "reclassificationsRecPercentCurrent";
 const placeByFieldForSort = sort => {
@@ -33,7 +33,7 @@ const _inconsistencyFilter = inconString => {
   }
 
   const [inconsistencies, inconsistenciesMode] = inconString?.split("-");
-  const field = "$" + inconsistencies + "Rank";
+  const field = `$${inconsistencies}Rank`;
   const operator = inconsistenciesMode === "paper" ? "$lt" : "$gt";
   return [{ $match: { $expr: { [operator]: [field, "$hqClassRank"] } } }];
 };
@@ -74,7 +74,7 @@ const shootersQueryAggregation = (params, query) => {
           : [{ $match: textSearchMatch(["memberNumber", "name"], filterString) }]),
         ..._inconsistencyFilter(inconString),
       ],
-      multiSortAndPaginate({ sort, order, page })
+      multiSortAndPaginate({ sort, order, page }),
     ),
   ]);
 };
@@ -106,9 +106,9 @@ const shootersRoutes = async (fastify, opts) => {
     const data = multisort(scoresData, sort?.split?.(","), order?.split?.(",")).map(
       c => ({
         ...c,
-        classifierInfo: basicInfoForClassifierCode(c?.classifier),
+        classifierInfo: basicInfoForClassifierCode(c?.classifier) || {},
         hf: division.startsWith("scsa") ? Number(c.stageTimeSecs) : c.hf,
-      })
+      }),
     );
 
     const info = infos.find(s => s.division === division) || {};

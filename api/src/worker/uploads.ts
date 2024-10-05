@@ -177,54 +177,13 @@ export const classifiersAndShootersFromScores = (
 
 export const afterUpload = async (classifiers, shooters, curTry = 1, maxTries = 3) => {
   try {
-    console.time("afterUploadWorker");
-    // recalc recHHF
-
     await hydrateRecHHFsForClassifiers(classifiers);
-    console.timeLog("afterUploadWorker", "recHHFs");
-
-    // recalc shooters
     await reclassifyShooters(shooters);
-    console.timeLog("afterUploadWorker", "shooters");
 
     // recalc classifier meta
-    const recHHFs = await RecHHF.find({
-      classifierDivision: {
-        $in: classifiers.map(c => [c.classifer, c.division].join(":")),
-      },
-    })
-      .select({ recHHF: true, _id: false, classifierDivision: true })
-      .lean();
-    const recHHFsByClassifierDivision = recHHFs.reduce((acc, cur) => {
-      acc[cur.classifierDivision] = cur;
-      return acc;
-    }, {});
-    const classifierDocs = await Promise.all(
-      classifiers.map(({ classifier, division }) =>
-        singleClassifierExtendedMetaDoc(
-          division,
-          classifier,
-          recHHFsByClassifierDivision[[classifier, division].join(":")],
-        ),
-      ),
-    );
-    await Classifier.bulkWrite(
-      classifierDocs.map(doc => ({
-        updateOne: {
-          filter: { division: doc.division, classifier: doc.classifier },
-          update: { $set: doc },
-          upsert: true,
-        },
-      })),
-    );
-    console.timeLog("afterUploadWorker", "classifiers");
-
-    console.timeEnd("afterUploadWorker");
   } catch (err) {
-    console.error("afterUploadWorker error:");
     console.error(err);
     if (curTry < maxTries) {
-      console.error("retrying");
       return afterUpload(classifiers, shooters, curTry + 1, maxTries);
     }
   }
@@ -599,10 +558,7 @@ export const uploadResultsForMatchUUIDs = async uuidsRaw => {
   return uploadResultsForMatches(matches);
 };
 
-export const processUploadResults = async ({
-  uploadResults,
-  skipAfterUploadHydration = false,
-}) => {
+export const processUploadResults = async ({ uploadResults }) => {
   try {
     const { scores: scoresRaw, matches: matchesRaw } = uploadResults;
     const scores = scoresRaw.filter(Boolean);
@@ -680,14 +636,26 @@ export const processUploadResults = async ({
       shooterNameMap,
       true,
     );
-    if (!skipAfterUploadHydration) {
-      await Promise.all([
-        AfterUploadClassifiers.insertMany(classifiers),
-        AfterUploadShooters.insertMany(shooters),
-      ]);
-
-      //await afterUpload(classifiers, shooters);
-    }
+    await Promise.all([
+      AfterUploadClassifiers.bulkWrite(
+        classifiers.map(c => ({
+          updateOne: {
+            filter: { classifierDivision: c.classifierDivision },
+            update: { $set: c },
+            upsert: true,
+          },
+        })),
+      ),
+      AfterUploadShooters.bulkWrite(
+        shooters.map(s => ({
+          updateOne: {
+            filter: { memberNumberDivision: s.memberNumberDivision },
+            update: { $set: s },
+            upsert: true,
+          },
+        })),
+      ),
+    ]);
 
     const publicShooters = features.hfu
       ? shooters
@@ -708,10 +676,9 @@ export const processUploadResults = async ({
   }
 };
 
-export const uploadMatches = async ({ matches, skipAfterUploadHydration = false }) =>
+export const uploadMatches = async ({ matches }) =>
   processUploadResults({
     uploadResults: await uploadResultsForMatches(matches),
-    skipAfterUploadHydration,
   });
 
 // legacy upload from frontend, not used anymore
@@ -820,10 +787,7 @@ const matchesForUploadFilter = (extraFilter = {}) => ({
 const findAFewMatches = async (extraFilter, batchSize) =>
   Matches.find(matchesForUploadFilter(extraFilter)).limit(batchSize).sort({ updated: 1 });
 
-export const uploadLoop = async ({
-  skipAfterUploadHydration = false,
-  batchSize = 4,
-} = {}) => {
+export const scoresLoop = async ({ batchSize = 4 } = {}) => {
   console.time("count matches");
   const onlyUSPSAorSCSA = { templateName: { $in: ["USPSA", "Steel Challenge"] } };
   const count = await Matches.countDocuments(matchesForUploadFilter(onlyUSPSAorSCSA));
@@ -842,10 +806,7 @@ export const uploadLoop = async ({
       return numberOfUpdates;
     }
     console.time("uploadMatches");
-    const uploadResults = await uploadMatches({
-      matches: fewMatches,
-      skipAfterUploadHydration,
-    });
+    const uploadResults = await uploadMatches({ matches: fewMatches });
     numberOfUpdates += uploadResults.classifiers?.length || 0;
     console.timeEnd("uploadMatches");
 
@@ -915,24 +876,27 @@ const uploadsWorkerMain = async () => {
   after(0.05 * MINUTES, () => {
     runEvery(30 * MINUTES, async () => {
       console.log("starting upload");
-      console.time("uploadLoop");
+      console.time("scoresLoop");
 
       try {
-        const uploadUpdates = await uploadLoop();
+        const uploadUpdates = await scoresLoop();
         if (uploadUpdates > 0) {
           // recalc stats after uploading all matches in the queue
-          await hydrateStats();
         }
       } catch (e) {
-        console.error("uploadLoop error:");
+        console.error("scoresLoop error:");
         console.error(e);
 
         await connect();
       } finally {
-        console.timeEnd("uploadLoop");
+        console.timeEnd("scoresLoop");
       }
     });
   });
+};
+
+export const metaLoop = async () => {
+  await hydrateStats();
 };
 
 export default uploadsWorkerMain;

@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "es2016",                                  /* Set the JavaScript language version for emitted JavaScript and include compatible library declarations. */
+    "target": "es2016",
     "module": "commonjs",                                /* Specify what module code is generated. */
     "esModuleInterop": true,                             /* Emit additional JavaScript to ease support for importing CommonJS modules. This enables 'allowSyntheticDefaultImports' for type compatibility. */
     "forceConsistentCasingInFileNames": true,            /* Ensure that casing is correct in imports. */
@@ -9,5 +9,10 @@
     
     // TODO: turn back on when whole codebase is ts
     "noImplicitAny": false,
+
+    "lib": [
+      "es2023",
+      "dom"
+    ],
   }
 }

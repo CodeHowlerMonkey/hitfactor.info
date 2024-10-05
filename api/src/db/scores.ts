@@ -1,8 +1,6 @@
-import mongoose from "mongoose";
+/* eslint-disable no-console */
+import mongoose, { Model } from "mongoose";
 
-import { UTCDate } from "../../../shared/utils/date.js";
-
-import { processImportAsyncSeq } from "../utils.js";
 import {
   divIdToShort,
   divisionsForScoresAdapter,
@@ -10,10 +8,68 @@ import {
   minorDivisions,
   uspsaDivShortNames,
 } from "../../../shared/constants/divisions.js";
+import { UTCDate } from "../../../shared/utils/date.js";
 import { curHHFFor } from "../dataUtil/hhf.js";
 import { N, Percent, PositiveOrMinus1 } from "../dataUtil/numbers.js";
+import { processImportAsyncSeq } from "../utils.js";
 
-const ScoreSchema = new mongoose.Schema(
+export interface Score {
+  classifier: string;
+  sd: Date;
+  clubid?: string;
+  club_name?: string;
+  percent: number;
+  hf: number;
+  minorHF?: number;
+  code: string;
+  source: string;
+  shooterFullName?: string;
+  memberNumber: string;
+  division: string;
+
+  // extra fields for sport/matchType
+  type: string;
+  subType: string;
+  templateName: string;
+
+  // extra stage perf fields
+  stageTimeSecs?: string; // keeping as-is from PS
+  stagePeakTimeSecs?: number; // applicable to SCSA only
+  points?: number;
+  penalties?: number;
+  modified: Date;
+  steelMikes?: number;
+  steelHits?: number;
+  steelNS?: number;
+  steelNPM?: number;
+  rawPoints?: number;
+  strings?: number[];
+  targetHits?: number[];
+  device: string;
+
+  // compound keys for lookups
+  classifierDivision: string;
+  memberNumberDivision: string;
+}
+
+// TODO: move to RecHHF
+export interface RecHHF {
+  curHHF: number;
+  recHHF: number;
+}
+
+interface ScoreVirtuals {
+  HHFs: RecHHF[];
+  curHHF: number;
+  recHHF: number;
+  hfuHF: number;
+  isMajor: boolean;
+  curPercent: number;
+}
+
+type ScoreModel = Model<Score, object, ScoreVirtuals>;
+
+const ScoreSchema = new mongoose.Schema<Score, ScoreModel, ScoreVirtuals>(
   {
     classifier: String,
     sd: Date,
@@ -52,7 +108,7 @@ const ScoreSchema = new mongoose.Schema(
     classifierDivision: String,
     memberNumberDivision: String,
   },
-  { strict: false }
+  { strict: false },
 );
 
 // not all scores have minorHF, so this is an adapter around it or regular hf based on sport/division
@@ -105,17 +161,16 @@ ScoreSchema.index({ classifierDivision: 1 });
 ScoreSchema.index({ hf: -1 });
 ScoreSchema.index({ classifier: 1, division: 1, hf: -1 });
 
-export const Score = mongoose.model("Score", ScoreSchema);
+export const Scores = mongoose.model<typeof ScoreSchema>("Scores", ScoreSchema);
 
-const classifierScoreId = (memberId, obj) => {
-  return [memberId, obj.classifier, obj.sd, obj.clubid, obj.hf].join("=");
-};
+const classifierScoreId = (memberId, obj) =>
+  [memberId, obj.classifier, obj.sd, obj.clubid, obj.hf].join("=");
 
 const badScoresMap = {
   "125282=23-01=2/18/24=CCS08=15.9574": "CCB-shooter-158-percent",
 };
 
-const isMajor = (source) => source === "Major Match";
+const isMajor = source => source === "Major Match";
 
 /**
  * Picks runs for division. As-is for USPSA, or switches hf to minorHF for
@@ -130,15 +185,15 @@ export const minorHFScoresAdapter = (runs, division) => {
   }
 
   return runs
-    .filter((r) => r.minorHF > 0)
-    .map((r) => {
+    .filter(r => r.minorHF > 0)
+    .map(r => {
       r.originalHF = r.hf;
       r.hf = r.minorHF;
       return r;
     });
 };
 
-export const scoresFromClassifierFile = (fileObj) => {
+export const scoresFromClassifierFile = fileObj => {
   const memberNumber = fileObj?.value?.member_data?.member_number;
   const memberId = fileObj?.value?.member_data?.member_id;
   const classifiers = fileObj?.value?.classifiers;
@@ -147,7 +202,7 @@ export const scoresFromClassifierFile = (fileObj) => {
     return [];
   }
   return classifiers
-    .map((divObj) => {
+    .map(divObj => {
       const division = divIdToShort[divObj?.division_id];
       if (!division) {
         // new imports have some weird division numbers (1, 10, etc) no idea what that is
@@ -157,7 +212,7 @@ export const scoresFromClassifierFile = (fileObj) => {
 
       return divObj.division_classifiers
         .filter(({ source }) => source !== "Legacy") // no point looking at scores without HF
-        .filter((o) => !badScoresMap[classifierScoreId(memberId, o)]) // ignore banned scores
+        .filter(o => !badScoresMap[classifierScoreId(memberId, o)]) // ignore banned scores
         .map(({ code, source, hf, percent, sd, clubid, club_name, classifier }) => ({
           classifier,
           division,
@@ -180,9 +235,9 @@ export const scoresFromClassifierFile = (fileObj) => {
     .flat();
 };
 
-const hydrateScoresBatch = async (batch) => {
-  await Score.bulkWrite(
-    batch.map((s) => ({
+const hydrateScoresBatch = async batch => {
+  await Scores.bulkWrite(
+    batch.map(s => ({
       updateOne: {
         filter: {
           memberNumberDivision: s.memberNumberDivision,
@@ -196,12 +251,12 @@ const hydrateScoresBatch = async (batch) => {
         update: { $set: s },
         upsert: true,
       },
-    }))
+    })),
   );
   process.stdout.write("⬆︎");
 };
 
-const batchHydrateScores = async (letter) => {
+const batchHydrateScores = async letter => {
   let curBatch = [];
   process.stdout.write("\n");
   process.stdout.write(letter);
@@ -209,7 +264,7 @@ const batchHydrateScores = async (letter) => {
   await processImportAsyncSeq(
     "../../data/imported",
     new RegExp(`classifiers\\.${letter}\\.\\d+\\.json`),
-    async (obj) => {
+    async obj => {
       const curFileScores = scoresFromClassifierFile(obj);
       curBatch = curBatch.concat(curFileScores);
       process.stdout.write(".");
@@ -217,13 +272,15 @@ const batchHydrateScores = async (letter) => {
         await hydrateScoresBatch(curBatch);
         curBatch = [];
       }
-    }
+    },
   );
   if (curBatch.length) {
     await hydrateScoresBatch(curBatch);
   }
 };
 
+// legacy hydration from uspsa import files,
+// uspsa was manual: 1) import 2) hydrate
 export const hydrateScores = async () => {
   console.log("hydrating scores");
   console.time("scores");
@@ -239,7 +296,7 @@ export const hydrateScores = async () => {
 };
 
 export const shooterScoresChartData = async ({ memberNumber, division }) => {
-  const scores = await Score.find({
+  const scores = await Scores.find({
     memberNumber,
     division: { $in: divisionsForScoresAdapter(division) },
     bad: { $ne: true },
@@ -249,21 +306,21 @@ export const shooterScoresChartData = async ({ memberNumber, division }) => {
     .sort({ sd: -1 });
 
   return minorHFScoresAdapter(
-    scores.map((s) => s.toObject({ virtuals: true })),
-    division
+    scores.map(s => s.toObject({ virtuals: true })),
+    division,
   )
-    .map((run) => ({
+    .map(run => ({
       x: run.sd,
       recPercent: run.recPercent,
       curPercent: run.curPercent,
       percent: run.percent,
       classifier: run.classifier,
     }))
-    .filter((run) => !!run.classifier); // no majors for now in the graph
+    .filter(run => !!run.classifier); // no majors for now in the graph
 };
 
 export const scoresForDivisionForShooter = async ({ division, memberNumber }) => {
-  const scores = await Score.find({
+  const scores = await Scores.find({
     division: { $in: divisionsForScoresAdapter(division) },
     memberNumber,
     bad: { $ne: true },
@@ -273,8 +330,8 @@ export const scoresForDivisionForShooter = async ({ division, memberNumber }) =>
     .limit(0);
 
   return minorHFScoresAdapter(
-    scores.map((s) => s.toObject({ virtuals: true })),
-    division
+    scores.map(s => s.toObject({ virtuals: true })),
+    division,
   ).map((obj, index) => {
     obj.index = index;
     return obj;
@@ -286,7 +343,7 @@ export const uspsaDivisionsPopularity = async (year = 0) => {
   const after = 365 * (year + 1);
   const before = 365 * year;
 
-  return Score.aggregate([
+  return Scores.aggregate([
     {
       $project: {
         division: true,

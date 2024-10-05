@@ -1,6 +1,6 @@
 - `classifiers/`
   - pdfs - official WSBs and stage diagrams for all classifiers
-  - jpgs - previews of pdfs for classifer pages
+  - jpgs - previews of pdfs for classifier pages
   - index.json - list of classifiers, as-is again from USPSA.org mobile api
 - meta/
   - helper files generated from downloading USPSA->Practiscore txt file

@@ -1,24 +1,24 @@
 import mongoose from "mongoose";
 
-import { HF, Percent, PositiveOrMinus1 } from "../dataUtil/numbers.js";
-
-import { minorHFScoresAdapter, Score } from "./scores.js";
-import { curHHFForDivisionClassifier } from "../dataUtil/hhf.js";
+import { uspsaClassifiers } from "../dataUtil/classifiersData.js";
 import {
   allDivShortNames,
   classifierDivisionArrayForHFURecHHFs,
   divisionsForRecHHFAdapter,
   hfuDivisionCompatabilityMap,
 } from "../dataUtil/divisions.js";
-import { uspsaClassifiers } from "../dataUtil/classifiersData.js";
+import { curHHFForDivisionClassifier } from "../dataUtil/hhf.js";
+import { HF, Percent, PositiveOrMinus1 } from "../dataUtil/numbers.js";
+
+import { minorHFScoresAdapter, Scores } from "./scores.js";
 
 const LOW_SAMPLE_SIZE_DIVISIONS = new Set([
-  'rev',
-  'scsa_ss',
-  'scsa_osr',
-  'scsa_isr',
-  'scsa_pcci',
-  'scsa_rfri'
+  "rev",
+  "scsa_ss",
+  "scsa_osr",
+  "scsa_isr",
+  "scsa_pcci",
+  "scsa_rfri",
 ]);
 
 /**
@@ -36,7 +36,7 @@ export const recommendedHHFByPercentileAndPercent = (runs, targetPercentile, per
   const closestPercentileRun = runs.sort(
     (a, b) =>
       Math.abs(a.percentile - targetPercentile) -
-      Math.abs(b.percentile - targetPercentile)
+      Math.abs(b.percentile - targetPercentile),
   )[0];
 
   if (!closestPercentileRun) {
@@ -51,25 +51,25 @@ export const recommendedHHFByPercentileAndPercent = (runs, targetPercentile, per
   return HF(closestPercentileRun.hf * missCorrection * percentScale);
 };
 
-const r1 = (runs) =>
+const r1 = runs =>
   recommendedHHFByPercentileAndPercent(
     runs,
     1.0, // extendedCalibrationTable[division].pGM,
-    95
+    95,
   );
 
-const r5 = (runs) =>
+const r5 = runs =>
   recommendedHHFByPercentileAndPercent(
     runs,
     4.75, // extendedCalibrationTable[division].pM,
-    85
+    85,
   );
 
-const r15 = (runs) =>
+const r15 = runs =>
   recommendedHHFByPercentileAndPercent(
     runs,
     14.5, // extendedCalibrationTable[division].pA,
-    75
+    75,
   );
 
 // TODO: ignore these maybe in classification calculation?
@@ -445,7 +445,7 @@ const recommendedHHFFunctionFor = ({ division, number }) => {
 
 const runsForRecs = async ({ division, number }) =>
   (
-    await Score.find({
+    await Scores.find({
       classifier: number,
       division: { $in: divisionsForRecHHFAdapter(division) },
       hf: { $gt: 0 },
@@ -459,8 +459,8 @@ const runsForRecs = async ({ division, number }) =>
     percentile: PositiveOrMinus1(Percent(index, allRuns.length)),
   }));
 
-const runsForRecsMultiByClassifierDivision = async (classifiers) => {
-  const runs = await Score.find({
+const runsForRecsMultiByClassifierDivision = async classifiers => {
+  const runs = await Scores.find({
     bad: { $ne: true },
     classifierDivision: {
       $in: classifierDivisionArrayForHFURecHHFs(classifiers),
@@ -492,7 +492,7 @@ const runsForRecsMultiByClassifierDivision = async (classifiers) => {
   }, {});
 
   // mutate runs grouped by classifierDivision to add percentile
-  Object.keys(byCD).forEach((CD) => {
+  Object.keys(byCD).forEach(CD => {
     byCD[CD].forEach((run, runIndex, allRunsInCD) => {
       run.percentile = PositiveOrMinus1(Percent(runIndex, allRunsInCD.length));
     });
@@ -503,10 +503,22 @@ const runsForRecsMultiByClassifierDivision = async (classifiers) => {
 
 export const recommendedHHFFor = async ({ division, number }) =>
   recommendedHHFFunctionFor({ division, number })(
-    await runsForRecs({ division, number })
+    await runsForRecs({ division, number }),
   );
 
-const RecHHFSchema = new mongoose.Schema({
+export interface RecHHF {
+  classifier: string;
+  division: string;
+  classifierDivision: string;
+
+  curHHF: number;
+  recHHF: number;
+  rec1HHF: number;
+  rec5HHF: number;
+  rec15HHF: number;
+}
+
+const RecHHFSchema = new mongoose.Schema<RecHHF>({
   classifier: String,
   division: String,
   curHHF: Number,
@@ -520,7 +532,7 @@ const RecHHFSchema = new mongoose.Schema({
 RecHHFSchema.index({ classifier: 1, division: 1 }, { unique: true });
 RecHHFSchema.index({ classifierDivision: 1 }, { unique: true });
 
-export const RecHHF = mongoose.model("RecHHF", RecHHFSchema);
+export const RecHHFs = mongoose.model("RecHHFs", RecHHFSchema);
 
 const recHHFUpdate = (runsRaw, division, classifier) => {
   if (!runsRaw) {
@@ -565,22 +577,21 @@ export const hydrateSingleRecHFF = async (division, classifier) => {
   return null;
 };
 
-export const hydrateRecHHFsForClassifiers = async (classifiers) => {
-  const runsByClassifierDivision = await runsForRecsMultiByClassifierDivision(
-    classifiers
-  );
+export const hydrateRecHHFsForClassifiers = async classifiers => {
+  const runsByClassifierDivision =
+    await runsForRecsMultiByClassifierDivision(classifiers);
   const updates = classifiers
-    .map((c) =>
+    .map(c =>
       recHHFUpdate(
         runsByClassifierDivision[[c.classifier, c.division].join(":")],
         c.division,
-        c.classifier
-      )
+        c.classifier,
+      ),
     )
     .filter(Boolean);
 
   return RecHHF.bulkWrite(
-    updates.map((update) => {
+    updates.map(update => {
       const { division, classifier, classifierDivision, ...setUpdate } = update;
       return {
         updateOne: {
@@ -592,13 +603,13 @@ export const hydrateRecHHFsForClassifiers = async (classifiers) => {
           upsert: true,
         },
       };
-    })
+    }),
   );
 };
 
 export const rehydrateRecHHF = async (
   divisions = allDivShortNames,
-  classifiers = uspsaClassifiers
+  classifiers = uspsaClassifiers,
 ) => {
   console.log("hydrating recommended HHFs");
   console.time("recHHFs");

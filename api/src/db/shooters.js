@@ -1,6 +1,12 @@
+/* eslint-disable no-console */
+import uniqBy from "lodash.uniqby";
 import mongoose, { Schema } from "mongoose";
 
-import { loadJSON, processImportAsyncSeq } from "../utils.js";
+import {
+  calculateUSPSAClassification,
+  classForPercent,
+  rankForClass,
+} from "../../../shared/utils/classification.js";
 import {
   divIdToShort,
   divisionsForScoresAdapter,
@@ -9,16 +15,11 @@ import {
   mapDivisions,
   uspsaDivShortNames,
 } from "../dataUtil/divisions.js";
-import {
-  calculateUSPSAClassification,
-  classForPercent,
-  rankForClass,
-} from "../../../shared/utils/classification.js";
-
-import { Score } from "./scores.js";
-import uniqBy from "lodash.uniqby";
-import { getField, percentAggregationOp } from "./utils.js";
 import { psClassUpdatesByMemberNumber } from "../dataUtil/uspsa.js";
+import { loadJSON, processImportAsyncSeq } from "../utils.js";
+
+import { Scores } from "./scores.js";
+import { getField, percentAggregationOp } from "./utils.js";
 
 const memberIdToNumberMap = loadJSON("../../data/meta/memberIdToNumber.json");
 const memberNumberFromMemberData = memberData => {
@@ -36,7 +37,7 @@ const memberNumberFromMemberData = memberData => {
 };
 
 const scoresAgeAggr = async (memberNumber, division, maxScores) => {
-  await Score.aggregate([
+  await Scores.aggregate([
     {
       $match: {
         memberNumber,
@@ -109,7 +110,7 @@ export const reduceByDiv = (classifications, valueFn) =>
       ...acc,
       [divIdToShort[c.division_id]]: valueFn(c),
     }),
-    {}
+    {},
   );
 
 /**
@@ -117,7 +118,7 @@ export const reduceByDiv = (classifications, valueFn) =>
  * Used for reclassification (HQ alg makes divisions cross-dependent for C flag)
  */
 export const allDivisionsScores = async memberNumbers => {
-  const query = Score.find({
+  const query = Scores.find({
     memberNumber: { $in: memberNumbers },
     bad: { $ne: true },
   })
@@ -132,7 +133,7 @@ export const allDivisionsScores = async memberNumbers => {
 export const allDivisionsScoresByMemberNumber = async memberNumbers => {
   const scores = await allDivisionsScores(memberNumbers);
   return scores.reduce((acc, cur) => {
-    let curMemberScores = acc[cur.memberNumber] ?? [];
+    const curMemberScores = acc[cur.memberNumber] ?? [];
     curMemberScores.push(cur);
     acc[cur.memberNumber] = curMemberScores;
     return acc;
@@ -183,7 +184,7 @@ const _addHFUDivisions = () => [
 ];
 
 export const scoresForRecommendedClassification = memberNumbers =>
-  Score.aggregate([
+  Scores.aggregate([
     {
       $match: {
         bad: { $ne: true },
@@ -318,7 +319,7 @@ export const scoresForRecommendedClassification = memberNumbers =>
 export const scoresForRecommendedClassificationByMemberNumber = async memberNumbers => {
   const scores = await scoresForRecommendedClassification(memberNumbers);
   return scores.reduce((acc, cur) => {
-    let curMemberScores = acc[cur.memberNumber] ?? [];
+    const curMemberScores = acc[cur.memberNumber] ?? [];
     curMemberScores.push(cur);
     acc[cur.memberNumber] = curMemberScores;
     return acc;
@@ -360,10 +361,10 @@ const shooterObjectsForMemberNumber = (c, recMemberScores, curMemberScores) => {
       const recalcDivRec = reclassificationBreakdown(recalcByRecPercent, division);
 
       const reclassificationsCurPercentCurrent = Number(
-        (recalcDivCur?.current ?? 0).toFixed(4)
+        (recalcDivCur?.current ?? 0).toFixed(4),
       );
       const reclassificationsRecPercentCurrent = Number(
-        (recalcDivRec?.current ?? 0).toFixed(4)
+        (recalcDivRec?.current ?? 0).toFixed(4),
       );
 
       const hqClass = hqClasses[division];
@@ -400,13 +401,13 @@ const shooterObjectsForMemberNumber = (c, recMemberScores, curMemberScores) => {
         division,
         memberNumberDivision: [memberNumber, division].join(":"),
       };
-    })
+    }),
   );
 };
 
 // hydration from uspsa json files
-const processBatchHydrateShooters = async batch => {
-  batch = batch.filter(c => !!c?.member_data);
+const processBatchHydrateShooters = async batchRaw => {
+  const batch = batchRaw.filter(c => !!c?.member_data);
   const memberNumbers = batch.map(c => memberNumberFromMemberData(c.member_data));
   const [recScoresByMemberNumber, curScoresByMemberNumber] = await Promise.all([
     scoresForRecommendedClassificationByMemberNumber(memberNumbers),
@@ -419,7 +420,7 @@ const processBatchHydrateShooters = async batch => {
       return shooterObjectsForMemberNumber(
         c,
         recScoresByMemberNumber[memberNumber],
-        curScoresByMemberNumber[memberNumber]
+        curScoresByMemberNumber[memberNumber],
       );
     })
     .flat();
@@ -434,7 +435,7 @@ const processBatchHydrateShooters = async batch => {
         update: { $set: s },
         upsert: true,
       },
-    }))
+    })),
   );
   process.stdout.write(".");
 };
@@ -456,7 +457,7 @@ const batchHydrateShooters = async letter => {
         await processBatchHydrateShooters(curBatch);
         curBatch = [];
       }
-    }
+    },
   );
 
   // final batch that isn't big enough to be processed before
@@ -490,11 +491,12 @@ export const reclassifyShooters = async shooters => {
       ]);
 
     const updates = shooters
-      .filter(({ memberNumber, division, name }) => {
-        // TODO: Implement Reclassify Shooters for SCSA
-        // https://github.com/CodeHowlerMonkey/hitfactor.info/issues/69
-        return memberNumber && uspsaDivShortNames.find(x => x === division);
-      })
+      .filter(
+        ({ memberNumber, division, name }) =>
+          // TODO: Implement Reclassify Shooters for SCSA
+          // https://github.com/CodeHowlerMonkey/hitfactor.info/issues/69
+          memberNumber && uspsaDivShortNames.find(x => x === division),
+      )
       .map(({ memberNumber, division, name }) => {
         if (!memberNumber) {
           return [];
@@ -503,21 +505,21 @@ export const reclassifyShooters = async shooters => {
         const curMemberScores = curScoresByMemberNumber[memberNumber];
         const recalcByCurPercent = calculateUSPSAClassification(
           curMemberScores,
-          "curPercent"
+          "curPercent",
         );
         const recalcByRecPercent = calculateUSPSAClassification(
           recMemberScores,
-          "recPercent"
+          "recPercent",
         );
 
         const recalcDivCur = reclassificationBreakdown(recalcByCurPercent, division);
         const recalcDivRec = reclassificationBreakdown(recalcByRecPercent, division);
 
         const reclassificationsCurPercentCurrent = Number(
-          (recalcDivCur?.current ?? 0).toFixed(4)
+          (recalcDivCur?.current ?? 0).toFixed(4),
         );
         const reclassificationsRecPercentCurrent = Number(
-          (recalcDivRec?.current ?? 0).toFixed(4)
+          (recalcDivRec?.current ?? 0).toFixed(4),
         );
 
         const hqClass = psClassUpdates[memberNumber]?.[division] || "U";
@@ -590,19 +592,15 @@ export const reclassifyShooters = async shooters => {
 
 export const reclassificationForProgressMode = async (mode, memberNumber) => {
   switch (mode) {
-    case "curPercent":
-      {
-        const scores = await allDivisionsScores([memberNumber]);
-        return calculateUSPSAClassification(scores, "curPercent");
-      }
-      break;
+    case "curPercent": {
+      const scores = await allDivisionsScores([memberNumber]);
+      return calculateUSPSAClassification(scores, "curPercent");
+    }
 
-    case "recPercent":
-      {
-        const scores = await scoresForRecommendedClassification([memberNumber]);
-        return calculateUSPSAClassification(scores, "recPercent");
-      }
-      break;
+    case "recPercent": {
+      const scores = await scoresForRecommendedClassification([memberNumber]);
+      return calculateUSPSAClassification(scores, "recPercent");
+    }
   }
 
   return null;
