@@ -23,7 +23,7 @@ import {
   pairToDivision,
 } from "../dataUtil/divisions.js";
 import { curHHFForDivisionClassifier } from "../dataUtil/hhf.js";
-import { HF, N, Percent } from "../dataUtil/numbers.js";
+import { HF, N, Percent } from "../dataUtil/numbers";
 import {
   AfterUploadClassifiers,
   type AfterUploadClassifier,
@@ -32,7 +32,7 @@ import {
   AfterUploadShooters,
   type AfterUploadShooter,
 } from "../db/afterUploadShooters.js";
-import { Classifier, singleClassifierExtendedMetaDoc } from "../db/classifiers.js";
+import { rehydrateClassifiers } from "../db/classifiers";
 import { DQs } from "../db/dq.js";
 import { connect } from "../db/index.js";
 import {
@@ -41,7 +41,7 @@ import {
   fetchAndSaveMoreMatchesByUpdatedDate,
 } from "../db/matches.js";
 import { Match } from "../db/matches.js";
-import { RecHHF, hydrateRecHHFsForClassifiers } from "../db/recHHF.js";
+import { hydrateRecHHFsForClassifiers } from "../db/recHHF";
 import { Score } from "../db/scores.js";
 import { reclassifyShooters } from "../db/shooters";
 import { hydrateStats } from "../db/stats.js";
@@ -173,20 +173,6 @@ export const classifiersAndShootersFromScores = (
     ),
     shooters: uniqBy(shooters, s => s.memberNumberDivision).filter(s => !!s.memberNumber),
   };
-};
-
-export const afterUpload = async (classifiers, shooters, curTry = 1, maxTries = 3) => {
-  try {
-    await hydrateRecHHFsForClassifiers(classifiers);
-    await reclassifyShooters(shooters);
-
-    // recalc classifier meta
-  } catch (err) {
-    console.error(err);
-    if (curTry < maxTries) {
-      return afterUpload(classifiers, shooters, curTry + 1, maxTries);
-    }
-  }
 };
 
 const normalizeDivision = divisionNameRaw => {
@@ -848,6 +834,23 @@ export const scoresLoop = async ({ batchSize = 4 } = {}) => {
   return numberOfUpdates;
 };
 
+export const metaLoop = async (curTry = 1, maxTries = 3) => {
+  try {
+    const classifiers = await AfterUploadClassifiers.find({}).limit(0).lean();
+    const shooters = await AfterUploadShooters.find({}).limit(0).lean();
+
+    await hydrateRecHHFsForClassifiers(classifiers);
+    await reclassifyShooters(shooters);
+    await rehydrateClassifiers(classifiers);
+    await hydrateStats();
+  } catch (err) {
+    console.error(err);
+    if (curTry < maxTries) {
+      return metaLoop(curTry + 1, maxTries);
+    }
+  }
+};
+
 const uploadsWorkerMain = async () => {
   await connect();
 
@@ -893,10 +896,6 @@ const uploadsWorkerMain = async () => {
       }
     });
   });
-};
-
-export const metaLoop = async () => {
-  await hydrateStats();
 };
 
 export default uploadsWorkerMain;
