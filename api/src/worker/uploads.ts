@@ -7,44 +7,40 @@ import { Readable } from "stream";
 import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 import uniqBy from "lodash.uniqby";
 
-import features from "../../../shared/features.js";
-import { UTCDate } from "../../../shared/utils/date.js";
-import { minorHF } from "../../../shared/utils/hitfactor.js";
-import { uuidsFromUrlString } from "../../../shared/utils/uuid.js";
+import features from "../../../shared/features";
+import { UTCDate } from "../../../shared/utils/date";
+import { minorHF } from "../../../shared/utils/hitfactor";
+import { uuidsFromUrlString } from "../../../shared/utils/uuid";
 import {
   scsaDivisionWithPrefix,
   scsaPeakTime,
   ScsaPeakTimesMap,
-} from "../dataUtil/classifiersData.js";
+} from "../dataUtil/classifiersData";
 import {
   arrayWithExplodedDivisions,
   hfuDivisionCompatabilityMap,
   hfuDivisionsShortNames,
   pairToDivision,
-} from "../dataUtil/divisions.js";
-import { curHHFForDivisionClassifier } from "../dataUtil/hhf.js";
+} from "../dataUtil/divisions";
+import { curHHFForDivisionClassifier } from "../dataUtil/hhf";
 import { HF, N, Percent } from "../dataUtil/numbers";
 import {
   AfterUploadClassifiers,
   type AfterUploadClassifier,
-} from "../db/afterUploadClassifiers.js";
-import {
-  AfterUploadShooters,
-  type AfterUploadShooter,
-} from "../db/afterUploadShooters.js";
+} from "../db/afterUploadClassifiers";
+import { AfterUploadShooters, type AfterUploadShooter } from "../db/afterUploadShooters";
 import { rehydrateClassifiers } from "../db/classifiers";
-import { DQs } from "../db/dq.js";
-import { connect } from "../db/index.js";
+import { DQs } from "../db/dq";
+import { connect } from "../db/index";
 import {
   Matches,
   fetchAndSaveMoreMatchesById,
   fetchAndSaveMoreMatchesByUpdatedDate,
-} from "../db/matches.js";
-import { Match } from "../db/matches.js";
+} from "../db/matches";
 import { hydrateRecHHFsForClassifiers } from "../db/recHHF";
-import { Score } from "../db/scores.js";
+import { Scores } from "../db/scores";
 import { reclassifyShooters } from "../db/shooters";
-import { hydrateStats } from "../db/stats.js";
+import { hydrateStats } from "../db/stats";
 
 export const _fetchPSS3ObjectJSON = async (objectKey: string, noGZip = false) => {
   try {
@@ -393,7 +389,7 @@ const scsaMatchInfo = async matchInfo => {
   return EmptyMatchResultsFactory();
 };
 
-const uspsaOrHitFactorMatchInfo = async matchInfo => {
+export const uspsaOrHitFactorMatchInfo = async matchInfo => {
   const { uuid } = matchInfo;
   const { matchDef: match, results, scores: scoresJson } = await fetchPS(uuid);
   if (!match || !results || !scoresJson) {
@@ -601,7 +597,7 @@ export const processUploadResults = async ({ uploadResults }) => {
       return { classifiers: [], shooters: [], matches: [] };
     }
     console.time("scoreWrite");
-    await Score.bulkWrite(
+    await Scores.bulkWrite(
       scores.map(s => ({
         updateOne: {
           filter: {
@@ -781,7 +777,7 @@ export const scoresLoop = async ({ batchSize = 4 } = {}) => {
   console.timeEnd("count matches");
 
   let numberOfUpdates = 0;
-  let fewMatches: Match[] = [];
+  let fewMatches = [] as Awaited<ReturnType<typeof findAFewMatches>>;
   let totalMatchesUploaded = 0;
   do {
     console.time("findMatches");

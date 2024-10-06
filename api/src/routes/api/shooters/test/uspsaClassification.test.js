@@ -13,15 +13,15 @@ import {
   newClassificationCalculationState,
   numberOfDuplicates,
   percentAndAgesForDivWindow,
-} from "../../../../../../shared/utils/classification.js";
-import { mapDivisions } from "../../../../dataUtil/divisions.js";
+} from "../../../../../../shared/utils/classification";
+import { mapDivisions } from "../../../../dataUtil/divisions";
 
 import testData, {
   csClassifiers,
   csOpenClassifiers,
   noCurPercentButExpected,
-} from "./testData.js";
-import { dateSort } from "../../../../../../shared/utils/sort.js";
+} from "./testData";
+import { dateSort } from "../../../../../../shared/utils/sort";
 
 test("lets make sure this works first", (t) => {
   assert.strictEqual(1, 1);

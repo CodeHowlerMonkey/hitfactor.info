@@ -1,6 +1,6 @@
-import { connect } from "../api/src/db/index.js";
-import { Matches } from "../api/src/db/matches.js";
-import { fetchPS } from "../api/src/worker/uploads.js";
+import { connect } from "../api/src/db/index";
+import { Matches } from "../api/src/db/matches";
+import { fetchPS } from "../api/src/worker/uploads";
 
 const majorActivity = async () => {
   await connect();

@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "assert";
-import { minorHF, targetHitsToLetters } from "../hitfactor.js";
+import { minorHF, targetHitsToLetters } from "../hitfactor";
 
 test("targetHitsToLetters", (t) => {
   assert.deepEqual(targetHitsToLetters(0), []);

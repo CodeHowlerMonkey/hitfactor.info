@@ -1,7 +1,7 @@
-import { Report } from "../../../db/reports.js";
+import { Reports } from "../../../db/reports";
 
-const classificationsRoutes = async (fastify, opts) => {
-  fastify.post("/", async (req, res) => {
+const reportRoutes = async fastify => {
+  fastify.post("/", async req => {
     const {
       sd,
       memberNumber,
@@ -17,7 +17,7 @@ const classificationsRoutes = async (fastify, opts) => {
       club_name,
     } = req.body || {};
 
-    const result = await Report.create({
+    const result = await Reports.create({
       sd,
       memberNumber,
       division,
@@ -36,4 +36,4 @@ const classificationsRoutes = async (fastify, opts) => {
   });
 };
 
-export default classificationsRoutes;
+export default reportRoutes;

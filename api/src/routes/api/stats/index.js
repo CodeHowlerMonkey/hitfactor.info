@@ -1,5 +1,5 @@
-import { Percent } from "../../../dataUtil/numbers.js";
-import { uspsaDivisionsPopularity } from "../../../db/scores.js";
+import { Percent } from "../../../dataUtil/numbers";
+import { uspsaDivisionsPopularity } from "../../../db/scores";
 
 const _divisionsPopularityCached = {};
 const statsRoutes = async (fastify, opts) => {

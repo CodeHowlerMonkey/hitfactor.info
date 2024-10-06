@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "assert";
-import { arrayCombination, classifiersAndShootersFromScores } from "../uploads.js";
+import { arrayCombination, classifiersAndShootersFromScores } from "../uploads";
 
 const scoreFactory = (classifier, division, memberNumber) => ({
   classifier,

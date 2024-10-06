@@ -11,7 +11,7 @@ import {
   hfuDivisionMapForHHF,
   hfuDivisionRecHHFExclusion,
   sportForDivision,
-} from "../divisions.js";
+} from "../divisions";
 
 const classifierFactory = (classifier, division) => ({
   classifier,

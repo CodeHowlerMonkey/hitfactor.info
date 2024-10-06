@@ -1,12 +1,12 @@
-import { connect } from "../api/src/db/index.js";
-import { scsaDivisionsShortNames } from "../shared/constants/divisions.js";
-import { RecHHF, rehydrateRecHHF } from "../api/src/db/recHHF.js";
+import { connect } from "../api/src/db/index";
+import { scsaDivisionsShortNames } from "../shared/constants/divisions";
+import { RecHHF, rehydrateRecHHF } from "../api/src/db/recHHF";
 import {
   Classifier,
   singleClassifierExtendedMetaDoc,
-} from "../api/src/db/classifiers.js";
-import { uploadLoop } from "../api/src/worker/uploads.js";
-import { Matches } from "../api/src/db/matches.js";
+} from "../api/src/db/classifiers";
+import { uploadLoop } from "../api/src/worker/uploads";
+import { Matches } from "../api/src/db/matches";
 
 const hydrateScsaClassifiers = async () => {
   await rehydrateRecHHF(scsaDivisionsShortNames, [

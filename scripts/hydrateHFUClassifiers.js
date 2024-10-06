@@ -1,11 +1,11 @@
-import { uspsaClassifiers } from "../api/src/dataUtil/classifiersData.js";
+import { uspsaClassifiers } from "../api/src/dataUtil/classifiersData";
 import {
   Classifier,
   singleClassifierExtendedMetaDoc,
-} from "../api/src/db/classifiers.js";
-import { connect } from "../api/src/db/index.js";
-import { RecHHF } from "../api/src/db/recHHF.js";
-import { hfuDivisionsShortNames } from "../shared/constants/divisions.js";
+} from "../api/src/db/classifiers";
+import { connect } from "../api/src/db/index";
+import { RecHHF } from "../api/src/db/recHHF";
+import { hfuDivisionsShortNames } from "../shared/constants/divisions";
 
 const hydrateHFUClassifiers = async () => {
   const classifiers = uspsaClassifiers

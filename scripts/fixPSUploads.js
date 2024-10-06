@@ -1,6 +1,6 @@
-import { connect } from "../api/src/db/index.js";
-import { Matches } from "../api/src/db/matches.js";
-import { _fetchPSS3ObjectJSON } from "../api/src/worker/uploads.js";
+import { connect } from "../api/src/db/index";
+import { Matches } from "../api/src/db/matches";
+import { _fetchPSS3ObjectJSON } from "../api/src/worker/uploads";
 
 /**
  * Marks all USPSA matches after June 1st 2024 as not-uploaded, so new

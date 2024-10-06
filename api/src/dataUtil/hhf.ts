@@ -1,7 +1,8 @@
-import { classifiers, scsaHhfEquivalentForDivision, scsaPeakTime } from "./classifiersData.js";
-import { divIdToShort, hfuDivisionMapForHHF } from "./divisions.js";
-import { HF } from "./numbers.js";
-import { loadJSON } from "../utils.js";
+import { loadJSON } from "../utils";
+
+import { classifiers, scsaHhfEquivalentForDivision } from "./classifiersData";
+import { divIdToShort, hfuDivisionMapForHHF } from "./divisions";
+import { HF } from "./numbers";
 
 export const divShortToHHFs = loadJSON("../../data/hhf.json").hhfs.reduce((acc, cur) => {
   const divShortName = divIdToShort[cur.division];
@@ -13,8 +14,8 @@ export const divShortToHHFs = loadJSON("../../data/hhf.json").hhfs.reduce((acc, 
   };
 }, {});
 
-export const hhfsForDivision = (division) => {
-  if (division.startsWith('scsa')) {
+export const hhfsForDivision = division => {
+  if (division.startsWith("scsa")) {
     return scsaHhfEquivalentForDivision(division);
   }
   const hfuDivisionForHHF = hfuDivisionMapForHHF[division];
@@ -31,7 +32,7 @@ export const curHHFForDivisionClassifier = ({ division, number }) => {
   }
 
   const divisionHHFs = hhfsForDivision(division);
-  const c = classifiers.find((cur) => cur.classifier === number);
+  const c = classifiers.find(cur => cur.classifier === number);
 
   // major match or classifier not found for some reason
   if (!c) {
@@ -39,11 +40,11 @@ export const curHHFForDivisionClassifier = ({ division, number }) => {
   }
 
   try {
-    const curHHFInfo = divisionHHFs.find((dHHF) => dHHF.classifier === c.id);
+    const curHHFInfo = divisionHHFs.find(dHHF => dHHF.classifier === c.id);
     return HF(curHHFInfo.hhf);
   } catch (all) {
-    console.log("cant find HHF for division:");
-    console.log(division);
+    console.error("cant find HHF for division:");
+    console.error(division);
     return -1;
   }
 };

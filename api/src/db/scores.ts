@@ -7,11 +7,11 @@ import {
   hfuDivisionsShortNamesThatNeedMinorHF,
   minorDivisions,
   uspsaDivShortNames,
-} from "../../../shared/constants/divisions.js";
-import { UTCDate } from "../../../shared/utils/date.js";
-import { curHHFFor } from "../dataUtil/hhf.js";
-import { N, Percent, PositiveOrMinus1 } from "../dataUtil/numbers.js";
-import { processImportAsyncSeq } from "../utils.js";
+} from "../../../shared/constants/divisions";
+import { UTCDate } from "../../../shared/utils/date";
+import { curHHFFor } from "../dataUtil/hhf";
+import { N, Percent, PositiveOrMinus1 } from "../dataUtil/numbers";
+import { processImportAsyncSeq } from "../utils";
 
 export interface Score {
   classifier: string;

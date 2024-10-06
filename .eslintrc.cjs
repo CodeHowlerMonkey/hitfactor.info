@@ -26,6 +26,7 @@ module.exports = {
     "no-console": ["error", { allow: ["error"] }],
     "no-empty": ["error", {allowEmptyCatch: true}],
     "@typescript-eslint/no-unused-vars": ["error",{ caughtErrors: "none"}],
+    "@typescript-eslint/no-explicit-any": "warn",
     "no-use-before-define": "off",
 
     // constants / variables

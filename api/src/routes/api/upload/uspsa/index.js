@@ -1,26 +1,18 @@
 import FormData from "form-data";
 import { ZenRows } from "zenrows";
-import uniqBy from "lodash.uniqby";
-import { Score, scoresFromClassifierFile } from "../../../../db/scores.js";
-import {
-  shooterObjectsFromClassificationFile,
-  Shooter,
-} from "../../../../db/shooters.js";
-import {
-  afterUpload,
-  classifiersAndShootersFromScores,
-} from "../../../../worker/uploads.js";
+
+import { saveActiveMembersFromPSClassUpdate } from "../../../../db/activeMembers";
+import { Scores, scoresFromClassifierFile } from "../../../../db/scores";
+import { shooterObjectsFromClassificationFile, Shooter } from "../../../../db/shooters";
 import {
   fetchPSClassUpdateCSVTextFile,
   practiscoreClassUpdateFromTextFile,
-} from "../../../../worker/classUpdate.js";
-import { saveActiveMembersFromPSClassUpdate } from "../../../../db/activeMembers.js";
+} from "../../../../worker/classUpdate";
+import { metaLoop, classifiersAndShootersFromScores } from "../../../../worker/uploads";
 
-const delay = (ms) => {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-};
+const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
-const retryDelay = (retry) => {
+const retryDelay = retry => {
   const quickRandom = Math.ceil(32 + 40 * Math.random());
   return delay(retry * 312 + quickRandom);
 };
@@ -42,14 +34,14 @@ const fetchUSPSAEndpoint = async (sessionKey, endpoint, tryNumber = 1, maxTries 
             "Mozilla/5.0 (iPhone; CPU iPhone OS 16_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148",
           Accept: "application/json",
         },
-      }
+      },
     );
     return data;
     // return await response.json();
   } catch (err) {
     if (tryNumber <= maxTries) {
       await retryDelay(tryNumber);
-      return await fetchUSPSAEndpoint(sessionKey, endpoint, tryNumber + 1, maxTries);
+      return fetchUSPSAEndpoint(sessionKey, endpoint, tryNumber + 1, maxTries);
     }
 
     return null;
@@ -76,7 +68,7 @@ const loginToUSPSA = async (username, password) => {
           ...formData.getHeaders(),
         },
         data: formData,
-      }
+      },
     );
     //return await response.json();
     return data;
@@ -141,8 +133,8 @@ const uspsaUploadRoutes = async (fastify, opts) => {
 
     try {
       const scores = scoresFromClassifierFile({ value: uspsaClassifiers });
-      await Score.bulkWrite(
-        scores.map((s) => ({
+      await Scores.bulkWrite(
+        scores.map(s => ({
           updateOne: {
             filter: {
               memberNumberDivision: s.memberNumberDivision,
@@ -156,13 +148,13 @@ const uspsaUploadRoutes = async (fastify, opts) => {
             update: { $set: s },
             upsert: true,
           },
-        }))
+        })),
       );
       const shooterObjs = await shooterObjectsFromClassificationFile(uspsaClassification);
       await Shooter.bulkWrite(
         shooterObjs
-          .filter((s) => !!s.memberNumber)
-          .map((s) => ({
+          .filter(s => !!s.memberNumber)
+          .map(s => ({
             updateOne: {
               filter: {
                 memberNumber: s.memberNumber,
@@ -171,12 +163,12 @@ const uspsaUploadRoutes = async (fastify, opts) => {
               update: { $set: s },
               upsert: true,
             },
-          }))
+          })),
       );
 
       const { classifiers, shooters } = classifiersAndShootersFromScores(scores);
       setImmediate(async () => {
-        await afterUpload(classifiers, shooters);
+        await metaLoop();
       });
 
       return {

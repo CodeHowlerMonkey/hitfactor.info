@@ -1,7 +1,7 @@
-import test from "node:test";
 import assert from "assert";
+import test from "node:test";
 
-import { reduceByDiv } from "../shooters.js";
+import { reduceByDiv } from "../shooters";
 
 test("reduceByDiv", () => {
   const sample = [
@@ -80,7 +80,7 @@ test("reduceByDiv", () => {
   ];
 
   assert.deepEqual(
-    reduceByDiv(sample, (c) => c.class),
+    reduceByDiv(sample, c => c.class),
     {
       opn: "M",
       ltd: "A",
@@ -91,6 +91,6 @@ test("reduceByDiv", () => {
       co: "U",
       pcc: "U",
       lo: "U",
-    }
+    },
   );
 });

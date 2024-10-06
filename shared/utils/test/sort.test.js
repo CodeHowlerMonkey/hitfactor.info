@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "assert";
-import { multisortObj } from "../sort.js";
+import { multisortObj } from "../sort";
 
 test("multisortObj", (t) => {
   assert.deepEqual(multisortObj(["a", "b"]), { a: -1, b: -1 });

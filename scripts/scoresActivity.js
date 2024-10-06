@@ -1,6 +1,6 @@
 import fs from "fs";
-import { connect } from "../api/src/db/index.js";
-import { Score } from "../api/src/db/scores.js";
+import { connect } from "../api/src/db/index";
+import { Score } from "../api/src/db/scores";
 
 const go = async () => {
   await connect();

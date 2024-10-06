@@ -1,5 +1,5 @@
-import { connect } from "../api/src/db/index.js";
-import { scoresForRecommendedClassification } from "../api/src/db/shooters.js";
+import { connect } from "../api/src/db/index";
+import { scoresForRecommendedClassification } from "../api/src/db/shooters";
 
 // should not crash, "testcase" for 7.0 vs 7.3 $getField behavior
 const go = async () => {

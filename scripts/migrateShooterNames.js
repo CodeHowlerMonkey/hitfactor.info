@@ -1,6 +1,6 @@
-import { connect } from "../api/src/db/index.js";
-import { Shooter } from "../api/src/db/shooters.js";
-import { hfuDivisionsShortNames } from "../shared/constants/divisions.js";
+import { connect } from "../api/src/db/index";
+import { Shooter } from "../api/src/db/shooters";
+import { hfuDivisionsShortNames } from "../shared/constants/divisions";
 
 const hydrateMissingNames = async () => {
   const missingNameShooters = await Shooter.find({

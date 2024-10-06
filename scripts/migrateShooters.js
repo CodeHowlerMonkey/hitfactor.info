@@ -1,12 +1,12 @@
 import uniqBy from "lodash.uniqby";
-import { connect } from "../api/src/db/index.js";
-import { reclassifyShooters, Shooter } from "../api/src/db/shooters.js";
+import { connect } from "../api/src/db/index";
+import { reclassifyShooters, Shooter } from "../api/src/db/shooters";
 import {
   arrayWithExplodedDivisions,
   hfuDivisionCompatabilityMap,
   hfuDivisionsShortNames,
   pairToDivision,
-} from "../shared/constants/divisions.js";
+} from "../shared/constants/divisions";
 
 const rehydrateAllShooters = async () => {
   const allShooters = await Shooter.find({

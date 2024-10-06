@@ -1,22 +1,22 @@
-import { PAGE_SIZE } from "../../../../../shared/constants/pagination.js";
-import { classForPercent } from "../../../../../shared/utils/classification.js";
+import { PAGE_SIZE } from "../../../../../shared/constants/pagination";
+import { classForPercent } from "../../../../../shared/utils/classification";
 import {
   multisort,
   multisortObj,
   safeNumSort,
-} from "../../../../../shared/utils/sort.js";
-import { basicInfoForClassifierCode } from "../../../dataUtil/classifiersData.js";
-import { sportForDivision } from "../../../dataUtil/divisions.js";
+} from "../../../../../shared/utils/sort";
+import { basicInfoForClassifierCode } from "../../../dataUtil/classifiersData";
+import { sportForDivision } from "../../../dataUtil/divisions";
 import {
   scoresForDivisionForShooter,
   shooterScoresChartData,
-} from "../../../db/scores.js";
-import { Shooter, reclassificationForProgressMode } from "../../../db/shooters.js";
+} from "../../../db/scores";
+import { Shooter, reclassificationForProgressMode } from "../../../db/shooters";
 import {
   addPlaceAndPercentileAggregation,
   multiSortAndPaginate,
   textSearchMatch,
-} from "../../../db/utils.js";
+} from "../../../db/utils";
 
 const DEFAULT_PLACE_BY = "reclassificationsRecPercentCurrent";
 const placeByFieldForSort = sort => {

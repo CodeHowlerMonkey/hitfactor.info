@@ -1,7 +1,7 @@
-import { connect } from "../api/src/db/index.js";
-import { Score } from "../api/src/db/scores.js";
-import { consol } from "../shared/utils/consol.js";
-import { minorHF } from "../shared/utils/hitfactor.js";
+import { connect } from "../api/src/db/index";
+import { Score } from "../api/src/db/scores";
+import { consol } from "../shared/utils/consol";
+import { minorHF } from "../shared/utils/hitfactor";
 
 const migrateDivision = async (division = "opn") => {
   const possiblyCompatible = await Score.countDocuments({

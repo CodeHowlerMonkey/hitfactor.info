@@ -1,5 +1,5 @@
-import { dirPath } from "../../utils.js";
-import { classifierNumbers } from "../../dataUtil/classifiersData.js";
+import { dirPath } from "../../utils";
+import { classifierNumbers } from "../../dataUtil/classifiersData";
 const pathWsb = dirPath("./../../data/classifiers/");
 
 const wsbRoutes = async (fastify, opts) => {

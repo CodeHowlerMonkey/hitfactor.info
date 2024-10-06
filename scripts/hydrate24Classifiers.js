@@ -1,10 +1,10 @@
-import { connect } from "../api/src/db/index.js";
-import { allDivShortNames } from "../shared/constants/divisions.js";
-import { RecHHF, rehydrateRecHHF } from "../api/src/db/recHHF.js";
+import { connect } from "../api/src/db/index";
+import { allDivShortNames } from "../shared/constants/divisions";
+import { RecHHF, rehydrateRecHHF } from "../api/src/db/recHHF";
 import {
   Classifier,
   singleClassifierExtendedMetaDoc,
-} from "../api/src/db/classifiers.js";
+} from "../api/src/db/classifiers";
 
 const hydrate24Series = async () => {
   await rehydrateRecHHF(allDivShortNames, [

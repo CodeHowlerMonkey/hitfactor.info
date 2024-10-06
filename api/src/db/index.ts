@@ -1,27 +1,26 @@
 /* eslint-disable no-console */
 import mongoose from "mongoose";
 
-import { hydrateClassifiersExtendedMeta } from "./classifiers.js";
+import { hydrateClassifiersExtendedMeta } from "./classifiers";
 import { rehydrateRecHHF } from "./recHHF";
-import { hydrateScores } from "./scores.js";
-import { hydrateShooters } from "./shooters.js";
-import { hydrateStats } from "./stats.js";
+import { hydrateScores } from "./scores";
+import { hydrateShooters } from "./shooters";
+import { hydrateStats } from "./stats";
 
 export const connect = async () => {
   const { LOCAL_DEV, MONGO_URL, MONGO_URL_LOCAL } = process.env;
-  const url = !LOCAL_DEV ? MONGO_URL : MONGO_URL_LOCAL;
-
-  const publicLogsDBName = url.split("@")[1]?.split(".")[0] || "local";
-
   if (!LOCAL_DEV && !MONGO_URL) {
     throw new Error(
       `Environment Variable MONGO_URL must be specified in top-level environment variables in sandbox mode.`,
     );
   }
+  const url = !LOCAL_DEV ? MONGO_URL : MONGO_URL_LOCAL;
+
+  const publicLogsDBName = url!.split("@")[1]?.split(".")[0] || "local";
 
   const _connect = () => {
     console.error("DB: connecting");
-    return mongoose.connect(url);
+    return mongoose.connect(url!);
   };
 
   mongoose.connection.on("error", e => {

@@ -3,20 +3,20 @@ import transform from "lodash.transform";
 import uniqBy from "lodash.uniqby";
 import mongoose, { Model } from "mongoose";
 
-import { stringSort } from "../../../shared/utils/sort.js";
+import { stringSort } from "../../../shared/utils/sort";
 import {
   basicInfoForClassifier,
   classifiers as _classifiers,
   classifiersByNumber,
   ClassifierJSON,
 } from "../dataUtil/classifiersData";
-import { divisionsForScoresAdapter, divShortNames } from "../dataUtil/divisions.js";
-import { hhfsForDivision } from "../dataUtil/hhf.js";
-import { HF, Percent } from "../dataUtil/numbers.js";
+import { divisionsForScoresAdapter, divShortNames } from "../dataUtil/divisions";
+import { hhfsForDivision } from "../dataUtil/hhf";
+import { HF, Percent } from "../dataUtil/numbers";
 
 import { RecHHFs, RecHHF } from "./recHHF";
-import { minorHFScoresAdapter, Scores } from "./scores.js";
-import { Score } from "./scores.js";
+import { minorHFScoresAdapter, Scores } from "./scores";
+import { Score } from "./scores";
 
 export interface Classifier {
   classifier: string;
@@ -264,7 +264,7 @@ export const singleClassifierExtendedMetaDoc = async (
   ]);
   const hitFactorScores: Score[] = minorHFScoresAdapter(hitFactorScoresRaw, division);
 
-  const recHHF = recHHFQuery?.recHHF;
+  const recHHF = recHHFQuery?.recHHF ?? 0;
   const inverseRecPercentileStats = xPercent => ({
     [`inverse${xPercent}RecPercentPercentile`]: Percent(
       recHHF > 0

@@ -1,3 +1,3 @@
-import uploadsWorkerMain from "../api/src/worker/uploads.js";
+import uploadsWorkerMain from "../api/src/worker/uploads";
 
 uploadsWorkerMain();

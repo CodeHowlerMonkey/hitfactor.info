@@ -1,16 +1,16 @@
 import mongoose from "mongoose";
 
-import { uspsaClassifiers } from "../dataUtil/classifiersData.js";
+import { uspsaClassifiers } from "../dataUtil/classifiersData";
 import {
   allDivShortNames,
   classifierDivisionArrayForHFURecHHFs,
   divisionsForRecHHFAdapter,
   hfuDivisionCompatabilityMap,
-} from "../dataUtil/divisions.js";
-import { curHHFForDivisionClassifier } from "../dataUtil/hhf.js";
-import { HF, Percent, PositiveOrMinus1 } from "../dataUtil/numbers.js";
+} from "../dataUtil/divisions";
+import { curHHFForDivisionClassifier } from "../dataUtil/hhf";
+import { HF, Percent, PositiveOrMinus1 } from "../dataUtil/numbers";
 
-import { minorHFScoresAdapter, Scores } from "./scores.js";
+import { minorHFScoresAdapter, Scores } from "./scores";
 
 const LOW_SAMPLE_SIZE_DIVISIONS = new Set([
   "rev",
@@ -572,7 +572,11 @@ export const hydrateSingleRecHFF = async (division, classifier) => {
   const update = recHHFUpdate(allRuns, division, classifier);
 
   if (update) {
-    return RecHHF.updateOne({ division, classifier }, { $set: update }, { upsert: true });
+    return RecHHFs.updateOne(
+      { division, classifier },
+      { $set: update },
+      { upsert: true },
+    );
   }
   return null;
 };
@@ -590,7 +594,7 @@ export const hydrateRecHHFsForClassifiers = async classifiers => {
     )
     .filter(Boolean);
 
-  return RecHHF.bulkWrite(
+  return RecHHFs.bulkWrite(
     updates.map(update => {
       const { division, classifier, classifierDivision, ...setUpdate } = update;
       return {

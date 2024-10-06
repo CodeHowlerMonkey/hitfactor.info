@@ -3,9 +3,9 @@ import {
   allDivShortNames,
   divShortNames,
   mapAllDivisions,
-} from "../../api/src/dataUtil/divisions.js";
+} from "../../api/src/dataUtil/divisions";
 import uniqBy from "lodash.uniqby";
-import { dateSort, numSort } from "./sort.js";
+import { dateSort, numSort } from "./sort";
 
 export const classificationRank = (classification) =>
   ["X", "U", "D", "C", "B", "A", "M", "GM"].indexOf(classification);

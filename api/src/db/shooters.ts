@@ -6,7 +6,7 @@ import {
   calculateUSPSAClassification,
   classForPercent,
   rankForClass,
-} from "../../../shared/utils/classification.js";
+} from "../../../shared/utils/classification";
 import {
   divIdToShort,
   divisionsForScoresAdapter,
@@ -14,12 +14,12 @@ import {
   hfuDivisionsShortNamesThatNeedMinorHF,
   mapDivisions,
   uspsaDivShortNames,
-} from "../dataUtil/divisions.js";
-import { psClassUpdatesByMemberNumber } from "../dataUtil/uspsa.js";
-import { loadJSON, processImportAsyncSeq } from "../utils.js";
+} from "../dataUtil/divisions";
+import { psClassUpdatesByMemberNumber } from "../dataUtil/uspsa";
+import { loadJSON, processImportAsyncSeq } from "../utils";
 
-import { Scores } from "./scores.js";
-import { getField, percentAggregationOp } from "./utils.js";
+import { Scores } from "./scores";
+import { getField, percentAggregationOp } from "./utils";
 
 const memberIdToNumberMap = loadJSON("../../data/meta/memberIdToNumber.json");
 const memberNumberFromMemberData = memberData => {
@@ -339,9 +339,10 @@ export const shooterObjectsFromClassificationFile = async c => {
     return [];
   }
   const memberNumber = memberNumberFromMemberData(c.member_data);
-  const memberScores = await scoresForRecommendedClassification([memberNumber]);
+  const recMemberScores = await scoresForRecommendedClassification([memberNumber]);
+  const curMemberScores = await allDivisionsScores([memberNumber]);
 
-  return shooterObjectsForMemberNumber(c, memberScores);
+  return shooterObjectsForMemberNumber(c, recMemberScores, curMemberScores);
 };
 
 // upload from uspsa api OR hydration from uspsa json files
@@ -446,13 +447,13 @@ const batchHydrateShooters = async letter => {
   process.stdout.write(letter);
   process.stdout.write(": ");
 
-  let curBatch = [];
+  let curBatch = [] as any[];
 
   await processImportAsyncSeq(
     "../../data/imported",
     new RegExp(`classification\\.${letter}\\.\\d+\\.json`),
     async obj => {
-      curBatch.push(obj.value);
+      curBatch.push(obj.value as object);
       if (curBatch.length >= 128) {
         await processBatchHydrateShooters(curBatch);
         curBatch = [];
@@ -492,7 +493,7 @@ export const reclassifyShooters = async shooters => {
 
     const updates = shooters
       .filter(
-        ({ memberNumber, division, name }) =>
+        ({ memberNumber, division }) =>
           // TODO: Implement Reclassify Shooters for SCSA
           // https://github.com/CodeHowlerMonkey/hitfactor.info/issues/69
           memberNumber && uspsaDivShortNames.find(x => x === division),
@@ -522,7 +523,7 @@ export const reclassifyShooters = async shooters => {
           (recalcDivRec?.current ?? 0).toFixed(4),
         );
 
-        const hqClass = psClassUpdates[memberNumber]?.[division] || "U";
+        const hqClass = psClassUpdates?.[memberNumber]?.[division] || "U";
 
         return [
           {
@@ -562,7 +563,7 @@ export const reclassifyShooters = async shooters => {
                     hqClass,
                     hqClassRank: rankForClass(hqClass),
                     class: hqClass,
-                    memberId: psClassUpdates[memberNumber]?.memberId,
+                    memberId: psClassUpdates?.[memberNumber]?.memberId,
 
                     age: recalcByRecPercent?.[division]?.age,
                     age1: recalcByRecPercent?.[division]?.age1,

@@ -3,8 +3,8 @@ import cors from "@fastify/cors";
 import FastifyStatic from "@fastify/static";
 import { FastifyPluginAsync, FastifyServerOptions } from "fastify";
 
-import { connect } from "./db/index.js";
-import { dirPath } from "./utils.js";
+import { connect } from "./db/index";
+import { dirPath } from "./utils";
 
 export interface AppOptions
   extends FastifyServerOptions,

@@ -1,4 +1,4 @@
-import { loadJSON } from "../utils.js";
+import { loadJSON } from "../utils";
 
 export type USPSAScoring = "Virginia" | "Comstock" | "Fixed Time";
 export type SCSAScoring = "Time Plus";

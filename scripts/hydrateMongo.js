@@ -1,4 +1,4 @@
-import { connect, hydrate } from "../api/src/db/index.js";
+import { connect, hydrate } from "../api/src/db/index";
 
 const hydrateMongo = async () => {
   await connect();

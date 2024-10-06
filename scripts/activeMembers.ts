@@ -1,14 +1,15 @@
-import { saveActiveMembersFromPSClassUpdate } from "../api/src/db/activeMembers.js";
-import { connect } from "../api/src/db/index.js";
+/* eslint-disable no-console */
+import fs from "fs";
+
+import { saveActiveMembersFromPSClassUpdate } from "../api/src/db/activeMembers";
+import { connect } from "../api/src/db/index";
 import {
   fetchPSClassUpdateCSVTextFile,
   practiscoreClassUpdateFromTextFile,
-} from "../api/src/worker/classUpdate.js";
-
-import fs from "fs";
+} from "../api/src/worker/classUpdate";
 
 const go = async () => {
-  let text = null;
+  let text: string | null = null;
 
   const filenameArg = process.argv[2];
   if (filenameArg) {
@@ -19,7 +20,8 @@ const go = async () => {
   if (!text) {
     text = await fetchPSClassUpdateCSVTextFile();
   }
-  const update = await practiscoreClassUpdateFromTextFile(text);
+
+  const update = practiscoreClassUpdateFromTextFile(text);
   if (!update) {
     return;
   }

@@ -1,6 +1,6 @@
-import { PAGE_SIZE } from "../../../shared/constants/pagination.js";
-import { multisortObj } from "../../../shared/utils/sort.js";
-import { escapeRegExp } from "../utils.js";
+import { PAGE_SIZE } from "../../../shared/constants/pagination";
+import { multisortObj } from "../../../shared/utils/sort";
+import { escapeRegExp } from "../utils";
 
 export const percentAggregationOp = (value, total, round = 2) => ({
   $round: [
@@ -29,7 +29,7 @@ export const percentAggregationOp = (value, total, round = 2) => ({
 export const addPlaceAndPercentileAggregation = (
   placeByField,
   filtersAggregation,
-  paginationAggregation
+  paginationAggregation,
 ) => [
   {
     $facet: {
@@ -75,7 +75,7 @@ export const multiSortAndPaginate = ({ sort, order, page }) => [
 // 🤌🤌🤌
 export const textSearchMatch = (fields, filterString) => ({
   $or: fields.map(f => ({
-    [f]: new RegExp(".*" + escapeRegExp(filterString) + ".*", "i"),
+    [f]: new RegExp(`.*${escapeRegExp(filterString)}.*`, "i"),
   })),
 });
 

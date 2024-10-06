@@ -15,13 +15,13 @@ export const yLine = (name, y, color) => ({
     borderColor: color,
     borderWidth: 1,
   },
-  [name + "Label"]: {
+  [`${name}Label`]: {
     type: "label",
     xValue: 0,
     yValue: y - 1.1,
     color,
     position: "start",
-    content: [y + "th"],
+    content: [`${y}th`],
     font: {
       size: 11,
     },
@@ -36,7 +36,7 @@ export const xLine = (name, x, color, extraLabelOffset = 0) => ({
     borderColor: color,
     borderWidth: 1,
   },
-  [name + "Label"]: {
+  [`${name}Label`]: {
     type: "label",
     xValue: x,
     yValue: 95 - 2 * extraLabelOffset,
@@ -60,8 +60,7 @@ export const point = (name, x, y, color) => ({
   },
 });
 
-export const annotationColor = (alpha) => `rgba(255, 99, 132, ${alpha * 0.5})`;
-export const r1annotationColor = (alpha) =>
-  `rgba(132, 99, 255, ${alpha * 0.75})`;
-export const r5annotationColor = (alpha) => `rgba(99, 255, 132, ${alpha})`;
-export const r15annotationColor = (alpha) => `rgba(255, 255, 132, ${alpha})`;
+export const annotationColor = alpha => `rgba(255, 99, 132, ${alpha * 0.5})`;
+export const r1annotationColor = alpha => `rgba(132, 99, 255, ${alpha * 0.75})`;
+export const r5annotationColor = alpha => `rgba(99, 255, 132, ${alpha})`;
+export const r15annotationColor = alpha => `rgba(255, 255, 132, ${alpha})`;
