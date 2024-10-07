@@ -1,12 +1,9 @@
+import { Classifiers, singleClassifierExtendedMetaDoc } from "../api/src/db/classifiers";
 import { connect } from "../api/src/db/index";
-import { scsaDivisionsShortNames } from "../shared/constants/divisions";
-import { RecHHF, rehydrateRecHHF } from "../api/src/db/recHHF";
-import {
-  Classifier,
-  singleClassifierExtendedMetaDoc,
-} from "../api/src/db/classifiers";
-import { uploadLoop } from "../api/src/worker/uploads";
 import { Matches } from "../api/src/db/matches";
+import { RecHHFs, rehydrateRecHHF } from "../api/src/db/recHHF";
+import { uploadLoop } from "../api/src/worker/uploads";
+import { scsaDivisionsShortNames } from "../shared/constants/divisions";
 
 const hydrateScsaClassifiers = async () => {
   await rehydrateRecHHF(scsaDivisionsShortNames, [
@@ -33,7 +30,7 @@ const hydrateScsaClassifiers = async () => {
     .map(classifier => scsaDivisionsShortNames.map(div => [classifier, div].join(":")))
     .flat();
 
-  const recHHFs = await RecHHF.find({ classifierDivision: { $in: classifierDivisions } })
+  const recHHFs = await RecHHFs.find({ classifierDivision: { $in: classifierDivisions } })
     .select({ recHHF: true, _id: false, classifierDivision: true })
     .lean();
   const recHHFsByClassifierDivision = recHHFs.reduce((acc, cur) => {
@@ -47,9 +44,9 @@ const hydrateScsaClassifiers = async () => {
     const doc = await singleClassifierExtendedMetaDoc(
       division,
       classifier,
-      recHHFsByClassifierDivision[[classifier, division].join(":")]
+      recHHFsByClassifierDivision[[classifier, division].join(":")],
     );
-    await Classifier.bulkWrite([
+    await Classifiers.bulkWrite([
       {
         updateOne: {
           filter: { division: doc.division, classifier: doc.classifier },
@@ -69,7 +66,7 @@ const migrate = async () => {
   console.log("marking all SCSA as not uploaded");
   const matchesUpdate = await Matches.updateMany(
     { templateName: "Steel Challenge" },
-    { $unset: { uploaded: true } }
+    { $unset: { uploaded: true } },
   );
   console.log("matchesResult = ");
   console.log(JSON.stringify(matchesUpdate, null, 2));

@@ -3,7 +3,7 @@ import { ZenRows } from "zenrows";
 
 import { saveActiveMembersFromPSClassUpdate } from "../../../../db/activeMembers";
 import { Scores, scoresFromClassifierFile } from "../../../../db/scores";
-import { shooterObjectsFromClassificationFile, Shooter } from "../../../../db/shooters";
+import { shooterObjectsFromClassificationFile, Shooters } from "../../../../db/shooters";
 import {
   fetchPSClassUpdateCSVTextFile,
   practiscoreClassUpdateFromTextFile,
@@ -151,7 +151,7 @@ const uspsaUploadRoutes = async (fastify, opts) => {
         })),
       );
       const shooterObjs = await shooterObjectsFromClassificationFile(uspsaClassification);
-      await Shooter.bulkWrite(
+      await Shooters.bulkWrite(
         shooterObjs
           .filter(s => !!s.memberNumber)
           .map(s => ({

@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 
 import { divShortNames, mapDivisions } from "../dataUtil/divisions";
 
-import { Shooter } from "./shooters";
+import { Shooters } from "./shooters";
 
 const StatsSchema = new mongoose.Schema({}, { strict: false });
 export const Stats = mongoose.model("Stats", StatsSchema);
@@ -56,7 +56,7 @@ const addCurClassField = () => ({
 
 export const statsByDivision = async field => {
   const byDiv = mapDivisions(() => ({}));
-  const dbResults = await Shooter.aggregate([
+  const dbResults = await Shooters.aggregate([
     addCurClassField(),
     {
       $project: {
@@ -95,7 +95,7 @@ export const statsByDivision = async field => {
 
 const classesRanked = ["X", "U", "D", "C", "B", "A", "M", "GM"];
 export const statsByAll = async field => {
-  const aggregateResult = await Shooter.aggregate([
+  const aggregateResult = await Shooters.aggregate([
     addCurClassField(),
     {
       $project: {

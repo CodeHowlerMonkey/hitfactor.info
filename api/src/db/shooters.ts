@@ -102,7 +102,7 @@ ShooterSchema.index({
   reclassificationsCurPercentCurrent: 1,
 });
 
-export const Shooter = mongoose.model("Shooters", ShooterSchema);
+export const Shooters = mongoose.model("Shooters", ShooterSchema);
 
 export const reduceByDiv = (classifications, valueFn) =>
   classifications.reduce(
@@ -426,7 +426,7 @@ const processBatchHydrateShooters = async batchRaw => {
     })
     .flat();
 
-  await Shooter.bulkWrite(
+  await Shooters.bulkWrite(
     shooterObjects.map(s => ({
       updateOne: {
         filter: {
@@ -584,7 +584,7 @@ export const reclassifyShooters = async shooters => {
         ];
       })
       .flat();
-    await Shooter.bulkWrite(updates.filter(Boolean));
+    await Shooters.bulkWrite(updates.filter(Boolean));
   } catch (error) {
     console.log("reclassifyShooters error:");
     console.log(error);

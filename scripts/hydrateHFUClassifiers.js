@@ -1,10 +1,7 @@
 import { uspsaClassifiers } from "../api/src/dataUtil/classifiersData";
-import {
-  Classifier,
-  singleClassifierExtendedMetaDoc,
-} from "../api/src/db/classifiers";
+import { Classifiers, singleClassifierExtendedMetaDoc } from "../api/src/db/classifiers";
 import { connect } from "../api/src/db/index";
-import { RecHHF } from "../api/src/db/recHHF";
+import { RecHHFs } from "../api/src/db/recHHF";
 import { hfuDivisionsShortNames } from "../shared/constants/divisions";
 
 const hydrateHFUClassifiers = async () => {
@@ -17,7 +14,7 @@ const hydrateHFUClassifiers = async () => {
     )
     .flat();
 
-  const recHHFs = await RecHHF.find({
+  const recHHFs = await RecHHFs.find({
     classifierDivision: {
       $in: classifiers.map(c => [c.classifier, c.division].join(":")),
     },
@@ -37,7 +34,7 @@ const hydrateHFUClassifiers = async () => {
       classifier,
       recHHFsByClassifierDivision[[classifier, division].join(":")],
     );
-    await Classifier.bulkWrite([
+    await Classifiers.bulkWrite([
       {
         updateOne: {
           filter: { division: doc.division, classifier: doc.classifier },
