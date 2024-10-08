@@ -141,6 +141,7 @@ const fetchMoreMatches = async (startId = 220000, template, onPageCallback) => {
   let curId = startId;
   do {
     lastResults = (await fetchMatchesRange(curId, template)).sort((a, b) => b.id - a.id);
+    process.stdout.write(".");
 
     curId = lastResults[0]?.id || Number.MAX_SAFE_INTEGER;
 
@@ -163,6 +164,7 @@ const fetchMoreMatchesByTimestamp = async (startTimestamp, template, onPageCallb
     lastResults = (await fetchMatchesRangeByTimestamp(curTimestamp, template)).sort(
       (a, b) => b.timestamp_utc_updated - a.timestamp_utc_updated,
     );
+    process.stdout.write(".");
 
     curTimestamp =
       lastResults[0]?.timestamp_utc_updated || Math.floor(new Date().getTime() / 1000);

@@ -769,6 +769,14 @@ const matchesForUploadFilter = (extraFilter = {}) => ({
 const findAFewMatches = async (extraFilter, batchSize) =>
   Matches.find(matchesForUploadFilter(extraFilter)).limit(batchSize).sort({ updated: 1 });
 
+export const matchesLoop = async () => {
+  await connect();
+  const numberOfNewMatches = await fetchAndSaveMoreMatchesById();
+  const numberOfUpdatedMatches = await fetchAndSaveMoreMatchesByUpdatedDate();
+  console.log(`fetched ${numberOfNewMatches} new matches`);
+  console.log(`fetched ${numberOfUpdatedMatches} updated matches`);
+};
+
 export const scoresLoop = async ({ batchSize = 4 } = {}) => {
   console.time("count matches");
   const onlyUSPSAorSCSA = { templateName: { $in: ["USPSA", "Steel Challenge"] } };
@@ -856,10 +864,7 @@ const uploadsWorkerMain = async () => {
     try {
       const utcHours = new Date().getUTCHours();
       if (utcHours < 7 || utcHours > 15) {
-        const numberOfNewMatches = await fetchAndSaveMoreMatchesById();
-        const numberOfUpdatedMatches = await fetchAndSaveMoreMatchesByUpdatedDate();
-        console.log(`fetched ${numberOfNewMatches} new matches`);
-        console.log(`fetched ${numberOfUpdatedMatches} updated matches`);
+        await matchesLoop();
       } else {
         console.log("sleeping");
       }
