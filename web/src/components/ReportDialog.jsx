@@ -47,7 +47,13 @@ const reportDocRenderFields = [
   "hf",
   "recPercent",
 ];
-const reportDocSendFields = [...reportDocRenderFields, "clubid", "club_name", "percent"];
+const reportDocSendFields = [
+  ...reportDocRenderFields,
+  "clubid",
+  "club_name",
+  "percent",
+  "_id",
+];
 
 export const ReportDialog = forwardRef(({ type }, ref) => {
   const toast = useRef(null);
@@ -90,7 +96,8 @@ export const ReportDialog = forwardRef(({ type }, ref) => {
     reportDoc.url = location.toString();
     reportDoc.reason = reason?.code;
     reportDoc.comment = comment;
-    debugger;
+    reportDoc.type = type;
+
     try {
       await postApi("/report", reportDoc);
       setVisible(false);

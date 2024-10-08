@@ -71,8 +71,7 @@ const _runsAggregation = async ({
   Scores.aggregate([
     {
       $project: {
-        _id: false,
-        _v: false,
+        __v: false,
       },
     },
     ..._replaceHFWithMinorHFIfNeeded(division),

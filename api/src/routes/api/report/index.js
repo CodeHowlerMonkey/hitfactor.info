@@ -15,6 +15,8 @@ const reportRoutes = async fastify => {
       percent,
       clubid,
       club_name,
+      type,
+      _id: targetId,
     } = req.body || {};
 
     const result = await Reports.create({
@@ -30,6 +32,8 @@ const reportRoutes = async fastify => {
       percent,
       clubid,
       club_name,
+      type,
+      targetId,
     });
 
     return { id: result?._id };
