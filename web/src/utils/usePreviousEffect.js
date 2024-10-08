@@ -6,7 +6,7 @@ const usePreviousEffect = (fn, inputs = []) => {
   useEffect(() => {
     fn(previousInputsRef.current);
     previousInputsRef.current = [...inputs];
-  }, inputs);
+  }, inputs); // eslint-disable-line react-hooks/exhaustive-deps
 };
 
 export default usePreviousEffect;

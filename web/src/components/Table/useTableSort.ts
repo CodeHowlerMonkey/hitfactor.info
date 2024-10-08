@@ -15,9 +15,9 @@ interface UseTableSortArgs {
 export const useTableSort = ({
   mode = "single",
   onSortCallback,
-  initial = [],
+  initial = [] as SingleSortState[],
 }: UseTableSortArgs) => {
-  const initialArray = [].concat(initial as any) as SingleSortState[];
+  const initialArray = ([] as SingleSortState[]).concat(initial) as SingleSortState[];
   const [state, setState] = useState<SingleSortState[]>(initialArray);
   const isSingle = mode === "single";
 
@@ -48,7 +48,7 @@ export const useTableSort = ({
         { arrayFormat: "comma" },
       ),
     }),
-    [state, mode],
+    [state, mode], //eslint-disable-line react-hooks/exhaustive-deps
   );
 };
 

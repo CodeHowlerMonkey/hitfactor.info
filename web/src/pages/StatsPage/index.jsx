@@ -245,7 +245,7 @@ const DivisionsChart = ({ year }) => {
   return (
     <div
       style={{ cursor: "pointer" }}
-      className="min-w-20rem max-w-30rem flex-grow-1 mx-auto my-4"
+      className="min-w-20rem max-w-30rem flex-grow-1 mx-auto my-2"
     >
       <div>
         <PieChart
@@ -274,10 +274,16 @@ const DivisionsChart = ({ year }) => {
 };
 
 const Divisions = () => (
-  <div className="flex gap-2 flex-wrap">
+  <div className="flex gap-4 flex-wrap mt-4">
     <DivisionsChart year={0} />
     <DivisionsChart year={1} />
     <DivisionsChart year={2} />
+    <DivisionsChart year={3} />
+    <DivisionsChart year={4} />
+    <DivisionsChart year={5} />
+    <DivisionsChart year={6} />
+    <DivisionsChart year={7} />
+    <DivisionsChart year={8} />
   </div>
 );
 

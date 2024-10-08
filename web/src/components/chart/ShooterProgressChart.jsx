@@ -61,7 +61,7 @@ export const ShooterProgressChart = ({ division, memberNumber }) => {
                 label: ({ raw: { y } }) => `${y}%`,
                 title: ([
                   {
-                    raw: { x, y },
+                    raw: { x },
                   },
                 ]) => x.toLocaleDateString(),
               },

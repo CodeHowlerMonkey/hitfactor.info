@@ -7,6 +7,7 @@ const go = async () => {
 
   const scores = await scoresForRecommendedClassification(["TY93975"]);
 
+  // eslint-disable-next-line
   console.log(JSON.stringify(scores, null, 2));
 };
 

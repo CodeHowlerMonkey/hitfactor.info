@@ -155,7 +155,7 @@ export const DivisionNavigation = ({ onSelect, uspsaOnly, disableSCSA, hideSCSA 
       setActiveIndex(1);
       onSelect("scsa_opn", "scsa");
     }
-  }, [division, setActiveIndex]);
+  }, [division, setActiveIndex]); //eslint-disable-line react-hooks/exhaustive-deps
 
   usePreviousEffect(
     ([prevSportCode]) => {

@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+
 import uniqBy from "lodash.uniqby";
 
 import { connect } from "../api/src/db/index";

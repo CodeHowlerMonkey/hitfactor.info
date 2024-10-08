@@ -1,11 +1,7 @@
 import uniqBy from "lodash.uniqby";
 import { v4 as randomUUID } from "uuid";
 
-import {
-  allDivShortNames,
-  divShortNames,
-  mapAllDivisions,
-} from "../../api/src/dataUtil/divisions";
+import { allDivShortNames, mapAllDivisions } from "../../api/src/dataUtil/divisions";
 
 import { dateSort, numSort } from "./sort";
 
@@ -64,13 +60,13 @@ export const lowestAllowedPercentForClass = classification =>
   })[classification] || 0;
 
 // C-class check, NOT used for initial classification
-export const lowestAllowedPercentForOtherDivisionClass = highestClassification =>
+export const lowestAllowedPercentForOtherDivisionClass = highestClassificationLetter =>
   ({
     GM: 85,
     M: 75,
     A: 60,
     B: 40,
-  })[highestClassification] || 0;
+  })[highestClassificationLetter] || 0;
 
 export const canBeInserted = (c, state, percentField = "percent") => {
   try {
@@ -95,7 +91,7 @@ export const canBeInserted = (c, state, percentField = "percent") => {
     const isCFlag = percent <= cFlagThreshold;
 
     // First non-dupe 4 always count
-    const dFlagsApplied = uniqBy(window, c => c.classifier);
+    const dFlagsApplied = uniqBy(window, windowCurC => windowCurC.classifier);
     if (dFlagsApplied.length <= 4) {
       return true;
     }
@@ -108,8 +104,8 @@ export const canBeInserted = (c, state, percentField = "percent") => {
     // D, F, E
     return true;
   } catch (all) {
-    console.log("canBeInserted crash");
-    console.log(c.division);
+    console.error("canBeInserted crash");
+    console.error(c.division);
   }
   return false;
 };

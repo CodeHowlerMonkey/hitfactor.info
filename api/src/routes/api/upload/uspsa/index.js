@@ -1,3 +1,5 @@
+/* eslint-disable no-unreachable */
+
 import FormData from "form-data";
 import { ZenRows } from "zenrows";
 
@@ -79,8 +81,8 @@ const loginToUSPSA = async (username, password) => {
   return null;
 };
 
-const uspsaUploadRoutes = async (fastify, opts) => {
-  fastify.post("/activeMembers", async (req, res) => {
+const uspsaUploadRoutes = async fastify => {
+  fastify.post("/activeMembers", async () => {
     return { error: "disabled" };
     const text = await fetchPSClassUpdateCSVTextFile();
     if (!text) {
@@ -88,7 +90,7 @@ const uspsaUploadRoutes = async (fastify, opts) => {
     }
     const update = practiscoreClassUpdateFromTextFile(text);
     if (!update) {
-      console.log(text);
+      console.error(text);
       return { error: "failed to parse", text };
     }
 
@@ -96,7 +98,7 @@ const uspsaUploadRoutes = async (fastify, opts) => {
     return { result };
   });
 
-  fastify.post("/", async (req, res) => {
+  fastify.post("/", async req => {
     return {
       error:
         "USPSA Imports Are Disabled\n\n" +

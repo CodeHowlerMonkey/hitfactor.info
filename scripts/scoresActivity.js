@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import fs from "fs";
 
 import { connect } from "../api/src/db/index";

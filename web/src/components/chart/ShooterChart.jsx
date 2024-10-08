@@ -33,11 +33,8 @@ const yLine = (name, y, alpha) => ({
 export const ScoresChart = ({ division, memberNumber }) => {
   const isHFU = sportForDivision(division) === "hfu";
   const [full, setFull] = useState(false);
-  const [percentMode, setPercentMode] = useState(false);
   const { json: data, loading } = useApi(
-    `/shooters/${division}/${memberNumber}/chart?y=${
-      percentMode ? "percent" : "curPercent"
-    }`,
+    `/shooters/${division}/${memberNumber}/chart?y=curPercent`,
   );
   if (loading) {
     return <ProgressSpinner />;
@@ -83,7 +80,7 @@ export const ScoresChart = ({ division, memberNumber }) => {
               label: ({ raw: { y, classifier } }) => `${classifier}: ${y}%`,
               title: ([
                 {
-                  raw: { x, y },
+                  raw: { x },
                 },
               ]) => x,
             },

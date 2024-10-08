@@ -130,7 +130,7 @@ ScoreSchema.virtual("isMajor").get(function () {
   return this.source === "Major Match";
 });
 ScoreSchema.virtual("HHFs", {
-  ref: "RecHHF",
+  ref: "RecHHFs",
   foreignField: "classifierDivision",
   localField: "classifierDivision",
 });

@@ -1,3 +1,7 @@
+/* eslint-disable */
+
+/** Legacy import script, broken after USPSA API changes */
+
 import fs from "fs";
 
 import uniqBy from "lodash.uniqby";

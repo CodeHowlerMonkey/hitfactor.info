@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+
 import { Classifiers, singleClassifierExtendedMetaDoc } from "../api/src/db/classifiers";
 import { connect } from "../api/src/db/index";
 import { Matches } from "../api/src/db/matches";

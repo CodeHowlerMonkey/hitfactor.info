@@ -1,3 +1,4 @@
+// eslint-disable-next-line
 const A = 1; //                1
 const B = 1 << 4; //          16
 const C = 1 << 8; //         256
@@ -136,16 +137,16 @@ export const minorHF = score => {
     const majorHF = Number(
       ((majorTargetPoints + steelPoints + 0) / totalTime).toFixed(4),
     );
-    const minorHF = Number(
+    const calcedMinorHF = Number(
       ((minorTargetPoints + steelPoints + 0) / totalTime).toFixed(4),
     );
 
-    if (!fuzzyEqual(majorHF, hf) && !fuzzyEqual(minorHF, hf)) {
+    if (!fuzzyEqual(majorHF, hf) && !fuzzyEqual(calcedMinorHF, hf)) {
       // console.log("bad math " + score._id);
       return -1;
     }
 
-    return minorHF;
+    return calcedMinorHF;
   } catch (e) {
     console.error(e);
   }

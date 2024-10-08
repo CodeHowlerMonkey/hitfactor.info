@@ -13,23 +13,15 @@ import {
   useTablePagination,
   headerTooltipOptions,
   renderPercent,
-  renderPercentDiff,
 } from "../../../components/Table";
 import { useApi } from "../../../utils/client";
 import { useIsHFU } from "../../../utils/useIsHFU";
-
-const classColumnProps = {
-  sortable: true,
-  align: "center",
-  style: { maxWidth: "48px" },
-  headerStyle: { fontSize: "11px" },
-};
 
 // TODO: extract into common components, right now this is copypasted from RunsTable
 const TableFilter = ({ placeholder, onFilterChange }) => {
   const [filter, setFilter] = useState("");
   const [debouncedFilter] = useDebounce(filter, 750);
-  useEffect(() => onFilterChange?.(debouncedFilter), [debouncedFilter]);
+  useEffect(() => onFilterChange?.(debouncedFilter), [debouncedFilter]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <span className="p-input-icon-left w-12">
@@ -52,7 +44,7 @@ export const useShootersTableData = ({ division, inconsistencies, classFilter })
     initial: [{ field: "reclassificationsRecPercentCurrent", order: -1 }],
   });
   const isHFU = useIsHFU(division);
-  useEffect(() => resetSort(), [isHFU]);
+  useEffect(() => resetSort(), [isHFU]); // eslint-disable-line react-hooks/exhaustive-deps
   const [filter, setFilter] = useState("");
   const filtersQuery = qs.stringify({
     filter,
@@ -89,18 +81,8 @@ const ShootersTable = ({
   inconsistencies,
   classFilter,
 }) => {
-  const {
-    data,
-    loading,
-    shootersTotal,
-    query,
-    sortProps,
-    pageProps,
-    filter,
-    setFilter,
-    downloadUrl,
-    shootersTotalWithoutFilters,
-  } = useShootersTableData({ division, inconsistencies, classFilter });
+  const { data, loading, shootersTotal, sortProps, pageProps, setFilter } =
+    useShootersTableData({ division, inconsistencies, classFilter });
   const isHFU = useIsHFU(division);
   const reportDialogRef = useRef(null);
   return (

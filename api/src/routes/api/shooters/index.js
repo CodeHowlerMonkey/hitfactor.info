@@ -47,8 +47,7 @@ const shootersQueryAggregation = (params, query) => {
     // default match
     {
       $project: {
-        _id: false,
-        _v: false,
+        __v: false,
       },
     },
     {

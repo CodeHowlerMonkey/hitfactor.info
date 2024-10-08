@@ -1,4 +1,3 @@
-import { Checkbox } from "primereact/checkbox";
 import { Column } from "primereact/column";
 import { DataTable } from "primereact/datatable";
 import { Dropdown } from "primereact/dropdown";
@@ -20,7 +19,7 @@ import useTableSort from "./Table/useTableSort";
 const TableFilter = ({ placeholder, onFilterChange }) => {
   const [filter, setFilter] = useState("");
   const [debouncedFilter] = useDebounce(filter, 750);
-  useEffect(() => onFilterChange?.(debouncedFilter), [debouncedFilter]);
+  useEffect(() => onFilterChange?.(debouncedFilter), [debouncedFilter]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <span className="p-input-icon-left w-12">
@@ -56,23 +55,6 @@ const DropdownFilter = ({
   />
 );
 
-const LegacyCheckbox = ({ onChange }) => {
-  const [value, setValue] = useState(false);
-  useEffect(() => onChange?.(value), [value]);
-  return (
-    <>
-      <Checkbox
-        inputId="legacyCheck"
-        checked={value}
-        onChange={e => setValue(e.checked)}
-      />
-      <label htmlFor="legacyCheck" className="ml-2 mr-4">
-        Incl. Legacy
-      </label>
-    </>
-  );
-};
-
 export const useRunsTableData = ({ division, classifier }) => {
   const { query: pageQuery, reset: resetPage, ...pageProps } = useTablePagination();
   const { query, resetSort, ...sortProps } = useTableSort({
@@ -81,11 +63,11 @@ export const useRunsTableData = ({ division, classifier }) => {
     initial: [{ field: "hf", order: -1 }],
   });
   const isHFU = useIsHFU(division);
-  useEffect(() => resetSort(), [isHFU]);
+  useEffect(() => resetSort(), [isHFU]); // eslint-disable-line react-hooks/exhaustive-deps
   const [filter, setFilter] = useState("");
   // const [filterHHF, setFilterHHF] = useState(undefined);
   const [filterClub, setFilterClub] = useState(undefined);
-  useEffect(() => resetPage(), [filter, filterClub]);
+  useEffect(() => resetPage(), [filter, filterClub]); // eslint-disable-line react-hooks/exhaustive-deps
   // const [legacy, setLegacy] = useState(undefined);
   const filtersQuery = qs.stringify(
     {
@@ -131,7 +113,7 @@ const RunsTable = ({ classifier, division, clubs, onShooterSelection }) => {
     loading,
     data,
     runsTotal,
-    hhfs,
+    // hhfs,
     sortProps,
     pageProps,
     setFilter,
@@ -142,11 +124,12 @@ const RunsTable = ({ classifier, division, clubs, onShooterSelection }) => {
     division,
     classifier,
   });
+  const reportDialogRef = useRef(null);
+
   if (!loading && !data) {
     return "Classifier Not Found";
   }
 
-  const reportDialogRef = useRef(null);
   const sport = sportForDivision(division);
 
   return (

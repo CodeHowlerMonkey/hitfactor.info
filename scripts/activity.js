@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+
 import { connect } from "../api/src/db/index";
 import { Scores } from "../api/src/db/scores";
 
@@ -12,10 +14,6 @@ const query = amount => [
   { $group: { _id: "$memberNumber" } },
   { $count: "total" },
 ];
-
-const totalUniqueScoresInLastXMonths = async months => {
-  const { total } = await Scores.aggregate(query(months));
-};
 
 const activity = async () => {
   await connect();

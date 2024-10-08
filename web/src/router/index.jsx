@@ -143,6 +143,7 @@ const activeIndexForPathname = pathname =>
 const Menu = () => {
   const navigate = useNavigate();
   const { pathname } = useLocation();
+  // eslint-disable-next-line prefer-const
   let [activeIndex, setActiveIndex] = useState(0);
 
   useEffect(() => setActiveIndex(activeIndexForPathname(pathname)), [pathname]);

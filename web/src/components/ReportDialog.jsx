@@ -15,7 +15,7 @@ const renderField = (value, fieldName) => {
   switch (fieldName) {
     case "sd": {
       const date = new Date(value);
-      if (date.getTime() === NaN) {
+      if (Number.isNaN(date.getTime())) {
         return null;
       }
 
@@ -63,14 +63,19 @@ export const ReportDialog = forwardRef(({ type }, ref) => {
     { name: "Bad Data", code: "bad" },
   ].filter(Boolean);
 
-  const startReport = doc => {
-    setComment("");
-    setReason(null);
-    setDoc(doc);
-    setSending(false);
-    setVisible(true);
-  };
-  useImperativeHandle(ref, () => ({ startReport }), [startReport]);
+  useImperativeHandle(
+    ref,
+    () => ({
+      startReport: newDoc => {
+        setComment("");
+        setReason(null);
+        setDoc(newDoc);
+        setSending(false);
+        setVisible(true);
+      },
+    }),
+    [],
+  );
   const reportDocRender = reportDocRenderFields
     .map(key => renderField(doc?.[key], key))
     .filter(Boolean)
@@ -113,7 +118,7 @@ export const ReportDialog = forwardRef(({ type }, ref) => {
         life: 5000,
       });
     }
-  }, [toast, reason?.code, comment, doc, setVisible]);
+  }, [toast, reason?.code, comment, doc, setVisible]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <>

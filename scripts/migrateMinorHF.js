@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+
 import { connect } from "../api/src/db/index";
 import { Scores } from "../api/src/db/scores";
 import { consol } from "../shared/utils/consol";

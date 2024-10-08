@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+
 import { connect } from "../api/src/db/index";
 import { Matches } from "../api/src/db/matches";
 import { fetchPS } from "../api/src/worker/uploads";

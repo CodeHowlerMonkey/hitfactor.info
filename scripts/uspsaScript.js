@@ -1,3 +1,7 @@
+/* eslint-disable */
+
+/** Legacy import script from MVP days, meant to be run in the browser on uspsa.org */
+
 const USPSA_API_KEY = "INSERT_YOURS";
 
 (function (console) {

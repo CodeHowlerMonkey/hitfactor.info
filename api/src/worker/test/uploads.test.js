@@ -11,7 +11,7 @@ const scoreFactory = (classifier, division, memberNumber) => ({
   memberNumberDivision: [memberNumber, division].join(":"),
 });
 
-test("arrayCombination", t => {
+test("arrayCombination", () => {
   assert.deepEqual(
     arrayCombination(["a", "b", "c", "d"], [1, 2], (a, b) => a + b),
     ["a1", "a2", "b1", "b2", "c1", "c2", "d1", "d2"],
@@ -32,7 +32,7 @@ test("arrayCombination", t => {
   );
 });
 
-test("classifiersAndShootersFromScores", t => {
+test("classifiersAndShootersFromScores", () => {
   const scores = [
     scoreFactory("09-01", "co", "A123"),
     scoreFactory("09-02", "co", "A123"),

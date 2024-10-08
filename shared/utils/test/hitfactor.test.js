@@ -3,7 +3,7 @@ import test from "node:test";
 
 import { minorHF, targetHitsToLetters } from "../hitfactor";
 
-test("targetHitsToLetters", t => {
+test("targetHitsToLetters", () => {
   assert.deepEqual(targetHitsToLetters(0), []);
   assert.deepEqual(targetHitsToLetters(1), ["A"]);
   assert.deepEqual(targetHitsToLetters(2), ["A", "A"]);
@@ -21,7 +21,7 @@ test("targetHitsToLetters", t => {
   assert.deepEqual(targetHitsToLetters(4352), ["C", "D"]);
 });
 
-test("minorHF", t => {
+test("minorHF", () => {
   const s = {
     hf: "7.3383",
     steelHits: 0,

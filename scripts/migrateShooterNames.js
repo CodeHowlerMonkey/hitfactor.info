@@ -1,3 +1,6 @@
+/* eslint-disable no-console */
+/* eslint-disable no-unreachable */
+
 import { connect } from "../api/src/db/index";
 import { Shooters } from "../api/src/db/shooters";
 import { hfuDivisionsShortNames } from "../shared/constants/divisions";

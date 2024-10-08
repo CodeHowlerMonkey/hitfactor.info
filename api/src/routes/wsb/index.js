@@ -2,7 +2,7 @@ import { classifierNumbers } from "../../dataUtil/classifiersData";
 import { dirPath } from "../../utils";
 const pathWsb = dirPath("./../../data/classifiers/");
 
-const wsbRoutes = async (fastify, opts) => {
+const wsbRoutes = async fastify => {
   fastify.get("/:number", (req, reply) => {
     const { number } = req.params;
     const { preview } = req.query;
