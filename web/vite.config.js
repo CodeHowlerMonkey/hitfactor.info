@@ -12,8 +12,8 @@ export default defineConfig(({ mode }) => {
       ...commonConfig,
       server: {
         proxy: {
-          "/api": "http://localhost:3333/",
-          "/wsb": "http://localhost:3333/",
+          "/api": "http://localhost:3000/",
+          "/wsb": "http://localhost:3000/",
         },
       },
     };
