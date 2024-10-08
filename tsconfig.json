@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "noEmit": true,
     "target": "es2016",
     "module": "ES2020",
     "moduleResolution": "Bundler",
