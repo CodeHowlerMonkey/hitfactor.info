@@ -44,13 +44,13 @@ const majorActivity = async () => {
       }
 
       ++i;
-      console.log(match.uuid + " " + i + "/" + allMatches.length);
+      console.log(`${match.uuid} ${i}/${allMatches.length}`);
     } catch (e) {}
   }
 
-  console.log("matches: " + allMatches.length);
-  console.log("major matches: " + majorMatches.length);
-  console.log("unique shooters: " + Object.keys(shooters).length);
+  console.log(`matches: ${allMatches.length}`);
+  console.log(`major matches: ${majorMatches.length}`);
+  console.log(`unique shooters: ${Object.keys(shooters).length}`);
 };
 
 majorActivity();

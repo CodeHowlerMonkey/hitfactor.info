@@ -16,7 +16,7 @@ const statsRoutes = async (fastify, opts) => {
       return acc;
     }, 0);
 
-    const dataWithPercent = data.map((cur) => {
+    const dataWithPercent = data.map(cur => {
       cur.percent = Percent(cur.scores, total);
       return cur;
     });

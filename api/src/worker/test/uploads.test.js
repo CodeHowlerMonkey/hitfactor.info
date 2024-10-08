@@ -1,5 +1,6 @@
-import test from "node:test";
 import assert from "assert";
+import test from "node:test";
+
 import { arrayCombination, classifiersAndShootersFromScores } from "../uploads";
 
 const scoreFactory = (classifier, division, memberNumber) => ({
@@ -10,29 +11,29 @@ const scoreFactory = (classifier, division, memberNumber) => ({
   memberNumberDivision: [memberNumber, division].join(":"),
 });
 
-test("arrayCombination", (t) => {
+test("arrayCombination", t => {
   assert.deepEqual(
     arrayCombination(["a", "b", "c", "d"], [1, 2], (a, b) => a + b),
-    ["a1", "a2", "b1", "b2", "c1", "c2", "d1", "d2"]
+    ["a1", "a2", "b1", "b2", "c1", "c2", "d1", "d2"],
   );
 
   assert.deepEqual(
     arrayCombination(["a"], [1, 2], (a, b) => a + b),
-    ["a1", "a2"]
+    ["a1", "a2"],
   );
 
   assert.deepEqual(
     arrayCombination(["a"], [1], (a, b) => a + b),
-    ["a1"]
+    ["a1"],
   );
   assert.deepEqual(
     arrayCombination(["a"], [1, 2, 3, 4], (a, b) => a + b),
-    ["a1", "a2", "a3", "a4"]
+    ["a1", "a2", "a3", "a4"],
   );
 });
 
-test("classifiersAndShootersFromScores", (t) => {
-  let scores = [
+test("classifiersAndShootersFromScores", t => {
+  const scores = [
     scoreFactory("09-01", "co", "A123"),
     scoreFactory("09-02", "co", "A123"),
     scoreFactory("09-03", "opn", "A123"),
@@ -40,24 +41,24 @@ test("classifiersAndShootersFromScores", (t) => {
   ];
 
   assert.deepEqual(
-    classifiersAndShootersFromScores(scores).classifiers.map((c) => c.classifierDivision),
-    ["09-01:co", "09-02:co", "09-03:opn"]
+    classifiersAndShootersFromScores(scores).classifiers.map(c => c.classifierDivision),
+    ["09-01:co", "09-02:co", "09-03:opn"],
   );
   assert.deepEqual(
-    classifiersAndShootersFromScores(scores).shooters.map((c) => c.memberNumberDivision),
-    ["A123:co", "A123:opn", "A256:opn"]
+    classifiersAndShootersFromScores(scores).shooters.map(c => c.memberNumberDivision),
+    ["A123:co", "A123:opn", "A256:opn"],
   );
 
   assert.deepEqual(
     classifiersAndShootersFromScores(scores, {}, true).classifiers.map(
-      (c) => c.classifierDivision
+      c => c.classifierDivision,
     ),
-    ["09-01:co", "09-01:opt", "09-02:co", "09-02:opt", "09-03:opn", "09-03:comp"]
+    ["09-01:co", "09-01:opt", "09-02:co", "09-02:opt", "09-03:opn", "09-03:comp"],
   );
   assert.deepEqual(
     classifiersAndShootersFromScores(scores, {}, true).shooters.map(
-      (c) => c.memberNumberDivision
+      c => c.memberNumberDivision,
     ),
-    ["A123:co", "A123:opt", "A123:opn", "A123:comp", "A256:opn", "A256:comp"]
+    ["A123:co", "A123:opt", "A123:opn", "A123:comp", "A256:opn", "A256:comp"],
   );
 });

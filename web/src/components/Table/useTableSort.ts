@@ -1,23 +1,23 @@
-import { useState, useMemo } from "react";
 import qs from "query-string";
+import { useState, useMemo } from "react";
 
 interface SingleSortState {
-  field: string,
-  order: 1 | -1
+  field: string;
+  order: 1 | -1;
 }
 
 interface UseTableSortArgs {
-  mode: 'single' | 'multiple',
-  onSortCallback?: () => void,
-  initial: SingleSortState | SingleSortState[]
+  mode: "single" | "multiple";
+  onSortCallback?: () => void;
+  initial: SingleSortState | SingleSortState[];
 }
 
 export const useTableSort = ({
   mode = "single",
   onSortCallback,
-  initial = []
+  initial = [],
 }: UseTableSortArgs) => {
-  const initialArray = [].concat(initial as any) as SingleSortState[]
+  const initialArray = [].concat(initial as any) as SingleSortState[];
   const [state, setState] = useState<SingleSortState[]>(initialArray);
   const isSingle = mode === "single";
 
@@ -28,7 +28,7 @@ export const useTableSort = ({
         : {
             multiSortMeta: state,
           }),
-      onSort: (e) => {
+      onSort: e => {
         if (isSingle) {
           const { sortField, sortOrder } = e;
           setState([{ field: sortField, order: sortOrder }]);
@@ -42,13 +42,13 @@ export const useTableSort = ({
       resetSort: () => setState(initialArray),
       query: qs.stringify(
         {
-          sort: state.map((s) => s.field),
-          order: state.map((s) => s.order),
+          sort: state.map(s => s.field),
+          order: state.map(s => s.order),
         },
-        { arrayFormat: "comma" }
+        { arrayFormat: "comma" },
       ),
     }),
-    [state, mode]
+    [state, mode],
   );
 };
 

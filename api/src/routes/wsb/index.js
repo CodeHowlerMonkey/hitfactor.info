@@ -1,5 +1,5 @@
-import { dirPath } from "../../utils";
 import { classifierNumbers } from "../../dataUtil/classifiersData";
+import { dirPath } from "../../utils";
 const pathWsb = dirPath("./../../data/classifiers/");
 
 const wsbRoutes = async (fastify, opts) => {
@@ -7,13 +7,13 @@ const wsbRoutes = async (fastify, opts) => {
     const { number } = req.params;
     const { preview } = req.query;
     // I'm paranoid and dont trust .includes lol
-    const classifierNumber = classifierNumbers.find((c) => c === number);
+    const classifierNumber = classifierNumbers.find(c => c === number);
     if (classifierNumber) {
       if (!preview) {
-        return reply.sendFile(classifierNumber + ".pdf", pathWsb);
+        return reply.sendFile(`${classifierNumber}.pdf`, pathWsb);
       }
 
-      return reply.sendFile(classifierNumber + ".jpg", pathWsb);
+      return reply.sendFile(`${classifierNumber}.jpg`, pathWsb);
     }
     return reply.redirect("/404");
   });

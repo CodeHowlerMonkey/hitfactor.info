@@ -16,12 +16,12 @@ const go = async () => {
   console.log(matches.length);
 
   await Matches.bulkWrite(
-    matches.map((m) => ({
+    matches.map(m => ({
       updateOne: {
         filter: { _id: m._id },
         update: { $unset: { uploaded: 1 } },
       },
-    }))
+    })),
   );
   console.log("done");
 };

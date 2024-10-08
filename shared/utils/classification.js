@@ -1,27 +1,28 @@
+import uniqBy from "lodash.uniqby";
 import { v4 as randomUUID } from "uuid";
+
 import {
   allDivShortNames,
   divShortNames,
   mapAllDivisions,
 } from "../../api/src/dataUtil/divisions";
-import uniqBy from "lodash.uniqby";
+
 import { dateSort, numSort } from "./sort";
 
-export const classificationRank = (classification) =>
+export const classificationRank = classification =>
   ["X", "U", "D", "C", "B", "A", "M", "GM"].indexOf(classification);
 /* const hasClassification = (classification) =>
   ["D", "C", "B", "A", "M", "GM"].indexOf(classification) !== -1; */
 
-export const highestClassification = (classificationsObj) =>
+export const highestClassification = classificationsObj =>
   Object.values(classificationsObj).reduce((prev, curClass) => {
     if (classificationRank(prev) >= classificationRank(curClass)) {
       return prev;
-    } else {
-      return curClass;
     }
+    return curClass;
   }, undefined);
 
-export const classForPercent = (curPercent) => {
+export const classForPercent = curPercent => {
   if (curPercent <= 0) {
     return "U";
   } else if (curPercent < 40) {
@@ -40,7 +41,7 @@ export const classForPercent = (curPercent) => {
 
   return "U";
 };
-export const rankForClass = (classification) =>
+export const rankForClass = classification =>
   ({
     GM: 95,
     M: 85,
@@ -50,26 +51,26 @@ export const rankForClass = (classification) =>
     D: 10,
     U: 0,
     X: -1,
-  }[classification] || 0);
+  })[classification] || 0;
 
 // B-class check, NOT used for initial classification
-export const lowestAllowedPercentForClass = (classification) =>
+export const lowestAllowedPercentForClass = classification =>
   ({
     GM: 90,
     M: 80,
     A: 70,
     B: 55,
     C: 35,
-  }[classification] || 0);
+  })[classification] || 0;
 
 // C-class check, NOT used for initial classification
-export const lowestAllowedPercentForOtherDivisionClass = (highestClassification) =>
+export const lowestAllowedPercentForOtherDivisionClass = highestClassification =>
   ({
     GM: 85,
     M: 75,
     A: 60,
     B: 40,
-  }[highestClassification] || 0);
+  })[highestClassification] || 0;
 
 export const canBeInserted = (c, state, percentField = "percent") => {
   try {
@@ -87,14 +88,14 @@ export const canBeInserted = (c, state, percentField = "percent") => {
 
     // Looks like A-flag is gone
     const cFlagThreshold = lowestAllowedPercentForOtherDivisionClass(
-      highestClassification(getDivToClass(state))
+      highestClassification(getDivToClass(state)),
     );
     const isBFlag =
       percent <= lowestAllowedPercentForClass(getDivToClass(state)[division]);
     const isCFlag = percent <= cFlagThreshold;
 
     // First non-dupe 4 always count
-    const dFlagsApplied = uniqBy(window, (c) => c.classifier);
+    const dFlagsApplied = uniqBy(window, c => c.classifier);
     if (dFlagsApplied.length <= 4) {
       return true;
     }
@@ -115,23 +116,23 @@ export const canBeInserted = (c, state, percentField = "percent") => {
 
 // if true -- window doesn't have to shrink when inserting
 export const hasDuplicateInWindow = (c, window) =>
-  window.map((cur) => cur.classifier).includes(c.classifier);
+  window.map(cur => cur.classifier).includes(c.classifier);
 
 export const hasDuplicate = (c, state) =>
   hasDuplicateInWindow(c, state[c.division].window);
 
-export const numberOfDuplicates = (window) => {
+export const numberOfDuplicates = window => {
   const table = {};
-  window.forEach((c) => {
+  window.forEach(c => {
     const curCount = table[c.classifier] || 0;
     table[c.classifier] = curCount + 1;
   });
   return Object.values(table)
-    .map((c) => c - 1)
+    .map(c => c - 1)
     .reduce((acc, cur) => acc + cur, 0);
 };
 
-const windowSizeForScore = (windowSize) => {
+const windowSizeForScore = windowSize => {
   if (windowSize < 4) {
     return 0;
   } else if (windowSize === 4) {
@@ -146,7 +147,7 @@ export const percentAndAgesForDivWindow = (
   div,
   state,
   percentField = "percent",
-  now = new Date()
+  now = new Date(),
 ) => {
   //de-dupe needs to be done in reverse, because percent are sorted asc
   let window = state[div].window;
@@ -154,7 +155,7 @@ export const percentAndAgesForDivWindow = (
     // don't use best dupe for recommended, only most recent one
     window = window.toSorted((a, b) => numSort(a, b, percentField, -1));
   }
-  const dFlagsApplied = uniqBy(window, (c) => c.classifier);
+  const dFlagsApplied = uniqBy(window, c => c.classifier);
 
   // remove lowest 2
   const newLength = windowSizeForScore(dFlagsApplied.length);
@@ -164,13 +165,13 @@ export const percentAndAgesForDivWindow = (
   const percent = fFlagsApplied.reduce(
     (acc, curValue, curIndex, allInWindow) =>
       acc + Math.min(100, curValue[percentField]) / allInWindow.length,
-    0
+    0,
   );
 
   const age = fFlagsApplied.reduce(
     (acc, curValue, curIndex, allInWindow) =>
       acc + ageForDate(now, curValue.sd || now) / allInWindow.length,
-    0
+    0,
   );
   const lastScore = fFlagsApplied.toSorted((a, b) => dateSort(a, b, "sd", -1))[0];
   const age1 = ageForDate(now, lastScore?.sd || now);
@@ -210,7 +211,7 @@ export const addToCurWindow = (c, curWindow, targetWindowSize = 8) => {
 export const calculateUSPSAClassification = (
   classifiers,
   percentField = "percent",
-  now = new Date()
+  now = new Date(),
 ) => {
   const state = newClassificationCalculationState();
   if (!classifiers?.length) {
@@ -225,15 +226,15 @@ export const calculateUSPSAClassification = (
       }
       return asDate;
     })
-    .map((c) => ({
+    .map(c => ({
       ...c,
       // Major Matches should always be eligible for reclassification
       classifier: c.source === "Major Match" ? randomUUID() : c.classifier,
       curPercent: c.source === "Major Match" ? c.percent : c.curPercent,
     }))
-    .filter((c) => c[percentField] >= 0);
+    .filter(c => c[percentField] >= 0);
 
-  const scoringFunction = (c) => {
+  const scoringFunction = c => {
     if (!canBeInserted(c, state, percentField)) {
       return;
     }
@@ -270,12 +271,12 @@ export const calculateUSPSAClassification = (
 
   classifiersReadyToScore.forEach(scoringFunction);
 
-  return mapAllDivisions((div) => {
+  return mapAllDivisions(div => {
     state[div].class = classForPercent(state[div].percent);
     delete state[div].window;
     return state[div];
   });
 };
 
-export const getDivToClass = (state) =>
-  mapAllDivisions((div) => classForPercent(getDivisionState(state, div).highPercent));
+export const getDivToClass = state =>
+  mapAllDivisions(div => classForPercent(getDivisionState(state, div).highPercent));

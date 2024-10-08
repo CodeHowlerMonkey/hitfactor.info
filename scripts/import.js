@@ -1,4 +1,5 @@
 import fs from "fs";
+
 import uniqBy from "lodash.uniqby";
 import { request as undiciRequest } from "undici";
 
@@ -23,23 +24,21 @@ const hasClassification = (shooterObj, div) =>
   validClassifications.includes(shooterObj[div]);
 const hasCertainClassification = (shooterObj, div, letter) =>
   [letter].includes(shooterObj[div]);
-const isDivShooter = (div) => (shooterObj) => hasClassification(shooterObj, div);
-const hasAnyClassification = (shooterObj) =>
-  allDivs.some((div) => hasClassification(shooterObj, div));
-const hasLetterClassification = (letter) => (shooterObj) =>
-  allDivs.some((div) => hasCertainClassification(shooterObj, div, letter));
+const isDivShooter = div => shooterObj => hasClassification(shooterObj, div);
+const hasAnyClassification = shooterObj =>
+  allDivs.some(div => hasClassification(shooterObj, div));
+const hasLetterClassification = letter => shooterObj =>
+  allDivs.some(div => hasCertainClassification(shooterObj, div, letter));
 const hasGMClassification = hasLetterClassification("GM");
 
-const delay = (ms) => {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-};
+const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 const quickRandomDelay = () => {
   const ms = Math.ceil(32 + 40 * Math.random());
   return delay(ms);
 };
 
-const retryDelay = (retry) => {
+const retryDelay = retry => {
   const quickRandom = Math.ceil(32 + 40 * Math.random());
   return delay(retry * 125 + quickRandom);
 };
@@ -49,7 +48,7 @@ const USPSA_IP = process.env.USPSA_IP;
 const USPSA_HOST = "api.uspsa.org";
 const USPSA_BASE = USPSA_DIRECT ? USPSA_IP : USPSA_HOST;
 
-const _fetch = async (url) => {
+const _fetch = async url => {
   const headers = {
     accept: "application/json",
     "uspsa-api": process.env.USPSA_API_KEY,
@@ -87,7 +86,7 @@ const fetchApiEndpoint = async (endpoint, tryNumber = 1, maxTries = 7) => {
       return await fetchApiEndpoint(endpoint, tryNumber + 1, maxTries);
     }
 
-    console.log("successfulRequests: " + successfulRequests);
+    console.log(`successfulRequests: ${successfulRequests}`);
     process.stdout.write("X");
     errors.push(endpoint);
     return null;
@@ -109,17 +108,17 @@ const fetchAndSaveSlice = async (
   curSlice,
   what = "classifiers",
   sliceNumber = 0,
-  suffix = ""
+  suffix = "",
 ) => {
   const curArray = [];
-  for (let curNum of curSlice) {
+  for (const curNum of curSlice) {
     curArray.push(fetchFullNumberPageApi(curNum, what));
     //curArray.push(await fetchFullNumberPageApi(curNum, what));
   }
 
   fs.writeFileSync(
     `./data/imported/${[what, suffix, sliceNumber].filter(Boolean).join(".")}.json`,
-    JSON.stringify(await Promise.allSettled(curArray), null, 2)
+    JSON.stringify(await Promise.allSettled(curArray), null, 2),
     //JSON.stringify(curArray, null, 2)
   );
 };
@@ -127,7 +126,7 @@ const fetchAndSaveSlice = async (
 const fetchAll = async (what, numbers, suffix) => {
   const SLICE_SIZE = 256;
   const totalSlices = Math.ceil(numbers.length / SLICE_SIZE);
-  console.log(`starting to fetch ${what} slices, total to fetch = ` + totalSlices);
+  console.log(`starting to fetch ${what} slices, total to fetch = ${totalSlices}`);
   for (let i = 1; i <= totalSlices; ++i) {
     const curSlice = numbers.slice(SLICE_SIZE * (i - 1), SLICE_SIZE * i);
     await fetchAndSaveSlice(curSlice, what, i, suffix);
@@ -142,29 +141,29 @@ const importEverything = async () => {
   fs.writeFileSync("./data/hhf.json", JSON.stringify(officialHHF, null, 4));
   fs.writeFileSync(
     "./data/classifiers/classifiers.json",
-    JSON.stringify(classifiers, null, 4)
+    JSON.stringify(classifiers, null, 4),
   );
   console.log("done");
 
   console.log("fetching meta...");
   const response = await fetch(
-    "https://uspsa.org/practiscore/practiscore_class_update.txt"
+    "https://uspsa.org/practiscore/practiscore_class_update.txt",
   );
   console.log("parsing...");
   const text = await response.text();
   const lines = text.split("\n");
-  const fieldsLine = lines.find((line) => line.startsWith("$FIELDS"));
+  const fieldsLine = lines.find(line => line.startsWith("$FIELDS"));
   const fields = fieldsLine.split("$FIELDS ").filter(Boolean)[0].split(",");
-  const shooterLines = lines.filter((line) => !line.startsWith("$"));
+  const shooterLines = lines.filter(line => !line.startsWith("$"));
 
   // prepare member numbers to import + show stats
   const lastImportTime = new Date("2024-03-31");
-  const unfilteredShooterObjects = shooterLines.map((line) =>
+  const unfilteredShooterObjects = shooterLines.map(line =>
     Object.fromEntries(
-      line.split(",").map((value, index) => [fieldNameMap[fields[index]], value])
-    )
+      line.split(",").map((value, index) => [fieldNameMap[fields[index]], value]),
+    ),
   );
-  const shooterObjects = unfilteredShooterObjects.filter((s) => {
+  const shooterObjects = unfilteredShooterObjects.filter(s => {
     return true;
     const expiration = new Date(s.expires);
     if (expiration.getTime() === NaN) {
@@ -178,13 +177,13 @@ const importEverything = async () => {
     return acc;
   }, {});
   const memberNumberToId = Object.fromEntries(
-    Object.entries(memberIdToNumber).map(([k, v]) => [v, k])
+    Object.entries(memberIdToNumber).map(([k, v]) => [v, k]),
   );
   const usedMemberNumbers = uniqBy(
     Object.values(memberIdToNumber)
-      .map((memberNumber) => memberNumber.replace(/[a-zA-Z]/g, ""))
+      .map(memberNumber => memberNumber.replace(/[a-zA-Z]/g, ""))
       .filter(Boolean),
-    (c) => c
+    c => c,
   );
   const usedMemberNumbersMap = usedMemberNumbers.reduce((acc, cur) => {
     acc[cur] = true;
@@ -201,11 +200,11 @@ const importEverything = async () => {
   }
   fs.writeFileSync(
     "./data/meta/monkeyNumbers.json",
-    JSON.stringify(monkeyNumbers, null, 2)
+    JSON.stringify(monkeyNumbers, null, 2),
   );
   const classifiedNumbers = unfilteredShooterObjects
     .filter(hasAnyClassification)
-    .map((s) => s.memberNumber);
+    .map(s => s.memberNumber);
   console.log("division stats:");
   console.log({
     opn: shooterObjects.filter(isDivShooter("opn")).length,
@@ -220,48 +219,48 @@ const importEverything = async () => {
   });
   const classifiedGMNumbers = shooterObjects
     .filter(hasGMClassification)
-    .map((s) => s.memberNumber);
+    .map(s => s.memberNumber);
   const classifiedMNumbers = shooterObjects
     .filter(hasLetterClassification("M"))
-    .map((s) => s.memberNumber)
-    .filter((s) => !classifiedGMNumbers.includes(s));
+    .map(s => s.memberNumber)
+    .filter(s => !classifiedGMNumbers.includes(s));
   const classifiedANumbers = shooterObjects
     .filter(hasLetterClassification("A"))
-    .map((s) => s.memberNumber)
-    .filter((s) => ![...classifiedGMNumbers, ...classifiedMNumbers].includes(s));
+    .map(s => s.memberNumber)
+    .filter(s => ![...classifiedGMNumbers, ...classifiedMNumbers].includes(s));
   const classifiedBNumbers = shooterObjects
     .filter(hasLetterClassification("B"))
-    .map((s) => s.memberNumber)
+    .map(s => s.memberNumber)
     .filter(
-      (s) =>
+      s =>
         ![...classifiedGMNumbers, ...classifiedMNumbers, ...classifiedANumbers].includes(
-          s
-        )
+          s,
+        ),
     );
   const classifiedCNumbers = shooterObjects
     .filter(hasLetterClassification("C"))
-    .map((s) => s.memberNumber)
+    .map(s => s.memberNumber)
     .filter(
-      (s) =>
+      s =>
         ![
           ...classifiedGMNumbers,
           ...classifiedMNumbers,
           ...classifiedANumbers,
           ...classifiedBNumbers,
-        ].includes(s)
+        ].includes(s),
     );
   const classifiedDNumbers = shooterObjects
     .filter(hasLetterClassification("D"))
-    .map((s) => s.memberNumber)
+    .map(s => s.memberNumber)
     .filter(
-      (s) =>
+      s =>
         ![
           ...classifiedGMNumbers,
           ...classifiedMNumbers,
           ...classifiedANumbers,
           ...classifiedBNumbers,
           ...classifiedCNumbers,
-        ].includes(s)
+        ].includes(s),
     );
   console.log({ total: shooterObjects.length });
   console.log({
@@ -276,54 +275,54 @@ const importEverything = async () => {
   console.log("writing meta");
   fs.writeFileSync(
     "./data/meta/all.json",
-    JSON.stringify(unfilteredShooterObjects, null, 2)
+    JSON.stringify(unfilteredShooterObjects, null, 2),
   );
   fs.writeFileSync(
     "./data/meta/classified.json",
-    JSON.stringify(classifiedNumbers, null, 2)
+    JSON.stringify(classifiedNumbers, null, 2),
   );
   fs.writeFileSync(
     "./data/meta/memberIdToNumber.json",
-    JSON.stringify(memberIdToNumber, null, 2)
+    JSON.stringify(memberIdToNumber, null, 2),
   );
   fs.writeFileSync(
     "./data/meta/memberNumberToId.json",
-    JSON.stringify(memberNumberToId, null, 2)
+    JSON.stringify(memberNumberToId, null, 2),
   );
 
-  allDivs.forEach((div) => {
+  allDivs.forEach(div => {
     fs.writeFileSync(
-      "./data/meta/classified." + div + ".json",
+      `./data/meta/classified.${div}.json`,
       JSON.stringify(
-        shooterObjects.filter(isDivShooter(div)).map((s) => s.memberNumber),
+        shooterObjects.filter(isDivShooter(div)).map(s => s.memberNumber),
         null,
-        2
-      )
+        2,
+      ),
     );
   });
   fs.writeFileSync(
     "./data/meta/classified.gm.json",
-    JSON.stringify(classifiedGMNumbers, null, 2)
+    JSON.stringify(classifiedGMNumbers, null, 2),
   );
   fs.writeFileSync(
     "./data/meta/classified.m.json",
-    JSON.stringify(classifiedMNumbers, null, 2)
+    JSON.stringify(classifiedMNumbers, null, 2),
   );
   fs.writeFileSync(
     "./data/meta/classified.a.json",
-    JSON.stringify(classifiedANumbers, null, 2)
+    JSON.stringify(classifiedANumbers, null, 2),
   );
   fs.writeFileSync(
     "./data/meta/classified.b.json",
-    JSON.stringify(classifiedBNumbers, null, 2)
+    JSON.stringify(classifiedBNumbers, null, 2),
   );
   fs.writeFileSync(
     "./data/meta/classified.c.json",
-    JSON.stringify(classifiedCNumbers, null, 2)
+    JSON.stringify(classifiedCNumbers, null, 2),
   );
   fs.writeFileSync(
     "./data/meta/classified.d.json",
-    JSON.stringify(classifiedDNumbers, null, 2)
+    JSON.stringify(classifiedDNumbers, null, 2),
   );
 
   console.log("fetching all current GMs classifiers and classifications ");
