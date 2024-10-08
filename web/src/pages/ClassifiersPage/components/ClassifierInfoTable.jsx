@@ -102,8 +102,8 @@ export const ClassifierInfoTable = ({
             <Column field="hhf" />
             <Column
               field="date"
-              tooltip={(c) => c.tooltip}
-              body={(c) =>
+              tooltip={c => c.tooltip}
+              body={c =>
                 c.label ? (
                   <div className="recommendedHHFExplanation" data-pr-tooltip={c.tooltip}>
                     {c.label}

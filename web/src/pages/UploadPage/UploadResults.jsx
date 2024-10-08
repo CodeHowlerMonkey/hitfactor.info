@@ -1,17 +1,17 @@
-import { ProgressSpinner } from "primereact/progressspinner";
-import { Message } from "primereact/message";
 import uniqBy from "lodash.uniqby";
+import { Message } from "primereact/message";
+import { ProgressSpinner } from "primereact/progressspinner";
 
 const shooterHref = (memberNumber, division) =>
   `/shooters/${division}/${memberNumber || ""}`;
 const classifierHref = (classifier, division) =>
   `/classifiers/${division}/${classifier || ""}`;
 
-const errorContent = (error) => {
+const errorContent = error => {
   const errorString = error.toString?.() || error;
   return (
     <div className="text-center">
-      {errorString.split("\n").map((s) => (
+      {errorString.split("\n").map(s => (
         <p key={s}>{s}</p>
       ))}
     </div>
@@ -25,8 +25,8 @@ const UploadResults = ({
   error,
   successMessage = "Upload Complete!",
 }) => {
-  const numClassifiers = uniqBy(result?.classifiers || [], (c) => c.classifier).length;
-  const numDivisions = uniqBy(result?.classifiers || [], (c) => c.division).length;
+  const numClassifiers = uniqBy(result?.classifiers || [], c => c.classifier).length;
+  const numDivisions = uniqBy(result?.classifiers || [], c => c.division).length;
   const numShooters = result?.shooters?.length || 0;
 
   const classifiersSuffix = numClassifiers === 1 ? "" : "s";
@@ -37,13 +37,7 @@ const UploadResults = ({
     <>
       {loading && <ProgressSpinner />}
       {error && (
-        <>
-          <Message
-            severity="error"
-            content={errorContent(error)}
-            className="my-4 -mx-4"
-          />
-        </>
+        <Message severity="error" content={errorContent(error)} className="my-4 -mx-4" />
       )}
       {result && (
         <Message
@@ -59,9 +53,13 @@ const UploadResults = ({
             {numClassifiers} Classifier{classifiersSuffix}, {numDivisions} Division
             {divisionsSuffix}:
             <ul>
-              {result.classifiers?.map((c) => (
+              {result.classifiers?.map(c => (
                 <li key={[c.classifier, c.division].join(":")}>
-                  <a href={classifierHref(c.classifier, c.division)} target="_blank">
+                  <a
+                    href={classifierHref(c.classifier, c.division)}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
                     {c.classifier} - {c.division}
                   </a>
                 </li>
@@ -71,9 +69,13 @@ const UploadResults = ({
           <div>
             {numShooters} Shooter{shootersSuffix}
             <ul>
-              {result.shooters?.map((s) => (
+              {result.shooters?.map(s => (
                 <li key={[s.memberNumber, s.division].join(":")}>
-                  <a href={shooterHref(s.memberNumber, s.division)} target="_blank">
+                  <a
+                    href={shooterHref(s.memberNumber, s.division)}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
                     {s.memberNumber} - {s.division}
                   </a>
                 </li>

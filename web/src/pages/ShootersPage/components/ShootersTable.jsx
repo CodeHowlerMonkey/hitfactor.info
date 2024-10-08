@@ -1,9 +1,13 @@
-import qs from "query-string";
-import { useEffect, useState, useRef } from "react";
+import { Column } from "primereact/column";
 import { DataTable } from "primereact/datatable";
 import { InputText } from "primereact/inputtext";
-import { Column } from "primereact/column";
-import { useApi } from "../../../utils/client";
+import qs from "query-string";
+import { useEffect, useState, useRef } from "react";
+import { useDebounce } from "use-debounce";
+
+import { sportForDivision } from "../../../../../shared/constants/divisions";
+import ReportDialog from "../../../components/ReportDialog";
+import ShooterCell from "../../../components/ShooterCell";
 import {
   useTableSort,
   useTablePagination,
@@ -11,10 +15,7 @@ import {
   renderPercent,
   renderPercentDiff,
 } from "../../../components/Table";
-import { useDebounce } from "use-debounce";
-import ShooterCell from "../../../components/ShooterCell";
-import ReportDialog from "../../../components/ReportDialog";
-import { sportForDivision } from "../../../../../shared/constants/divisions";
+import { useApi } from "../../../utils/client";
 import { useIsHFU } from "../../../utils/useIsHFU";
 
 const classColumnProps = {
@@ -36,7 +37,7 @@ const TableFilter = ({ placeholder, onFilterChange }) => {
       <InputText
         className="w-12"
         value={filter}
-        onChange={(e) => setFilter(e.target.value)}
+        onChange={e => setFilter(e.target.value)}
         placeholder={placeholder}
       />
     </span>
@@ -78,7 +79,7 @@ export const useShootersTableData = ({ division, inconsistencies, classFilter })
     pageProps,
     filter,
     setFilter,
-    downloadUrl: "/api/shooters/download/" + division,
+    downloadUrl: `/api/shooters/download/${division}`,
   };
 };
 
@@ -120,7 +121,7 @@ const ShootersTable = ({
           <>
             <TableFilter
               placeholder="Filter by Name or Number"
-              onFilterChange={(f) => setFilter(f)}
+              onFilterChange={f => setFilter(f)}
             />
             {/*<a href={downloadUrl} download className="px-5 py-2">
             <i
@@ -151,14 +152,14 @@ const ShootersTable = ({
           align="center"
           headerTooltip="Top percentile for this shooter in current sort mode."
           headerTooltipOptions={headerTooltipOptions}
-          body={(c) => c.percentile.toFixed(2) + "%"}
+          body={c => `${c.percentile.toFixed(2)}%`}
         />
         <Column
           field="memberNumber"
           header="Shooter"
           maxWidth="fit-content"
           sortable
-          body={(shooter) => (
+          body={shooter => (
             <ShooterCell
               sport={sportForDivision(division)}
               data={shooter}
@@ -193,13 +194,13 @@ const ShootersTable = ({
         <Column
           field="age"
           header="Age"
-          body={(c) => (c.age ? (c.age || 0).toFixed(1) + "mo" : "—")}
+          body={c => (c.age ? `${(c.age || 0).toFixed(1)}mo` : "—")}
           sortable
           headerTooltip="Average age in months of Y-flagged scores (classifiers & majors) of this shooter"
           headerTooltipOptions={headerTooltipOptions}
         />
         <Column
-          body={(c) => (
+          body={c => (
             <ReportDialog.Button onClick={() => reportDialogRef.current.startReport(c)} />
           )}
         />

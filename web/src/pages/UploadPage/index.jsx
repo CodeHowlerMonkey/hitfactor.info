@@ -1,19 +1,22 @@
-import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
-import { Button } from "primereact/button";
-import { TabView, TabPanel } from "primereact/tabview";
-import { InputTextarea } from "primereact/inputtextarea";
-import { ProgressSpinner } from "primereact/progressspinner";
-import { getApi, postApi } from "../../utils/client";
-import { Message } from "primereact/message";
-import { InputText } from "primereact/inputtext";
-import { useDebounce } from "use-debounce";
-import { DataTable } from "primereact/datatable";
-import { Column } from "primereact/column";
-import { ToggleButton } from "primereact/togglebutton";
 import uniqBy from "lodash.uniqby";
+import { Button } from "primereact/button";
+import { Column } from "primereact/column";
+import { DataTable } from "primereact/datatable";
+import { InputText } from "primereact/inputtext";
+import { InputTextarea } from "primereact/inputtextarea";
+import { Message } from "primereact/message";
+import { ProgressSpinner } from "primereact/progressspinner";
+import { TabView, TabPanel } from "primereact/tabview";
+import { ToggleButton } from "primereact/togglebutton";
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
+import { useDebounce } from "use-debounce";
+
 import { uuidsFromUrlString } from "../../../../shared/utils/uuid";
-import USPSAUpload from "./USPSAUpload";
+import { getApi, postApi } from "../../utils/client";
+
+
 import UploadResults from "./UploadResults";
+import USPSAUpload from "./USPSAUpload";
 
 const shooterHref = (memberNumber, division) =>
   `/shooters/${division}/${memberNumber || ""}`;
@@ -33,7 +36,7 @@ const MatchSearchInput = forwardRef(({ placeholder, onChange }, ref) => {
     () => ({
       setValue,
     }),
-    [setValue]
+    [setValue],
   );
 
   return (
@@ -43,7 +46,7 @@ const MatchSearchInput = forwardRef(({ placeholder, onChange }, ref) => {
         className="flex-grow-1"
         ref={inputRef}
         value={value}
-        onChange={(e) => setValue(e.target.value)}
+        onChange={e => setValue(e.target.value)}
         placeholder={placeholder}
       />
       <span
@@ -79,17 +82,17 @@ const UploadPage = () => {
   const searchRef = useRef();
   const [searchResults, setSearchResults] = useState([]);
   const [toUpload, setToUpload] = useState(() => []);
-  const toUploadIds = toUpload.map((m) => m.uuid);
+  const toUploadIds = toUpload.map(m => m.uuid);
 
-  const updateSearchResults = async (q) => {
+  const updateSearchResults = async q => {
     if (!q) {
       return;
     }
-    const hits = await getApi("/upload/searchMatches?q=" + encodeURIComponent(q));
+    const hits = await getApi(`/upload/searchMatches?q=${encodeURIComponent(q)}`);
     setSearchResults(hits);
   };
 
-  const tableData = uniqBy([...toUpload, ...searchResults], (c) => c.uuid).map((c) => ({
+  const tableData = uniqBy([...toUpload, ...searchResults], c => c.uuid).map(c => ({
     ...c,
     upload: toUploadIds.includes(c.uuid),
     date: new Date(c.matchDate || c.created || c.updated)
@@ -133,7 +136,7 @@ const UploadPage = () => {
                     body={({ templateName, type, subType }) => (
                       <span
                         title={[type, subType]
-                          .filter((w) => !!w && w !== "none")
+                          .filter(w => !!w && w !== "none")
                           .join(" / ")}
                       >
                         {templateName}
@@ -145,7 +148,7 @@ const UploadPage = () => {
                     field="name"
                     style={{ width: "24em" }}
                     header="Match"
-                    body={(match) => (
+                    body={match => (
                       <a
                         href={`https://practiscore.com/results/new/${match.uuid}`}
                         target="_blank"
@@ -154,6 +157,7 @@ const UploadPage = () => {
                           textUnderlineOffset: "0.2em",
                           textDecorationColor: "rgba(255,255,255,0.5)",
                         }}
+                        rel="noreferrer"
                       >
                         {match.name}
                       </a>
@@ -161,7 +165,7 @@ const UploadPage = () => {
                   />
                   <Column
                     header="Uploaded"
-                    body={(match) => {
+                    body={match => {
                       if (match.uploaded) {
                         return (
                           <span>
@@ -186,28 +190,26 @@ const UploadPage = () => {
                   <Column
                     hidden
                     header="Upload?"
-                    body={(match) => (
+                    body={match => (
                       <ToggleButton
                         className="p-2"
                         size="small"
                         onIcon="pi pi-check"
                         offIcon="pi pi-times"
                         checked={toUploadIds.includes(match.uuid)}
-                        onChange={(e) =>
-                          setToUpload((existing) => {
+                        onChange={e =>
+                          setToUpload(existing => {
                             const shouldBeUploaded = e.value;
                             if (shouldBeUploaded) {
                               return [...existing, match];
-                            } else {
-                              const index = existing.findIndex(
-                                (c) => c.uuid === match.uuid
-                              );
-                              if (index >= 0) {
-                                const newArray = [...existing];
-                                newArray.splice(index, 1);
-                                return newArray;
-                              }
                             }
+                            const index = existing.findIndex(c => c.uuid === match.uuid);
+                            if (index >= 0) {
+                              const newArray = [...existing];
+                              newArray.splice(index, 1);
+                              return newArray;
+                            }
+
                             return existing;
                           })
                         }
@@ -274,7 +276,7 @@ const OldUploadPage = () => {
         <span className="mx-5 my-2">
           <p>
             Use{" "}
-            <a href="https://practiscore.com/results" target="_blank">
+            <a href="https://practiscore.com/results" target="_blank" rel="noreferrer">
               PractiScore
             </a>{" "}
             to obtain the Scores URLs. If you have Competitor app - you can also use "Open
@@ -306,9 +308,13 @@ const OldUploadPage = () => {
           <div>
             Classifiers:
             <ul>
-              {result.classifiers?.map((c) => (
+              {result.classifiers?.map(c => (
                 <li key={c.classifierDivision}>
-                  <a href={classifierHref(c.classifier, c.division)} target="_blank">
+                  <a
+                    href={classifierHref(c.classifier, c.division)}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
                     {c.classifier} - {c.division}
                   </a>
                 </li>
@@ -318,9 +324,13 @@ const OldUploadPage = () => {
           <div>
             Shooters:
             <ul>
-              {result.shooters?.map((s) => (
+              {result.shooters?.map(s => (
                 <li key={s.memberNumberDivision}>
-                  <a href={shooterHref(s.memberNumber, s.division)} target="_blank">
+                  <a
+                    href={shooterHref(s.memberNumber, s.division)}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
                     {s.memberNumber} - {s.division}
                   </a>
                 </li>
@@ -336,7 +346,7 @@ const OldUploadPage = () => {
           autoFocus
           disabled={loading}
           value={value}
-          onChange={(e) => setValue(e.target.value)}
+          onChange={e => setValue(e.target.value)}
           rows={12}
           cols={75}
         />

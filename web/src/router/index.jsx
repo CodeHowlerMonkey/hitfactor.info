@@ -1,7 +1,8 @@
-import React, { useRef, useState, Suspense, useEffect } from "react";
-import { TabMenu } from "primereact/tabmenu";
+import { Divider } from "primereact/divider";
 import { Menu as PrimeMenu } from "primereact/menu";
 import { ProgressSpinner } from "primereact/progressspinner";
+import { TabMenu } from "primereact/tabmenu";
+import React, { useRef, useState, Suspense, useEffect } from "react";
 import {
   createBrowserRouter,
   Outlet,
@@ -9,9 +10,9 @@ import {
   useLocation,
   Link,
 } from "react-router-dom";
-import { Divider } from "primereact/divider";
-import Footer from "../components/Footer";
+
 import features from "../../../shared/features";
+import Footer from "../components/Footer";
 
 const MoreMenu = () => {
   const loggedIn = false;
@@ -63,7 +64,7 @@ const MoreMenu = () => {
       />
       <a
         className="flex p-menuitem-link no-highlight px-2"
-        onClick={(e) => menu.current.toggle(e)}
+        onClick={e => menu.current.toggle(e)}
       >
         {" "}
         <span className="pi pi-bars text-2xl" />
@@ -75,7 +76,7 @@ const MoreMenu = () => {
 const config = [
   {
     label: "Howler Monkey Classifiers",
-    template: (item) => (
+    template: item => (
       <Link className="flex p-menuitem-link" to={item.href}>
         <img
           alt="Howler Monkey Classifiers"
@@ -136,8 +137,8 @@ const config = [
   },
 ];
 
-const activeIndexForPathname = (pathname) =>
-  config.map((c) => c.path).findLastIndex((curPath) => pathname?.startsWith(curPath));
+const activeIndexForPathname = pathname =>
+  config.map(c => c.path).findLastIndex(curPath => pathname?.startsWith(curPath));
 
 const Menu = () => {
   const navigate = useNavigate();
@@ -154,12 +155,12 @@ const Menu = () => {
   return (
     <TabMenu
       className="text-base md:text-xl"
-      model={config.map((c) => ({
+      model={config.map(c => ({
         ...c,
         command: () => navigate(c.path),
       }))}
       activeIndex={activeIndex}
-      onTabChange={(e) => setActiveIndex(e.index)}
+      onTabChange={e => setActiveIndex(e.index)}
     />
   );
 };

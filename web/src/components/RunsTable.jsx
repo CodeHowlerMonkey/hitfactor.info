@@ -28,7 +28,7 @@ const TableFilter = ({ placeholder, onFilterChange }) => {
       <InputText
         className="w-12"
         value={filter}
-        onChange={(e) => setFilter(e.target.value)}
+        onChange={e => setFilter(e.target.value)}
         placeholder={placeholder}
       />
     </span>
@@ -48,7 +48,7 @@ const DropdownFilter = ({
     options={filterOptions}
     value={filterValue}
     optionLabel={filterValueLabel}
-    onChange={(e) => onFilter?.(e.value)}
+    onChange={e => onFilter?.(e.value)}
     placeholder={placeholder}
     showClear
     maxSelectedLabels={1}
@@ -64,7 +64,7 @@ const LegacyCheckbox = ({ onChange }) => {
       <Checkbox
         inputId="legacyCheck"
         checked={value}
-        onChange={(e) => setValue(e.checked)}
+        onChange={e => setValue(e.checked)}
       />
       <label htmlFor="legacyCheck" className="ml-2 mr-4">
         Incl. Legacy
@@ -103,7 +103,7 @@ export const useRunsTableData = ({ division, classifier }) => {
     : `/classifiers/scores/${division}/${classifier}?${query}&${pageQuery}&${filtersQuery}`;
   const { json: apiData, loading } = useApi(apiEndpoint);
 
-  const data = (apiData?.runs ?? []).map((d) => ({
+  const data = (apiData?.runs ?? []).map(d => ({
     ...d,
     updated: new Date(d.updated).toLocaleDateString("en-us", { timeZone: "UTC" }),
   }));
@@ -166,7 +166,7 @@ const RunsTable = ({ classifier, division, clubs, onShooterSelection }) => {
         paginatorRight={
           <TableFilter
             placeholder="Filter by Club or Shooter"
-            onFilterChange={(f) => setFilter(f)}
+            onFilterChange={f => setFilter(f)}
           />
         }
         totalRecords={runsTotal}
@@ -192,12 +192,12 @@ const RunsTable = ({ classifier, division, clubs, onShooterSelection }) => {
           header="Perc."
           headerTooltip="Percentile for this score. Shows how many percent of scores are higher than this one."
           headerTooltipOptions={headerTooltipOptions}
-          body={(c) => `${c.percentile.toFixed(2)}%`}
+          body={c => `${c.percentile.toFixed(2)}%`}
         />
         <Column
           field="memberNumber"
           header="Shooter"
-          body={(run) => (
+          body={run => (
             <ShooterCell
               sport={sport}
               data={run}
@@ -233,7 +233,7 @@ const RunsTable = ({ classifier, division, clubs, onShooterSelection }) => {
         />
         <Column
           hidden={sport !== "uspsa"}
-          body={(c) => {
+          body={c => {
             if (c.percent > 0) {
               return renderPercent(c, { field: "percent" });
             }
@@ -256,13 +256,13 @@ const RunsTable = ({ classifier, division, clubs, onShooterSelection }) => {
         <Column
           {...clubMatchColumn}
           filter
-          filterElement={(options) => (
+          filterElement={options => (
             <DropdownFilter
               filter
               filterOptions={clubs}
               filterValueLabel="label"
               filterValue={options?.value}
-              onFilter={(value) => {
+              onFilter={value => {
                 setFilterClub(value?.id);
                 options.filterApplyCallback(value);
               }}
@@ -271,7 +271,7 @@ const RunsTable = ({ classifier, division, clubs, onShooterSelection }) => {
         />
         <Column field="sd" header="Date" sortable />
         <Column
-          body={(c) => (
+          body={c => (
             <ReportDialog.Button onClick={() => reportDialogRef.current.startReport(c)} />
           )}
         />

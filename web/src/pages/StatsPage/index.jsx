@@ -20,7 +20,7 @@ export const ClassificationsChart = ({
   alignBy,
   onClick,
 }) => {
-  const valueFor = (letter) => apiData?.[division]?.[letter] ?? 0;
+  const valueFor = letter => apiData?.[division]?.[letter] ?? 0;
   const totalInDivision =
     valueFor("GM") +
     valueFor("M") +
@@ -80,7 +80,7 @@ export const ClassificationsChart = ({
     },
   ];
 
-  const total = data.map((d) => d.value).reduce((a, b) => a + b);
+  const total = data.map(d => d.value).reduce((a, b) => a + b);
 
   if (bar) {
     const shift = [
@@ -96,7 +96,7 @@ export const ClassificationsChart = ({
         ? 1
         : data
             .filter((v, index) => index <= alignBy)
-            .map((d) => Number(parseFloat((100.0 * d.value) / total).toFixed(2)))
+            .map(d => Number(parseFloat((100.0 * d.value) / total).toFixed(2)))
             .reduce((a, b) => a + b, 0);
 
     const shortName = {
@@ -122,7 +122,7 @@ export const ClassificationsChart = ({
           }}
         >
           <MultiProgress
-            elements={data.map((d) => ({
+            elements={data.map(d => ({
               ...d,
               showPercentage: true,
               value: Number(parseFloat((100.0 * d.value) / total).toFixed(2)),
@@ -158,7 +158,7 @@ export const ClassificationsChart = ({
           !value ? "" : `${letter} ${value} (${percentage.toFixed(2)}%)`
         }
         labelPosition={72}
-        labelStyle={(dataIndex) => ({
+        labelStyle={dataIndex => ({
           fill: data[dataIndex].title === "GM" ? "red" : "#000",
           opacity: 0.75,
           pointerEvents: "none",
@@ -175,7 +175,7 @@ const ModeSwitch = ({ mode, setMode, modes }) => (
       allowEmpty={false}
       options={modes}
       value={mode}
-      onChange={(e) => setMode(e.value)}
+      onChange={e => setMode(e.value)}
     />
   </div>
 );
@@ -201,7 +201,7 @@ const modeMap = {
   Recommended: "byRecHHFPercent",
 };
 const modes = Object.keys(modeMap);
-const modeBucketForMode = (mode) => modeMap[mode];
+const modeBucketForMode = mode => modeMap[mode];
 
 const colorForDivision = {
   opn: "#faaf18",
@@ -215,7 +215,7 @@ const colorForDivision = {
   pcc: "#2ea8c7",
 };
 
-const formatDate = (d) => {
+const formatDate = d => {
   if (!d) {
     return "";
   }
@@ -259,7 +259,7 @@ const DivisionsChart = ({ year }) => {
           label={({ dataEntry: { title, percent } }) => `${title}: ${percent}%`}
           totalValue={apiData.total}
           labelPosition={72}
-          labelStyle={(dataIndex) => ({
+          labelStyle={dataIndex => ({
             fill: data[dataIndex].title === "GM" ? "red" : "#000",
             opacity: 0.75,
             pointerEvents: "none",
@@ -307,7 +307,7 @@ export const StatsPage = () => {
           <ModeSwitch {...modeSwitchProps} />
           <div className="card flex justify-content-center m-0">
             Include Unclassified
-            <Checkbox onChange={(e) => setChecked(e.checked)} checked={includeU} />
+            <Checkbox onChange={e => setChecked(e.checked)} checked={includeU} />
           </div>
           <div>
             <Row height={400}>
@@ -511,7 +511,7 @@ export const StatsPage = () => {
             <SelectButton
               className="less-compact"
               value={alignBy}
-              onChange={(e) => setAlignBy(e.value)}
+              onChange={e => setAlignBy(e.value)}
               optionLabel="name"
               options={items}
             />

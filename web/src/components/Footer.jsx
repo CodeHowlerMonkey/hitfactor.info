@@ -5,6 +5,7 @@ const SimpleAnalyticsBadge = () => (
     href="https://dashboard.simpleanalytics.com/hitfactor.info?utm_source=hitfactor.info&utm_content=badge"
     referrerPolicy="origin"
     target="_blank"
+    rel="noreferrer"
   >
     <picture>
       <source srcSet={badgeSrc} media="(prefers-color-scheme: dark)" />
@@ -25,22 +26,26 @@ export default ({ className }) => (
         <img src="/img/home/howlerData.png" alt="Howler Monkey Data, Inc" height="64" />
         <SimpleAnalyticsBadge />
       </div>
-      <div className="font-medium text-900 mt-2 mb-1">© 2024 Howler Monkey Data, Inc</div>
+      <div className="font-medium text-900 mt-2 mb-1">
+        © 2024 Howler Monkey Data, Inc
+      </div>
       <p className="text-600 line-height-3 mt-0 mb-4">Made with 🧩 and 🍺 in 🇰🇷</p>
       <div className="flex align-items-center justify-content-center">
         <a
           className="cursor-pointer text-700 mr-5"
           href="https://instagram.com/codehowlermonkey"
           target="_blank"
+          rel="noreferrer"
         >
-          <i className="pi pi-instagram"></i>
+          <i className="pi pi-instagram" />
         </a>
         <a
           className="cursor-pointer text-700"
           href="https://github.com/CodeHowlerMonkey/hitfactor.info"
           target="_blank"
+          rel="noreferrer"
         >
-          <i className="pi pi-github"></i>
+          <i className="pi pi-github" />
         </a>
       </div>
     </div>

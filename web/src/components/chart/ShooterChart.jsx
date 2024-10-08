@@ -1,13 +1,14 @@
-import { ProgressSpinner } from "primereact/progressspinner";
 import { Button } from "primereact/button";
 import { Dialog } from "primereact/dialog";
+import { ProgressSpinner } from "primereact/progressspinner";
+import { useState } from "react";
+
+import { sportForDivision } from "../../../../shared/constants/divisions";
+import { useApi } from "../../utils/client";
 
 import { Line } from "./common";
-import { useApi } from "../../utils/client";
-import { useState } from "react";
-import { sportForDivision } from "../../../../shared/constants/divisions";
 
-const annotationColor = (alpha) => `rgba(255, 99, 132, ${alpha})`;
+const annotationColor = alpha => `rgba(255, 99, 132, ${alpha})`;
 const yLine = (name, y, alpha) => ({
   [name]: {
     type: "line",
@@ -16,13 +17,13 @@ const yLine = (name, y, alpha) => ({
     borderColor: annotationColor(alpha * 0.5),
     borderWidth: 1,
   },
-  [name + "Label"]: {
+  [`${name}Label`]: {
     type: "label",
     xValue: "auto",
     yValue: y,
     color: annotationColor(alpha),
     position: { x: "center", y: "center" },
-    content: [y + "%"],
+    content: [`${y}%`],
     font: {
       size: 8,
     },
@@ -36,7 +37,7 @@ export const ScoresChart = ({ division, memberNumber }) => {
   const { json: data, loading } = useApi(
     `/shooters/${division}/${memberNumber}/chart?y=${
       percentMode ? "percent" : "curPercent"
-    }`
+    }`,
   );
   if (loading) {
     return <ProgressSpinner />;
@@ -79,7 +80,7 @@ export const ScoresChart = ({ division, memberNumber }) => {
         plugins: {
           tooltip: {
             callbacks: {
-              label: ({ raw: { y, classifier } }) => classifier + ": " + y + "%",
+              label: ({ raw: { y, classifier } }) => `${classifier}: ${y}%`,
               title: ([
                 {
                   raw: { x, y },
@@ -103,7 +104,7 @@ export const ScoresChart = ({ division, memberNumber }) => {
         datasets: [
           !isHFU && {
             label: "Percent",
-            data: data.map((c) => ({
+            data: data.map(c => ({
               ...c,
               x: new Date(new Date(c.x).toLocaleDateString("en-us", { timeZone: "UTC" })),
               y: c.percent,
@@ -113,7 +114,7 @@ export const ScoresChart = ({ division, memberNumber }) => {
           },
           !isHFU && {
             label: "Current Percent",
-            data: data.map((c) => ({
+            data: data.map(c => ({
               ...c,
               x: new Date(new Date(c.x).toLocaleDateString("en-us", { timeZone: "UTC" })),
               y: c.curPercent,
@@ -122,7 +123,7 @@ export const ScoresChart = ({ division, memberNumber }) => {
           },
           {
             label: isHFU ? "Percent" : "Rec. Percent",
-            data: data.map((c) => ({
+            data: data.map(c => ({
               ...c,
               x: new Date(new Date(c.x).toLocaleDateString("en-us", { timeZone: "UTC" })),
               y: c.recPercent,

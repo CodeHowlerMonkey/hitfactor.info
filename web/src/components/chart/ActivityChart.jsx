@@ -61,7 +61,7 @@ const ActivityChart = ({ data }) => {
           datasets: [
             {
               label: "Active Member Numbers",
-              data: data.map((c) => ({
+              data: data.map(c => ({
                 x: new Date(
                   new Date(c.week).toLocaleDateString("en-us", { timeZone: "UTC" }),
                 ),
