@@ -7,4 +7,4 @@ export const N = (arg: Numberish, fix = 2) =>
 export const HF = (arg: Numberish) => N(arg, 4);
 export const Percent = (n: Numberish, total: number, fix?: number) =>
   N((100.0 * (n as number)) / total, fix);
-export const PositiveOrMinus1 = n => (n >= 0 ? n : -1);
+export const PositiveOrMinus1 = (n: number) => (n >= 0 ? n : -1);

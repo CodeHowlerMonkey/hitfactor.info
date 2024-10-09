@@ -1,23 +1,6 @@
 import mongoose from "mongoose";
 
-export type ClassificationLetter = "U" | "D" | "C" | "B" | "A" | "M" | "GM";
-
-export interface ActiveMember {
-  generated: Date;
-  memberId: number;
-
-  expires: Date;
-
-  co: ClassificationLetter;
-  l10: ClassificationLetter;
-  lo: ClassificationLetter;
-  ltd: ClassificationLetter;
-  opn: ClassificationLetter;
-  pcc: ClassificationLetter;
-  prod: ClassificationLetter;
-  rev: ClassificationLetter;
-  ss: ClassificationLetter;
-}
+import { ActiveMember } from "../../../data/types/USPSA";
 
 const ActiveMemberShema = new mongoose.Schema<ActiveMember>({
   // Primary Key
@@ -44,7 +27,7 @@ ActiveMemberShema.index({ generated: -1, memberId: -1 });
 
 export const ActiveMembers = mongoose.model("ActiveMembers", ActiveMemberShema);
 
-export const saveActiveMembersFromPSClassUpdate = async psClassUpdate =>
+export const saveActiveMembersFromPSClassUpdate = async (psClassUpdate: ActiveMember[]) =>
   ActiveMembers.bulkWrite(
     psClassUpdate.map(({ generated, memberId, ...fields }) => ({
       updateOne: {

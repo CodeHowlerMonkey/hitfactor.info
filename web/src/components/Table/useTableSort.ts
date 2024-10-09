@@ -12,6 +12,16 @@ interface UseTableSortArgs {
   initial: SingleSortState | SingleSortState[];
 }
 
+interface PrimeTableSortState {
+  sortField: string;
+  sortOrder: 1 | -1;
+}
+
+// TODO: check that multisort types are right and it's working
+type PrimeTableSortEvent = PrimeTableSortState & {
+  multiSortMeta: SingleSortState[];
+};
+
 export const useTableSort = ({
   mode = "single",
   onSortCallback,
@@ -28,9 +38,9 @@ export const useTableSort = ({
         : {
             multiSortMeta: state,
           }),
-      onSort: e => {
+      onSort: (e: PrimeTableSortEvent) => {
         if (isSingle) {
-          const { sortField, sortOrder } = e;
+          const { sortField, sortOrder } = e as PrimeTableSortState;
           setState([{ field: sortField, order: sortOrder }]);
         } else {
           setState(e.multiSortMeta);

@@ -28,10 +28,13 @@ const _psClassUpdatesByMemberNumber = async () => {
     console.error("fallback crash");
   }
 
-  return shooterObjects.reduce((acc, curShooter) => {
-    acc[curShooter.memberNumber] = curShooter;
-    return acc;
-  }, {});
+  return shooterObjects.reduce(
+    (acc: Record<string, PSClassUpdateAllJSON>, curShooter: PSClassUpdateAllJSON) => {
+      acc[curShooter.memberNumber] = curShooter;
+      return acc;
+    },
+    {} as Record<string, PSClassUpdateAllJSON>,
+  );
 };
 
 const fourDays = 4 * 24 * 60 * 60_000;

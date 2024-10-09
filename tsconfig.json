@@ -9,7 +9,7 @@
     "strict": true,                                      /* Enable all strict type-checking options. */
     "skipLibCheck": true,                                 /* Skip type checking all .d.ts files. */
     
-    // TODO: turn back on when whole codebase is ts
+    // TODO: #80 turn back on when whole codebase is ts
     "noImplicitAny": false,
 
     "lib": [

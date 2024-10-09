@@ -1,6 +1,7 @@
 /* eslint-disable no-console */
 import mongoose from "mongoose";
 
+import { ClassificationLetter } from "../../../data/types/USPSA";
 import { divShortNames, mapDivisions } from "../dataUtil/divisions";
 
 import { Shooters } from "./shooters";
@@ -54,7 +55,7 @@ const addCurClassField = () => ({
   },
 });
 
-export const statsByDivision = async field => {
+export const statsByDivision = async (field: string) => {
   const byDiv = mapDivisions(() => ({}));
   const dbResults = await Shooters.aggregate([
     addCurClassField(),
@@ -93,8 +94,8 @@ export const statsByDivision = async field => {
   return byDiv;
 };
 
-const classesRanked = ["X", "U", "D", "C", "B", "A", "M", "GM"];
-export const statsByAll = async field => {
+const classesRanked: ClassificationLetter[] = ["X", "U", "D", "C", "B", "A", "M", "GM"];
+export const statsByAll = async (field: string) => {
   const aggregateResult = await Shooters.aggregate([
     addCurClassField(),
     {
@@ -160,7 +161,7 @@ export const statsByAll = async field => {
   return aggregateResult[0];
 };
 
-const statsByDivAndAll = async field => {
+const statsByDivAndAll = async (field: string) => {
   const all = await statsByAll(field);
   const byDiv = await statsByDivision(field);
 

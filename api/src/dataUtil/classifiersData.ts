@@ -1,3 +1,4 @@
+import { HHFJSON } from "../../../data/types/USPSA";
 import { loadJSON } from "../utils";
 
 export type USPSAScoring = "Virginia" | "Comstock" | "Fixed Time";
@@ -23,7 +24,7 @@ export const classifiersByNumber: Record<string, ClassifierJSON> = classifiers.r
     acc[cur.classifier] = cur;
     return acc;
   },
-  {},
+  {} as Record<string, ClassifierJSON>,
 );
 
 export const basicInfoForClassifier = (c: ClassifierJSON): ClassifierBasicInfo => ({
@@ -184,17 +185,37 @@ export const ScsaPeakTimesMap = {
   PCCI: [10.75, 8.5, 7.75, 12.25, 9.5, 10.5, 11, 8],
 };
 
-export const scsaDivisionWithPrefix = scsaDivision =>
-  `scsa_${scsaDivision.toLowerCase()}`;
+type SCSADivisionNoPrefix = keyof typeof ScsaPeakTimesMap;
+export type SCSADivision =
+  | "scsa_isr"
+  | "scsa_ltd"
+  | "scsa_osr"
+  | "scsa_rfpi"
+  | "scsa_rfpo"
+  | "scsa_rfri"
+  | "scsa_rfro"
+  | "scsa_prod"
+  | "scsa_opn"
+  | "scsa_ss"
+  | "scsa_co"
+  | "scsa_pcco"
+  | "scsa_pcci";
 
-export const scsaDivisions = Object.keys(ScsaPeakTimesMap)
-  .map(x => x.toLowerCase())
-  .map(scsaDivisionWithPrefix);
+export const scsaDivisionWithPrefix = (
+  scsaDivision: SCSADivisionNoPrefix,
+): SCSADivision => `scsa_${scsaDivision.toLowerCase()}` as SCSADivision;
+
+export const scsaDivisions: SCSADivision[] = Object.keys(ScsaPeakTimesMap).map(noPrefix =>
+  scsaDivisionWithPrefix(noPrefix as SCSADivisionNoPrefix),
+);
+
+const scsaDivisionToNoPrefix = (division: SCSADivision): SCSADivisionNoPrefix =>
+  division.replace("scsa_", "").toUpperCase() as SCSADivisionNoPrefix;
 
 export const ScsaPointsPerString = 25;
 
-export const scsaHhfEquivalentForDivision = division =>
-  ScsaPeakTimesMap[division.replace("scsa_", "").toUpperCase()].map(
+export const scsaHhfEquivalentForDivision = (division: SCSADivision): HHFJSON[] =>
+  ScsaPeakTimesMap[scsaDivisionToNoPrefix(division)].map(
     (divisionStageTotalPeakTime, idx) => {
       // SC-104 Outer Limits, at idx 3, has 3 scoring strings instead of 4;
       const numberOfScoringStringsForClassifier = idx === 3 ? 3 : 4;
@@ -202,18 +223,19 @@ export const scsaHhfEquivalentForDivision = division =>
         classifier: `SC-${100 + idx + 1}`,
         id: `SC-${100 + idx + 1}`,
         // Numerator
-        hhf: Number(
-          parseFloat(
-            String(
-              ScsaPointsPerString /
-                (divisionStageTotalPeakTime / numberOfScoringStringsForClassifier),
-            ),
-          ).toFixed(4),
-        ),
+        hhf: parseFloat(
+          String(
+            ScsaPointsPerString /
+              (divisionStageTotalPeakTime / numberOfScoringStringsForClassifier),
+          ),
+        ).toFixed(4),
       };
     },
   );
 
-export const scsaPeakTime = (scsaDivision, scsaClassifierCode) =>
+export const scsaPeakTime = (
+  scsaDivision: SCSADivisionNoPrefix,
+  scsaClassifierCode: string,
+) =>
   // Indexing scheme based on the fact that the division peak times in the above structure are sorted in ascending order.
   ScsaPeakTimesMap[scsaDivision][parseInt(scsaClassifierCode.substr(3, 4)) - 101];

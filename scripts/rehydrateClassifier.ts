@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import { Classifiers, singleClassifierExtendedMetaDoc } from "../api/src/db/classifiers";
 import { connect } from "../api/src/db/index";
-import { RecHHFs, rehydrateRecHHF } from "../api/src/db/recHHF";
+import { RecHHF, RecHHFs, rehydrateRecHHF } from "../api/src/db/recHHF";
 import { allDivShortNames } from "../shared/constants/divisions";
 
 // TODO: #79 convert to API + UI, add shooter reclassification
@@ -19,10 +19,13 @@ const rehydrateOneClassifier = async (classifier: string) => {
   const recHHFs = await RecHHFs.find({ classifierDivision: { $in: classifierDivisions } })
     .select({ recHHF: true, _id: false, classifierDivision: true })
     .lean();
-  const recHHFsByClassifierDivision = recHHFs.reduce((acc, cur) => {
-    acc[cur.classifierDivision] = cur;
-    return acc;
-  }, {});
+  const recHHFsByClassifierDivision = recHHFs.reduce(
+    (acc, cur) => {
+      acc[cur.classifierDivision] = cur;
+      return acc;
+    },
+    {} as Record<string, RecHHF>,
+  );
   console.log(`recHHFs: \n${JSON.stringify(recHHFsByClassifierDivision, null, 2)}`);
 
   console.log("writing classifiers");

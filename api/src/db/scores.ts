@@ -9,7 +9,7 @@ import {
   uspsaDivShortNames,
 } from "../../../shared/constants/divisions";
 import { UTCDate } from "../../../shared/utils/date";
-import { curHHFFor } from "../dataUtil/hhf";
+import { curHHFFor, curHHFForDivisionClassifier } from "../dataUtil/hhf";
 import { N, Percent, PositiveOrMinus1 } from "../dataUtil/numbers";
 import { processImportAsyncSeq } from "../utils";
 
@@ -226,7 +226,9 @@ export const scoresFromClassifierFile = fileObj => {
           club_name,
           percent: Number(percent),
           hf: Number(hf) || (isMajor(source) ? undefined : 0),
-          hhf: isMajor(source) ? -1 : curHHFFor({ division, classifier }),
+          hhf: isMajor(source)
+            ? -1
+            : curHHFForDivisionClassifier({ division, number: classifier }),
           code,
           source,
         }));

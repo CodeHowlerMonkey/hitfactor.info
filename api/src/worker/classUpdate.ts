@@ -1,5 +1,5 @@
+import { ActiveMember } from "../../../data/types/USPSA";
 import { UTCDate } from "../../../shared/utils/date";
-import { ActiveMember } from "../db/activeMembers";
 
 const fieldNameMap = {
   USPSA: "memberNumber",
@@ -18,7 +18,7 @@ const fieldNameMap = {
   Generated: "generated",
 };
 
-const isValidDate = jsDate => !Number.isNaN(jsDate.getTime());
+const isValidDate = (jsDate: Date) => !Number.isNaN(jsDate.getTime());
 
 export const fetchPSClassUpdateCSVTextFile = async () => {
   try {
@@ -47,7 +47,10 @@ export const practiscoreClassUpdateFromTextFile = (
   const infoLinesObject = Object.fromEntries(
     infoLines.map(line => {
       const [infoLineKey, infoLineValue] = line.replace(/^\$INFO\s/, "").split(" ");
-      return [fieldNameMap[infoLineKey] || infoLineKey, infoLineValue];
+      return [
+        fieldNameMap[infoLineKey as keyof typeof fieldNameMap] || infoLineKey,
+        infoLineValue,
+      ];
     }),
   );
   const generated = UTCDate(infoLinesObject.generated);
@@ -67,7 +70,12 @@ export const practiscoreClassUpdateFromTextFile = (
     .filter(curLine => !curLine.startsWith("$"))
     .map(curLine => {
       const curLineAsObject = Object.fromEntries(
-        curLine.split(",").map((value, index) => [fieldNameMap[fields[index]], value]),
+        curLine
+          .split(",")
+          .map((value, index) => [
+            fieldNameMap[fields[index] as keyof typeof fieldNameMap],
+            value,
+          ]),
       );
 
       const { memberId, expires } = curLineAsObject;
@@ -80,7 +88,7 @@ export const practiscoreClassUpdateFromTextFile = (
         memberId: Number.isNaN(memberIdNumber) ? memberId : memberIdNumber + 3,
         expires: isValidDate(expiresDate) ? expiresDate : null,
         generated,
-      };
+      } as ActiveMember;
     });
 };
 
