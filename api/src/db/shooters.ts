@@ -403,19 +403,48 @@ const processBatchHydrateShooters = async batchRaw => {
   process.stdout.write(".");
 };
 
+interface USPSAAPIClassificationBlob {
+  id: string; // number in string
+  division_id: string; // number in string
+  division: string;
+  class: "X" | "U" | "D" | "C" | "B" | "A" | "M" | "GM";
+  current_percent: string; // number in string
+  high_percent: string; // number in string
+}
+
+interface USPSAAPIClassificationResponse {
+  value: {
+    status: number;
+    member_data: {
+      member_id: string; // number in string
+      member_number: string;
+      first_name: string;
+      middle_name: string;
+      last_name: string;
+      suffix: string;
+      salutation: string;
+      joined_date: string; // date in format: "1986-12-15 00:00:00";
+      expiration_date: string; // date in format : "2024-12-02 00:00:00";
+      life_member: string; // number 1 or 0 in string
+      privacy: string; // number 1 or 0 in string
+    };
+    classifications: USPSAAPIClassificationBlob[];
+  };
+}
+
 // hydration from uspsa json files
 const batchHydrateShooters = async letter => {
   process.stdout.write("\n");
   process.stdout.write(letter);
   process.stdout.write(": ");
 
-  let curBatch = [] as any[];
+  let curBatch = [] as USPSAAPIClassificationResponse[];
 
   await processImportAsyncSeq(
     "../../data/imported",
     new RegExp(`classification\\.${letter}\\.\\d+\\.json`),
     async obj => {
-      curBatch.push(obj.value as object);
+      curBatch.push(obj.value);
       if (curBatch.length >= 128) {
         await processBatchHydrateShooters(curBatch);
         curBatch = [];

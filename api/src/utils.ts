@@ -25,7 +25,7 @@ const filesToProcess = (dir, fileRegexp) => {
 export const processImportAsyncSeq = async (
   dir: string,
   fileRegexp: RegExp,
-  forEachFileJSONCb: (obj: any) => Promise<void>,
+  forEachFileJSONCb: (obj: Record<string, unknown>) => Promise<void>,
 ) => {
   const files = filesToProcess(dir, fileRegexp);
   for (const file of files) {

@@ -212,18 +212,24 @@ export const hfuDivisionMapForHHF = Object.fromEntries(
   Object.entries(hfuDivisionExplosionForRecHHF).map(([key, value]) => [key, value[1]]),
 );
 
-const defaultDivisionAccess = (something: Record<string, any>): string =>
-  something.division;
+type DefaultInputType = Record<string, unknown>;
+
+const defaultDivisionAccess = <InputType extends DefaultInputType = DefaultInputType>(
+  something: InputType,
+): string => something.division as string;
 
 /**
  * Takes array of something and makes it bigger by including additional divisions
  * from provided mapping.
  */
-export const arrayWithExplodedDivisions = (
-  arr: Record<string, any>[],
+export const arrayWithExplodedDivisions = <
+  InputType extends DefaultInputType = DefaultInputType,
+  ResultType = unknown,
+>(
+  arr: InputType[],
   divisionExplosionMap: Record<string, string>,
-  arrDivCb: (obj: Record<string, any>) => string = defaultDivisionAccess,
-  arrResultCb,
+  arrDivCb: (obj: InputType) => string = defaultDivisionAccess,
+  arrResultCb: (obj: InputType, extraDiv: string) => ResultType,
 ) => {
   const withExtras = arr
     .map(c => {
