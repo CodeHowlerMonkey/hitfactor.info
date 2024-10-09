@@ -1,8 +1,7 @@
 import { loadJSON } from "../utils";
-import { fetchPSClassUpdates } from "../worker/classUpdate";
 const fallbackData = loadJSON("../../data/meta/all.json");
 
-// TODO: #77 kill this interface, just use ActiveMembers DB collection
+// TODO: #77 kill this interface, just use ActiveMembers DB collection, select latest class update
 export interface PSClassUpdateAllJSON {
   memberNumber: string;
   memberId: string;

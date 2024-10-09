@@ -152,18 +152,18 @@ const scsaHhfToPeakTime = (classifier, hf) => {
   return Number(parseFloat(ScsaPointsPerString / (hf / numScoringStrings)).toFixed(2));
 };
 
-const classifiersRoutes = async (fastify, opts) => {
-  fastify.get("/", (req, res) => classifiers.map(basicInfoForClassifier));
+const classifiersRoutes = async fastify => {
+  fastify.get("/", () => classifiers.map(basicInfoForClassifier));
 
   fastify.get("/:division", async req => {
     const { division } = req.params;
-    const [classifiers, classifiersAllDivQuality] = await Promise.all([
+    const [classifiersFromDB, classifiersAllDivQuality] = await Promise.all([
       Classifiers.find({ division, classifier: { $exists: true, $ne: null } }),
       division.startsWith("scsa")
         ? allScsaDivisionClassifiersQuality()
         : allDivisionClassifiersQuality(),
     ]);
-    return classifiers.map(c => {
+    return classifiersFromDB.map(c => {
       const cur = c.toObject({ virtuals: true });
       cur.allDivQuality = classifiersAllDivQuality[cur.classifier];
       if (division.startsWith("scsa")) {
@@ -206,7 +206,7 @@ const classifiersRoutes = async (fastify, opts) => {
     return result;
   });
 
-  fastify.get("/scores/:division/:number", async (req, res) => {
+  fastify.get("/scores/:division/:number", async req => {
     const { division, number } = req.params;
     const { sort, order, page, club: filterClubString, filter: filterString } = req.query;
     const runsFromDB = await _runsAggregation({
@@ -246,7 +246,7 @@ const classifiersRoutes = async (fastify, opts) => {
     };
   });
 
-  fastify.get("/:division/:number/chart", async (req, res) => {
+  fastify.get("/:division/:number/chart", async req => {
     const { division, number } = req.params;
     const { full: fullString } = req.query;
     const full = Number(fullString);

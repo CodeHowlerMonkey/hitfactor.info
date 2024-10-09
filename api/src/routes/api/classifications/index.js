@@ -1,7 +1,7 @@
 import { Stats } from "../../../db/stats";
 
-const classificationsRoutes = async (fastify, opts) => {
-  fastify.get("/", async (req, res) => Stats.findOne({}).lean());
+const classificationsRoutes = async fastify => {
+  fastify.get("/", async () => Stats.findOne({}).lean());
 };
 
 export default classificationsRoutes;

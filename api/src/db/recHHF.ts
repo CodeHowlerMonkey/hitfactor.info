@@ -73,15 +73,11 @@ const r15 = runs =>
   );
 
 // TODO: ignore these maybe in classification calculation?
-const recommendedDeprecatedClassifiers = [
+export const recommendedDeprecatedClassifiers = [
   "99-63",
   "03-09", // ON THE MOVE impossible to setup right, super easy to make much easier than designed
   "08-01",
 ];
-
-// force classifier back into "no recommendation" mode to see all functions on its graph
-// used for revising classifiers after r1-automatic-everything
-const revise = () => 0;
 
 // runs => recHHF function factory, this is where algos are chosen for classifiers/divisions
 const decidedHHFFunctions = {
@@ -611,6 +607,7 @@ export const hydrateRecHHFsForClassifiers = async classifiers => {
   );
 };
 
+/* eslint-disable no-console */
 export const rehydrateRecHHF = async (
   divisions = allDivShortNames,
   classifiers = uspsaClassifiers,
@@ -631,3 +628,4 @@ export const rehydrateRecHHF = async (
 
   console.timeEnd("recHHFs");
 };
+/* eslint-enable no-console */

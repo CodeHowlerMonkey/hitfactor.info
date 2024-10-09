@@ -9,7 +9,6 @@ import {
 } from "../../../shared/utils/classification";
 import {
   divIdToShort,
-  divisionsForScoresAdapter,
   hfuDivisionCompatabilityMap,
   hfuDivisionsShortNamesThatNeedMinorHF,
   mapDivisions,
@@ -34,43 +33,6 @@ const memberNumberFromMemberData = memberData => {
   }
 
   return "BAD DATA";
-};
-
-const scoresAgeAggr = async (memberNumber, division, maxScores) => {
-  await Scores.aggregate([
-    {
-      $match: {
-        memberNumber,
-        division: { $in: divisionsForScoresAdapter(division) },
-        bad: { $ne: true },
-      },
-    },
-    {
-      $project: {
-        sd: true,
-        _id: false,
-      },
-    },
-    { $sort: { sd: -1 } },
-    { $limit: maxScores },
-    {
-      $addFields: {
-        diff: {
-          $dateDiff: {
-            startDate: "$$NOW",
-            endDate: "$sd",
-            unit: "day",
-          },
-        },
-      },
-    },
-    {
-      $group: {
-        _id: null,
-        averageTime: { $avg: "$diff" },
-      },
-    },
-  ]);
 };
 
 // TODO: write up the schema once it's stable
@@ -606,43 +568,3 @@ export const reclassificationForProgressMode = async (mode, memberNumber) => {
 
   return null;
 };
-
-const expiredShootersAggregate = [
-  /*
-  {
-    $match: {
-      division: "co",
-      class: { $ne: "U" },
-    },
-  },*/
-  {
-    $group: {
-      _id: "$memberNumber",
-      expires: {
-        $first: "$data.expiration_date",
-      },
-      dateDiff: {
-        $first: {
-          $dateDiff: {
-            startDate: "$$NOW",
-            endDate: {
-              $dateFromString: {
-                dateString: "$data.expiration_date",
-              },
-            },
-            unit: "day",
-          },
-        },
-      },
-    },
-  },
-  // expired in last year
-  {
-    $match: {
-      dateDiff: { $gte: -730, $lt: -365 },
-    },
-  },
-  {
-    $count: "count",
-  },
-];
