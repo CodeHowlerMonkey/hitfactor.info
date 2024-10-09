@@ -30,13 +30,15 @@ export const addPlaceAndPercentileAggregation = (
   placeByField,
   filtersAggregation,
   paginationAggregation,
+  hackMode: "normal" | "tooManyDocs" = "normal",
 ) => [
   {
     $facet: {
       docs: [
         { $sort: { [placeByField]: -1 } },
-        ...filtersAggregation,
-        ...paginationAggregation,
+        ...(hackMode === "tooManyDocs"
+          ? [...filtersAggregation, ...paginationAggregation]
+          : []),
       ],
       meta: [{ $count: "total" }],
       metaWithFilters: [...filtersAggregation, { $count: "total" }],
@@ -58,6 +60,9 @@ export const addPlaceAndPercentileAggregation = (
       percentile: percentAggregationOp("$place", "$total", 2),
     },
   },
+  ...(hackMode !== "tooManyDocs"
+    ? [...filtersAggregation, ...paginationAggregation]
+    : []),
 ];
 
 export const paginate = page => [

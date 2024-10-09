@@ -144,6 +144,7 @@ const _runsAggregation = async ({
         ...(!filterClubString ? [] : [{ $match: { clubid: filterClubString } }]),
       ],
       multiSortAndPaginate({ sort, order, page }),
+      division.startsWith("scsa_") ? "tooManyDocs" : "normal",
     ),
   ]);
 
