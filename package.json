@@ -1,5 +1,5 @@
 {
-  "name": "hitfactor",
+  "name": "hitfactorinfo",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -7,26 +7,33 @@
     "node": "20.11.x"
   },
   "scripts": {
-    "========================= Development Scripts ====================": "",
+    "========================= Dev Scripts ====================": "",
     "start": "concurrently -c \"auto\" --names \"API,WEB\" \"npm run start-api\" \"npm run start-web\"",
-    "local": "docker-compose up -d && concurrently -c \"auto\" --names \"API,WEB\" \"npm run start-api-local\" \"npm run start-web\"",
-    "start-api-local": "cd api && npm run local",
-    "start-api": "cd api && npm start",
-    "start-web": "cd web && npm start",
     "test": "tsx --test",
+
     "====================== Production / Build Scripts ================": "",
     "prod": "cd api && npm run prod",
     "postinstall": "(cd api && npm install); (cd web && npm install && npm run build);",
-    "========================== Worker Scripts ========================": "",
-    "uploadsWorker": "NODE_OPTIONS='--max-old-space-size=512' node scripts/uploadsWorker.js",
-    "uploadsWorkerLocal": "MONGO_URL=mongodb://localhost:27017 NODE_OPTIONS='--max-old-space-size=512' node scripts/uploadsWorker.js",
-    "========================= USPSA Import Scripts ============================": "",
-    "import": "node scripts/import.js",
+
+    "========================== Upload Scripts (Render.com Worker/CRON) ========================": "",
+    "uploadMatches": "NODE_OPTIONS='--max-old-space-size=512' node --import=tsx scripts/upload/matchesLoop.ts",
+    "uploadScores": "NODE_OPTIONS='--max-old-space-size=512' node --import=tsx scripts/upload/scoresLoop.ts",
+    "uploadMeta": "NODE_OPTIONS='--max-old-space-size=512' node --import=tsx scripts/upload/statsMetaLoop.ts",
     "members": "node scripts/activeMembers.js",
-    "========================= Database Scripts ============================": "",
+
+    "========================= DB Admin Scripts ============================": "",
+    "dump": "mongodump $MONGO_URL",
+
+    "===================== Internal (Don't Run Directly) ======================": "",
+    "start-api": "cd api && npm start",
+    "start-web": "cd web && npm start",
+
+    "========================= Legacy / Broken Scripts ============================": "",
+    "start-api-local": "cd api && npm run local",
+    "local": "docker-compose up -d && concurrently -c \"auto\" --names \"API,WEB\" \"npm run start-api-local\" \"npm run start-web\"",
+    "import": "node scripts/import.js",
     "hydrate-local": "LOCAL_DEV=1 node scripts/hydrateMongo.js",
-    "hydrate": "node scripts/hydrateMongo.js",
-    "dump": "mongodump $MONGO_URL"
+    "hydrate": "node scripts/hydrateMongo.js"
   },
   "devDependencies": {
     "@tanstack/eslint-plugin-query": "^5.51.15",
