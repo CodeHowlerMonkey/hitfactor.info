@@ -6,6 +6,7 @@ import { Readable } from "stream";
 
 import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 import uniqBy from "lodash.uniqby";
+import { ObjectId } from "mongoose";
 
 import features from "../../../shared/features";
 import { UTCDate } from "../../../shared/utils/date";
@@ -32,11 +33,7 @@ import { AfterUploadShooters, type AfterUploadShooter } from "../db/afterUploadS
 import { rehydrateClassifiers } from "../db/classifiers";
 import { DQs } from "../db/dq";
 import { connect } from "../db/index";
-import {
-  Matches,
-  fetchAndSaveMoreMatchesById,
-  fetchAndSaveMoreMatchesByUpdatedDate,
-} from "../db/matches";
+import { Matches } from "../db/matches";
 import { hydrateRecHHFsForClassifiers } from "../db/recHHF";
 import { Scores } from "../db/scores";
 import { reclassifyShooters } from "../db/shooters";
@@ -103,8 +100,6 @@ export const fetchPS = async (uuid, { skipResults = false } = {}) => {
 
   return {};
 };
-
-const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 const uniqByTruthyMap = (arr, cb) => uniqBy(arr, cb).filter(cb).map(cb);
 export const arrayCombination = (arr1, arr2, cb) => {
@@ -658,6 +653,14 @@ export const processUploadResults = async ({ uploadResults }) => {
   }
 };
 
+export const matchesForUploadFilter = (extraFilter = {}) => ({
+  ...extraFilter,
+  $expr: { $gt: ["$updated", "$uploaded"] },
+});
+
+export const findAFewMatches = async (extraFilter, batchSize) =>
+  Matches.find(matchesForUploadFilter(extraFilter)).limit(batchSize).sort({ updated: 1 });
+
 export const uploadMatches = async ({ matches }) =>
   processUploadResults({
     uploadResults: await uploadResultsForMatches(matches),
@@ -668,26 +671,6 @@ export const uploadMatchesFromUUIDs = async uuids =>
   processUploadResults({
     uploadResults: await uploadResultsForMatchUUIDs(uuids),
   });
-
-const MINUTES = 60 * 1000;
-const after = (ms, what) => setTimeout(what, ms);
-const runEvery = async (ms, what) => {
-  // eslint-disable-next-line no-constant-condition
-  while (true) {
-    const start = Date.now();
-
-    try {
-      await what();
-    } catch (error) {
-      console.error("An error occurred:", error);
-    }
-
-    const elapsed = Date.now() - start;
-    const waitTime = Math.max(ms - elapsed, 0);
-
-    await delay(waitTime);
-  }
-};
 
 export const uploadsStats = async () => {
   await connect();
@@ -762,90 +745,60 @@ export const dqNames = async () => {
   console.log(JSON.stringify(dqs, null, 2));
 };
 
-const matchesForUploadFilter = (extraFilter = {}) => ({
-  ...extraFilter,
-  $expr: { $gt: ["$updated", "$uploaded"] },
-});
-const findAFewMatches = async (extraFilter, batchSize) =>
-  Matches.find(matchesForUploadFilter(extraFilter)).limit(batchSize).sort({ updated: 1 });
+const metaClassifiersLoop = async (batchSize = 8) => {
+  const totalCount = await AfterUploadClassifiers.countDocuments({});
+  console.log(`${totalCount} classifiers to update`);
 
-export const matchesLoop = async () => {
-  await connect();
-  const numberOfNewMatches = await fetchAndSaveMoreMatchesById();
-  const numberOfUpdatedMatches = await fetchAndSaveMoreMatchesByUpdatedDate();
-  console.log(`fetched ${numberOfNewMatches} new matches`);
-  console.log(`fetched ${numberOfUpdatedMatches} updated matches`);
+  let updated = 0;
+  let classifiers = [] as (AfterUploadClassifier & { _id: ObjectId })[];
+  do {
+    classifiers = await AfterUploadClassifiers.find({}).limit(batchSize).lean();
+    if (!classifiers.length) {
+      break;
+    }
+
+    await hydrateRecHHFsForClassifiers(classifiers);
+    await rehydrateClassifiers(classifiers);
+    await AfterUploadClassifiers.deleteMany({
+      _id: { $in: classifiers.map(c => c._id) },
+    });
+
+    updated += classifiers.length;
+    process.stdout.write(`\r${updated}/${totalCount}`);
+  } while (classifiers.length);
+  if (updated) {
+    process.stdout.write(`\n`);
+  }
 };
 
-export const scoresLoop = async ({ batchSize = 4 } = {}) => {
-  console.time("count matches");
-  const onlyUSPSAorSCSA = { templateName: { $in: ["USPSA", "Steel Challenge"] } };
-  const count = await Matches.countDocuments(matchesForUploadFilter(onlyUSPSAorSCSA));
-  console.log(`${count} uploads in the queue (USPSA, SCSA only)`);
-  console.timeEnd("count matches");
+const metaShootersLoop = async (batchSize = 8) => {
+  const totalCount = await AfterUploadShooters.countDocuments({});
+  console.log(`${totalCount} shooters to update`);
 
-  let numberOfUpdates = 0;
-  let fewMatches = [] as Awaited<ReturnType<typeof findAFewMatches>>;
-  let totalMatchesUploaded = 0;
+  let updated = 0;
+  let shooters = [] as (AfterUploadShooter & { _id: ObjectId })[];
   do {
-    console.time("findMatches");
-    fewMatches = await findAFewMatches(onlyUSPSAorSCSA, batchSize);
-    totalMatchesUploaded += fewMatches.length;
-    console.timeEnd("findMatches");
-    if (!fewMatches.length) {
-      return numberOfUpdates;
+    shooters = await AfterUploadShooters.find({}).limit(batchSize).lean();
+    if (!shooters.length) {
+      break;
     }
-    console.time("uploadMatches");
-    const uploadResults = await uploadMatches({ matches: fewMatches });
-    numberOfUpdates += uploadResults.classifiers?.length || 0;
-    console.timeEnd("uploadMatches");
+    await reclassifyShooters(shooters);
+    await AfterUploadShooters.deleteMany({
+      _id: { $in: shooters.map(s => s._id) },
+    });
 
-    const matchesWithScoresUUIDs = uploadResults?.matches || [];
-
-    const uuidsWithStatus = Object.fromEntries(
-      fewMatches.map(m => [
-        m.uuid,
-        matchesWithScoresUUIDs.includes(m.uuid) ? "✅" : "❌",
-      ]),
-    );
-    console.log(uuidsWithStatus);
-
-    // console.log(JSON.stringify(uploadResults, null, 2));
-    console.log(
-      `${uploadResults?.classifiers?.length || 0} classifiers; ${
-        uploadResults?.shooters?.length || 0
-      } shooters`,
-    );
-
-    console.time("writeMatches");
-    await Matches.bulkWrite(
-      fewMatches.map(m => ({
-        updateOne: {
-          filter: { _id: m._id },
-          update: {
-            $set: {
-              ...m.toObject(),
-              uploaded: new Date(),
-              hasScores: matchesWithScoresUUIDs.includes(m.uuid),
-            },
-          },
-        },
-      })),
-    );
-    console.timeEnd("writeMatches");
-    console.log(`done ${totalMatchesUploaded}/${count}`);
-  } while (fewMatches.length);
-  return numberOfUpdates;
+    updated += shooters.length;
+    process.stdout.write(`\r${updated}/${totalCount}`);
+  } while (shooters.length);
+  if (updated) {
+    process.stdout.write(`\n`);
+  }
 };
 
 export const metaLoop = async (curTry = 1, maxTries = 3) => {
   try {
-    const classifiers = await AfterUploadClassifiers.find({}).limit(0).lean();
-    const shooters = await AfterUploadShooters.find({}).limit(0).lean();
-
-    await hydrateRecHHFsForClassifiers(classifiers);
-    await reclassifyShooters(shooters);
-    await rehydrateClassifiers(classifiers);
+    await metaClassifiersLoop();
+    await metaShootersLoop();
     await hydrateStats();
   } catch (err) {
     console.error(err);
@@ -854,49 +807,3 @@ export const metaLoop = async (curTry = 1, maxTries = 3) => {
     }
   }
 };
-
-const uploadsWorkerMain = async () => {
-  await connect();
-
-  runEvery(30 * MINUTES, async () => {
-    console.log("starting to fetch");
-    console.time("fetchLoop");
-    try {
-      const utcHours = new Date().getUTCHours();
-      if (utcHours < 7 || utcHours > 15) {
-        await matchesLoop();
-      } else {
-        console.log("sleeping");
-      }
-    } catch (e) {
-      console.error("fetchLoop error:");
-      console.error(e);
-      await connect();
-    } finally {
-      console.timeEnd("fetchLoop");
-    }
-  });
-
-  after(0.05 * MINUTES, () => {
-    runEvery(30 * MINUTES, async () => {
-      console.log("starting upload");
-      console.time("scoresLoop");
-
-      try {
-        const uploadUpdates = await scoresLoop();
-        if (uploadUpdates > 0) {
-          // recalc stats after uploading all matches in the queue
-        }
-      } catch (e) {
-        console.error("scoresLoop error:");
-        console.error(e);
-
-        await connect();
-      } finally {
-        console.timeEnd("scoresLoop");
-      }
-    });
-  });
-};
-
-export default uploadsWorkerMain;
