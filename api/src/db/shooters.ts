@@ -1,24 +1,24 @@
+/* eslint-disable no-console */
+import uniqBy from "lodash.uniqby";
 import mongoose, { Schema } from "mongoose";
 
-import { loadJSON, processImportAsyncSeq } from "../utils.js";
-import {
-  divIdToShort,
-  divisionsForScoresAdapter,
-  hfuDivisionCompatabilityMap,
-  hfuDivisionsShortNamesThatNeedMinorHF,
-  mapDivisions,
-  uspsaDivShortNames,
-} from "../dataUtil/divisions.js";
 import {
   calculateUSPSAClassification,
   classForPercent,
   rankForClass,
-} from "../../../shared/utils/classification.js";
+} from "../../../shared/utils/classification";
+import {
+  divIdToShort,
+  hfuDivisionCompatabilityMap,
+  hfuDivisionsShortNamesThatNeedMinorHF,
+  mapDivisions,
+  uspsaDivShortNames,
+} from "../dataUtil/divisions";
+import { psClassUpdatesByMemberNumber } from "../dataUtil/uspsa";
+import { loadJSON, processImportAsyncSeq } from "../utils";
 
-import { Score } from "./scores.js";
-import uniqBy from "lodash.uniqby";
-import { getField, percentAggregationOp } from "./utils.js";
-import { psClassUpdatesByMemberNumber } from "../dataUtil/uspsa.js";
+import { Scores } from "./scores";
+import { getField, percentAggregationOp } from "./utils";
 
 const memberIdToNumberMap = loadJSON("../../data/meta/memberIdToNumber.json");
 const memberNumberFromMemberData = memberData => {
@@ -33,43 +33,6 @@ const memberNumberFromMemberData = memberData => {
   }
 
   return "BAD DATA";
-};
-
-const scoresAgeAggr = async (memberNumber, division, maxScores) => {
-  await Score.aggregate([
-    {
-      $match: {
-        memberNumber,
-        division: { $in: divisionsForScoresAdapter(division) },
-        bad: { $ne: true },
-      },
-    },
-    {
-      $project: {
-        sd: true,
-        _id: false,
-      },
-    },
-    { $sort: { sd: -1 } },
-    { $limit: maxScores },
-    {
-      $addFields: {
-        diff: {
-          $dateDiff: {
-            startDate: "$$NOW",
-            endDate: "$sd",
-            unit: "day",
-          },
-        },
-      },
-    },
-    {
-      $group: {
-        _id: null,
-        averageTime: { $avg: "$diff" },
-      },
-    },
-  ]);
 };
 
 // TODO: write up the schema once it's stable
@@ -101,7 +64,7 @@ ShooterSchema.index({
   reclassificationsCurPercentCurrent: 1,
 });
 
-export const Shooter = mongoose.model("Shooter", ShooterSchema);
+export const Shooters = mongoose.model("Shooters", ShooterSchema);
 
 export const reduceByDiv = (classifications, valueFn) =>
   classifications.reduce(
@@ -109,7 +72,7 @@ export const reduceByDiv = (classifications, valueFn) =>
       ...acc,
       [divIdToShort[c.division_id]]: valueFn(c),
     }),
-    {}
+    {},
   );
 
 /**
@@ -117,7 +80,7 @@ export const reduceByDiv = (classifications, valueFn) =>
  * Used for reclassification (HQ alg makes divisions cross-dependent for C flag)
  */
 export const allDivisionsScores = async memberNumbers => {
-  const query = Score.find({
+  const query = Scores.find({
     memberNumber: { $in: memberNumbers },
     bad: { $ne: true },
   })
@@ -132,7 +95,7 @@ export const allDivisionsScores = async memberNumbers => {
 export const allDivisionsScoresByMemberNumber = async memberNumbers => {
   const scores = await allDivisionsScores(memberNumbers);
   return scores.reduce((acc, cur) => {
-    let curMemberScores = acc[cur.memberNumber] ?? [];
+    const curMemberScores = acc[cur.memberNumber] ?? [];
     curMemberScores.push(cur);
     acc[cur.memberNumber] = curMemberScores;
     return acc;
@@ -183,7 +146,7 @@ const _addHFUDivisions = () => [
 ];
 
 export const scoresForRecommendedClassification = memberNumbers =>
-  Score.aggregate([
+  Scores.aggregate([
     {
       $match: {
         bad: { $ne: true },
@@ -318,7 +281,7 @@ export const scoresForRecommendedClassification = memberNumbers =>
 export const scoresForRecommendedClassificationByMemberNumber = async memberNumbers => {
   const scores = await scoresForRecommendedClassification(memberNumbers);
   return scores.reduce((acc, cur) => {
-    let curMemberScores = acc[cur.memberNumber] ?? [];
+    const curMemberScores = acc[cur.memberNumber] ?? [];
     curMemberScores.push(cur);
     acc[cur.memberNumber] = curMemberScores;
     return acc;
@@ -338,9 +301,10 @@ export const shooterObjectsFromClassificationFile = async c => {
     return [];
   }
   const memberNumber = memberNumberFromMemberData(c.member_data);
-  const memberScores = await scoresForRecommendedClassification([memberNumber]);
+  const recMemberScores = await scoresForRecommendedClassification([memberNumber]);
+  const curMemberScores = await allDivisionsScores([memberNumber]);
 
-  return shooterObjectsForMemberNumber(c, memberScores);
+  return shooterObjectsForMemberNumber(c, recMemberScores, curMemberScores);
 };
 
 // upload from uspsa api OR hydration from uspsa json files
@@ -360,10 +324,10 @@ const shooterObjectsForMemberNumber = (c, recMemberScores, curMemberScores) => {
       const recalcDivRec = reclassificationBreakdown(recalcByRecPercent, division);
 
       const reclassificationsCurPercentCurrent = Number(
-        (recalcDivCur?.current ?? 0).toFixed(4)
+        (recalcDivCur?.current ?? 0).toFixed(4),
       );
       const reclassificationsRecPercentCurrent = Number(
-        (recalcDivRec?.current ?? 0).toFixed(4)
+        (recalcDivRec?.current ?? 0).toFixed(4),
       );
 
       const hqClass = hqClasses[division];
@@ -400,13 +364,13 @@ const shooterObjectsForMemberNumber = (c, recMemberScores, curMemberScores) => {
         division,
         memberNumberDivision: [memberNumber, division].join(":"),
       };
-    })
+    }),
   );
 };
 
 // hydration from uspsa json files
-const processBatchHydrateShooters = async batch => {
-  batch = batch.filter(c => !!c?.member_data);
+const processBatchHydrateShooters = async batchRaw => {
+  const batch = batchRaw.filter(c => !!c?.member_data);
   const memberNumbers = batch.map(c => memberNumberFromMemberData(c.member_data));
   const [recScoresByMemberNumber, curScoresByMemberNumber] = await Promise.all([
     scoresForRecommendedClassificationByMemberNumber(memberNumbers),
@@ -419,12 +383,12 @@ const processBatchHydrateShooters = async batch => {
       return shooterObjectsForMemberNumber(
         c,
         recScoresByMemberNumber[memberNumber],
-        curScoresByMemberNumber[memberNumber]
+        curScoresByMemberNumber[memberNumber],
       );
     })
     .flat();
 
-  await Shooter.bulkWrite(
+  await Shooters.bulkWrite(
     shooterObjects.map(s => ({
       updateOne: {
         filter: {
@@ -434,10 +398,39 @@ const processBatchHydrateShooters = async batch => {
         update: { $set: s },
         upsert: true,
       },
-    }))
+    })),
   );
   process.stdout.write(".");
 };
+
+interface USPSAAPIClassificationBlob {
+  id: string; // number in string
+  division_id: string; // number in string
+  division: string;
+  class: "X" | "U" | "D" | "C" | "B" | "A" | "M" | "GM";
+  current_percent: string; // number in string
+  high_percent: string; // number in string
+}
+
+interface USPSAAPIClassificationResponse {
+  value: {
+    status: number;
+    member_data: {
+      member_id: string; // number in string
+      member_number: string;
+      first_name: string;
+      middle_name: string;
+      last_name: string;
+      suffix: string;
+      salutation: string;
+      joined_date: string; // date in format: "1986-12-15 00:00:00";
+      expiration_date: string; // date in format : "2024-12-02 00:00:00";
+      life_member: string; // number 1 or 0 in string
+      privacy: string; // number 1 or 0 in string
+    };
+    classifications: USPSAAPIClassificationBlob[];
+  };
+}
 
 // hydration from uspsa json files
 const batchHydrateShooters = async letter => {
@@ -445,7 +438,7 @@ const batchHydrateShooters = async letter => {
   process.stdout.write(letter);
   process.stdout.write(": ");
 
-  let curBatch = [];
+  let curBatch = [] as USPSAAPIClassificationResponse[];
 
   await processImportAsyncSeq(
     "../../data/imported",
@@ -456,7 +449,7 @@ const batchHydrateShooters = async letter => {
         await processBatchHydrateShooters(curBatch);
         curBatch = [];
       }
-    }
+    },
   );
 
   // final batch that isn't big enough to be processed before
@@ -490,11 +483,12 @@ export const reclassifyShooters = async shooters => {
       ]);
 
     const updates = shooters
-      .filter(({ memberNumber, division, name }) => {
-        // TODO: Implement Reclassify Shooters for SCSA
-        // https://github.com/CodeHowlerMonkey/hitfactor.info/issues/69
-        return memberNumber && uspsaDivShortNames.find(x => x === division);
-      })
+      .filter(
+        ({ memberNumber, division }) =>
+          // TODO: Implement Reclassify Shooters for SCSA
+          // https://github.com/CodeHowlerMonkey/hitfactor.info/issues/69
+          memberNumber && uspsaDivShortNames.find(x => x === division),
+      )
       .map(({ memberNumber, division, name }) => {
         if (!memberNumber) {
           return [];
@@ -503,24 +497,24 @@ export const reclassifyShooters = async shooters => {
         const curMemberScores = curScoresByMemberNumber[memberNumber];
         const recalcByCurPercent = calculateUSPSAClassification(
           curMemberScores,
-          "curPercent"
+          "curPercent",
         );
         const recalcByRecPercent = calculateUSPSAClassification(
           recMemberScores,
-          "recPercent"
+          "recPercent",
         );
 
         const recalcDivCur = reclassificationBreakdown(recalcByCurPercent, division);
         const recalcDivRec = reclassificationBreakdown(recalcByRecPercent, division);
 
         const reclassificationsCurPercentCurrent = Number(
-          (recalcDivCur?.current ?? 0).toFixed(4)
+          (recalcDivCur?.current ?? 0).toFixed(4),
         );
         const reclassificationsRecPercentCurrent = Number(
-          (recalcDivRec?.current ?? 0).toFixed(4)
+          (recalcDivRec?.current ?? 0).toFixed(4),
         );
 
-        const hqClass = psClassUpdates[memberNumber]?.[division] || "U";
+        const hqClass = psClassUpdates?.[memberNumber]?.[division] || "U";
 
         return [
           {
@@ -560,7 +554,7 @@ export const reclassifyShooters = async shooters => {
                     hqClass,
                     hqClassRank: rankForClass(hqClass),
                     class: hqClass,
-                    memberId: psClassUpdates[memberNumber]?.memberId,
+                    memberId: psClassUpdates?.[memberNumber]?.memberId,
 
                     age: recalcByRecPercent?.[division]?.age,
                     age1: recalcByRecPercent?.[division]?.age1,
@@ -581,7 +575,7 @@ export const reclassifyShooters = async shooters => {
         ];
       })
       .flat();
-    await Shooter.bulkWrite(updates.filter(Boolean));
+    await Shooters.bulkWrite(updates.filter(Boolean));
   } catch (error) {
     console.log("reclassifyShooters error:");
     console.log(error);
@@ -590,60 +584,16 @@ export const reclassifyShooters = async shooters => {
 
 export const reclassificationForProgressMode = async (mode, memberNumber) => {
   switch (mode) {
-    case "curPercent":
-      {
-        const scores = await allDivisionsScores([memberNumber]);
-        return calculateUSPSAClassification(scores, "curPercent");
-      }
-      break;
+    case "curPercent": {
+      const scores = await allDivisionsScores([memberNumber]);
+      return calculateUSPSAClassification(scores, "curPercent");
+    }
 
-    case "recPercent":
-      {
-        const scores = await scoresForRecommendedClassification([memberNumber]);
-        return calculateUSPSAClassification(scores, "recPercent");
-      }
-      break;
+    case "recPercent": {
+      const scores = await scoresForRecommendedClassification([memberNumber]);
+      return calculateUSPSAClassification(scores, "recPercent");
+    }
   }
 
   return null;
 };
-
-const expiredShootersAggregate = [
-  /*
-  {
-    $match: {
-      division: "co",
-      class: { $ne: "U" },
-    },
-  },*/
-  {
-    $group: {
-      _id: "$memberNumber",
-      expires: {
-        $first: "$data.expiration_date",
-      },
-      dateDiff: {
-        $first: {
-          $dateDiff: {
-            startDate: "$$NOW",
-            endDate: {
-              $dateFromString: {
-                dateString: "$data.expiration_date",
-              },
-            },
-            unit: "day",
-          },
-        },
-      },
-    },
-  },
-  // expired in last year
-  {
-    $match: {
-      dateDiff: { $gte: -730, $lt: -365 },
-    },
-  },
-  {
-    $count: "count",
-  },
-];

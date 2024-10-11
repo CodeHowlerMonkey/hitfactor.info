@@ -1,9 +1,9 @@
-import { Percent } from "../../../dataUtil/numbers.js";
-import { uspsaDivisionsPopularity } from "../../../db/scores.js";
+import { Percent } from "../../../dataUtil/numbers";
+import { uspsaDivisionsPopularity } from "../../../db/scores";
 
 const _divisionsPopularityCached = {};
-const statsRoutes = async (fastify, opts) => {
-  fastify.get("/divisions", async (req, res) => {
+const statsRoutes = async fastify => {
+  fastify.get("/divisions", async req => {
     const year = Number(req.query.year) || 0;
     let data = _divisionsPopularityCached[year];
     if (!data) {
@@ -11,12 +11,9 @@ const statsRoutes = async (fastify, opts) => {
       _divisionsPopularityCached[year] = data;
     }
 
-    const total = data.reduce((acc, cur) => {
-      acc += cur.scores;
-      return acc;
-    }, 0);
+    const total = data.reduce((acc, cur) => acc + cur.scores, 0);
 
-    const dataWithPercent = data.map((cur) => {
+    const dataWithPercent = data.map(cur => {
       cur.percent = Percent(cur.scores, total);
       return cur;
     });

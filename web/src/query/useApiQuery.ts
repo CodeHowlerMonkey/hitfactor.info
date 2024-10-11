@@ -32,7 +32,7 @@ export const useApiQuery = (endpoint: string, options: UseQueryOptions) => {
       return response.json();
     },
     retry: 3,
-    retryDelay: (attemptIndex) => Math.min(500 * 2 ** attemptIndex, 10_000),
+    retryDelay: attemptIndex => Math.min(500 * 2 ** attemptIndex, 10_000),
     refetchOnWindowFocus: false,
   });
 

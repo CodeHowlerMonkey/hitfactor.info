@@ -1,7 +1,9 @@
-import { connect } from "../api/src/db/index.js";
-import { Score } from "../api/src/db/scores.js";
+/* eslint-disable no-console */
 
-const query = (amount) => [
+import { connect } from "../api/src/db/index";
+import { Scores } from "../api/src/db/scores";
+
+const query = amount => [
   {
     $match: {
       $expr: {
@@ -13,19 +15,15 @@ const query = (amount) => [
   { $count: "total" },
 ];
 
-const totalUniqueScoresInLastXMonths = async (months) => {
-  const { total } = await Score.aggregate(query(months));
-};
-
 const activity = async () => {
   await connect();
 
-  const month = await Score.aggregate(query(1));
-  const two = await Score.aggregate(query(2));
-  const six = await Score.aggregate(query(6));
-  const year = await Score.aggregate(query(12));
-  const twoYears = await Score.aggregate(query(24));
-  const threeYears = await Score.aggregate(query(36));
+  const month = await Scores.aggregate(query(1));
+  const two = await Scores.aggregate(query(2));
+  const six = await Scores.aggregate(query(6));
+  const year = await Scores.aggregate(query(12));
+  const twoYears = await Scores.aggregate(query(24));
+  const threeYears = await Scores.aggregate(query(36));
 
   console.log(
     JSON.stringify(
@@ -38,8 +36,8 @@ const activity = async () => {
         threeYears,
       },
       null,
-      2
-    )
+      2,
+    ),
   );
 };
 

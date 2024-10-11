@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { DivisionNavigation } from "../../components";
 import ShootersTable from "../ShootersPage/components/ShootersTable";
 
-const classFilterItems = (mode) =>
+const classFilterItems = mode =>
   [
     mode === "paper" ? null : { name: "X", value: "X" },
     mode === "paper" ? null : { name: "D", value: "D" },
@@ -21,7 +21,7 @@ const ClassFilterSelect = ({ mode, value, setValue }) => (
     <SelectButton
       className="less-compact"
       value={value}
-      onChange={(e) => setValue(e.value)}
+      onChange={e => setValue(e.value)}
       optionLabel="name"
       options={classFilterItems(mode)}
     />
@@ -39,7 +39,7 @@ const ModeSelect = ({ value, setValue }) => (
       className="compact"
       allowEmpty={false}
       value={value}
-      onChange={(e) => setValue(e.value)}
+      onChange={e => setValue(e.value)}
       optionLabel="name"
       options={modeItems}
     />
@@ -57,7 +57,7 @@ const VersusSelect = ({ value, setValue }) => (
       className="compact"
       allowEmpty={false}
       value={value}
-      onChange={(e) => setValue(e.value)}
+      onChange={e => setValue(e.value)}
       optionLabel="name"
       options={versusItems}
     />
@@ -89,7 +89,7 @@ const Inconsistencies = () => {
       {division && (
         <div>
           <ShootersTable
-            onShooterSelection={(memberNumber) =>
+            onShooterSelection={memberNumber =>
               navigate(`/shooters/${division}/${memberNumber}`)
             }
             division={division}

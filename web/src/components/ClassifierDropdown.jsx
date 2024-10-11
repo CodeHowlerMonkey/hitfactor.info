@@ -4,7 +4,7 @@ import classifiers from "../../../data/classifiers/classifiers.json";
 import { classifierCodeSort } from "../../../shared/utils/sort";
 
 const classifierOptions = classifiers.classifiers
-  .map((c) => ({ ...c, optionLabel: `${c.classifier}  ${c.name}` }))
+  .map(c => ({ ...c, optionLabel: `${c.classifier}  ${c.name}` }))
   .sort((a, b) => classifierCodeSort(a, b, "classifier", 1));
 
 /**
@@ -12,7 +12,7 @@ const classifierOptions = classifiers.classifiers
  * classifier code as a string (e.g. '99-02') for both value and onChange
  */
 const ClassifierDropdown = ({ value, onChange }) => {
-  const itemTemplate = (c) =>
+  const itemTemplate = c =>
     c ? (
       <div style={{ maxWidth: "12em" }}>{c.optionLabel}</div>
     ) : (
@@ -23,8 +23,8 @@ const ClassifierDropdown = ({ value, onChange }) => {
     <Dropdown
       filter
       placeholder="Classifier"
-      value={classifierOptions.find((c) => c.classifier === value)}
-      onChange={(e) => onChange?.(e.value.classifier)}
+      value={classifierOptions.find(c => c.classifier === value)}
+      onChange={e => onChange?.(e.value.classifier)}
       itemTemplate={itemTemplate}
       valueTemplate={itemTemplate}
       options={classifierOptions}

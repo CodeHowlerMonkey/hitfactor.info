@@ -4,10 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "local": "MONGO_URL_LOCAL=mongodb://localhost:27017 LOCAL_DEV=1 nodemon --exec npm run fastify-dev --watch src/ --watch ../data/ --watch ../shared/",
-    "start": "nodemon --exec npm run fastify-dev --watch src/ --watch ../data/ --watch ../shared/",
-    "fastify-dev": "NODE_OPTIONS='--inspect --max-old-space-size=512' NODE_ENV=development fastify start -T 120000 -l info -p 3333 src/app.js",
-    "prod": "NODE_OPTIONS='--max-old-space-size=512' NODE_ENV=production fastify start -T 120000 -l info -a 0.0.0.0 src/app.js"
+    "local": "MONGO_URL_LOCAL=mongodb://localhost:27017 LOCAL_DEV=1 npm start",
+    "start": "NODE_OPTIONS='--inspect --max-old-space-size=512' NODE_ENV=development node --watch --import=tsx ./server.ts",
+    "prod": "NODE_OPTIONS='--max-old-space-size=512' NODE_ENV=production node --import=tsx ./server.ts"
   },
   "exports": {
     "./data": "./../data"
@@ -23,8 +22,5 @@
     "lodash.uniqby": "^4.7.0",
     "mongoose": "^8.3.0",
     "uuid": "^10.0.0"
-  },
-  "devDependencies": {
-    "nodemon": "^3.0.3"
   }
 }

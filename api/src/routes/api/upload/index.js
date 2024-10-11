@@ -1,26 +1,31 @@
-import { v4 as randomUUID } from "uuid";
+import algoliasearch from "algoliasearch";
 import uniqBy from "lodash.uniqby";
-import { RecHHF } from "../../../db/recHHF.js";
+import { v4 as randomUUID } from "uuid";
+
+import { calculateUSPSAClassification } from "../../../../../shared/utils/classification";
+import { Matches } from "../../../db/matches";
+import { RecHHFs } from "../../../db/recHHF";
 import {
   scoresForRecommendedClassification,
   allDivisionsScores,
-} from "../../../db/shooters.js";
-import { calculateUSPSAClassification } from "../../../../../shared/utils/classification.js";
-import { uploadMatchesFromUUIDs } from "../../../worker/uploads.js";
-import { Matches } from "../../../db/matches.js";
-import algoliasearch from "algoliasearch";
+} from "../../../db/shooters";
+import {
+  uploadMatchesFromUUIDs,
+  uspsaOrHitFactorMatchInfo,
+} from "../../../worker/uploads";
 
-const searchMatches = async (q) => {
+const searchMatches = async q => {
   try {
     const client = algoliasearch(process.env.ALGOLIA_APP_ID, process.env.ALGOLIA_API_KEY);
     const index = client.initIndex("postmatches");
     const { hits } = await index.search(q, {
       hitsPerPage: 25,
-      filters: "templateName:USPSA OR templateName:'Hit Factor' OR templateName:'Steel Challenge'",
+      filters:
+        "templateName:USPSA OR templateName:'Hit Factor' OR templateName:'Steel Challenge'",
     });
 
     return hits
-      .map((h) => ({
+      .map(h => ({
         matchDate: new Date(h.match_date),
         updated: new Date(h.updated),
         created: new Date(h.created),
@@ -42,7 +47,7 @@ const searchMatches = async (q) => {
  *
  * Used for What If Recommended Classification calculation
  */
-const dedupeGrandbagging = (scores) =>
+const dedupeGrandbagging = scores =>
   Object.values(
     scores.reduce((acc, cur) => {
       cur.classifier = cur.classifier || randomUUID;
@@ -51,9 +56,9 @@ const dedupeGrandbagging = (scores) =>
       acc[key] = acc[key] || [];
       acc[key].push(cur);
       return acc;
-    }, {})
-  ).map((oneDayScores) => {
-    if (oneDayScores.length == 1) {
+    }, {}),
+  ).map(oneDayScores => {
+    if (oneDayScores.length === 1) {
       return oneDayScores[0];
     }
 
@@ -65,23 +70,25 @@ const dedupeGrandbagging = (scores) =>
     return { ...oneDayScores[0], hf: avgHf, recPercent: avgRecPercent };
   });
 
-const uploadRoutes = async (fastify, opts) => {
-  fastify.post("/whatif", async (req, res) => {
+const uploadRoutes = async fastify => {
+  fastify.post("/whatif", async req => {
     const { scores, division, memberNumber } = req.body;
     const now = new Date();
 
     const lookupHHFs = uniqBy(
       scores
-        .filter((s) => s.hf && s.classifier && s.source !== "Major Match")
-        .map((s) => {
+        .filter(s => s.hf && s.classifier && s.source !== "Major Match")
+        .map(s => {
           if (s.classifier) {
             s.classifierDivision = [s.classifier, division].join(":");
           }
           return s;
         }),
-      (s) => s.classifierDivision
-    ).map((s) => s.classifierDivision);
-    const recHHFs = await RecHHF.find({ classifierDivision: { $in: lookupHHFs } }).lean();
+      s => s.classifierDivision,
+    ).map(s => s.classifierDivision);
+    const recHHFs = await RecHHFs.find({
+      classifierDivision: { $in: lookupHHFs },
+    }).lean();
     const recHHFsMap = recHHFs.reduce((acc, cur) => {
       acc[cur.classifierDivision] = cur;
       return acc;
@@ -102,18 +109,21 @@ const uploadRoutes = async (fastify, opts) => {
         c.recPercent = (100 * c.hf) / recHHF.recHHF;
         c.curPercent = (100 * c.hf) / recHHF.curHHF;
       } else {
-        console.error("No RecHHF for " + c.classifierDivision);
+        console.error(`No RecHHF for ${c.classifierDivision}`);
       }
       return c;
     });
     const existingRecScores = await scoresForRecommendedClassification([memberNumber]);
     const existingScores = await allDivisionsScores([memberNumber]);
     const recScores = dedupeGrandbagging(hydratedScores);
-    const otherDivisionsScores = existingScores.filter((s) => s.division !== division);
-    const recPercent = calculateUSPSAClassification(recScores, "recPercent");
-    const curPercent = calculateUSPSAClassification(
+    const otherDivisionsScores = existingScores.filter(s => s.division !== division);
+    const recPercentClassification = calculateUSPSAClassification(
+      recScores,
+      "recPercent",
+    );
+    const curPercentClassification = calculateUSPSAClassification(
       [...hydratedScores, ...otherDivisionsScores],
-      "curPercent"
+      "curPercent",
     );
 
     return {
@@ -125,34 +135,34 @@ const uploadRoutes = async (fastify, opts) => {
       })),
       recHHFsMap,
       whatIf: {
-        recPercent: recPercent[division]?.percent,
-        curPercent: curPercent[division]?.percent,
+        recPercent: recPercentClassification[division]?.percent,
+        curPercent: curPercentClassification[division]?.percent,
       },
       scores: hydratedScores,
       existingRec: existingRecScores
-        .filter((s) => s.division === "co")
+        .filter(s => s.division === "co")
         .map(({ hf, classifier }) => ({ hf, classifier })),
       existing: existingScores
-        .filter((s) => s.division === "co")
+        .filter(s => s.division === "co")
         .map(({ hf, classifier }) => ({ hf, classifier })),
     };
   });
 
-  fastify.get("/test/:memberNumber", async (req, res) => {
+  fastify.get("/test/:memberNumber", async req => {
     const { memberNumber } = req.params;
     const scores = await scoresForRecommendedClassification([memberNumber]);
     return calculateUSPSAClassification(scores, "recPercent");
   });
-  fastify.get("/test2/:memberNumber", async (req, res) => {
+  fastify.get("/test2/:memberNumber", async req => {
     const { memberNumber } = req.params;
     const scores = await allDivisionsScores([memberNumber]);
     return calculateUSPSAClassification(scores, "curPercent");
   });
 
-  fastify.get("/searchMatches", async (req, res) => {
+  fastify.get("/searchMatches", async req => {
     const { q } = req.query;
     const algoliaMatches = await searchMatches(q);
-    const uuids = algoliaMatches.map((m) => m.uuid);
+    const uuids = algoliaMatches.map(m => m.uuid);
 
     const foundMatches = await Matches.find({ uuid: { $in: uuids } });
     const foundMatchesByUUID = foundMatches.reduce((acc, curFoundMatch) => {
@@ -160,7 +170,7 @@ const uploadRoutes = async (fastify, opts) => {
       return acc;
     }, {});
 
-    return algoliaMatches.map((m) => {
+    return algoliaMatches.map(m => {
       const foundMatch = foundMatchesByUUID[m?.uuid] || {};
       m.uploaded = foundMatch.uploaded;
       m.type = foundMatch.type;
@@ -179,14 +189,14 @@ const uploadRoutes = async (fastify, opts) => {
     });
   });
 
-  fastify.get("/info/:uuid", async (req) => {
+  fastify.get("/info/:uuid", async req => {
     const { uuid } = req.params;
-    return matchInfo(uuid, true);
+    return uspsaOrHitFactorMatchInfo(uuid, true);
   });
 
-  fastify.post("/", async (req, res) => {
+  fastify.post("/", async req => {
     const { uuids } = req.body;
-    return await uploadMatchesFromUUIDs(uuids);
+    return uploadMatchesFromUUIDs(uuids);
   });
 };
 

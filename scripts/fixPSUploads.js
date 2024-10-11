@@ -1,6 +1,7 @@
-import { connect } from "../api/src/db/index.js";
-import { Matches } from "../api/src/db/matches.js";
-import { _fetchPSS3ObjectJSON } from "../api/src/worker/uploads.js";
+/* eslint-disable no-console */
+
+import { connect } from "../api/src/db/index";
+import { Matches } from "../api/src/db/matches";
 
 /**
  * Marks all USPSA matches after June 1st 2024 as not-uploaded, so new
@@ -16,12 +17,12 @@ const go = async () => {
   console.log(matches.length);
 
   await Matches.bulkWrite(
-    matches.map((m) => ({
+    matches.map(m => ({
       updateOne: {
         filter: { _id: m._id },
         update: { $unset: { uploaded: 1 } },
       },
-    }))
+    })),
   );
   console.log("done");
 };

@@ -1,10 +1,7 @@
-import { connect } from "../api/src/db/index.js";
-import { allDivShortNames } from "../shared/constants/divisions.js";
-import { RecHHF, rehydrateRecHHF } from "../api/src/db/recHHF.js";
-import {
-  Classifier,
-  singleClassifierExtendedMetaDoc,
-} from "../api/src/db/classifiers.js";
+import { Classifiers, singleClassifierExtendedMetaDoc } from "../api/src/db/classifiers";
+import { connect } from "../api/src/db/index";
+import { RecHHFs, rehydrateRecHHF } from "../api/src/db/recHHF";
+import { allDivShortNames } from "../shared/constants/divisions";
 
 const hydrate24Series = async () => {
   await rehydrateRecHHF(allDivShortNames, [
@@ -17,10 +14,10 @@ const hydrate24Series = async () => {
   ]);
 
   const classifierDivisions = ["24-01", "24-02", "24-04", "24-06", "24-08", "24-09"]
-    .map((classifier) => allDivShortNames.map((div) => [classifier, div].join(":")))
+    .map(classifier => allDivShortNames.map(div => [classifier, div].join(":")))
     .flat();
 
-  const recHHFs = await RecHHF.find({ classifierDivision: { $in: classifierDivisions } })
+  const recHHFs = await RecHHFs.find({ classifierDivision: { $in: classifierDivisions } })
     .select({ recHHF: true, _id: false, classifierDivision: true })
     .lean();
   const recHHFsByClassifierDivision = recHHFs.reduce((acc, cur) => {
@@ -34,9 +31,9 @@ const hydrate24Series = async () => {
     const doc = await singleClassifierExtendedMetaDoc(
       division,
       classifier,
-      recHHFsByClassifierDivision[[classifier, division].join(":")]
+      recHHFsByClassifierDivision[[classifier, division].join(":")],
     );
-    await Classifier.bulkWrite([
+    await Classifiers.bulkWrite([
       {
         updateOne: {
           filter: { division: doc.division, classifier: doc.classifier },

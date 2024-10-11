@@ -3,8 +3,7 @@ export const csOpenClassifiers = [
     classifier: null,
     sd: "9/04/23",
     clubid: "US01",
-    club_name:
-      "2023 Vortex Optics Open & PCC Nationals Presented by Federal at US01",
+    club_name: "2023 Vortex Optics Open & PCC Nationals Presented by Federal at US01",
     percent: 100,
     hf: null,
     code: "Y",
@@ -41,8 +40,7 @@ export const csOpenClassifiers = [
     classifier: null,
     sd: "11/09/22",
     clubid: "AZR03",
-    club_name:
-      "2022 Springfield Armory Desert Classic Area 2 Championship at AZR03",
+    club_name: "2022 Springfield Armory Desert Classic Area 2 Championship at AZR03",
     percent: 100,
     hf: null,
     code: "Y",
@@ -79,8 +77,7 @@ export const csOpenClassifiers = [
     classifier: null,
     sd: "10/12/22",
     clubid: "US01",
-    club_name:
-      "2022 MasterPiece Arms Racegun Nationals Presented by Federal at US01",
+    club_name: "2022 MasterPiece Arms Racegun Nationals Presented by Federal at US01",
     percent: 98.7172,
     hf: null,
     code: "F",
@@ -154,8 +151,7 @@ export const csOpenClassifiers = [
     classifier: null,
     sd: "11/10/21",
     clubid: "AZR03",
-    club_name:
-      "2021 Springfield Armory Desert Classic Area 2 Championship at AZR03",
+    club_name: "2021 Springfield Armory Desert Classic Area 2 Championship at AZR03",
     percent: 100,
     hf: null,
     code: "Y",
@@ -271,8 +267,7 @@ export const csOpenClassifiers = [
     classifier: null,
     sd: "10/21/20",
     clubid: "US01",
-    club_name:
-      "2020 USPSA Race Gun Nationals Sponsored by Phoenix Trinity at US01",
+    club_name: "2020 USPSA Race Gun Nationals Sponsored by Phoenix Trinity at US01",
     percent: 100,
     hf: null,
     code: "E",
@@ -446,8 +441,7 @@ export const csOpenClassifiers = [
     classifier: null,
     sd: "11/06/19",
     clubid: "AZR02",
-    club_name:
-      "2019 Springfield Armory Desert Classic Area 2 Championship at AZR02",
+    club_name: "2019 Springfield Armory Desert Classic Area 2 Championship at AZR02",
     percent: 100,
     hf: null,
     code: "E",
@@ -1582,8 +1576,7 @@ export const csClassifiers = [
     classifier: null,
     sd: "6/21/23",
     clubid: "US01",
-    club_name:
-      "2023 SIG Sauer Carry Optics Nationals Presented by Federal at US01",
+    club_name: "2023 SIG Sauer Carry Optics Nationals Presented by Federal at US01",
     percent: 100,
     hf: null,
     code: "Y",
@@ -4363,8 +4356,7 @@ export default [
     classifier: null,
     sd: "6/21/23",
     clubid: "US01",
-    club_name:
-      "2023 SIG Sauer Carry Optics Nationals Presented by Federal at US01",
+    club_name: "2023 SIG Sauer Carry Optics Nationals Presented by Federal at US01",
     percent: 88.2048,
     hf: null,
     code: "B",
@@ -4830,8 +4822,7 @@ export default [
     classifier: null,
     sd: "9/07/22",
     clubid: "US01",
-    club_name:
-      "2022 SIG Sauer Carry Optics Nationals presented by Federal at US01",
+    club_name: "2022 SIG Sauer Carry Optics Nationals presented by Federal at US01",
     percent: 89.3591,
     hf: null,
     code: "E",
@@ -5686,8 +5677,7 @@ export const noCurPercentButExpected = [
     classifier: null,
     sd: "11/09/22",
     clubid: "AZR03",
-    club_name:
-      "2022 Springfield Armory Desert Classic Area 2 Championship at AZR03",
+    club_name: "2022 Springfield Armory Desert Classic Area 2 Championship at AZR03",
     percent: 87.4783,
     hf: null,
     code: "B",
@@ -5718,8 +5708,7 @@ export const noCurPercentButExpected = [
     classifier: null,
     sd: "10/12/22",
     clubid: "US01",
-    club_name:
-      "2022 MasterPiece Arms Racegun Nationals Presented by Federal at US01",
+    club_name: "2022 MasterPiece Arms Racegun Nationals Presented by Federal at US01",
     percent: 89.3695,
     hf: null,
     code: "B",
@@ -5892,8 +5881,7 @@ export const noCurPercentButExpected = [
     classifier: null,
     sd: "6/02/22",
     clubid: "ID03",
-    club_name:
-      "Berry's 2022 Area 1 Championship Presented by HawkTech Arms at ID03",
+    club_name: "Berry's 2022 Area 1 Championship Presented by HawkTech Arms at ID03",
     percent: 79.7588,
     hf: null,
     code: "B",
@@ -5988,8 +5976,7 @@ export const noCurPercentButExpected = [
     classifier: null,
     sd: "11/10/21",
     clubid: "AZR03",
-    club_name:
-      "2021 Springfield Armory Desert Classic Area 2 Championship at AZR03",
+    club_name: "2021 Springfield Armory Desert Classic Area 2 Championship at AZR03",
     percent: 79.4529,
     hf: null,
     code: "B",

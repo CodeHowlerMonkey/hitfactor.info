@@ -1,6 +1,10 @@
+/* eslint-disable no-console */
 import mongoose from "mongoose";
-import { divShortNames, mapDivisions } from "../dataUtil/divisions.js";
-import { Shooter } from "./shooters.js";
+
+import { ClassificationLetter } from "../../../data/types/USPSA";
+import { divShortNames, mapDivisions } from "../dataUtil/divisions";
+
+import { Shooters } from "./shooters";
 
 const StatsSchema = new mongoose.Schema({}, { strict: false });
 export const Stats = mongoose.model("Stats", StatsSchema);
@@ -51,9 +55,9 @@ const addCurClassField = () => ({
   },
 });
 
-export const statsByDivision = async (field) => {
+export const statsByDivision = async (field: string) => {
   const byDiv = mapDivisions(() => ({}));
-  const dbResults = await Shooter.aggregate([
+  const dbResults = await Shooters.aggregate([
     addCurClassField(),
     {
       $project: {
@@ -64,7 +68,7 @@ export const statsByDivision = async (field) => {
     },
     {
       $group: {
-        _id: ["$" + field, "$division"],
+        _id: [`$${field}`, "$division"],
         count: {
           $sum: 1,
         },
@@ -90,9 +94,9 @@ export const statsByDivision = async (field) => {
   return byDiv;
 };
 
-const classesRanked = ["X", "U", "D", "C", "B", "A", "M", "GM"];
-export const statsByAll = async (field) => {
-  const aggregateResult = await Shooter.aggregate([
+const classesRanked: ClassificationLetter[] = ["X", "U", "D", "C", "B", "A", "M", "GM"];
+export const statsByAll = async (field: string) => {
+  const aggregateResult = await Shooters.aggregate([
     addCurClassField(),
     {
       $project: {
@@ -104,7 +108,7 @@ export const statsByAll = async (field) => {
     {
       $addFields: {
         classRank: {
-          $indexOfArray: [classesRanked, "$" + field],
+          $indexOfArray: [classesRanked, `$${field}`],
         },
       },
     },
@@ -157,7 +161,7 @@ export const statsByAll = async (field) => {
   return aggregateResult[0];
 };
 
-const statsByDivAndAll = async (field) => {
+const statsByDivAndAll = async (field: string) => {
   const all = await statsByAll(field);
   const byDiv = await statsByDivision(field);
 
@@ -185,7 +189,7 @@ export const hydrateStats = async () => {
         byRecHHFPercent,
       },
     },
-    { upsert: true }
+    { upsert: true },
   );
   console.timeEnd("stats");
 };

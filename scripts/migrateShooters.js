@@ -1,15 +1,18 @@
+/* eslint-disable no-console */
+
 import uniqBy from "lodash.uniqby";
-import { connect } from "../api/src/db/index.js";
-import { reclassifyShooters, Shooter } from "../api/src/db/shooters.js";
+
+import { connect } from "../api/src/db/index";
+import { reclassifyShooters, Shooters } from "../api/src/db/shooters";
 import {
   arrayWithExplodedDivisions,
   hfuDivisionCompatabilityMap,
   hfuDivisionsShortNames,
   pairToDivision,
-} from "../shared/constants/divisions.js";
+} from "../shared/constants/divisions";
 
 const rehydrateAllShooters = async () => {
-  const allShooters = await Shooter.find({
+  const allShooters = await Shooters.find({
     memberNumberDivision: { $exists: true },
     division: { $nin: hfuDivisionsShortNames },
     reclassificationsRecPercentCurrent: { $gt: 0 },
@@ -23,7 +26,7 @@ const rehydrateAllShooters = async () => {
     return acc;
   }, {});
   const allMemberNumberDivision = allShooters.map(
-    ({ memberNumberDivision }) => memberNumberDivision
+    ({ memberNumberDivision }) => memberNumberDivision,
   );
 
   const nonUniqueShooters = arrayWithExplodedDivisions(
@@ -38,11 +41,11 @@ const rehydrateAllShooters = async () => {
         division,
         name: namesMap[memberNumber],
       };
-    }
-  ).filter((s) => hfuDivisionsShortNames.includes(s.division));
-  const shooters = uniqBy(nonUniqueShooters, (s) => s.memberNumberDivision);
+    },
+  ).filter(s => hfuDivisionsShortNames.includes(s.division));
+  const shooters = uniqBy(nonUniqueShooters, s => s.memberNumberDivision);
 
-  console.log("Total New Shooters to Process: " + shooters.length);
+  console.log(`Total New Shooters to Process: ${shooters.length}`);
 
   const batchSize = 64;
   for (let i = 0; i < shooters.length; i += batchSize) {

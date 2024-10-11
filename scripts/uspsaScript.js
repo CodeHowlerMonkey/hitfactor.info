@@ -1,3 +1,7 @@
+/* eslint-disable */
+
+/** Legacy import script from MVP days, meant to be run in the browser on uspsa.org */
+
 const USPSA_API_KEY = "INSERT_YOURS";
 
 (function (console) {
@@ -15,9 +19,9 @@ const USPSA_API_KEY = "INSERT_YOURS";
       data = JSON.stringify(data, undefined, 4);
     }
 
-    var blob = new Blob([data], { type: contentType }),
-      e = document.createEvent("MouseEvents"),
-      a = document.createElement("a");
+    const blob = new Blob([data], { type: contentType });
+    const e = document.createEvent("MouseEvents");
+    const a = document.createElement("a");
 
     a.download = filename;
     a.href = window.URL.createObjectURL(blob);
@@ -37,21 +41,18 @@ const USPSA_API_KEY = "INSERT_YOURS";
       false,
       false,
       0,
-      null
+      null,
     );
     a.dispatchEvent(e);
   };
 })(console);
 
 function delay(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 // TODO: 'classification' instead of 'classifiers' for only current percentages
-const fetchFullNumberPageApi = async (
-  memberNumberString,
-  what = "classifiers"
-) => {
+const fetchFullNumberPageApi = async (memberNumberString, what = "classifiers") => {
   const fetched = await fetch(
     `https://api.uspsa.org/api/app/${what}/${memberNumberString}`,
     {
@@ -74,7 +75,7 @@ const fetchFullNumberPageApi = async (
       method: "GET",
       mode: "cors",
       credentials: "include",
-    }
+    },
   );
 
   // default cloudflare rate limit is bracketed in 5 minute blocks, so wait 5 mins if you encountered 429
@@ -92,15 +93,15 @@ const fetchFullNumberPageApi = async (
 
 // TODO:
 // try A, TY, FY (later L, B)
-const fetchNumberPageApi = async (memberNumber) => {
-  for (let prefix of ["A", "TY", "FY"]) {
+const fetchNumberPageApi = async memberNumber => {
+  for (const prefix of ["A", "TY", "FY"]) {
     const curFullMemberNumber = prefix + memberNumber;
 
-    console.log("[api]trying " + curFullMemberNumber);
+    console.log(`[api]trying ${curFullMemberNumber}`);
     const curAttempt = await fetchFullNumberPageApi(curFullMemberNumber);
     if (curAttempt) {
-      console.log("[api]found json for " + curFullMemberNumber);
-      console.save(curAttempt, curFullMemberNumber + ".json", "text/json");
+      console.log(`[api]found json for ${curFullMemberNumber}`);
+      console.save(curAttempt, `${curFullMemberNumber}.json`, "text/json");
       break;
     }
   }

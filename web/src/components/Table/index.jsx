@@ -12,7 +12,7 @@ export const renderPercentDiff = (c, { field }) => {
   return `${value.toFixed(2)}%`;
 };
 
-export const letterRatingForPercent = (p) => {
+export const letterRatingForPercent = p => {
   if (p >= 98) {
     return "AAA";
   }
@@ -83,7 +83,7 @@ export const renderClubIdMatchLink = (c, { field }) => {
     const matchNameShort = (c.matchName || "")
       .split(" ")
       .slice(0, 4)
-      .map((s) => s?.[0])
+      .map(s => s?.[0])
       .filter(Boolean)
       .join("");
     return (

@@ -1,6 +1,8 @@
+/* eslint-disable no-console */
 import fs from "fs";
-import { connect } from "../api/src/db/index.js";
-import { Score } from "../api/src/db/scores.js";
+
+import { connect } from "../api/src/db/index";
+import { Scores } from "../api/src/db/scores";
 
 const go = async () => {
   await connect();
@@ -39,7 +41,7 @@ const go = async () => {
     },
   ];
 
-  const scoresByWeekMax = await Score.aggregate([
+  const scoresByWeekMax = await Scores.aggregate([
     ...membersByWeekAggregation,
     {
       $sort: {
@@ -48,7 +50,7 @@ const go = async () => {
     },
   ]);
 
-  const scoresByWeek = await Score.aggregate([
+  const scoresByWeek = await Scores.aggregate([
     ...membersByWeekAggregation,
     {
       $sort: {
@@ -59,12 +61,12 @@ const go = async () => {
 
   fs.writeFileSync(
     `./data/stats/scoresByWeekMax.json`,
-    JSON.stringify(scoresByWeekMax, null, 2)
+    JSON.stringify(scoresByWeekMax, null, 2),
   );
 
   fs.writeFileSync(
     `./data/stats/scoresByWeek.json`,
-    JSON.stringify(scoresByWeek, null, 2)
+    JSON.stringify(scoresByWeek, null, 2),
   );
 
   console.log("done");

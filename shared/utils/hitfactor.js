@@ -1,3 +1,4 @@
+// eslint-disable-next-line
 const A = 1; //                1
 const B = 1 << 4; //          16
 const C = 1 << 8; //         256
@@ -35,7 +36,7 @@ const majorPointsForLetter = {
   NPM: 0,
 };
 
-export const targetHitsToLetters = (n) => {
+export const targetHitsToLetters = n => {
   let remainder = n;
 
   const NPMs = Math.floor(remainder / NPM);
@@ -75,7 +76,7 @@ export const fuzzyEqual = (a, b, epsilon = 0.0001) => Math.abs(a - b) <= epsilon
 /** Calculates HF based off time/hits from the Score.
  * Returns -1 if existing HF doesnt match time/hits in Major or Minor
  */
-export const minorHF = (score) => {
+export const minorHF = score => {
   try {
     const {
       hf,
@@ -121,12 +122,12 @@ export const minorHF = (score) => {
       return 0;
     }
 
-    const allHitsLetters = targetHits.map((h) => targetHitsToLetters(h)).flat();
+    const allHitsLetters = targetHits.map(h => targetHitsToLetters(h)).flat();
     const majorTargetPoints = allHitsLetters
-      .map((l) => majorPointsForLetter[l])
+      .map(l => majorPointsForLetter[l])
       .reduce((acc, cur) => acc + cur, 0);
     const minorTargetPoints = allHitsLetters
-      .map((l) => minorPointsForLetter[l])
+      .map(l => minorPointsForLetter[l])
       .reduce((acc, cur) => acc + cur, 0);
 
     // TODO: (Issue #58) inconsistent penalties field in PS.
@@ -134,18 +135,18 @@ export const minorHF = (score) => {
     // const penaltiesPoints = Number(penalties) || 0;
 
     const majorHF = Number(
-      ((majorTargetPoints + steelPoints + 0) / totalTime).toFixed(4)
+      ((majorTargetPoints + steelPoints + 0) / totalTime).toFixed(4),
     );
-    const minorHF = Number(
-      ((minorTargetPoints + steelPoints + 0) / totalTime).toFixed(4)
+    const calcedMinorHF = Number(
+      ((minorTargetPoints + steelPoints + 0) / totalTime).toFixed(4),
     );
 
-    if (!fuzzyEqual(majorHF, hf) && !fuzzyEqual(minorHF, hf)) {
+    if (!fuzzyEqual(majorHF, hf) && !fuzzyEqual(calcedMinorHF, hf)) {
       // console.log("bad math " + score._id);
       return -1;
     }
 
-    return minorHF;
+    return calcedMinorHF;
   } catch (e) {
     console.error(e);
   }

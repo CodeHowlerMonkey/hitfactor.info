@@ -1,6 +1,6 @@
-import { PAGE_SIZE } from "../../../shared/constants/pagination.js";
-import { multisortObj } from "../../../shared/utils/sort.js";
-import { escapeRegExp } from "../utils.js";
+import { PAGE_SIZE } from "../../../shared/constants/pagination";
+import { multisortObj } from "../../../shared/utils/sort";
+import { escapeRegExp } from "../utils";
 
 export const percentAggregationOp = (value, total, round = 2) => ({
   $round: [
@@ -29,14 +29,16 @@ export const percentAggregationOp = (value, total, round = 2) => ({
 export const addPlaceAndPercentileAggregation = (
   placeByField,
   filtersAggregation,
-  paginationAggregation
+  paginationAggregation,
+  hackMode: "normal" | "tooManyDocs" = "normal",
 ) => [
   {
     $facet: {
       docs: [
         { $sort: { [placeByField]: -1 } },
-        ...filtersAggregation,
-        ...paginationAggregation,
+        ...(hackMode === "tooManyDocs"
+          ? [...filtersAggregation, ...paginationAggregation]
+          : []),
       ],
       meta: [{ $count: "total" }],
       metaWithFilters: [...filtersAggregation, { $count: "total" }],
@@ -58,6 +60,9 @@ export const addPlaceAndPercentileAggregation = (
       percentile: percentAggregationOp("$place", "$total", 2),
     },
   },
+  ...(hackMode !== "tooManyDocs"
+    ? [...filtersAggregation, ...paginationAggregation]
+    : []),
 ];
 
 export const paginate = page => [
@@ -75,7 +80,7 @@ export const multiSortAndPaginate = ({ sort, order, page }) => [
 // 🤌🤌🤌
 export const textSearchMatch = (fields, filterString) => ({
   $or: fields.map(f => ({
-    [f]: new RegExp(".*" + escapeRegExp(filterString) + ".*", "i"),
+    [f]: new RegExp(`.*${escapeRegExp(filterString)}.*`, "i"),
   })),
 });
 

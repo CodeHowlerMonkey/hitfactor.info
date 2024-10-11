@@ -1,9 +1,10 @@
-import { useCallback, useRef, useState, useImperativeHandle, forwardRef } from "react";
-import { Dropdown } from "primereact/dropdown";
 import { Button } from "primereact/button";
-import { Toast } from "primereact/toast";
 import { Dialog } from "primereact/dialog";
+import { Dropdown } from "primereact/dropdown";
 import { InputTextarea } from "primereact/inputtextarea";
+import { Toast } from "primereact/toast";
+import { useCallback, useRef, useState, useImperativeHandle, forwardRef } from "react";
+
 import { postApi } from "../utils/client";
 
 const renderField = (value, fieldName) => {
@@ -14,7 +15,7 @@ const renderField = (value, fieldName) => {
   switch (fieldName) {
     case "sd": {
       const date = new Date(value);
-      if (date.getTime() === NaN) {
+      if (Number.isNaN(date.getTime())) {
         return null;
       }
 
@@ -22,7 +23,7 @@ const renderField = (value, fieldName) => {
     }
 
     case "hf":
-      return "HF " + value;
+      return `HF ${value}`;
 
     case "division":
       return value.toUpperCase();
@@ -30,7 +31,7 @@ const renderField = (value, fieldName) => {
     case "percent":
     case "recPercent":
     case "curPercent":
-      return Number(value).toFixed(2) + "%";
+      return `${Number(value).toFixed(2)}%`;
 
     default:
       return value;
@@ -46,7 +47,13 @@ const reportDocRenderFields = [
   "hf",
   "recPercent",
 ];
-const reportDocSendFields = [...reportDocRenderFields, "clubid", "club_name", "percent"];
+const reportDocSendFields = [
+  ...reportDocRenderFields,
+  "clubid",
+  "club_name",
+  "percent",
+  "_id",
+];
 
 export const ReportDialog = forwardRef(({ type }, ref) => {
   const toast = useRef(null);
@@ -57,21 +64,26 @@ export const ReportDialog = forwardRef(({ type }, ref) => {
   const [reason, setReason] = useState(null);
   const reasons = [
     type === "Score" && { name: "Suspicious Score", code: "sus" },
-    { name: "Duplicate " + type, code: "dupe" },
+    { name: `Duplicate ${type}`, code: "dupe" },
     type === "Shooter" && { name: "Known Cheater", code: "cheat" },
     { name: "Bad Data", code: "bad" },
   ].filter(Boolean);
 
-  const startReport = (doc) => {
-    setComment("");
-    setReason(null);
-    setDoc(doc);
-    setSending(false);
-    setVisible(true);
-  };
-  useImperativeHandle(ref, () => ({ startReport }), [startReport]);
+  useImperativeHandle(
+    ref,
+    () => ({
+      startReport: newDoc => {
+        setComment("");
+        setReason(null);
+        setDoc(newDoc);
+        setSending(false);
+        setVisible(true);
+      },
+    }),
+    [],
+  );
   const reportDocRender = reportDocRenderFields
-    .map((key) => renderField(doc?.[key], key))
+    .map(key => renderField(doc?.[key], key))
     .filter(Boolean)
     .join(" - ");
 
@@ -79,12 +91,13 @@ export const ReportDialog = forwardRef(({ type }, ref) => {
     setSending(true);
 
     const reportDoc = Object.fromEntries(
-      Object.entries(doc || {}).filter(([key]) => reportDocSendFields.includes(key))
+      Object.entries(doc || {}).filter(([key]) => reportDocSendFields.includes(key)),
     );
     reportDoc.url = location.toString();
     reportDoc.reason = reason?.code;
     reportDoc.comment = comment;
-    debugger;
+    reportDoc.type = type;
+
     try {
       await postApi("/report", reportDoc);
       setVisible(false);
@@ -112,7 +125,7 @@ export const ReportDialog = forwardRef(({ type }, ref) => {
         life: 5000,
       });
     }
-  }, [toast, reason?.code, comment, doc, setVisible]);
+  }, [toast, reason?.code, comment, doc, setVisible]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <>
@@ -135,7 +148,7 @@ export const ReportDialog = forwardRef(({ type }, ref) => {
             <Dropdown
               placeholder="Reason"
               value={reason}
-              onChange={(e) => setReason(e.value)}
+              onChange={e => setReason(e.value)}
               options={reasons}
               optionLabel="name"
               className="w-full"
@@ -150,7 +163,7 @@ export const ReportDialog = forwardRef(({ type }, ref) => {
               }}
               id="reportComment"
               value={comment}
-              onChange={(e) => setComment(e.target.value)}
+              onChange={e => setComment(e.target.value)}
             />
           </div>
           <div className="flex gap-4 w-12">

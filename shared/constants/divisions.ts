@@ -1,4 +1,4 @@
-import divisionsFromJson from "../../data/division.json" assert { type: "json" };
+import divisionsFromJson from "../../data/division.json";
 
 /** Extracts division from memberNumberDivision or classifierDivision */
 export const pairToDivision = pair => pair.split(":")[1];
@@ -16,7 +16,7 @@ export const mapDivisionsFlat = mapper => divShortNames.map(div => mapper(div));
 
 export const mapDivisionsAsync = async mapper =>
   Object.fromEntries(
-    await Promise.all(divShortNames.map(async div => [div, await mapper(div)]))
+    await Promise.all(divShortNames.map(async div => [div, await mapper(div)])),
   );
 
 export const forEachDivisionSeq = async cb => {
@@ -28,7 +28,7 @@ export const forEachDivisionSeq = async cb => {
 /** {opn: 2, ltd: 3, l10: 4, ... } */
 export const divShortToId = uspsaDivisions.reduce(
   (result, cur) => ({ ...result, [cur.short_name.toLowerCase()]: cur.id }),
-  {}
+  {},
 );
 export const uspsaDivShortToId = divShortToId;
 
@@ -37,12 +37,12 @@ export const divShortToLong = uspsaDivisions.reduce(
     ...result,
     [cur.short_name.toLowerCase()]: cur.long_name,
   }),
-  {}
+  {},
 );
 export const uspsaDivShortToLong = divShortToLong;
 
 export const divIdToShort = Object.fromEntries(
-  Object.entries(divShortToId).map(flip => [flip[1], flip[0]])
+  Object.entries(divShortToId).map(flip => [flip[1], flip[0]]),
 );
 export const uspsaDivIdToShort = divIdToShort;
 
@@ -88,8 +88,8 @@ export const sportForDivision = division => {
 };
 
 export const sportName = code =>
-  ({ hfu: "Hit Factor", pcsl: "PCSL", uspsa: "USPSA", scsa: "Steel Challenge" }[code] ||
-  "USPSA");
+  ({ hfu: "Hit Factor", pcsl: "PCSL", uspsa: "USPSA", scsa: "Steel Challenge" })[code] ||
+  "USPSA";
 
 export const hfuDivisionCompatabilityMap = {
   // from USPSA
@@ -181,7 +181,9 @@ export const divisionChangeMap = {
 
 export const minorDivisions = ["co", "lo", "prod", "pcc", "comp", "opt", "irn", "car"];
 
-export const hfuDivisionCompatabilityMapInversion = (excludedDivisions = []) =>
+export const hfuDivisionCompatabilityMapInversion = (
+  excludedDivisions: string[] = [],
+): Record<string, string[]> =>
   Object.keys(hfuDivisionCompatabilityMap)
     .filter(div => !excludedDivisions.includes(div))
     .reduce((acc, curKey) => {
@@ -200,31 +202,41 @@ export const hfuDivisionExplosionForScores = hfuDivisionCompatabilityMapInversio
 // reduced inversion of hfuDivisionCompatabilityMap, because not all scores
 // can be used to calculate RecHHF (e.g. prod for irn, due to round limit)
 export const hfuDivisionExplosionForRecHHF = hfuDivisionCompatabilityMapInversion(
-  hfuDivisionRecHHFExclusion
+  hfuDivisionRecHHFExclusion,
 );
 
 /** Plug for HHF source to make classifiers hydrate for HFU divisions on upload
  * Should be removed or replaced with custom HFU HHF mapping
  */
 export const hfuDivisionMapForHHF = Object.fromEntries(
-  Object.entries(hfuDivisionExplosionForRecHHF).map(([key, value]) => [key, value[1]])
+  Object.entries(hfuDivisionExplosionForRecHHF).map(([key, value]) => [key, value[1]]),
 );
 
-const defaultDivisionAccess = something => something.division;
+type DefaultInputType = Record<string, unknown>;
+
+const defaultDivisionAccess = <InputType extends DefaultInputType = DefaultInputType>(
+  something: InputType,
+): string => something.division as string;
+
 /**
  * Takes array of something and makes it bigger by including additional divisions
  * from provided mapping.
  */
-export const arrayWithExplodedDivisions = (
-  arr,
-  divisionExplosionMap,
-  arrDivCb = defaultDivisionAccess,
-  arrResultCb
+export const arrayWithExplodedDivisions = <
+  InputType extends DefaultInputType = DefaultInputType,
+  ResultType = unknown,
+>(
+  arr: InputType[],
+  divisionExplosionMap: Record<string, string>,
+  arrDivCb: (obj: InputType) => string = defaultDivisionAccess,
+  arrResultCb: (obj: InputType, extraDiv: string) => ResultType,
 ) => {
   const withExtras = arr
     .map(c => {
       const division = arrDivCb(c);
-      const extraDivisions = [].concat(divisionExplosionMap[division] || []);
+      const extraDivisions = ([] as string[]).concat(
+        divisionExplosionMap[division] || ([] as string[]),
+      );
       return [
         arrResultCb(c, division),
         ...extraDivisions.map(extraDiv => arrResultCb(c, extraDiv)),
@@ -242,37 +254,37 @@ export const arrayWithExplodedDivisions = (
  */
 export const classifierDivisionArrayWithExplodedDivisions = (
   classifiers,
-  divisionExplosionMap
+  divisionExplosionMap,
 ) =>
   arrayWithExplodedDivisions(
     classifiers,
     divisionExplosionMap,
     defaultDivisionAccess,
-    (classifierObj, division) => [classifierObj.classifier, division].join(":")
+    (classifierObj, division) => [classifierObj.classifier, division].join(":"),
   );
 
 export const classifierDivisionArrayWithHFUExtras = classifiers =>
   classifierDivisionArrayWithExplodedDivisions(classifiers, hfuDivisionCompatabilityMap);
 
-export const classifierDivisionArrayForHFURecHHFs = classifiers =>
+export const classifierDivisionArrayForHFURecHHFs = (classifiers): string[] =>
   classifierDivisionArrayWithExplodedDivisions(
     classifiers,
-    hfuDivisionExplosionForRecHHF
+    hfuDivisionExplosionForRecHHF,
   );
 
 export const divisionsForScoresAdapter = division => {
-  const hfuDivisions = hfuDivisionExplosionForScores[division];
-  if (hfuDivisions) {
-    return hfuDivisions;
+  const hfu = hfuDivisionExplosionForScores[division];
+  if (hfu) {
+    return hfu;
   }
 
   return [division];
 };
 
 export const divisionsForRecHHFAdapter = division => {
-  const hfuDivisions = hfuDivisionExplosionForRecHHF[division];
-  if (hfuDivisions) {
-    return hfuDivisions;
+  const hfu = hfuDivisionExplosionForRecHHF[division];
+  if (hfu) {
+    return hfu;
   }
 
   return [division];

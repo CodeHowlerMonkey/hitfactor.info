@@ -1,6 +1,8 @@
-import { connect } from "../api/src/db/index.js";
-import { Matches } from "../api/src/db/matches.js";
-import { fetchPS } from "../api/src/worker/uploads.js";
+/* eslint-disable no-console */
+
+import { connect } from "../api/src/db/index";
+import { Matches } from "../api/src/db/matches";
+import { fetchPS } from "../api/src/worker/uploads";
 
 const majorActivity = async () => {
   await connect();
@@ -44,13 +46,13 @@ const majorActivity = async () => {
       }
 
       ++i;
-      console.log(match.uuid + " " + i + "/" + allMatches.length);
+      console.log(`${match.uuid} ${i}/${allMatches.length}`);
     } catch (e) {}
   }
 
-  console.log("matches: " + allMatches.length);
-  console.log("major matches: " + majorMatches.length);
-  console.log("unique shooters: " + Object.keys(shooters).length);
+  console.log(`matches: ${allMatches.length}`);
+  console.log(`major matches: ${majorMatches.length}`);
+  console.log(`unique shooters: ${Object.keys(shooters).length}`);
 };
 
 majorActivity();

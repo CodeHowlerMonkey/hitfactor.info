@@ -4,26 +4,26 @@ import {
   basicInfoForClassifier,
   classifiers,
   ScsaPointsPerString,
-} from "../../../dataUtil/classifiersData.js";
-import { HF, N, Percent, PositiveOrMinus1 } from "../../../dataUtil/numbers.js";
-import { curHHFForDivisionClassifier } from "../../../dataUtil/hhf.js";
-import { Score } from "../../../db/scores.js";
+} from "../../../dataUtil/classifiersData";
+import {
+  divisionsForScoresAdapter,
+  hfuDivisionsShortNamesThatNeedMinorHF,
+} from "../../../dataUtil/divisions";
+import { curHHFForDivisionClassifier } from "../../../dataUtil/hhf";
+import { HF, N, Percent, PositiveOrMinus1 } from "../../../dataUtil/numbers";
 import {
   allDivisionClassifiersQuality,
   allScsaDivisionClassifiersQuality,
-  Classifier,
-} from "../../../db/classifiers.js";
-import { RecHHF } from "../../../db/recHHF.js";
+  Classifiers,
+} from "../../../db/classifiers";
+import { RecHHFs } from "../../../db/recHHF";
+import { Scores } from "../../../db/scores";
 import {
   addPlaceAndPercentileAggregation,
   multiSortAndPaginate,
   percentAggregationOp,
   textSearchMatch,
-} from "../../../db/utils.js";
-import {
-  divisionsForScoresAdapter,
-  hfuDivisionsShortNamesThatNeedMinorHF,
-} from "../../../dataUtil/divisions.js";
+} from "../../../db/utils";
 
 const _getShooterField = field => ({
   $getField: {
@@ -68,11 +68,10 @@ const _runsAggregation = async ({
   filterString,
   filterClubString,
 }) =>
-  Score.aggregate([
+  Scores.aggregate([
     {
       $project: {
-        _id: false,
-        _v: false,
+        __v: false,
       },
     },
     ..._replaceHFWithMinorHFIfNeeded(division),
@@ -114,10 +113,10 @@ const _runsAggregation = async ({
         recClass: _getShooterField("recClass"),
         curHHFClass: _getShooterField("curHHFClass"),
         reclassificationsCurPercentCurrent: _getShooterField(
-          "reclassificationsCurPercentCurrent"
+          "reclassificationsCurPercentCurrent",
         ),
         reclassificationsRecPercentCurrent: _getShooterField(
-          "reclassificationsRecPercentCurrent"
+          "reclassificationsRecPercentCurrent",
         ),
       },
     },
@@ -144,7 +143,8 @@ const _runsAggregation = async ({
           : [{ $match: textSearchMatch(["memberNumber", "name"], filterString) }]),
         ...(!filterClubString ? [] : [{ $match: { clubid: filterClubString } }]),
       ],
-      multiSortAndPaginate({ sort, order, page })
+      multiSortAndPaginate({ sort, order, page }),
+      division.startsWith("scsa_") ? "tooManyDocs" : "normal",
     ),
   ]);
 
@@ -153,18 +153,18 @@ const scsaHhfToPeakTime = (classifier, hf) => {
   return Number(parseFloat(ScsaPointsPerString / (hf / numScoringStrings)).toFixed(2));
 };
 
-const classifiersRoutes = async (fastify, opts) => {
-  fastify.get("/", (req, res) => classifiers.map(basicInfoForClassifier));
+const classifiersRoutes = async fastify => {
+  fastify.get("/", () => classifiers.map(basicInfoForClassifier));
 
   fastify.get("/:division", async req => {
     const { division } = req.params;
-    const [classifiers, classifiersAllDivQuality] = await Promise.all([
-      Classifier.find({ division, classifier: { $exists: true, $ne: null } }),
+    const [classifiersFromDB, classifiersAllDivQuality] = await Promise.all([
+      Classifiers.find({ division, classifier: { $exists: true, $ne: null } }),
       division.startsWith("scsa")
         ? allScsaDivisionClassifiersQuality()
         : allDivisionClassifiersQuality(),
     ]);
-    return classifiers.map(c => {
+    return classifiersFromDB.map(c => {
       const cur = c.toObject({ virtuals: true });
       cur.allDivQuality = classifiersAllDivQuality[cur.classifier];
       if (division.startsWith("scsa")) {
@@ -186,8 +186,8 @@ const classifiersRoutes = async (fastify, opts) => {
 
     const basic = basicInfoForClassifier(c);
     const [extended, recHHFInfo] = await Promise.all([
-      Classifier.findOne({ division, classifier: number }).lean(),
-      RecHHF.findOne({ classifier: number, division })
+      Classifiers.findOne({ division, classifier: number }).lean(),
+      RecHHFs.findOne({ classifier: number, division })
         .select(["recHHF", "rec1HHF", "rec5HHF", "rec15HHF", "curHHF"])
         .lean(),
     ]);
@@ -207,7 +207,7 @@ const classifiersRoutes = async (fastify, opts) => {
     return result;
   });
 
-  fastify.get("/scores/:division/:number", async (req, res) => {
+  fastify.get("/scores/:division/:number", async req => {
     const { division, number } = req.params;
     const { sort, order, page, club: filterClubString, filter: filterString } = req.query;
     const runsFromDB = await _runsAggregation({
@@ -247,12 +247,12 @@ const classifiersRoutes = async (fastify, opts) => {
     };
   });
 
-  fastify.get("/:division/:number/chart", async (req, res) => {
+  fastify.get("/:division/:number/chart", async req => {
     const { division, number } = req.params;
     const { full: fullString } = req.query;
     const full = Number(fullString);
 
-    const runs = await Score.aggregate([
+    const runs = await Scores.aggregate([
       {
         $project: {
           minorHF: true,
@@ -357,7 +357,7 @@ const classifiersRoutes = async (fastify, opts) => {
       ...first50,
       ...uniqBy(
         other,
-        ({ x }) => Math.floor((200 * x) / hhf) // 0.5% grouping for graph points reduction
+        ({ x }) => Math.floor((200 * x) / hhf), // 0.5% grouping for graph points reduction
       ),
     ];
   });

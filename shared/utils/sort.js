@@ -7,14 +7,12 @@ export const stringCompare = (a, b) => {
 
   if (a.toLowerCase() > b.toLowerCase()) {
     return 1;
-  } else {
-    return -1;
   }
+  return -1;
 };
 
-export const stringSort = (a, b, field, order) => {
-  return order * stringCompare(a[field], b[field]);
-};
+export const stringSort = (a, b, field, order) =>
+  order * stringCompare(a[field], b[field]);
 
 export const clubSort = (a, b, field, order) => {
   const aa = a[field].match(/[a-zA-Z]+|[0-9]+/g);
@@ -28,9 +26,8 @@ export const clubSort = (a, b, field, order) => {
   return stringSortResult;
 };
 
-export const dateSort = (a, b, field, order) => {
-  return order * (new Date(a[field]).getTime() - new Date(b[field]).getTime());
-};
+export const dateSort = (a, b, field, order) =>
+  order * (new Date(a[field]).getTime() - new Date(b[field]).getTime());
 
 const letterRanks = ["X", "U", "D", "C", "B", "A", "M", "GM"];
 export const classLetterSort = (a, b, field, order) => {
@@ -41,7 +38,7 @@ export const classLetterSort = (a, b, field, order) => {
 
 // converts classifier code to sortable number, taking thee actual meaning behind first two
 // digits (year) into account. For example 03-02 will be converted to 200302
-const fullCodeNum = (code) =>
+const fullCodeNum = code =>
   Number(((code.startsWith("99") ? "19" : "20") + code).replace("-", ""));
 
 export const classifierCodeSort = (a, b, field, order) =>
@@ -61,15 +58,14 @@ const singleFieldSort = (a, b, field, order) => {
     default:
       if (typeof a[field] === "string") {
         return stringSort(a, b, field, order);
-      } else {
-        return numSort(a, b, field, order);
       }
+      return numSort(a, b, field, order);
   }
 };
 
 export const multisortObj = (fields, orders) =>
   Object.fromEntries(
-    (fields || []).map((f, i) => [f, Number(orders?.[i] || 0) > 0 ? 1 : -1])
+    (fields || []).map((f, i) => [f, Number(orders?.[i] || 0) > 0 ? 1 : -1]),
   );
 
 export const multisort = (data = [], fields, orders) =>
@@ -92,7 +88,7 @@ export const multisort = (data = [], fields, orders) =>
         return 0;
       });
 
-export const safeNumSort = (field) => (a, b) => {
+export const safeNumSort = field => (a, b) => {
   // sort by current to calculate currentRank
   // have to use Max and || 0 because U/X shooters need to be in the
   // output here (used in shooter info head), but can't mess up the

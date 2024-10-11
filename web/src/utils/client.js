@@ -21,7 +21,7 @@ export const postApi = async (endpoint, body) => {
 };
 
 // TODO: use useApiQuery instead
-export const getApi = async (endpoint) => {
+export const getApi = async endpoint => {
   try {
     const response = await window.fetch(API_URL + endpoint);
     return await response.json();

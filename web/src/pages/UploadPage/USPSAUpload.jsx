@@ -1,7 +1,9 @@
-import { useState } from "react";
 import { Button } from "primereact/button";
 import { InputText } from "primereact/inputtext";
+import { useState } from "react";
+
 import { postApi } from "../../utils/client";
+
 import UploadResults from "./UploadResults";
 
 const USPSAUpload = () => {
@@ -19,21 +21,21 @@ const USPSAUpload = () => {
         </span>
       </div>
 
-      <form onSubmit={(e) => e.preventDefault()}>
+      <form onSubmit={e => e.preventDefault()}>
         <InputText
           id="memberNumber"
           type="text"
           placeholder="Member Number"
           className="w-full mb-3"
           value={memberNumber}
-          onChange={(e) => setMemberNumber(e.target.value)}
+          onChange={e => setMemberNumber(e.target.value)}
         />
         <InputText
           type="password"
           placeholder="Password"
           className="w-full mb-4"
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          onChange={e => setPassword(e.target.value)}
         />
         <Button
           type="submit"

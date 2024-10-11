@@ -1,4 +1,3 @@
-import { Checkbox } from "primereact/checkbox";
 import { Column } from "primereact/column";
 import { DataTable } from "primereact/datatable";
 import { Dropdown } from "primereact/dropdown";
@@ -20,7 +19,7 @@ import useTableSort from "./Table/useTableSort";
 const TableFilter = ({ placeholder, onFilterChange }) => {
   const [filter, setFilter] = useState("");
   const [debouncedFilter] = useDebounce(filter, 750);
-  useEffect(() => onFilterChange?.(debouncedFilter), [debouncedFilter]);
+  useEffect(() => onFilterChange?.(debouncedFilter), [debouncedFilter]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <span className="p-input-icon-left w-12">
@@ -28,7 +27,7 @@ const TableFilter = ({ placeholder, onFilterChange }) => {
       <InputText
         className="w-12"
         value={filter}
-        onChange={(e) => setFilter(e.target.value)}
+        onChange={e => setFilter(e.target.value)}
         placeholder={placeholder}
       />
     </span>
@@ -48,30 +47,13 @@ const DropdownFilter = ({
     options={filterOptions}
     value={filterValue}
     optionLabel={filterValueLabel}
-    onChange={(e) => onFilter?.(e.value)}
+    onChange={e => onFilter?.(e.value)}
     placeholder={placeholder}
     showClear
     maxSelectedLabels={1}
     filter={filter}
   />
 );
-
-const LegacyCheckbox = ({ onChange }) => {
-  const [value, setValue] = useState(false);
-  useEffect(() => onChange?.(value), [value]);
-  return (
-    <>
-      <Checkbox
-        inputId="legacyCheck"
-        checked={value}
-        onChange={(e) => setValue(e.checked)}
-      />
-      <label htmlFor="legacyCheck" className="ml-2 mr-4">
-        Incl. Legacy
-      </label>
-    </>
-  );
-};
 
 export const useRunsTableData = ({ division, classifier }) => {
   const { query: pageQuery, reset: resetPage, ...pageProps } = useTablePagination();
@@ -81,11 +63,11 @@ export const useRunsTableData = ({ division, classifier }) => {
     initial: [{ field: "hf", order: -1 }],
   });
   const isHFU = useIsHFU(division);
-  useEffect(() => resetSort(), [isHFU]);
+  useEffect(() => resetSort(), [isHFU]); // eslint-disable-line react-hooks/exhaustive-deps
   const [filter, setFilter] = useState("");
   // const [filterHHF, setFilterHHF] = useState(undefined);
   const [filterClub, setFilterClub] = useState(undefined);
-  useEffect(() => resetPage(), [filter, filterClub]);
+  useEffect(() => resetPage(), [filter, filterClub]); // eslint-disable-line react-hooks/exhaustive-deps
   // const [legacy, setLegacy] = useState(undefined);
   const filtersQuery = qs.stringify(
     {
@@ -103,7 +85,7 @@ export const useRunsTableData = ({ division, classifier }) => {
     : `/classifiers/scores/${division}/${classifier}?${query}&${pageQuery}&${filtersQuery}`;
   const { json: apiData, loading } = useApi(apiEndpoint);
 
-  const data = (apiData?.runs ?? []).map((d) => ({
+  const data = (apiData?.runs ?? []).map(d => ({
     ...d,
     updated: new Date(d.updated).toLocaleDateString("en-us", { timeZone: "UTC" }),
   }));
@@ -131,7 +113,7 @@ const RunsTable = ({ classifier, division, clubs, onShooterSelection }) => {
     loading,
     data,
     runsTotal,
-    hhfs,
+    // hhfs,
     sortProps,
     pageProps,
     setFilter,
@@ -142,11 +124,12 @@ const RunsTable = ({ classifier, division, clubs, onShooterSelection }) => {
     division,
     classifier,
   });
+  const reportDialogRef = useRef(null);
+
   if (!loading && !data) {
     return "Classifier Not Found";
   }
 
-  const reportDialogRef = useRef(null);
   const sport = sportForDivision(division);
 
   return (
@@ -166,7 +149,7 @@ const RunsTable = ({ classifier, division, clubs, onShooterSelection }) => {
         paginatorRight={
           <TableFilter
             placeholder="Filter by Club or Shooter"
-            onFilterChange={(f) => setFilter(f)}
+            onFilterChange={f => setFilter(f)}
           />
         }
         totalRecords={runsTotal}
@@ -192,12 +175,12 @@ const RunsTable = ({ classifier, division, clubs, onShooterSelection }) => {
           header="Perc."
           headerTooltip="Percentile for this score. Shows how many percent of scores are higher than this one."
           headerTooltipOptions={headerTooltipOptions}
-          body={(c) => `${c.percentile.toFixed(2)}%`}
+          body={c => `${c.percentile.toFixed(2)}%`}
         />
         <Column
           field="memberNumber"
           header="Shooter"
-          body={(run) => (
+          body={run => (
             <ShooterCell
               sport={sport}
               data={run}
@@ -233,7 +216,7 @@ const RunsTable = ({ classifier, division, clubs, onShooterSelection }) => {
         />
         <Column
           hidden={sport !== "uspsa"}
-          body={(c) => {
+          body={c => {
             if (c.percent > 0) {
               return renderPercent(c, { field: "percent" });
             }
@@ -256,13 +239,13 @@ const RunsTable = ({ classifier, division, clubs, onShooterSelection }) => {
         <Column
           {...clubMatchColumn}
           filter
-          filterElement={(options) => (
+          filterElement={options => (
             <DropdownFilter
               filter
               filterOptions={clubs}
               filterValueLabel="label"
               filterValue={options?.value}
-              onFilter={(value) => {
+              onFilter={value => {
                 setFilterClub(value?.id);
                 options.filterApplyCallback(value);
               }}
@@ -271,7 +254,7 @@ const RunsTable = ({ classifier, division, clubs, onShooterSelection }) => {
         />
         <Column field="sd" header="Date" sortable />
         <Column
-          body={(c) => (
+          body={c => (
             <ReportDialog.Button onClick={() => reportDialogRef.current.startReport(c)} />
           )}
         />

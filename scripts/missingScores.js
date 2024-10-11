@@ -1,8 +1,10 @@
-import { connect } from "../api/src/db/index.js";
+/* eslint-disable no-console */
+
+import { connect } from "../api/src/db/index";
 import {
   processUploadResults,
   uploadResultsForMatchUUIDs,
-} from "../api/src/worker/uploads.js";
+} from "../api/src/worker/uploads";
 
 // some scores are missing in SLPSA Sept #1 2024
 const go = async () => {

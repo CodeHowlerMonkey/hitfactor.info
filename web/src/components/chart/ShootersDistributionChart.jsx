@@ -27,7 +27,7 @@ const fieldModeMap = {
   "Cur.HHF": "curHHFPercent",
   "Rec.": "recPercent",
 };
-const fieldForMode = (mode) => fieldModeMap[mode];
+const fieldForMode = mode => fieldModeMap[mode];
 const modes = Object.keys(fieldModeMap);
 const recommendedMode = modes[2];
 
@@ -91,7 +91,7 @@ export const ShootersDistributionChart = ({ division, style }) => {
         datasets: [
           {
             label: "Classification / Percentile",
-            data: data?.map((c) => ({
+            data: data?.map(c => ({
               ...c,
               x: c[fieldForMode(xMode)],
               y: c[`${fieldForMode(xMode)}Percentile`],
@@ -100,7 +100,7 @@ export const ShootersDistributionChart = ({ division, style }) => {
             pointBorderWidth: 0,
             backgroundColor: "#ae9ef1",
             pointBackgroundColor: data?.map(
-              (c) => bgColorForClass[classForPercent(c[fieldForMode(colorMode)])],
+              c => bgColorForClass[classForPercent(c[fieldForMode(colorMode)])],
             ),
           },
         ],
@@ -119,7 +119,7 @@ export const ShootersDistributionChart = ({ division, style }) => {
               allowEmpty={false}
               options={modes}
               value={colorMode}
-              onChange={(e) => setColorMode(e.value)}
+              onChange={e => setColorMode(e.value)}
             />
           </div>
           <div className="flex flex-row flex-wrap justify-content-center gap-2">
@@ -129,7 +129,7 @@ export const ShootersDistributionChart = ({ division, style }) => {
               allowEmpty={false}
               options={modes}
               value={xMode}
-              onChange={(e) => setXMode(e.value)}
+              onChange={e => setXMode(e.value)}
             />
           </div>
         </div>

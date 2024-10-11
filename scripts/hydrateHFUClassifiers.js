@@ -1,26 +1,22 @@
-import uniqBy from "lodash.uniqby";
-import { connect } from "../api/src/db/index.js";
-import { uspsaClassifiers } from "../api/src/dataUtil/classifiersData.js";
-import { hfuDivisionsShortNames } from "../shared/constants/divisions.js";
-import { RecHHF } from "../api/src/db/recHHF.js";
-import {
-  Classifier,
-  singleClassifierExtendedMetaDoc,
-} from "../api/src/db/classifiers.js";
+import { uspsaClassifiers } from "../api/src/dataUtil/classifiersData";
+import { Classifiers, singleClassifierExtendedMetaDoc } from "../api/src/db/classifiers";
+import { connect } from "../api/src/db/index";
+import { RecHHFs } from "../api/src/db/recHHF";
+import { hfuDivisionsShortNames } from "../shared/constants/divisions";
 
 const hydrateHFUClassifiers = async () => {
   const classifiers = uspsaClassifiers
-    .map((classifier) =>
-      hfuDivisionsShortNames.map((division) => ({
+    .map(classifier =>
+      hfuDivisionsShortNames.map(division => ({
         classifier,
         division,
-      }))
+      })),
     )
     .flat();
 
-  const recHHFs = await RecHHF.find({
+  const recHHFs = await RecHHFs.find({
     classifierDivision: {
-      $in: classifiers.map((c) => [c.classifer, c.division].join(":")),
+      $in: classifiers.map(c => [c.classifier, c.division].join(":")),
     },
   })
     .select({ recHHF: true, _id: false, classifierDivision: true })
@@ -36,9 +32,9 @@ const hydrateHFUClassifiers = async () => {
     const doc = await singleClassifierExtendedMetaDoc(
       division,
       classifier,
-      recHHFsByClassifierDivision[[classifier, division].join(":")]
+      recHHFsByClassifierDivision[[classifier, division].join(":")],
     );
-    await Classifier.bulkWrite([
+    await Classifiers.bulkWrite([
       {
         updateOne: {
           filter: { division: doc.division, classifier: doc.classifier },

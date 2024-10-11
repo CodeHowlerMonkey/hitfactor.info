@@ -1,8 +1,8 @@
-import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
+import { defineConfig } from "vite";
 
 // https://vitejs.dev/config/
-export default defineConfig(({ command, mode, isSsrBuild, isPreview }) => {
+export default defineConfig(({ mode }) => {
   const commonConfig = {
     plugins: [react()],
   };
@@ -12,8 +12,8 @@ export default defineConfig(({ command, mode, isSsrBuild, isPreview }) => {
       ...commonConfig,
       server: {
         proxy: {
-          "/api": "http://localhost:3333/",
-          "/wsb": "http://localhost:3333/",
+          "/api": "http://localhost:3000/",
+          "/wsb": "http://localhost:3000/",
         },
       },
     };

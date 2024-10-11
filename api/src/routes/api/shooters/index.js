@@ -1,22 +1,14 @@
-import { basicInfoForClassifierCode } from "../../../dataUtil/classifiersData.js";
-import {
-  multisort,
-  multisortObj,
-  safeNumSort,
-} from "../../../../../shared/utils/sort.js";
-import { PAGE_SIZE } from "../../../../../shared/constants/pagination.js";
-import {
-  scoresForDivisionForShooter,
-  shooterScoresChartData,
-} from "../../../db/scores.js";
-import { Shooter, reclassificationForProgressMode } from "../../../db/shooters.js";
+import { classForPercent } from "../../../../../shared/utils/classification";
+import { multisort, safeNumSort } from "../../../../../shared/utils/sort";
+import { basicInfoForClassifierCode } from "../../../dataUtil/classifiersData";
+import { sportForDivision } from "../../../dataUtil/divisions";
+import { scoresForDivisionForShooter, shooterScoresChartData } from "../../../db/scores";
+import { Shooters, reclassificationForProgressMode } from "../../../db/shooters";
 import {
   addPlaceAndPercentileAggregation,
   multiSortAndPaginate,
   textSearchMatch,
-} from "../../../db/utils.js";
-import { classForPercent } from "../../../../../shared/utils/classification.js";
-import { sportForDivision } from "../../../dataUtil/divisions.js";
+} from "../../../db/utils";
 
 const DEFAULT_PLACE_BY = "reclassificationsRecPercentCurrent";
 const placeByFieldForSort = sort => {
@@ -32,8 +24,8 @@ const _inconsistencyFilter = inconString => {
     return [];
   }
 
-  const [inconsistencies, inconsistenciesMode] = inconString?.split("-");
-  const field = "$" + inconsistencies + "Rank";
+  const [inconsistencies, inconsistenciesMode] = inconString.split("-");
+  const field = `$${inconsistencies}Rank`;
   const operator = inconsistenciesMode === "paper" ? "$lt" : "$gt";
   return [{ $match: { $expr: { [operator]: [field, "$hqClassRank"] } } }];
 };
@@ -51,12 +43,11 @@ const shootersQueryAggregation = (params, query) => {
 
   const placeByField = placeByFieldForSort(sort);
 
-  return Shooter.aggregate([
+  return Shooters.aggregate([
     // default match
     {
       $project: {
-        _id: false,
-        _v: false,
+        __v: false,
       },
     },
     {
@@ -74,13 +65,13 @@ const shootersQueryAggregation = (params, query) => {
           : [{ $match: textSearchMatch(["memberNumber", "name"], filterString) }]),
         ..._inconsistencyFilter(inconString),
       ],
-      multiSortAndPaginate({ sort, order, page })
+      multiSortAndPaginate({ sort, order, page }),
     ),
   ]);
 };
 
-const shootersRoutes = async (fastify, opts) => {
-  fastify.get("/:division", async (req, res) => {
+const shootersRoutes = async fastify => {
+  fastify.get("/:division", async req => {
     const shooters = await shootersQueryAggregation(req.params, req.query);
 
     return {
@@ -91,12 +82,12 @@ const shootersRoutes = async (fastify, opts) => {
     };
   });
 
-  fastify.get("/:division/:memberNumber", async (req, res) => {
+  fastify.get("/:division/:memberNumber", async req => {
     const { division, memberNumber } = req.params;
     const { sort, order } = req.query;
 
     const [infos, scoresData] = await Promise.all([
-      Shooter.find({ memberNumber }).limit(0).lean(),
+      Shooters.find({ memberNumber }).limit(0).lean(),
       scoresForDivisionForShooter({
         division,
         memberNumber,
@@ -106,9 +97,9 @@ const shootersRoutes = async (fastify, opts) => {
     const data = multisort(scoresData, sort?.split?.(","), order?.split?.(",")).map(
       c => ({
         ...c,
-        classifierInfo: basicInfoForClassifierCode(c?.classifier),
+        classifierInfo: basicInfoForClassifierCode(c?.classifier) || {},
         hf: division.startsWith("scsa") ? Number(c.stageTimeSecs) : c.hf,
-      })
+      }),
     );
 
     const info = infos.find(s => s.division === division) || {};
@@ -142,21 +133,21 @@ const shootersRoutes = async (fastify, opts) => {
     };
   });
 
-  fastify.get("/:division/:memberNumber/chart", async (req, res) => {
+  fastify.get("/:division/:memberNumber/chart", async req => {
     const { division, memberNumber } = req.params;
-    return await shooterScoresChartData({ division, memberNumber });
+    return shooterScoresChartData({ division, memberNumber });
   });
 
-  fastify.get("/:division/:memberNumber/chart/progress/:mode", async (req, res) => {
+  fastify.get("/:division/:memberNumber/chart/progress/:mode", async req => {
     const { division, memberNumber, mode } = req.params;
     const reclass = await reclassificationForProgressMode(mode, memberNumber);
     return reclass?.[division]?.percentWithDates || [];
   });
 
-  fastify.get("/:division/chart", async (req, res) => {
+  fastify.get("/:division/chart", async req => {
     const { division } = req.params;
     const sport = sportForDivision(division);
-    const shootersTable = await Shooter.find({
+    const shootersTable = await Shooters.find({
       division,
       ...(sport !== "hfu" ? { current: { $gt: 0 } } : {}),
       reclassificationsRecPercentCurrent: { $gt: 0 },

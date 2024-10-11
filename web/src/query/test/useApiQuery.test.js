@@ -1,7 +1,7 @@
 import assert from "assert";
 import test from "node:test";
 
-import { queryKeyForPathAndQueryString } from "../useApiQuery.ts";
+import { queryKeyForPathAndQueryString } from "../useApiQuery";
 
 test("queryKeyForEndpoint", () => {
   assert.deepEqual(queryKeyForPathAndQueryString(""), []);

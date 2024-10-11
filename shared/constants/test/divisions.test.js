@@ -1,5 +1,6 @@
-import test from "node:test";
 import assert from "assert";
+import test from "node:test";
+
 import {
   classifierDivisionArrayForHFURecHHFs,
   classifierDivisionArrayWithHFUExtras,
@@ -11,7 +12,7 @@ import {
   hfuDivisionMapForHHF,
   hfuDivisionRecHHFExclusion,
   sportForDivision,
-} from "../divisions.js";
+} from "../divisions";
 
 const classifierFactory = (classifier, division) => ({
   classifier,
@@ -19,7 +20,7 @@ const classifierFactory = (classifier, division) => ({
   classifierDivision: [classifier, division].join(":"),
 });
 
-test("classifierDivisionArrayWithExtra", (t) => {
+test("classifierDivisionArrayWithExtra", () => {
   const result = classifierDivisionArrayWithHFUExtras([
     classifierFactory("09-01", "co"),
     classifierFactory("09-01", "co"),
@@ -47,7 +48,7 @@ test("classifierDivisionArrayWithExtra", (t) => {
   ]);
 });
 
-test("hfuDivisionCompatabilityMapInversion", (t) => {
+test("hfuDivisionCompatabilityMapInversion", () => {
   assert.deepEqual(hfuDivisionCompatabilityMapInversion(), {
     comp: ["comp", "opn", "pcsl_comp"],
     opt: ["opt", "co", "lo", "pcsl_po", "pcsl_acp"],
@@ -75,24 +76,24 @@ test("hfuDivisionCompatabilityMapInversion", (t) => {
   });
 });
 
-test("classifierDivisionArrayForHFURecHHFs", (t) => {
+test("classifierDivisionArrayForHFURecHHFs", () => {
   assert.deepEqual(
     classifierDivisionArrayForHFURecHHFs([classifierFactory("09-01", "co")]),
-    ["09-01:co"]
+    ["09-01:co"],
   );
 
   assert.deepEqual(
     classifierDivisionArrayForHFURecHHFs([classifierFactory("09-01", "opt")]),
-    ["09-01:opt", "09-01:co", "09-01:lo", "09-01:pcsl_po"]
+    ["09-01:opt", "09-01:co", "09-01:lo", "09-01:pcsl_po"],
   );
 
   assert.deepEqual(
     classifierDivisionArrayForHFURecHHFs([classifierFactory("09-01", "pcsl_po")]),
-    ["09-01:pcsl_po"]
+    ["09-01:pcsl_po"],
   );
 });
 
-test("hfuDivisionMapForHHF", (t) => {
+test("hfuDivisionMapForHHF", () => {
   assert.deepEqual(hfuDivisionMapForHHF, {
     comp: "opn",
     opt: "co",
@@ -101,7 +102,7 @@ test("hfuDivisionMapForHHF", (t) => {
   });
 });
 
-test("divisionsForScoresAdapter", (t) => {
+test("divisionsForScoresAdapter", () => {
   assert.deepEqual(divisionsForScoresAdapter("co"), ["co"]);
   assert.deepEqual(divisionsForScoresAdapter("opt"), [
     "opt",
@@ -112,12 +113,12 @@ test("divisionsForScoresAdapter", (t) => {
   ]);
 });
 
-test("divisionsForRecHHFAdapter", (t) => {
+test("divisionsForRecHHFAdapter", () => {
   assert.deepEqual(divisionsForRecHHFAdapter("co"), ["co"]);
   assert.deepEqual(divisionsForRecHHFAdapter("irn"), ["irn", "ltd", "pcsl_pi"]);
 });
 
-test("sportForDivision", (t) => {
+test("sportForDivision", () => {
   assert.equal(sportForDivision("co"), "uspsa");
   assert.equal(sportForDivision("opt"), "hfu");
 });
