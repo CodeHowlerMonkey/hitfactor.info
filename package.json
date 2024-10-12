@@ -18,7 +18,7 @@
     "========================== Upload Scripts (Render.com Worker/CRON) ========================": "",
     "uploadMatches": "NODE_OPTIONS='--max-old-space-size=512' node --import=tsx scripts/upload/matchesLoop.ts",
     "uploadScores": "NODE_OPTIONS='--max-old-space-size=512' node --import=tsx scripts/upload/scoresLoop.ts",
-    "uploadMeta": "NODE_OPTIONS='--max-old-space-size=512' node --import=tsx scripts/upload/statsMetaLoop.ts",
+    "uploadMeta": "NODE_OPTIONS='--max-old-space-size=2048' node --import=tsx scripts/upload/statsMetaLoop.ts",
     "members": "node scripts/activeMembers.js",
 
     "========================= DB Admin Scripts ============================": "",
