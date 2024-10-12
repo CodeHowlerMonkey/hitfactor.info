@@ -14,8 +14,8 @@ const go = async () => {
           week: {
             $dateTrunc: {
               date: "$sd",
-              unit: "week",
-              binSize: 1,
+              unit: "month",
+              binSize: 2,
               timezone: "UTC",
             },
           },
@@ -60,16 +60,17 @@ const go = async () => {
   ]);
 
   fs.writeFileSync(
-    `./data/stats/scoresByWeekMax.json`,
+    `./data/stats/scoresByTwoMonthMax.json`,
     JSON.stringify(scoresByWeekMax, null, 2),
   );
 
   fs.writeFileSync(
-    `./data/stats/scoresByWeek.json`,
+    `./data/stats/scoresByTwoMonth.json`,
     JSON.stringify(scoresByWeek, null, 2),
   );
 
   console.log("done");
+  process.exit(0);
 };
 
 go();

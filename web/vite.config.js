@@ -5,6 +5,14 @@ import { defineConfig } from "vite";
 export default defineConfig(({ mode }) => {
   const commonConfig = {
     plugins: [react()],
+    optimizeDeps: {
+      include: ["bson"],
+      esbuildOptions: {
+        supported: {
+          "top-level-await": true,
+        },
+      },
+    },
   };
 
   if (mode === "development") {

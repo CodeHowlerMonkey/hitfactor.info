@@ -1,9 +1,24 @@
 import { Line } from "./common";
 
-const ActivityChart = ({ data }) => {
-  if (!data) {
+const ActivityChart = ({ data: dataRaw }) => {
+  if (!dataRaw) {
     return null;
   }
+
+  const now = new Date().getTime();
+  const start = new Date("2016-09-01").getTime();
+  const data = dataRaw.filter(d => {
+    const ts = new Date(d.week).getTime();
+    if (!ts) {
+      return false;
+    }
+
+    if (ts < start || ts > now) {
+      return false;
+    }
+
+    return true;
+  });
 
   return (
     <div className="relative bg-primary-reverse flex-grow-1">
