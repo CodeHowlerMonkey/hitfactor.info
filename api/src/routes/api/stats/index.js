@@ -4,6 +4,7 @@ import { uspsaDivisionsPopularity } from "../../../db/scores";
 const _divisionsPopularityCached = {};
 const statsRoutes = async fastify => {
   fastify.get("/divisions", async req => {
+    return { disabled: 1 };
     const year = Number(req.query.year) || 0;
     let data = _divisionsPopularityCached[year];
     if (!data) {

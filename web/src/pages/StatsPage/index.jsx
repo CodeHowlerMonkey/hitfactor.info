@@ -5,6 +5,15 @@ import { useState } from "react";
 import { PieChart } from "react-minimal-pie-chart";
 import MultiProgress from "react-multi-progress";
 
+import divisionPopularity0 from "../../../../data/stats/divisions_0YTD.json";
+import divisionPopularity1 from "../../../../data/stats/divisions_1YTD.json";
+import divisionPopularity2 from "../../../../data/stats/divisions_2YTD.json";
+import divisionPopularity3 from "../../../../data/stats/divisions_3YTD.json";
+import divisionPopularity4 from "../../../../data/stats/divisions_4YTD.json";
+import divisionPopularity5 from "../../../../data/stats/divisions_5YTD.json";
+import divisionPopularity6 from "../../../../data/stats/divisions_6YTD.json";
+import divisionPopularity7 from "../../../../data/stats/divisions_7YTD.json";
+import divisionPopularity8 from "../../../../data/stats/divisions_8YTD.json";
 import { Row, Column } from "../../components";
 import { useApi } from "../../utils/client";
 
@@ -227,8 +236,7 @@ const formatDate = d => {
   return formatter.format(new Date(d));
 };
 
-const DivisionsChart = ({ year }) => {
-  const { json: apiData } = useApi(`/stats/divisions?year=${year}`);
+const DivisionsChart = ({ apiData }) => {
   if (!apiData) {
     return null;
   }
@@ -275,15 +283,15 @@ const DivisionsChart = ({ year }) => {
 
 const Divisions = () => (
   <div className="flex gap-4 flex-wrap mt-4">
-    <DivisionsChart year={0} />
-    <DivisionsChart year={1} />
-    <DivisionsChart year={2} />
-    <DivisionsChart year={3} />
-    <DivisionsChart year={4} />
-    <DivisionsChart year={5} />
-    <DivisionsChart year={6} />
-    <DivisionsChart year={7} />
-    <DivisionsChart year={8} />
+    <DivisionsChart apiData={divisionPopularity0} />
+    <DivisionsChart apiData={divisionPopularity1} />
+    <DivisionsChart apiData={divisionPopularity2} />
+    <DivisionsChart apiData={divisionPopularity3} />
+    <DivisionsChart apiData={divisionPopularity4} />
+    <DivisionsChart apiData={divisionPopularity5} />
+    <DivisionsChart apiData={divisionPopularity6} />
+    <DivisionsChart apiData={divisionPopularity7} />
+    <DivisionsChart apiData={divisionPopularity8} />
   </div>
 );
 
