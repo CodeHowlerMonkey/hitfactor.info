@@ -250,6 +250,10 @@ export const singleClassifierExtendedMetaDoc = async (
   recHHFReady?: RecHHF,
 ) => {
   const c = classifiersByNumber[classifier];
+  const basicInfo = basicInfoForClassifier(c);
+  if (!basicInfo?.code) {
+    return null;
+  }
   const [recHHFQuery, hitFactorScoresRaw] = await Promise.all([
     recHHFReady ?? RecHHFs.findOne({ division, classifier }).select("recHHF").lean(),
     Scores.find<Score>({
@@ -277,7 +281,7 @@ export const singleClassifierExtendedMetaDoc = async (
   });
   return {
     division,
-    ...basicInfoForClassifier(c),
+    ...basicInfo,
     ...extendedInfoForClassifier(c, division, hitFactorScores),
     recHHF,
     ...inverseRecPercentileStats(100),
@@ -397,7 +401,15 @@ export const rehydrateSingleClassifier = async (
   recHHF?: RecHHF,
 ) => {
   const doc = await singleClassifierExtendedMetaDoc(division, classifier, recHHF);
-  return Classifiers.updateOne({ division, classifier }, { $set: doc }, { upsert: true });
+  if (doc) {
+    return Classifiers.updateOne(
+      { division, classifier },
+      { $set: doc },
+      { upsert: true },
+    );
+  }
+
+  return null;
 };
 
 // linear rehydration to prevent OOMs on uploader and mongod
