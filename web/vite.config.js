@@ -5,6 +5,9 @@ import { defineConfig } from "vite";
 export default defineConfig(({ mode }) => {
   const commonConfig = {
     plugins: [react()],
+    build: {
+      target: "esnext",
+    },
     optimizeDeps: {
       include: ["bson"],
       esbuildOptions: {
