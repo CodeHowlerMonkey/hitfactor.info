@@ -97,10 +97,10 @@ const fetchMatchesRange = async (
 };
 
 const fetchMatchesRangeByTimestamp = async (
-  timestamp: number,
+  latestTimestamp: number,
   template = "USPSA",
 ): Promise<(Match & AlgoliaMatchNumericFilters)[]> => {
-  console.log(`fetching since ${timestamp}`);
+  console.log(`fetching up until ${latestTimestamp}`);
   const {
     results: [{ hits }],
   } = await (
@@ -110,7 +110,7 @@ const fetchMatchesRangeByTimestamp = async (
           {
             indexName: "postmatches",
             params: `hitsPerPage=${MATCHES_PER_FETCH}&query=&numericFilters=${encodeURIComponent(
-              `timestamp_utc_updated > ${timestamp}`,
+              `timestamp_utc_updated < ${latestTimestamp}`,
             )}&facetFilters=${filtersForTemplate(template)}`,
           },
         ],
@@ -155,23 +155,29 @@ const fetchMoreMatches = async (startId = 220000, template, onPageCallback) => {
 /**
  * @param startDate match updated date to start with
  */
-const fetchMoreMatchesByTimestamp = async (startTimestamp, template, onPageCallback) => {
+export const fetchMoreMatchesByTimestamp = async (
+  startTimestamp,
+  template,
+  onPageCallback,
+) => {
   let resultsCount = 0;
 
-  let lastResults: (Match & AlgoliaMatchNumericFilters)[] = [];
-  let curTimestamp = startTimestamp;
+  let lastFetchResults: (Match & AlgoliaMatchNumericFilters)[] = [];
+  let curTimestamp = 8640_000_000_000_000 / 1000; // max valid js date / 1000 (for algolia, which uses seconds timestamps)
   do {
-    lastResults = (await fetchMatchesRangeByTimestamp(curTimestamp, template)).sort(
-      (a, b) => b.timestamp_utc_updated - a.timestamp_utc_updated,
+    lastFetchResults = (await fetchMatchesRangeByTimestamp(curTimestamp, template)).sort(
+      (a, b) => a.timestamp_utc_updated - b.timestamp_utc_updated,
     );
     process.stdout.write(".");
+    const earliestFetchedTimestamp = lastFetchResults[0]?.timestamp_utc_updated;
+    curTimestamp = earliestFetchedTimestamp || startTimestamp + 1;
 
-    curTimestamp =
-      lastResults[0]?.timestamp_utc_updated || Math.floor(new Date().getTime() / 1000);
-
-    resultsCount += lastResults.length;
-    await onPageCallback(lastResults);
-  } while (lastResults.length > 0);
+    const lastInTheTimeWindowResults = lastFetchResults.filter(
+      c => c.timestamp_utc_updated >= startTimestamp,
+    );
+    resultsCount += lastInTheTimeWindowResults.length;
+    await onPageCallback(lastInTheTimeWindowResults);
+  } while (curTimestamp > startTimestamp && lastFetchResults.length > 0);
 
   return resultsCount;
 };
@@ -215,7 +221,7 @@ export const fetchAndSaveMoreMatchesByUpdatedDate = async () => {
     })}`,
   );
   return fetchMoreMatchesByTimestamp(
-    Math.floor((lastMatch?.updated || new Date()).getTime() / 1000),
+    Math.floor((lastMatch?.updated || new Date()).getTime() / 1000 + 1),
     "",
     async matches =>
       Matches.bulkWrite(
