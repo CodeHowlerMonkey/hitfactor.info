@@ -9,11 +9,12 @@ import {
   uspsaDivShortNames,
 } from "../../../shared/constants/divisions";
 import { UTCDate } from "../../../shared/utils/date";
-import { curHHFFor, curHHFForDivisionClassifier } from "../dataUtil/hhf";
+import { curHHFForDivisionClassifier } from "../dataUtil/hhf";
 import { N, Percent, PositiveOrMinus1 } from "../dataUtil/numbers";
 import { processImportAsyncSeq } from "../utils";
 
 export interface Score {
+  upload?: string;
   classifier: string;
   sd: Date;
   clubid?: string;
@@ -58,13 +59,14 @@ export interface RecHHF {
   recHHF: number;
 }
 
-interface ScoreVirtuals {
+export interface ScoreVirtuals {
   HHFs: RecHHF[];
   curHHF: number;
   recHHF: number;
   hfuHF: number;
   isMajor: boolean;
   curPercent: number;
+  recPercent: number;
 }
 
 type ScoreModel = Model<Score, object, ScoreVirtuals>;
