@@ -96,6 +96,22 @@ const fetchMatchesRange = async (
   }));
 };
 
+export const matchFromMatchDef = h => {
+  const updated = new Date(`${h.match_modifieddate}Z`);
+  return {
+    updated,
+    created: new Date(`${h.match_creationdate}Z`),
+    id: Number.parseInt(h.match_id.split("-").reverse()[0], 16),
+    name: h.match_name,
+    uuid: h.match_id,
+    date: h.match_date,
+    timestamp_utc_updated: updated.getTime(),
+    type: h.match_type,
+    subType: h.match_subtype,
+    templateName: h.templateName,
+  };
+};
+
 const fetchMatchesRangeByTimestamp = async (
   latestTimestamp: number,
   template = "USPSA",
