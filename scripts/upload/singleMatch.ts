@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 import { connect } from "../../api/src/db/index";
-import { matchFromMatchDef } from "../../api/src/db/matches";
+import { Matches, matchFromMatchDef } from "../../api/src/db/matches";
 import { fetchPS } from "../../api/src/worker/uploads";
 
 const go = async () => {
@@ -13,9 +13,24 @@ const go = async () => {
   const { matchDef, scores, results } = await fetchPS(matchUUID);
   const match = matchFromMatchDef(matchDef);
   console.log(JSON.stringify(match, null, 2));
+  await connect();
+  if (!match?.name) {
+    console.error("bad match");
+    process.exit(1);
+  }
+  await Matches.bulkWrite([
+    {
+      updateOne: {
+        filter: {
+          uuid: match.uuid,
+        },
+        update: { $set: match },
+        upsert: true,
+      },
+    },
+  ]);
 
-  //await connect();
-
+  console.log("done");
   process.exit(0);
 };
 

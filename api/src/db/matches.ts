@@ -22,6 +22,17 @@ interface AlgoliaMatchNumericFilters {
   timestamp_utc_updated: number;
 }
 
+export interface MatchDef {
+  match_id: string;
+  match_name: string;
+  match_type: string;
+  match_subtype: string;
+  match_creationdate: string;
+  match_modifieddate: string;
+  match_date: string; // 2024-12-31 format
+  templateName: string;
+}
+
 const MatchesSchema = new mongoose.Schema<Match>(
   {
     updated: Date,
@@ -96,7 +107,10 @@ const fetchMatchesRange = async (
   }));
 };
 
-export const matchFromMatchDef = h => {
+export const matchFromMatchDef = (h: MatchDef): Match & AlgoliaMatchNumericFilters => {
+  if (!h) {
+    return h;
+  }
   const updated = new Date(`${h.match_modifieddate}Z`);
   return {
     updated,
