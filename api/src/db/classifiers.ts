@@ -6,10 +6,11 @@ import mongoose, { Model } from "mongoose";
 import { stringSort } from "../../../shared/utils/sort";
 import { correlation } from "../../../shared/utils/weibull";
 import {
-  basicInfoForClassifier,
   classifiers as _classifiers,
-  classifiersByNumber,
   ClassifierJSON,
+  basicInfoForClassifierNumber,
+  ClassifierBasicInfo,
+  Scoring,
 } from "../dataUtil/classifiersData";
 import {
   divisionsForScoresAdapter,
@@ -100,16 +101,17 @@ const extendedInfoForClassifier = (
   c: ClassifierJSON,
   division: string,
   hitFactorScores: Score[],
+  classifiersOnly?: boolean,
 ) => {
   if (!division || !c?.id) {
     return {};
   }
   const divisionHHFs = hhfsForDivision(division);
-  if (!divisionHHFs) {
+  if (!divisionHHFs && classifiersOnly) {
     return {};
   }
-  const curHHFInfo = divisionHHFs.find(dHHF => dHHF.classifier === c.id);
-  const hhf = Number(curHHFInfo?.hhf);
+  const curHHFInfo = divisionHHFs?.find(dHHF => dHHF.classifier === c.id);
+  const hhf = Number(curHHFInfo?.hhf) || -1;
 
   const topXPercentileStats = x => ({
     [`top${x}PercentilePercent`]:
@@ -224,6 +226,7 @@ const ClassifierSchema = new mongoose.Schema<
 
 const WORST_QUALITY_DISTANCE_FROM_TARGET = 100;
 const scoresCountOffset = runsCount => {
+  return 0;
   if (runsCount < 200) {
     return -40;
   } else if (runsCount < 400) {
@@ -297,14 +300,33 @@ ClassifierSchema.index({ classifier: 1, division: 1 }, { unique: true });
 ClassifierSchema.index({ division: 1 });
 export const Classifiers = mongoose.model("Classifiers", ClassifierSchema);
 
+export interface StageInfo {
+  code: string; // aka classifierCode/classifierNumber
+  number: number; // 1, 2, 3, etc
+  name: string;
+  scoring: Scoring;
+}
+
+const basicInfoForStage = (stageClassifierCode: string): ClassifierBasicInfo => ({
+  id: stageClassifierCode,
+  code: stageClassifierCode,
+  classifier: stageClassifierCode,
+  name: stageClassifierCode.split(".")[1],
+  scoring: "",
+});
+
 export const singleClassifierExtendedMetaDoc = async (
   division: string,
   classifier: string,
   recHHFReady?: RecHHF,
+  classifiersOnly?: boolean,
 ) => {
-  const c = classifiersByNumber[classifier];
-  const basicInfo = basicInfoForClassifier(c);
+  const basicInfo = classifiersOnly
+    ? basicInfoForClassifierNumber(classifier)
+    : basicInfoForStage(classifier);
+
   if (!basicInfo?.code) {
+    console.log(classifier);
     return null;
   }
   const [recHHFQuery, hitFactorScoresRaw] = await Promise.all([
@@ -370,7 +392,7 @@ export const singleClassifierExtendedMetaDoc = async (
   return {
     division,
     ...basicInfo,
-    ...extendedInfoForClassifier(c, division, hitFactorScores),
+    ...extendedInfoForClassifier(basicInfo, division, hitFactorScores, classifiersOnly),
     eloRuns: eloCorrelationScores.length,
     recHHF,
     ...inverseRecPercentileStats(100),
@@ -491,8 +513,14 @@ export const rehydrateSingleClassifier = async (
   classifier: string,
   division: string,
   recHHF?: RecHHF,
+  onlyActualClassifiers: boolean = true,
 ) => {
-  const doc = await singleClassifierExtendedMetaDoc(division, classifier, recHHF);
+  const doc = await singleClassifierExtendedMetaDoc(
+    division,
+    classifier,
+    recHHF,
+    onlyActualClassifiers,
+  );
   if (doc) {
     return Classifiers.updateOne(
       { division, classifier },
@@ -505,7 +533,10 @@ export const rehydrateSingleClassifier = async (
 };
 
 // linear rehydration to prevent OOMs on uploader and mongod
-export const rehydrateClassifiers = async (classifiers: ClassifierDivision[]) => {
+export const rehydrateClassifiers = async (
+  classifiers: ClassifierDivision[],
+  onlyActualClassifiers: boolean = true,
+) => {
   const recHHFs = await RecHHFs.find({
     classifierDivision: {
       $in: classifiers.map(c => [c.classifier, c.division].join(":")),
@@ -524,6 +555,7 @@ export const rehydrateClassifiers = async (classifiers: ClassifierDivision[]) =>
       classifier,
       division,
       recHHFsByClassifierDivision[[classifier, division].join(":")],
+      onlyActualClassifiers,
     );
   }
 };

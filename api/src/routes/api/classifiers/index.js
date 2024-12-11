@@ -192,11 +192,6 @@ const classifiersRoutes = async fastify => {
     const { division, number } = req.params;
     const c = classifiers.find(cur => cur.classifier === number);
 
-    if (!c) {
-      res.statusCode = 404;
-      return { info: null };
-    }
-
     const basic = basicInfoForClassifier(c);
     const [extended, recHHFInfo, totalScores] = await Promise.all([
       Classifiers.findOne({ division, classifier: number }).lean(),
@@ -304,6 +299,7 @@ const classifiersRoutes = async fastify => {
       {
         $addFields: {
           recHHF: _getRecHHFField("recHHF"),
+          name: _getShooterField("name"),
         },
       },
       {
@@ -378,7 +374,7 @@ const classifiersRoutes = async fastify => {
       ...run,
       x: HF(run.hf),
       y: PositiveOrMinus1(Percent(index, allRuns.length)),
-      memberNumber: run.memberNumber || "",
+      memberNumber: run.memberNumber || run.name || "",
       curPercent: run.curPercent || 0,
       curHHFPercent: run.curHHFPercent || 0,
       recPercent: run.recPercent || 0,

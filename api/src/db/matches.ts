@@ -66,6 +66,17 @@ export interface MatchDef {
   templateName: string;
 }
 
+export interface MatchDef {
+  match_id: string;
+  match_name: string;
+  match_type: string;
+  match_subtype: string;
+  match_creationdate: string;
+  match_modifieddate: string;
+  match_date: string; // 2024-12-31 format
+  templateName: string;
+}
+
 const MatchesSchema = new mongoose.Schema<Match>(
   {
     updated: Date,

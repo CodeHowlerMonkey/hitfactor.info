@@ -16,7 +16,6 @@ import {
   hfuDivisionCompatabilityMap,
   hfuDivisionsShortNamesThatNeedMinorHF,
   mapDivisions,
-  uspsaDivShortNames,
 } from "../dataUtil/divisions";
 import { eloPointForShooter } from "../dataUtil/elo";
 import { psClassUpdatesByMemberNumber } from "../dataUtil/uspsa";
@@ -575,12 +574,6 @@ export const reclassifyShooters = async shooters => {
       ]);
 
     const updates = shooters
-      .filter(
-        ({ memberNumber, division }) =>
-          // TODO: Implement Reclassify Shooters for SCSA
-          // https://github.com/CodeHowlerMonkey/hitfactor.info/issues/69
-          memberNumber && uspsaDivShortNames.find(x => x === division),
-      )
       .map(({ memberNumber, division, name }) => {
         if (!memberNumber) {
           return [];

@@ -7,7 +7,7 @@ export interface HHFJSON {
   id: string;
   classifier: string; // number id of classifier in classifers.json
   hhf: string; // number in toFixed(4)
-  updated: string; // e.g. "2022-03-01 21:39:39"
+  updated?: string; // date in "2022-03-01 21:39:39" format
 }
 
 /**

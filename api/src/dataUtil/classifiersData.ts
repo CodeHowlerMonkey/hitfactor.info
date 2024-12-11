@@ -3,7 +3,8 @@ import { HHFJSON } from "../../../data/types/USPSA";
 
 export type USPSAScoring = "Virginia" | "Comstock" | "Fixed Time";
 export type SCSAScoring = "Time Plus";
-export type Scoring = USPSAScoring | SCSAScoring;
+export type NAScoring = "";
+export type Scoring = USPSAScoring | SCSAScoring | NAScoring;
 
 export interface ClassifierJSON {
   id: string;
@@ -33,6 +34,10 @@ export const basicInfoForClassifier = (c: ClassifierJSON): ClassifierBasicInfo =
   name: c?.name,
   scoring: c?.scoring,
 });
+
+export const basicInfoForClassifierNumber = (
+  classifierCode: string,
+): ClassifierBasicInfo => basicInfoForClassifier(classifiersByNumber[classifierCode]);
 
 export const basicInfoForClassifierCode = (
   classifierCode: string,

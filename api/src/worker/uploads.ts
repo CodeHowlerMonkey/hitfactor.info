@@ -34,9 +34,9 @@ import { AfterUploadShooters, type AfterUploadShooter } from "../db/afterUploadS
 import { rehydrateClassifiers } from "../db/classifiers";
 import { DQs } from "../db/dq";
 import { connect } from "../db/index";
-import { Matches } from "../db/matches";
+import { Match, MatchDef, Matches } from "../db/matches";
 import { hydrateRecHHFsForClassifiers } from "../db/recHHF";
-import { Scores } from "../db/scores";
+import { Score, Scores } from "../db/scores";
 import { reclassifyShooters } from "../db/shooters";
 import { hydrateStats } from "../db/stats";
 
@@ -212,7 +212,7 @@ const scsaMatchInfo = async matchInfo => {
     skipResults: true,
   });
   if (!match || !scoresJson) {
-    return EmptyMatchResultsFactory();
+    return EmptySingleMatchResultFactory(match);
   }
   /*
     match_penalties Structure:
@@ -382,24 +382,53 @@ const scsaMatchInfo = async matchInfo => {
     return { scores, match, results: [] };
   } catch (e) {}
 
-  return EmptyMatchResultsFactory();
+  return EmptySingleMatchResultFactory(match);
 };
 
-export const uspsaOrHitFactorMatchInfo = async matchInfo => {
-  const { uuid } = matchInfo;
-  const { matchDef: match, results, scores: scoresJson } = await fetchPS(uuid);
+const badCharsRegExp = /[\s:\t.,\-_+=!?']/gi;
+const memberNumberFromMatchDefShooter = (s, mustHaveMemberNumbers) => {
+  if (mustHaveMemberNumbers) {
+    return s.sh_id;
+  }
+
+  return s.sh_id || [s.sh_fn, s.sh_ln].join("").replace(badCharsRegExp, "").toUpperCase();
+};
+
+const classifierCodeFromMatchDefStage = (s, onlyActualClassifiers) => {
+  if (onlyActualClassifiers) {
+    return normalizeClassifierCode(s.stage_classifiercode);
+  }
+
+  return `${s.stage_number || ""}.${s.stage_name.replace(badCharsRegExp, "").toUpperCase()}`;
+};
+
+export const hitFactorLikeMatchInfo = (
+  matchInfo: Match,
+  s3MatchFiles,
+  onlyClassifiers: boolean = true,
+  mustHaveMemberNumbers: boolean = true,
+): { match: MatchDef; results: unknown; scores: Score[] } => {
+  const { matchDef: match, results, scores: scoresJson } = s3MatchFiles;
   if (!match || !results || !scoresJson) {
-    return EmptyMatchResultsFactory();
+    return EmptySingleMatchResultFactory(match);
   }
   const { match_shooters, match_stages } = match;
-  const shootersMap = Object.fromEntries(match_shooters.map(s => [s.sh_uuid, s.sh_id]));
+  const shootersMap = Object.fromEntries(
+    match_shooters.map(s => [
+      s.sh_uuid,
+      memberNumberFromMatchDefShooter(s, mustHaveMemberNumbers),
+    ]),
+  );
   match.memberNumberToNamesMap = Object.fromEntries(
-    match_shooters.map(s => [s.sh_id, [s.sh_fn, s.sh_ln].filter(Boolean).join(" ")]),
+    match_shooters.map(s => [
+      memberNumberFromMatchDefShooter(s, mustHaveMemberNumbers),
+      [s.sh_fn, s.sh_ln].filter(Boolean).join(" "),
+    ]),
   );
   const classifiersMap = Object.fromEntries(
     match_stages
-      .filter(s => !!s.stage_classifiercode)
-      .map(s => [s.stage_uuid, normalizeClassifierCode(s.stage_classifiercode)]),
+      .filter(s => !onlyClassifiers || !!s.stage_classifiercode)
+      .map(s => [s.stage_uuid, classifierCodeFromMatchDefStage(s, onlyClassifiers)]),
   );
   const classifierUUIDs = Object.keys(classifiersMap);
   const classifierResults = results.filter(r => classifierUUIDs.includes(r.stageUUID));
@@ -467,7 +496,7 @@ export const uspsaOrHitFactorMatchInfo = async matchInfo => {
           memberNumber,
           classifier,
           division,
-          upload: uuid,
+          upload: match.match_id,
           clubid: match.match_clubcode,
           club_name: match.match_clubname || match.match_name,
           matchName: match.match_name,
@@ -497,6 +526,26 @@ export const uspsaOrHitFactorMatchInfo = async matchInfo => {
   return { scores, match, results };
 };
 
+export const uspsaOrHitFactorMatchInfo = async matchInfo => {
+  const { uuid } = matchInfo;
+  const s3MatchFiles = await fetchPS(uuid);
+  return hitFactorLikeMatchInfo(matchInfo, s3MatchFiles);
+};
+
+export const pcslNatsMatchInfo = async matchInfo => {
+  const { uuid } = matchInfo;
+  const s3MatchFiles = await fetchPS(uuid);
+  const result = hitFactorLikeMatchInfo(matchInfo, s3MatchFiles, false, false);
+  return {
+    ...result,
+    match: {
+      ...result.match,
+      templateName: matchInfo.templateName,
+    },
+  };
+};
+
+const EmptySingleMatchResultFactory = match => ({ scores: [], match, results: [] });
 const EmptyMatchResultsFactory = () => ({ scores: [], matches: [], results: [] });
 
 const uploadResultsForMatches = async matches => {
@@ -505,6 +554,9 @@ const uploadResultsForMatches = async matches => {
       switch (match.templateName) {
         case "Steel Challenge":
           return scsaMatchInfo(match);
+
+        case "PCSLNats":
+          return pcslNatsMatchInfo(match);
 
         case "USPSA":
         case "Hit Factor":
@@ -557,7 +609,10 @@ export const processUploadResults = async ({ uploadResults }) => {
           }
 
           acc.push({
-            memberNumber: shooter.sh_id,
+            memberNumber: memberNumberFromMatchDefShooter(
+              shooter,
+              match.templateName !== "PCSLNats",
+            ),
             lastName: shooter.sh_ln,
             firstName: shooter.sh_fn,
             division: shooter.sh_dvp,
@@ -571,6 +626,7 @@ export const processUploadResults = async ({ uploadResults }) => {
         });
         return acc;
       }, []);
+
       await DQs.bulkWrite(
         dqDocs.map(dq => ({
           updateOne: {
@@ -746,7 +802,7 @@ export const dqNames = async () => {
   console.log(JSON.stringify(dqs, null, 2));
 };
 
-const metaClassifiersLoop = async (batchSize = 8) => {
+const metaClassifiersLoop = async (batchSize = 8, onlyActualClassifiers = false) => {
   const totalCount = await AfterUploadClassifiers.countDocuments({});
   console.log(`${totalCount} classifiers to update`);
 
@@ -759,7 +815,7 @@ const metaClassifiersLoop = async (batchSize = 8) => {
     }
 
     await hydrateRecHHFsForClassifiers(classifiers);
-    await rehydrateClassifiers(classifiers);
+    await rehydrateClassifiers(classifiers, onlyActualClassifiers);
     await AfterUploadClassifiers.deleteMany({
       _id: { $in: classifiers.map(c => c._id) },
     });
@@ -796,7 +852,11 @@ const metaShootersLoop = async (batchSize = 8) => {
   }
 };
 
-export const metaLoop = async (curTry = 1, maxTries = 3) => {
+export const metaLoop = async (
+  onlyActualClassifiers = true,
+  curTry = 1,
+  maxTries = 3,
+) => {
   try {
     await metaClassifiersLoop();
     await metaShootersLoop();
@@ -804,7 +864,7 @@ export const metaLoop = async (curTry = 1, maxTries = 3) => {
   } catch (err) {
     console.error(err);
     if (curTry < maxTries) {
-      return metaLoop(curTry + 1, maxTries);
+      return metaLoop(onlyActualClassifiers, curTry + 1, maxTries);
     }
   }
 };
