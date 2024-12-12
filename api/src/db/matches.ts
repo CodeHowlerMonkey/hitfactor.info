@@ -107,7 +107,10 @@ const fetchMatchesRange = async (
   }));
 };
 
-export const matchFromMatchDef = (h: MatchDef): Match & AlgoliaMatchNumericFilters => {
+export const matchFromMatchDef = (
+  h: MatchDef,
+  forcedTemplateName?: string,
+): Match & AlgoliaMatchNumericFilters => {
   if (!h) {
     return h;
   }
@@ -122,7 +125,7 @@ export const matchFromMatchDef = (h: MatchDef): Match & AlgoliaMatchNumericFilte
     timestamp_utc_updated: updated.getTime(),
     type: h.match_type,
     subType: h.match_subtype,
-    templateName: h.templateName,
+    templateName: forcedTemplateName || h.templateName,
   };
 };
 
