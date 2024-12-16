@@ -293,6 +293,8 @@ export const divisionsForRecHHFAdapter = division => {
 export const allDivShortNames = [
   ...uspsaDivShortNames,
   ...hfuDivisionsShortNames,
+  "practical",
+  "competition",
   // TODO: pcsl
   // TODO: scsa
 ];

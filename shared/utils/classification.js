@@ -138,6 +138,8 @@ const windowSizeForScore = windowSize => {
   return 6;
 };
 
+const cappedScoreFunc = score => Math.min(100, score);
+const uncappedScoreFunc = score => score;
 const ageForDate = (now, sd) => (now - new Date(sd)) / (28 * 24 * 60 * 60 * 1000);
 export const percentAndAgesForDivWindow = (
   div,
@@ -145,13 +147,16 @@ export const percentAndAgesForDivWindow = (
   percentField = "percent",
   now = new Date(),
 ) => {
+  const isRecMode = percentField === "recPercent";
   //de-dupe needs to be done in reverse, because percent are sorted asc
   let window = state[div].window;
-  if (percentField !== "recPercent") {
+  if (!isRecMode) {
     // don't use best dupe for recommended, only most recent one
     window = window.toSorted((a, b) => numSort(a, b, percentField, -1));
   }
   const dFlagsApplied = uniqBy(window, c => c.classifier);
+
+  const scoreFunc = isRecMode ? uncappedScoreFunc : cappedScoreFunc;
 
   // remove lowest 2
   const newLength = windowSizeForScore(dFlagsApplied.length);
@@ -160,7 +165,7 @@ export const percentAndAgesForDivWindow = (
     .slice(0, newLength);
   const percent = fFlagsApplied.reduce(
     (acc, curValue, curIndex, allInWindow) =>
-      acc + Math.min(100, curValue[percentField]) / allInWindow.length,
+      acc + scoreFunc(curValue[percentField]) / allInWindow.length,
     0,
   );
 

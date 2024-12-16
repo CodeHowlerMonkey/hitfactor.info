@@ -12,7 +12,6 @@ import {
   hfuDivisionCompatabilityMap,
   hfuDivisionsShortNamesThatNeedMinorHF,
   mapDivisions,
-  uspsaDivShortNames,
 } from "../dataUtil/divisions";
 import { psClassUpdatesByMemberNumber } from "../dataUtil/uspsa";
 import { loadJSON, processImportAsyncSeq } from "../utils";
@@ -483,18 +482,13 @@ export const reclassifyShooters = async shooters => {
       ]);
 
     const updates = shooters
-      .filter(
-        ({ memberNumber, division }) =>
-          // TODO: Implement Reclassify Shooters for SCSA
-          // https://github.com/CodeHowlerMonkey/hitfactor.info/issues/69
-          memberNumber && uspsaDivShortNames.find(x => x === division),
-      )
       .map(({ memberNumber, division, name }) => {
         if (!memberNumber) {
           return [];
         }
         const recMemberScores = recScoresByMemberNumber[memberNumber];
         const curMemberScores = curScoresByMemberNumber[memberNumber];
+        console.log(`${memberNumber}: ${recMemberScores.length} rec scores`);
         const recalcByCurPercent = calculateUSPSAClassification(
           curMemberScores,
           "curPercent",

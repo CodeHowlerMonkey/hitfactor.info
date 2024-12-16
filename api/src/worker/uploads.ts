@@ -384,17 +384,17 @@ const scsaMatchInfo = async matchInfo => {
   return EmptySingleMatchResultFactory(match);
 };
 
-const badCharsRegExp = /[:\s\t.,\-_+=!?]/gi;
+const badCharsRegExp = /[:\t.,\-_+=!?]/gi;
 const memberNumberFromMatchDefShooter = (s, mustHaveMemberNumbers) => {
   if (mustHaveMemberNumbers) {
     return s.sh_id;
   }
 
-  return s.sh_id || [s.sh_fn, s.sh_ln].join("").replace(badCharsRegExp, "");
+  return s.sh_id || [s.sh_fn, s.sh_ln].join("").replace(badCharsRegExp, "").toUpperCase();
 };
 
-const classifierCodeFromMatchDefStage = (s, onlyClassifiers) => {
-  if (onlyClassifiers) {
+const classifierCodeFromMatchDefStage = (s, onlyActualClassifiers) => {
+  if (onlyActualClassifiers) {
     return s.classifiercode;
   }
 
@@ -801,7 +801,7 @@ export const dqNames = async () => {
   console.log(JSON.stringify(dqs, null, 2));
 };
 
-const metaClassifiersLoop = async (batchSize = 8) => {
+const metaClassifiersLoop = async (batchSize = 8, onlyActualClassifiers = false) => {
   const totalCount = await AfterUploadClassifiers.countDocuments({});
   console.log(`${totalCount} classifiers to update`);
 
@@ -814,7 +814,7 @@ const metaClassifiersLoop = async (batchSize = 8) => {
     }
 
     await hydrateRecHHFsForClassifiers(classifiers);
-    await rehydrateClassifiers(classifiers);
+    await rehydrateClassifiers(classifiers, onlyActualClassifiers);
     await AfterUploadClassifiers.deleteMany({
       _id: { $in: classifiers.map(c => c._id) },
     });
@@ -851,7 +851,11 @@ const metaShootersLoop = async (batchSize = 8) => {
   }
 };
 
-export const metaLoop = async (curTry = 1, maxTries = 3) => {
+export const metaLoop = async (
+  onlyActualClassifiers = true,
+  curTry = 1,
+  maxTries = 3,
+) => {
   try {
     await metaClassifiersLoop();
     await metaShootersLoop();
@@ -859,7 +863,7 @@ export const metaLoop = async (curTry = 1, maxTries = 3) => {
   } catch (err) {
     console.error(err);
     if (curTry < maxTries) {
-      return metaLoop(curTry + 1, maxTries);
+      return metaLoop(onlyActualClassifiers, curTry + 1, maxTries);
     }
   }
 };

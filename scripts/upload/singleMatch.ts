@@ -3,6 +3,7 @@ import { connect } from "../../api/src/db/index";
 import { Matches, matchFromMatchDef } from "../../api/src/db/matches";
 import {
   fetchPS,
+  metaLoop,
   // hitFactorLikeMatchInfo,
   uploadMatches,
 } from "../../api/src/worker/uploads";
@@ -41,7 +42,22 @@ const go = async () => {
   */
 
   const upload = await uploadMatches({ matches: [match] });
-  //console.log(JSON.stringify(upload, null, 2));
+  console.log(JSON.stringify(upload, null, 2));
+  await Matches.bulkWrite(
+    [match].map(m => ({
+      updateOne: {
+        filter: { uuid: m.uuid },
+        update: {
+          $set: {
+            uploaded: new Date(),
+            hasScores: true,
+          },
+        },
+      },
+    })),
+  );
+  console.error("marked match as uploaded");
+  await metaLoop(false);
 
   console.error("done");
   process.exit(0);
