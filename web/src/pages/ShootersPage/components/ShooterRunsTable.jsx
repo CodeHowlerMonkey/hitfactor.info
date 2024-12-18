@@ -74,7 +74,6 @@ const ShooterRunsTable = ({
             code: c.classifier,
           },
         }))}
-        tableStyle={{ minWidth: "50rem" }}
         /*
     {...sortProps}
     {...pageProps}
@@ -95,7 +94,6 @@ const ShooterRunsTable = ({
           field="sdUnix"
           header="Date"
           sortable
-          style={{ maxWidth: "4rem" }}
           body={run => {
             if (!run.whatIf) {
               return new Date(run.sd).toLocaleDateString("en-us", { timeZone: "UTC" });
@@ -120,7 +118,6 @@ const ShooterRunsTable = ({
           field="classifier"
           header="Classifier"
           sortable
-          bodyStyle={{ minWidth: "12rem" }}
           body={c =>
             c.whatIf ? (
               <ClassifierDropdown
