@@ -428,6 +428,9 @@ export const hitFactorLikeMatchInfo = (
     match_stages
       .filter(s => !onlyClassifiers || !!s.stage_classifiercode)
       .map(s => [s.stage_uuid, classifierCodeFromMatchDefStage(s, onlyClassifiers)]),
+    /*.filter(
+        ([uuid, stageCode]) => !["2", "3", "8", "9"].includes(stageCode.split(".")[0]),
+      ),*/
   );
   const classifierUUIDs = Object.keys(classifiersMap);
   const classifierResults = results.filter(r => classifierUUIDs.includes(r.stageUUID));
