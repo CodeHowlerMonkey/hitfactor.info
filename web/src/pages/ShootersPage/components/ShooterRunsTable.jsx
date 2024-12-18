@@ -62,14 +62,17 @@ const ShooterRunsTable = ({
       <ReportDialog type="Score" ref={reportDialogRef} />
       <DataTable
         className="text-xs md:text-base"
-        sortOrder={-1}
-        sortField="sdUnix"
+        sortOrder={1}
+        sortField="classifier"
         loading={loading}
         stripedRows
         /* lazy */
         value={(classifiers ?? []).map(c => ({
           ...c,
           sdUnix: new Date(c.sd).getTime(),
+          classifierInfo: {
+            code: c.classifier,
+          },
         }))}
         tableStyle={{ minWidth: "50rem" }}
         /*
@@ -92,6 +95,7 @@ const ShooterRunsTable = ({
           field="sdUnix"
           header="Date"
           sortable
+          style={{ maxWidth: "4rem" }}
           body={run => {
             if (!run.whatIf) {
               return new Date(run.sd).toLocaleDateString("en-us", { timeZone: "UTC" });
@@ -116,7 +120,7 @@ const ShooterRunsTable = ({
           field="classifier"
           header="Classifier"
           sortable
-          bodyStyle={{ width: "12rem" }}
+          bodyStyle={{ minWidth: "12rem" }}
           body={c =>
             c.whatIf ? (
               <ClassifierDropdown
@@ -159,59 +163,6 @@ const ShooterRunsTable = ({
           sortable
           headerTooltip="Recommended classifier percentage for this score."
           headerTooltipOptions={headerTooltipOptions}
-        />
-        <Column
-          hidden={isHFU}
-          body={renderPercent}
-          field="curPercent"
-          header="Cur. %"
-          sortable
-          headerTooltip="What classifier percentage this score would've earned if it was submitted today, with Current HHFs."
-          headerTooltipOptions={headerTooltipOptions}
-        />
-        <Column
-          hidden={isHFU}
-          body={c => {
-            if (c.percent > 0) {
-              return renderPercent(c, { field: "percent" });
-            }
-
-            return renderPercent(c, { field: "curPercent" });
-          }}
-          field="percent"
-          header="Percent"
-          sortable
-          headerTooltip="Classifier percentage for this score during the time that it was processed by USPSA. Maxes out at 100%."
-          headerTooltipOptions={headerTooltipOptions}
-        />
-        <Column
-          hidden={isHFU}
-          body={renderPercent}
-          field="percentMinusCurPercent"
-          header="Percent Change"
-          sortable
-          headerTooltip="Difference between calculated percent when run was submitted and what it would've been with current High Hit-Factor. \n Positive values mean classifier became harder, negative - easier."
-          headerTooltipOptions={headerTooltipOptions}
-        />
-        <Column hidden={isHFU} field="code" header="Flag" sortable />
-        <Column {...clubMatchColumn} />
-        <Column hidden={isHFU} field="source" header="Source" sortable />
-        <Column
-          body={c =>
-            !c.whatIf && !whatIf ? (
-              <ReportDialog.Button
-                onClick={() => reportDialogRef.current.startReport(c)}
-              />
-            ) : (
-              <Button
-                icon="pi pi-trash text-xs md:text-base text-red-400"
-                size="small"
-                style={{ width: "1em" }}
-                onClick={() => updateWhatIfs(c._id, { delete: true }, true)}
-                text
-              />
-            )
-          }
         />
         {/* TODO: <Column field="percentile" header="Percentile" sortable={false} /> */}
       </DataTable>

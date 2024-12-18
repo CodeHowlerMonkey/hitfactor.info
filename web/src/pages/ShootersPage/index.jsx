@@ -180,8 +180,8 @@ export const ShooterRunsAndInfo = ({ division, memberNumber, onBackToShooters })
             Shooters List
           </Button>
         )}
-        <h3 className={cx("m-auto mt-4", { "md:hidden": !isSCSA })}>
-          {[memberNumber, name, nameForDivision(division)].filter(Boolean).join(" - ")}
+        <h3 className={cx("m-auto mt-4")}>
+          {[name, nameForDivision(division)].filter(Boolean).join(" - ")}
         </h3>
       </div>
       {!isSCSA ? (
@@ -218,16 +218,6 @@ export const ShooterRunsAndInfo = ({ division, memberNumber, onBackToShooters })
               iconPos="left"
               icon="pi pi-refresh text-xs md:text-base"
               onClick={resetWhatIfs}
-            />
-          )}
-          {!isSCSA && (
-            <Button
-              className="px-2 my-3 text-xs md:text-sm"
-              label="What If"
-              size="small"
-              iconPos="left"
-              icon="pi pi-plus-circle text-xs md:text-base"
-              onClick={addWhatIf}
             />
           )}
         </div>

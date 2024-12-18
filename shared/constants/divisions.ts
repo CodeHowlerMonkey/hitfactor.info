@@ -84,7 +84,8 @@ export const hfuDivisionsShortNamesThatNeedMinorHF = ["comp", "irn"];
 export const nameForDivision = div =>
   uspsaDivShortToLong[div] ||
   hfuDivisions.find(d => d.short === div)?.long ||
-  scsaDivisions.find(d => d.short === div)?.long;
+  scsaDivisions.find(d => d.short === div)?.long ||
+  div[0].toUpperCase() + div.slice(1);
 
 export const sportForDivision = division => {
   if (hfuDivisionsShortNames.indexOf(division) >= 0) {

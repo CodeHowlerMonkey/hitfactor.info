@@ -111,6 +111,7 @@ const config = [
     label: "Upload",
     icon: "pi pi-upload",
     path: "/upload",
+    visible: false,
   },
   {
     className: "flex-grow-1",

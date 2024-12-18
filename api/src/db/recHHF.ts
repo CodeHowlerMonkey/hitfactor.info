@@ -424,7 +424,7 @@ const decidedHHFFunctions = {
 
   practical: {
     "1.GOLDCOUNTRY": r5, // or 15
-    "2.BELT": r5,
+    "2.BELT": r1,
     "3.HARDBASS": r5,
     "4.CROSSROADS": r5,
     "5.TRAPHOUSE": r5,

@@ -99,27 +99,8 @@ export const ScoresChart = ({ division, memberNumber }) => {
       }}
       data={{
         datasets: [
-          !isHFU && {
-            label: "Percent",
-            data: data.map(c => ({
-              ...c,
-              x: new Date(new Date(c.x).toLocaleDateString("en-us", { timeZone: "UTC" })),
-              y: c.percent,
-            })),
-            backgroundColor: "#ae9ef1",
-            borderColor: "#ca258a",
-          },
-          !isHFU && {
-            label: "Current Percent",
-            data: data.map(c => ({
-              ...c,
-              x: new Date(new Date(c.x).toLocaleDateString("en-us", { timeZone: "UTC" })),
-              y: c.curPercent,
-            })),
-            backgroundColor: "#b5ca25",
-          },
           {
-            label: isHFU ? "Percent" : "Rec. Percent",
+            label: "Percent",
             data: data.map(c => ({
               ...c,
               x: new Date(new Date(c.x).toLocaleDateString("en-us", { timeZone: "UTC" })),

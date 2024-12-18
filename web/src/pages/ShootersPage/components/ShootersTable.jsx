@@ -94,7 +94,7 @@ const ShootersTable = ({
         stripedRows
         lazy
         value={data ?? []}
-        tableStyle={{ minWidth: "50rem" }}
+        tableStyle={{ minWidth: "18rem" }}
         {...sortProps}
         {...pageProps}
         paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink"
@@ -156,35 +156,6 @@ const ShootersTable = ({
           headerTooltipOptions={headerTooltipOptions}
           sortable
           body={renderPercent}
-        />
-        <Column
-          hidden={isHFU}
-          field="reclassificationsCurPercentCurrent"
-          header="Cur."
-          headerTooltip="Current HHF classification percent of this shooter, if all their classifier scores would use the most recent HHFs. Major Matches results stay the same."
-          headerTooltipOptions={headerTooltipOptions}
-          sortable
-          body={renderPercent}
-        />
-        <Column
-          hidden={isHFU}
-          field="current"
-          header="HQ"
-          sortable
-          body={renderPercent}
-        />
-        <Column
-          field="age"
-          header="Age"
-          body={c => (c.age ? `${(c.age || 0).toFixed(1)}mo` : "—")}
-          sortable
-          headerTooltip="Average age in months of Y-flagged scores (classifiers & majors) of this shooter"
-          headerTooltipOptions={headerTooltipOptions}
-        />
-        <Column
-          body={c => (
-            <ReportDialog.Button onClick={() => reportDialogRef.current.startReport(c)} />
-          )}
         />
       </DataTable>
     </>
