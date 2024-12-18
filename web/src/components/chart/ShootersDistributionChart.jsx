@@ -77,11 +77,8 @@ export const ShootersDistributionChart = ({ division, style }) => {
           tooltip: {
             callbacks: {
               label: ({
-                raw: { recPercent, curHHFPercent, curPercent, memberNumber, y },
-              }) =>
-                `${memberNumber}; ${y.toFixed(
-                  2,
-                )}th, Rec: ${recPercent}%, curHHF: ${curHHFPercent}%, HQ: ${curPercent}%`,
+                raw: { recPercent, curHHFPercent, curPercent, memberNumber, y, name },
+              }) => `${name}; ${y.toFixed(2)}th, ${recPercent}%`,
             },
           },
           annotation: { annotations: lines },
@@ -110,30 +107,6 @@ export const ShootersDistributionChart = ({ division, style }) => {
 
   return (
     <div style={style}>
-      {!isHFU && (
-        <div className="flex mt-4 justify-content-around text-base lg:text-xl">
-          <div className="flex flex-row flex-wrap justify-content-center gap-2">
-            <span className="mx-4">Color:</span>
-            <SelectButton
-              className="compact"
-              allowEmpty={false}
-              options={modes}
-              value={colorMode}
-              onChange={e => setColorMode(e.value)}
-            />
-          </div>
-          <div className="flex flex-row flex-wrap justify-content-center gap-2">
-            <span className="mx-4">Position:</span>
-            <SelectButton
-              className="compact"
-              allowEmpty={false}
-              options={modes}
-              value={xMode}
-              onChange={e => setXMode(e.value)}
-            />
-          </div>
-        </div>
-      )}
       <div style={{ maxWidth: "100%", height: "calc(100vh - 420px)", minHeight: 360 }}>
         {graph}
       </div>

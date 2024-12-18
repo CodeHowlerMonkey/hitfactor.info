@@ -2,7 +2,7 @@
 import mongoose from "mongoose";
 
 import { ClassificationLetter } from "../../../data/types/USPSA";
-import { divShortNames, mapDivisions } from "../dataUtil/divisions";
+import { allDivShortNames, mapAllDivisions, mapDivisions } from "../dataUtil/divisions";
 
 import { Shooters } from "./shooters";
 
@@ -56,7 +56,7 @@ const addCurClassField = () => ({
 });
 
 export const statsByDivision = async (field: string) => {
-  const byDiv = mapDivisions(() => ({}));
+  const byDiv = mapAllDivisions(() => ({}));
   const dbResults = await Shooters.aggregate([
     addCurClassField(),
     {
@@ -77,7 +77,7 @@ export const statsByDivision = async (field: string) => {
   ]);
 
   dbResults.forEach(({ _id: [classLetter, division], count }) => {
-    if (!divShortNames.includes(division)) {
+    if (!allDivShortNames.includes(division)) {
       return;
     }
 

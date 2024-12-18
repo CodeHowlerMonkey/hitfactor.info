@@ -177,7 +177,8 @@ export const ClassificationsChart = ({
   );
 };
 
-const ModeSwitch = ({ mode, setMode, modes }) => (
+const ModeSwitch = () => null;
+export const ModeSwitchUnused = ({ mode, setMode, modes }) => (
   <div className="card flex justify-content-center mt-4 mb-2 text-xs md:text-sm">
     <SelectButton
       className="compact"
@@ -297,7 +298,7 @@ const Divisions = () => (
 
 // main "page" of this file
 export const StatsPage = () => {
-  const [mode, setMode] = useState(modes[0]);
+  const [mode, setMode] = useState(modes[3]);
   const modeSwitchProps = { modes, mode, setMode };
   const modeBucket = modeBucketForMode(mode);
   const [includeU, setChecked] = useState(false);
@@ -319,10 +320,6 @@ export const StatsPage = () => {
       <TabView panelContainerClassName="p-0 md:px-4">
         <TabPanel header="Pie Charts" className="p-0 text-sm md:text-base">
           <ModeSwitch {...modeSwitchProps} />
-          <div className="card flex justify-content-center m-0">
-            Include Unclassified
-            <Checkbox onChange={e => setChecked(e.checked)} checked={includeU} />
-          </div>
           <div>
             <Row height={400}>
               <div className="w-12 md:w-7 lg:w-5">
@@ -340,88 +337,21 @@ export const StatsPage = () => {
             <Row>
               <Column>
                 <ClassificationsChart
-                  division="opn"
+                  division="competition"
                   includeU={includeU}
                   apiData={apiData?.[modeBucket]}
-                  onClick={() => setSelectedDivision("opn")}
+                  onClick={() => setSelectedDivision("competition")}
                 />
-                Open
+                Competition
               </Column>
               <Column>
                 <ClassificationsChart
-                  division="co"
+                  division="practical"
                   includeU={includeU}
                   apiData={apiData?.[modeBucket]}
-                  onClick={() => setSelectedDivision("co")}
+                  onClick={() => setSelectedDivision("practical")}
                 />
-                Carry Optics
-              </Column>
-              <Column>
-                <ClassificationsChart
-                  division="lo"
-                  includeU={includeU}
-                  apiData={apiData?.[modeBucket]}
-                  onClick={() => setSelectedDivision("lo")}
-                />
-                Limited Optics
-              </Column>
-            </Row>
-            <Row>
-              <Column>
-                <ClassificationsChart
-                  division="pcc"
-                  includeU={includeU}
-                  apiData={apiData?.[modeBucket]}
-                  onClick={() => setSelectedDivision("pcc")}
-                />
-                PCC
-              </Column>
-              <Column>
-                <ClassificationsChart
-                  division="ltd"
-                  includeU={includeU}
-                  apiData={apiData?.[modeBucket]}
-                  onClick={() => setSelectedDivision("ltd")}
-                />
-                Limited
-              </Column>
-              <Column>
-                <ClassificationsChart
-                  division="l10"
-                  includeU={includeU}
-                  apiData={apiData?.[modeBucket]}
-                  onClick={() => setSelectedDivision("l10")}
-                />
-                Limited 10
-              </Column>
-            </Row>
-            <Row>
-              <Column>
-                <ClassificationsChart
-                  division="prod"
-                  includeU={includeU}
-                  apiData={apiData?.[modeBucket]}
-                  onClick={() => setSelectedDivision("prod")}
-                />
-                Production
-              </Column>
-              <Column>
-                <ClassificationsChart
-                  division="ss"
-                  includeU={includeU}
-                  apiData={apiData?.[modeBucket]}
-                  onClick={() => setSelectedDivision("ss")}
-                />
-                Single Stack
-              </Column>
-              <Column>
-                <ClassificationsChart
-                  division="rev"
-                  includeU={includeU}
-                  apiData={apiData?.[modeBucket]}
-                  onClick={() => setSelectedDivision("rev")}
-                />
-                Revolver
+                Practical
               </Column>
             </Row>
           </div>
@@ -449,7 +379,7 @@ export const StatsPage = () => {
               </Row>
               <Row>
                 <ClassificationsChart
-                  division="opn"
+                  division="competition"
                   apiData={apiData?.[modeBucket]}
                   bar
                   alignBy={alignBy}
@@ -457,63 +387,7 @@ export const StatsPage = () => {
               </Row>
               <Row>
                 <ClassificationsChart
-                  division="co"
-                  apiData={apiData?.[modeBucket]}
-                  bar
-                  alignBy={alignBy}
-                />
-              </Row>
-              <Row>
-                <ClassificationsChart
-                  division="lo"
-                  apiData={apiData?.[modeBucket]}
-                  bar
-                  alignBy={alignBy}
-                />
-              </Row>
-              <Row>
-                <ClassificationsChart
-                  division="pcc"
-                  apiData={apiData?.[modeBucket]}
-                  bar
-                  alignBy={alignBy}
-                />
-              </Row>
-              <Row>
-                <ClassificationsChart
-                  division="ltd"
-                  apiData={apiData?.[modeBucket]}
-                  bar
-                  alignBy={alignBy}
-                />
-              </Row>
-              <Row>
-                <ClassificationsChart
-                  division="l10"
-                  apiData={apiData?.[modeBucket]}
-                  bar
-                  alignBy={alignBy}
-                />
-              </Row>
-              <Row>
-                <ClassificationsChart
-                  division="prod"
-                  apiData={apiData?.[modeBucket]}
-                  bar
-                  alignBy={alignBy}
-                />
-              </Row>
-              <Row>
-                <ClassificationsChart
-                  division="ss"
-                  apiData={apiData?.[modeBucket]}
-                  bar
-                  alignBy={alignBy}
-                />
-              </Row>
-              <Row>
-                <ClassificationsChart
-                  division="rev"
+                  division="practical"
                   apiData={apiData?.[modeBucket]}
                   bar
                   alignBy={alignBy}
@@ -531,17 +405,8 @@ export const StatsPage = () => {
             />
           </div>
         </TabPanel>
-        <TabPanel header="Inconsistencies" className="p-0 text-sm md:text-base">
-          <Inconsistencies />
-        </TabPanel>
         <TabPanel header="Distribution" className="p-0 text-sm md:text-base">
           <Distribution />
-        </TabPanel>
-        <TabPanel header="Divisions" className="p-0 text-sm md:text-base">
-          <Divisions />
-        </TabPanel>
-        <TabPanel header="Activity" className="p-0 text-sm md:text-base">
-          <Activity />
         </TabPanel>
       </TabView>
     </div>

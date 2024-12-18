@@ -146,10 +146,8 @@ const shootersRoutes = async fastify => {
 
   fastify.get("/:division/chart", async req => {
     const { division } = req.params;
-    const sport = sportForDivision(division);
     const shootersTable = await Shooters.find({
       division,
-      ...(sport !== "hfu" ? { current: { $gt: 0 } } : {}),
       reclassificationsRecPercentCurrent: { $gt: 0 },
     })
       .select([
@@ -157,6 +155,7 @@ const shootersRoutes = async fastify => {
         "reclassificationsCurPercentCurrent",
         "reclassificationsRecPercentCurrent",
         "memberNumber",
+        "name",
       ])
       .lean()
       .limit(0);
@@ -167,16 +166,7 @@ const shootersRoutes = async fastify => {
         curHHFPercent: c.reclassificationsCurPercentCurrent,
         recPercent: c.reclassificationsRecPercentCurrent,
         memberNumber: c.memberNumber,
-      }))
-      .sort(safeNumSort("curPercent"))
-      .map((c, i, all) => ({
-        ...c,
-        curPercentPercentile: (100 * i) / (all.length - 1),
-      }))
-      .sort(safeNumSort("curHHFPercent"))
-      .map((c, i, all) => ({
-        ...c,
-        curHHFPercentPercentile: (100 * i) / (all.length - 1),
+        name: c.name,
       }))
       .sort(safeNumSort("recPercent"))
       .map((c, i, all) => ({
