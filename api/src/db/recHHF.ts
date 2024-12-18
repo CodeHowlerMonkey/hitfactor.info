@@ -12,6 +12,11 @@ import { HF, Percent, PositiveOrMinus1 } from "../dataUtil/numbers";
 
 import { minorHFScoresAdapter, Scores } from "./scores";
 
+const VERY_LOW_SAMPLE_SIZE_DIVISIONS = new Set([
+  // pcsl2gun
+  "practical",
+  "competition",
+]);
 const LOW_SAMPLE_SIZE_DIVISIONS = new Set([
   "rev",
   "scsa_ss",
@@ -416,6 +421,36 @@ const decidedHHFFunctions = {
     "23-01": r1,
     "23-02": r15,
   },
+
+  practical: {
+    "1.GOLDCOUNTRY": r5, // or 15
+    "2.BELT": r5,
+    "3.HARDBASS": r5,
+    "4.CROSSROADS": r5,
+    "5.TRAPHOUSE": r5,
+    "6.LEADPEDAL": r5,
+    "7.BUYHIGHSELLLOW": r5,
+    "8.WEARESOBACK": r15,
+    "9.ITSSOOVER": r15,
+    "10.AREYAWINNINSON": r5,
+    "11.MOEZAMBIQUE": r5,
+    "12.WOLVERINES": r15,
+  },
+
+  competition: {
+    "1.GOLDCOUNTRY": r5,
+    "2.BELT": r5,
+    "3.HARDBASS": r5,
+    "4.CROSSROADS": r15,
+    "5.TRAPHOUSE": r5,
+    "6.LEADPEDAL": r5,
+    "7.BUYHIGHSELLLOW": r5,
+    "8.WEARESOBACK": r5,
+    "9.ITSSOOVER": r5,
+    "10.AREYAWINNINSON": r5,
+    "11.MOEZAMBIQUE": r5,
+    "12.WOLVERINES": r5,
+  },
 };
 
 // First manual recHHF Function review notes:
@@ -428,6 +463,11 @@ const recommendedHHFFunctionFor = ({ division, number }) => {
   const decided = decidedHHFFunctions[division]?.[number];
   if (decided) {
     return decided;
+  }
+
+  // Not enough data for pcsl nats
+  if (VERY_LOW_SAMPLE_SIZE_DIVISIONS.has(division)) {
+    return r5;
   }
 
   // Not enough data for revolver in ANY of the classifiers, drop to r5 for defaults

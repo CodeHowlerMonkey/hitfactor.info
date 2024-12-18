@@ -13,37 +13,37 @@ export const renderPercentDiff = (c, { field }) => {
 };
 
 export const letterRatingForPercent = p => {
-  if (p >= 98) {
+  if (p >= 95) {
     return "AAA";
   }
-  if (p >= 95) {
+  if (p >= 90) {
     return "AA";
   }
-  if (p >= 93) {
+  if (p >= 85) {
     return "A";
   }
-  if (p >= 91) {
+  if (p >= 80) {
     return "A-";
   }
-  if (p >= 88) {
+  if (p >= 75) {
     return "B+";
   }
-  if (p >= 85) {
+  if (p >= 70) {
     return "B";
   }
-  if (p >= 80) {
+  if (p >= 65) {
     return "B-";
   }
-  if (p >= 75) {
+  if (p >= 60) {
     return "C+";
   }
-  if (p >= 70) {
+  if (p >= 50) {
     return "C";
   }
-  if (p >= 65) {
+  if (p >= 40) {
     return "C-";
   }
-  if (p >= 60) {
+  if (p >= 30) {
     return "C--";
   }
   return "F";

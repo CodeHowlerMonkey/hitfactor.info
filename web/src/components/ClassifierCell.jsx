@@ -1,6 +1,7 @@
 import cx from "classnames";
 import { Textfit } from "react-textfit";
 
+import { pcslStageHackName, pcslStageHackCode } from "../../../shared/constants/pcsl";
 import { useIsHFU } from "../utils/useIsHFU";
 
 export const ClassifierCell = ({ info, onClick, fallback, showScoring, division }) => {
@@ -19,7 +20,7 @@ export const ClassifierCell = ({ info, onClick, fallback, showScoring, division 
     >
       <div className="flex flex-row justify-content-between">
         <div className={cx("font-bold", { "text-color-secondary": !!code })}>
-          {code || fallback}
+          {pcslStageHackCode(code) || fallback}
         </div>
         {isHFU && (
           <div className="text-xs text-color-secondary">{division?.toUpperCase()}</div>
@@ -30,7 +31,7 @@ export const ClassifierCell = ({ info, onClick, fallback, showScoring, division 
       </div>
       <div className="text-color">
         <Textfit max={16} mode="multi">
-          {name}
+          {pcslStageHackName(code)}
         </Textfit>
       </div>
     </div>

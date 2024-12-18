@@ -2,6 +2,10 @@ import { Button } from "primereact/button";
 import { useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
+import {
+  pcslStageHackNumber,
+  pcslStageHackName,
+} from "../../../../shared/constants/pcsl";
 import { DivisionNavigation } from "../../components";
 import RunsTable from "../../components/RunsTable";
 import { useApi } from "../../utils/client";
@@ -107,7 +111,9 @@ export const ClassifierRunsAndInfo = ({
         >
           Classifiers List
         </Button>
-        <h2 className="mx-auto md:text-xl lg:text-xxl w-max">{code}</h2>
+        <h2 className="mx-auto md:text-xl lg:text-xxl w-max">
+          {pcslStageHackNumber(code)}. {pcslStageHackName(code)}
+        </h2>
       </div>
       <ClassifierInfoTable {...{ division, classifier, loading, hhfs }} {...info} />
 
