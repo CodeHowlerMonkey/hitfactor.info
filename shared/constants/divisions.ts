@@ -5,6 +5,18 @@ export const pairToDivision = pair => pair.split(":")[1];
 
 // TODO: add allDivisions for multisport, use uspsaDivisions for USPSA only
 export const uspsaDivisions = divisionsFromJson.divisions;
+export const pcsl2gunDivisions = [
+  {
+    id: "0",
+    long_name: "Competition",
+    short_name: "competition",
+  },
+  {
+    id: "00",
+    long_name: "Practical",
+    short_name: "practical",
+  },
+];
 /** ["opn", "ltd", "l10", "prod", "rev", "ss", "co", "lo", "pcc"] */
 export const divShortNames = uspsaDivisions.map(c => c.short_name.toLowerCase());
 export const uspsaDivShortNames = divShortNames;

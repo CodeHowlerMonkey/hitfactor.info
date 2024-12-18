@@ -24,61 +24,20 @@ const ClassTag = ({ value, alpha, tooltip, style }) =>
     </span>
   );
 
-const DivisionNameIfNeeded = ({ division, sport }) =>
-  sport !== "hfu" || !division ? null : (
-    <span
-      style={{
-        marginLeft: 4,
-        fontSize: "0.60em",
-        verticalAlign: "super",
-      }}
-    >
-      ({division.toUpperCase()})
-    </span>
-  );
-
-export const ShooterCell = ({ data, onClick, sport }) => (
-  <div style={{ cursor: "pointer" }} className="max-w-max" onClick={onClick}>
-    {(!sport || sport === "uspsa") && (
-      <div className="max-w-max">
-        <ClassTag
-          value={data?.recClass ?? "?"}
-          tooltip={`Recommended: ${data?.reclassificationsRecPercentCurrent?.toFixed(
-            2,
-          )}%`}
-        />
-        <ClassTag
-          value={data?.curHHFClass ?? "?"}
-          alpha={0.65}
-          tooltip={`Current HHF: ${data?.reclassificationsCurPercentCurrent?.toFixed(
-            2,
-          )}%`}
-        />
-        <ClassTag
-          value={data?.hqClass}
-          alpha={0.45}
-          tooltip={`HQ: ${data?.current?.toFixed(2) ?? 0}%`}
-        />
-      </div>
-    )}
-    <div className="max-w-max">
-      {sport === "hfu" && (
-        <ClassTag
-          value={data?.recClass ?? "?"}
-          tooltip={`Recommended: ${data?.reclassificationsRecPercentCurrent?.toFixed(
-            2,
-          )}%`}
-          style={{
-            fontSize: "1em",
-            padding: "0 0.25em",
-            marginRight: "0.25em",
-          }}
-        />
-      )}
-      {data.memberNumber}
-      <DivisionNameIfNeeded sport={sport} division={data?.originalDivision} />
+export const ShooterCell = ({ data, onClick }) => (
+  <div style={{ cursor: "pointer" }} onClick={onClick}>
+    <div>
+      <ClassTag
+        value={data?.recClass ?? "?"}
+        tooltip={`Recommended: ${data?.reclassificationsRecPercentCurrent?.toFixed(2)}%`}
+        style={{
+          fontSize: "1em",
+          padding: "0 0.5em",
+          marginRight: "0.5em",
+        }}
+      />
+      <span style={{ fontSize: "1.125em" }}>{data.name || data.shooterFullName}</span>
     </div>
-    <div style={{ fontSize: "1.125em" }}>{data.name || data.shooterFullName}</div>
   </div>
 );
 

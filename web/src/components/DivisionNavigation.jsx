@@ -6,7 +6,7 @@ import { useParams } from "react-router-dom";
 import {
   divisionChangeMap,
   hfuDivisions,
-  uspsaDivisions,
+  pcsl2gunDivisions as uspsaDivisions,
   sportName,
   scsaDivisions,
 } from "../../../shared/constants/divisions";
@@ -14,6 +14,7 @@ import features from "../../../shared/features";
 import usePreviousEffect from "../utils/usePreviousEffect";
 
 const SportSelector = ({ sportCode, setSportCode, uspsaOnly, disableSCSA, hideSCSA }) => {
+  return null;
   const menu = useRef(null);
   const items = [
     {

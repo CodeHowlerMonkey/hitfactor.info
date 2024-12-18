@@ -107,15 +107,7 @@ export const ClassifierRunsAndInfo = ({
         >
           Classifiers List
         </Button>
-        <h2 className="mx-auto md:text-xl lg:text-xxl w-max">
-          {code} {name}
-        </h2>
-        {/*<a href={downloadUrl} download className="px-5 py-2" style={{ fontSize: "1.625rem" }}>
-          <i
-            className="pi pi-download"
-            style={{ fontSize: "1.2rem", fontWeight: "bold", color: "#ae9ef1" }}
-          />
-        </a>*/}
+        <h2 className="mx-auto md:text-xl lg:text-xxl w-max">{code}</h2>
       </div>
       <ClassifierInfoTable {...{ division, classifier, loading, hhfs }} {...info} />
 

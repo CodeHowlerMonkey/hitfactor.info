@@ -183,11 +183,6 @@ const classifiersRoutes = async fastify => {
     const { division, number } = req.params;
     const c = classifiers.find(cur => cur.classifier === number);
 
-    if (!c) {
-      res.statusCode = 404;
-      return { info: null };
-    }
-
     const basic = basicInfoForClassifier(c);
     const [extended, recHHFInfo] = await Promise.all([
       Classifiers.findOne({ division, classifier: number }).lean(),
@@ -253,8 +248,6 @@ const classifiersRoutes = async fastify => {
 
   fastify.get("/:division/:number/chart", async req => {
     const { division, number } = req.params;
-    const { full: fullString } = req.query;
-    const full = Number(fullString);
 
     const runs = await Scores.aggregate([
       {
@@ -298,6 +291,7 @@ const classifiersRoutes = async fastify => {
       {
         $addFields: {
           recHHF: _getRecHHFField("recHHF"),
+          name: _getShooterField("name"),
         },
       },
       {
@@ -338,32 +332,17 @@ const classifiersRoutes = async fastify => {
       { $sort: { hf: -1 } },
     ]);
 
-    const hhf = curHHFForDivisionClassifier({ number, division });
     const allPoints = runs.map((run, index, allRuns) => ({
       x: HF(run.hf),
       y: PositiveOrMinus1(Percent(index, allRuns.length)),
-      memberNumber: run.memberNumber,
+      memberNumber: run.name,
       curPercent: run.curPercent || 0,
       curHHFPercent: run.curHHFPercent || 0,
       recPercent: run.recPercent || 0,
       scoreRecPercent: run.scoreRecPercent || 0,
     }));
 
-    // for zoomed in mode return all points
-    if (full === 1) {
-      return allPoints;
-    }
-
-    // always return top 100 points, and reduce by 0.5% grouping for other to make render easier
-    const first50 = allPoints.slice(0, 100);
-    const other = allPoints.slice(100, allPoints.length);
-    return [
-      ...first50,
-      ...uniqBy(
-        other,
-        ({ x }) => Math.floor((200 * x) / hhf), // 0.5% grouping for graph points reduction
-      ),
-    ];
+    return allPoints;
   });
 };
 

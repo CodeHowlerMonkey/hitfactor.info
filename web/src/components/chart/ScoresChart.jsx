@@ -120,7 +120,9 @@ const modeBucketForMode = mode =>
     Official: "curPercent",
     "Current CHHF": "curHHFPercent",
     Recommended: "recPercent",
-  })[mode];
+  })[mode || "Recommended"];
+
+const modes = ["Rec1 (99th = 95%)", "Rec5 (95th = 85%)", "Rec15 (85th = 75%)"];
 
 // TODO: different modes for class xLines (95/85/75-hhf, A-centric, 1/5/15/40/75-percentile, etc)
 // TODO: maybe split the modes into 2 dropdowns, one of xLines, one for yLines to play with
@@ -137,8 +139,7 @@ export const ScoresChart = ({
 }) => {
   const sport = sportForDivision(division);
   const [full, setFull] = useState(false);
-  const modes = ["Official", "Current CHHF", "Recommended"];
-  const [mode, setMode] = useState(modes[2]);
+  const [mode, setMode] = useState(modes[0]);
   const { json: data, loading } = useApi(
     `/classifiers/${division}/${classifier}/chart?full=${full ? 1 : 0}`,
   );
@@ -148,6 +149,13 @@ export const ScoresChart = ({
   }
 
   const chartLabel = sport === "hfu" && recHHF ? `Rec. HHF: ${recHHF}` : undefined;
+
+  const xLinesForModeIndex = modeIndex => {
+    const shortModeNames = ["r1", "r5", "r15"];
+    const modeRecHHFs = [recommendedHHF1, recommendedHHF5, recommendedHHF15];
+
+    return xLinesForHHF(shortModeNames[modeIndex], modeRecHHFs[modeIndex]);
+  };
 
   const graph = (
     <Scatter
@@ -181,7 +189,7 @@ export const ScoresChart = ({
               label: ({ raw, raw: { x, y, memberNumber } }) => {
                 // TODO: show classificaiton for SCSA when available
                 const classification =
-                  sport !== "scsa" ? `(${raw[modeBucketForMode(mode)].toFixed(2)}%)` : "";
+                  sport !== "scsa" ? `(${raw[modeBucketForMode()].toFixed(2)}%)` : "";
                 return `HF ${x}, Top ${y}%: ${memberNumber}${classification}`;
               },
             },
@@ -195,13 +203,7 @@ export const ScoresChart = ({
               ...yLine("80th", 80, annotationColor(0.2)),
 
               ...(sport === "uspsa" || sport === "scsa" ? xLinesForHHF("", hhf) : []),
-              ...(recHHF
-                ? xLinesForHHF("r", recHHF)
-                : {
-                    ...xLinesForHHF("r1", recommendedHHF1),
-                    ...xLinesForHHF("r5", recommendedHHF5),
-                    ...xLinesForHHF("r15", recommendedHHF15),
-                  }),
+              ...xLinesForModeIndex(modes.indexOf(mode)),
             },
           },
         },
@@ -219,13 +221,30 @@ export const ScoresChart = ({
                 return bgColorForClass[classForPercent(c.scoreRecPercent || 0)];
               }
 
-              const shooterClass = classForPercent(c[modeBucketForMode(mode)]);
+              const shooterClass = classForPercent(c[modeBucketForMode()]);
               return bgColorForClass[shooterClass];
             }),
           },
         ],
       }}
     />
+  );
+
+  const modeSelector = (
+    <div
+      className="absolute flex justify-content-center px-4 pointer-events-none"
+      style={{ zIndex: 1, left: 0, right: 0 }}
+    >
+      <div className="surface-card border-round mt-2 pointer-events-auto">
+        <SelectButton
+          className="compact text-xs md:text-base"
+          allowEmpty={false}
+          options={modes}
+          value={mode}
+          onChange={e => setMode(e.value)}
+        />
+      </div>
+    </div>
   );
 
   if (full) {
@@ -236,29 +255,7 @@ export const ScoresChart = ({
         style={{ width: "96vw", height: "96vh", margin: "16px" }}
         onHide={() => setFull(false)}
       >
-        {sport === "uspsa" && (
-          <div
-            style={{
-              position: "absolute",
-              top: "52px",
-              display: "flex",
-              justifyContent: "space-between",
-              left: 0,
-              right: 0,
-              margin: "auto",
-              zIndex: 1,
-            }}
-          >
-            <SelectButton
-              className="compact text-xs md:text-base"
-              allowEmpty={false}
-              options={modes}
-              value={mode}
-              onChange={e => setMode(e.value)}
-              style={{ margin: "auto", transform: "scale(0.65)" }}
-            />
-          </div>
-        )}
+        {modeSelector}
         {graph}
       </Dialog>
     );
@@ -266,18 +263,7 @@ export const ScoresChart = ({
 
   return (
     <div className="relative h-full" style={{ margin: -2 }}>
-      {sport === "uspsa" && (
-        <div className="absolute" style={{ zIndex: 1, left: 0 }}>
-          <SelectButton
-            className="compact text-xs md:text-base"
-            allowEmpty={false}
-            options={modes}
-            value={mode}
-            onChange={e => setMode(e.value)}
-            style={{ transform: "scale(0.65)" }}
-          />
-        </div>
-      )}
+      {modeSelector}
       {graph}
       <Button
         onClick={() => setFull(true)}

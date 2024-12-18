@@ -384,7 +384,7 @@ const scsaMatchInfo = async matchInfo => {
   return EmptySingleMatchResultFactory(match);
 };
 
-const badCharsRegExp = /[:\t.,\-_+=!?]/gi;
+const badCharsRegExp = /[\s:\t.,\-_+=!?]/gi;
 const memberNumberFromMatchDefShooter = (s, mustHaveMemberNumbers) => {
   if (mustHaveMemberNumbers) {
     return s.sh_id;
