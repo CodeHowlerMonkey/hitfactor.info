@@ -3,6 +3,7 @@ import { Dialog } from "primereact/dialog";
 import { ProgressSpinner } from "primereact/progressspinner";
 import { SelectButton } from "primereact/selectbutton";
 import { useState } from "react";
+import * as ss from "simple-statistics";
 
 import { sportForDivision } from "../../../../shared/constants/divisions";
 import { classForPercent } from "../../../../shared/utils/classification";
@@ -20,6 +21,44 @@ import {
   r1annotationColor,
 } from "./common";
 
+const optimize = (fn, start) => {
+  let bestParams = start;
+  let bestLoss = fn(start);
+  const step = 0.025;
+  for (let i = -40; i <= 40; i++) {
+    for (let j = -40; j <= 40; j++) {
+      const testParams = [bestParams[0] + i * step, bestParams[1] + j * step];
+      const loss = fn(testParams);
+      if (loss < bestLoss) {
+        bestLoss = loss;
+        bestParams = testParams;
+      }
+    }
+  }
+  return bestParams;
+};
+
+const fitWeibull = data => {
+  const mean = ss.mean(data);
+  const variance = ss.variance(data);
+
+  // Initial guesses
+  const initalLambda = mean;
+  const initialK = mean ** 2 / variance;
+
+  // Loss function to minimize
+  const _weibullLoss = params => {
+    const [k, lambda] = params;
+    return data.reduce((sum, x) => {
+      const pdf =
+        (k / lambda) * Math.pow(x / lambda, k - 1) * Math.exp(-Math.pow(x / lambda, k));
+      return sum - Math.log(pdf || 1e-10); // Negative log likelihood
+    }, 0);
+  };
+
+  return optimize(_weibullLoss, [initialK, initalLambda]);
+};
+
 const generateDistributionGraph = data => {
   if (!data) {
     return [];
@@ -29,13 +68,25 @@ const generateDistributionGraph = data => {
 
   const step = 0.005;
   const totalPoints = Math.ceil((maxHF - minHF) / step);
-  const k = 100 / (maxHF - minHF);
+
+  const [k, lambda] = fitWeibull(data.map(c => c.x));
+
+  const weibullHHF = y => lambda * Math.pow(Math.log(100 / y), 1 / k);
+  console.log(`wblHHF1 = ${weibullHHF(1) / 0.95}`);
+  console.log(`wblHHF5 = ${weibullHHF(5) / 0.85}`);
+  console.log(`wblHHF15 = ${weibullHHF(15) / 0.75}`);
 
   const result = Array.from({ length: totalPoints }, (v, i) => {
-    const x = (i + 1) * step;
+    const x = minHF + (i + 1) * step;
     return {
-      y: 100 - x * k,
-      x: minHF + x,
+      yPDF:
+        100 -
+        100 *
+          (k / lambda) *
+          Math.pow(x / lambda, k - 1) *
+          Math.exp(-Math.pow(x / lambda, k)),
+      y: 100 - 100 * (1 - Math.exp(-Math.pow(x / lambda, k))),
+      x: x,
     };
   });
 
