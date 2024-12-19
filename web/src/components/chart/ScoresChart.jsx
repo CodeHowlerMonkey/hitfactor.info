@@ -267,7 +267,7 @@ export const ScoresChart = ({
           tooltip: {
             callbacks: {
               label: ({ raw, raw: { x, y, memberNumber, pointsGraphName } }) => {
-                if (!pointsGraphName) {
+                if (pointsGraphName) {
                   return `${pointsGraphName} HF ${x.toFixed(4)}, Top ${y.toFixed(2)}%)`;
                 }
                 // TODO: show classificaiton for SCSA when available
