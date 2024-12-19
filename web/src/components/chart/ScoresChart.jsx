@@ -20,6 +20,28 @@ import {
   r1annotationColor,
 } from "./common";
 
+const generateDistributionGraph = data => {
+  if (!data) {
+    return [];
+  }
+  const maxHF = data[0].x;
+  const minHF = data[data.length - 1].x;
+
+  const step = 0.005;
+  const totalPoints = Math.ceil((maxHF - minHF) / step);
+  const k = 100 / (maxHF - minHF);
+
+  const result = Array.from({ length: totalPoints }, (v, i) => {
+    const x = (i + 1) * step;
+    return {
+      y: 100 - x * k,
+      x: minHF + x,
+    };
+  });
+
+  return result;
+};
+
 const colorForPrefix = (prefix, alpha) =>
   ({
     "": annotationColor,
@@ -187,6 +209,9 @@ export const ScoresChart = ({
           tooltip: {
             callbacks: {
               label: ({ raw, raw: { x, y, memberNumber } }) => {
+                if (!memberNumber) {
+                  return `HF ${x}, Top ${y}%`;
+                }
                 // TODO: show classificaiton for SCSA when available
                 const classification =
                   sport !== "scsa" ? `(${raw[modeBucketForMode()].toFixed(2)}%)` : "";
@@ -210,6 +235,14 @@ export const ScoresChart = ({
       }}
       data={{
         datasets: [
+          {
+            label: "test",
+            data: generateDistributionGraph(data),
+            pointRadius: 1.5,
+            pointBorderColor: "black",
+            pointBorderWidth: 0,
+            pointBackgroundColor: "#cccccc",
+          },
           {
             label: chartLabel || "HF / Percentile",
             data,
