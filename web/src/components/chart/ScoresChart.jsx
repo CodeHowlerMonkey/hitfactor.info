@@ -2,7 +2,7 @@ import { Button } from "primereact/button";
 import { Dialog } from "primereact/dialog";
 import { ProgressSpinner } from "primereact/progressspinner";
 import { SelectButton } from "primereact/selectbutton";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import * as ss from "simple-statistics";
 
 import { sportForDivision } from "../../../../shared/constants/divisions";
@@ -38,55 +38,53 @@ const optimize = (fn, start) => {
   return bestParams;
 };
 
-const fitWeibull = data => {
+const _weibullPDF = (x, k, lambda) =>
+  (k / lambda) * Math.pow(x / lambda, k - 1) * Math.exp(-Math.pow(x / lambda, k));
+
+const _weibullLoss = data => params => {
+  const [k, lambda] = params;
+  return data.reduce((sum, x) => sum - Math.log(_weibullPDF(x, k, lambda) || 1e-10), 0);
+};
+
+const _findWeibullParams = data => {
+  if (!data) {
+    return [1, 1];
+  }
   const mean = ss.mean(data);
   const variance = ss.variance(data);
 
-  // Initial guesses
-  const initalLambda = mean;
-  const initialK = mean ** 2 / variance;
-
-  // Loss function to minimize
-  const _weibullLoss = params => {
-    const [k, lambda] = params;
-    return data.reduce((sum, x) => {
-      const pdf =
-        (k / lambda) * Math.pow(x / lambda, k - 1) * Math.exp(-Math.pow(x / lambda, k));
-      return sum - Math.log(pdf || 1e-10); // Negative log likelihood
-    }, 0);
-  };
-
-  return optimize(_weibullLoss, [initialK, initalLambda]);
+  return optimize(_weibullLoss(data), [mean ** 2 / variance, mean]);
 };
 
-const generateDistributionGraph = data => {
-  if (!data) {
+/**
+ * @param dataPoints array of hit-factor scores
+ */
+export const solveWeibull = dataPoints => {
+  const [k, lambda] = _findWeibullParams(dataPoints);
+
+  const cdf = x => 100 - 100 * (1 - Math.exp(-Math.pow(x / lambda, k)));
+  const reverseCDF = y => lambda * Math.pow(Math.log(100 / y), 1 / k);
+  const hhf1 = reverseCDF(1) / 0.95;
+  const hhf5 = reverseCDF(5) / 0.85;
+  const hhf15 = reverseCDF(15) / 0.75;
+
+  return { k, lambda, cdf, reverseCDF, hhf1, hhf5, hhf15 };
+};
+
+const pointsGraph = ({ yFn, minX, maxX, name }) => {
+  if (!yFn || minX === maxX) {
     return [];
   }
-  const maxHF = data[0].x;
-  const minHF = data[data.length - 1].x;
 
   const step = 0.005;
-  const totalPoints = Math.ceil((maxHF - minHF) / step);
-
-  const [k, lambda] = fitWeibull(data.map(c => c.x));
-
-  const weibullHHF = y => lambda * Math.pow(Math.log(100 / y), 1 / k);
-  console.log(`wblHHF1 = ${weibullHHF(1) / 0.95}`);
-  console.log(`wblHHF5 = ${weibullHHF(5) / 0.85}`);
-  console.log(`wblHHF15 = ${weibullHHF(15) / 0.75}`);
+  const totalPoints = Math.ceil((maxX - minX) / step);
 
   const result = Array.from({ length: totalPoints }, (v, i) => {
-    const x = minHF + (i + 1) * step;
+    const x = minX + (i + 1) * step;
     return {
-      yPDF:
-        100 -
-        100 *
-          (k / lambda) *
-          Math.pow(x / lambda, k - 1) *
-          Math.exp(-Math.pow(x / lambda, k)),
-      y: 100 - 100 * (1 - Math.exp(-Math.pow(x / lambda, k))),
+      y: yFn(x),
       x: x,
+      pointsGraphName: name,
     };
   });
 
@@ -100,13 +98,19 @@ const colorForPrefix = (prefix, alpha) =>
     r1: r1annotationColor,
     r5: r5annotationColor,
     r15: r15annotationColor,
+    wbl1: r1annotationColor,
+    wbl5: r5annotationColor,
+    wbl15: r15annotationColor,
   })[prefix](alpha);
 const extraLabelOffsets = {
   "": 0,
   r: 5, // show close like r1
   r1: 5,
   r5: 15,
-  r15: 25,
+  r15: 20,
+  wbl1: 5,
+  wbl5: 15,
+  wbl15: 20,
 };
 
 // TODO: #23 Fix Negative Recommended HHFs Properly, so we don't need  hhf <= 0 check
@@ -195,7 +199,7 @@ const modeBucketForMode = mode =>
     Recommended: "recPercent",
   })[mode || "Recommended"];
 
-const modes = ["Rec1 (99th = 95%)", "Rec5 (95th = 85%)", "Rec15 (85th = 75%)"];
+const modes = ["Wbl1 (99th = 95%)", "Wbl5 (95th = 85%)", "Wbl15 (85th = 75%)"];
 
 // TODO: different modes for class xLines (95/85/75-hhf, A-centric, 1/5/15/40/75-percentile, etc)
 // TODO: maybe split the modes into 2 dropdowns, one of xLines, one for yLines to play with
@@ -217,18 +221,21 @@ export const ScoresChart = ({
     `/classifiers/${division}/${classifier}/chart?full=${full ? 1 : 0}`,
   );
 
+  const chartLabel = sport === "hfu" && recHHF ? `Rec. HHF: ${recHHF}` : undefined;
+
+  const weibull = useMemo(() => solveWeibull(data?.map(c => c.x)), [data]);
+  const { k, lambda, cdf, hhf1, hhf5, hhf15 } = weibull;
+  const maxHF = data?.[0].x || 0;
+  const minHF = data?.[data?.length - 1].x || 0;
+  const modeRecHHFs = [hhf1, hhf5, hhf15];
+  const xLinesForModeIndex = modeIndex => {
+    const shortModeNames = ["wbl1", "wbl5", "wbl15"];
+    return xLinesForHHF(shortModeNames[modeIndex], modeRecHHFs[modeIndex]);
+  };
+
   if (loading) {
     return <ProgressSpinner />;
   }
-
-  const chartLabel = sport === "hfu" && recHHF ? `Rec. HHF: ${recHHF}` : undefined;
-
-  const xLinesForModeIndex = modeIndex => {
-    const shortModeNames = ["r1", "r5", "r15"];
-    const modeRecHHFs = [recommendedHHF1, recommendedHHF5, recommendedHHF15];
-
-    return xLinesForHHF(shortModeNames[modeIndex], modeRecHHFs[modeIndex]);
-  };
 
   const graph = (
     <Scatter
@@ -259,14 +266,14 @@ export const ScoresChart = ({
           },
           tooltip: {
             callbacks: {
-              label: ({ raw, raw: { x, y, memberNumber } }) => {
-                if (!memberNumber) {
-                  return `HF ${x}, Top ${y}%`;
+              label: ({ raw, raw: { x, y, memberNumber, pointsGraphName } }) => {
+                if (!pointsGraphName) {
+                  return `${pointsGraphName} HF ${x.toFixed(4)}, Top ${y.toFixed(2)}%)`;
                 }
                 // TODO: show classificaiton for SCSA when available
                 const classification =
                   sport !== "scsa" ? `(${raw[modeBucketForMode()].toFixed(2)}%)` : "";
-                return `HF ${x}, Top ${y}%: ${memberNumber}${classification}`;
+                return `HF ${x.toFixed(4)}, Top ${y.toFixed(2)}%: ${memberNumber}${classification}`;
               },
             },
           },
@@ -287,12 +294,17 @@ export const ScoresChart = ({
       data={{
         datasets: [
           {
-            label: "test",
-            data: generateDistributionGraph(data),
-            pointRadius: 1.5,
+            label: "Weibull",
+            data: pointsGraph({
+              yFn: cdf,
+              minX: minHF,
+              maxX: maxHF * 1.1,
+              name: "Weibull",
+            }),
+            pointRadius: 1.0,
             pointBorderColor: "black",
             pointBorderWidth: 0,
-            pointBackgroundColor: "#cccccc",
+            pointBackgroundColor: annotationColor(0.7),
           },
           {
             label: chartLabel || "HF / Percentile",
@@ -316,7 +328,7 @@ export const ScoresChart = ({
 
   const modeSelector = (
     <div
-      className="absolute flex justify-content-center px-4 pointer-events-none"
+      className="absolute flex justify-content-center px-4 pointer-events-none align-items-center flex-column"
       style={{ zIndex: 1, left: 0, right: 0 }}
     >
       <div className="surface-card border-round mt-2 pointer-events-auto">
@@ -327,6 +339,11 @@ export const ScoresChart = ({
           value={mode}
           onChange={e => setMode(e.value)}
         />
+      </div>
+      <div className="mt-2 flex flex-column align-items-center">
+        <div>HHF {modeRecHHFs[modes.indexOf(mode)].toFixed(4)} </div>
+        <div className="text-sm">{`k = ${k.toFixed(4)}`}</div>
+        <div className="text-sm">{`λ = ${lambda.toFixed(4)}`}</div>
       </div>
     </div>
   );
