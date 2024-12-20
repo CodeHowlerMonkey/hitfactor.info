@@ -3,10 +3,10 @@ import { Dialog } from "primereact/dialog";
 import { ProgressSpinner } from "primereact/progressspinner";
 import { SelectButton } from "primereact/selectbutton";
 import { useMemo, useState } from "react";
-import * as ss from "simple-statistics";
 
 import { sportForDivision } from "../../../../shared/constants/divisions";
 import { classForPercent } from "../../../../shared/utils/classification";
+import { solveWeibull } from "../../../../shared/utils/weibull";
 import { useApi } from "../../utils/client";
 import { bgColorForClass } from "../../utils/color";
 
@@ -20,56 +20,6 @@ import {
   r15annotationColor,
   r1annotationColor,
 } from "./common";
-
-const optimize = (fn, start) => {
-  let bestParams = start;
-  let bestLoss = fn(start);
-  const step = 0.025;
-  for (let i = -40; i <= 40; i++) {
-    for (let j = -40; j <= 40; j++) {
-      const testParams = [bestParams[0] + i * step, bestParams[1] + j * step];
-      const loss = fn(testParams);
-      if (loss < bestLoss) {
-        bestLoss = loss;
-        bestParams = testParams;
-      }
-    }
-  }
-  return bestParams;
-};
-
-const _weibullPDF = (x, k, lambda) =>
-  (k / lambda) * Math.pow(x / lambda, k - 1) * Math.exp(-Math.pow(x / lambda, k));
-
-const _weibullLoss = data => params => {
-  const [k, lambda] = params;
-  return data.reduce((sum, x) => sum - Math.log(_weibullPDF(x, k, lambda) || 1e-10), 0);
-};
-
-const _findWeibullParams = data => {
-  if (!data) {
-    return [1, 1];
-  }
-  const mean = ss.mean(data);
-  const variance = ss.variance(data);
-
-  return optimize(_weibullLoss(data), [mean ** 2 / variance, mean]);
-};
-
-/**
- * @param dataPoints array of hit-factor scores
- */
-export const solveWeibull = dataPoints => {
-  const [k, lambda] = _findWeibullParams(dataPoints);
-
-  const cdf = x => 100 - 100 * (1 - Math.exp(-Math.pow(x / lambda, k)));
-  const reverseCDF = y => lambda * Math.pow(Math.log(100 / y), 1 / k);
-  const hhf1 = reverseCDF(1) / 0.95;
-  const hhf5 = reverseCDF(5) / 0.85;
-  const hhf15 = reverseCDF(15) / 0.75;
-
-  return { k, lambda, cdf, reverseCDF, hhf1, hhf5, hhf15 };
-};
 
 const pointsGraph = ({ yFn, minX, maxX, name }) => {
   if (!yFn || minX === maxX) {
@@ -192,7 +142,7 @@ const xLinesForHHF = (prefix, hhf) =>
       };
 
 // "Cur. HHF Percent" => curHHFPercent
-const modeBucketForMode = mode =>
+const modeBucketForMode = (mode?: "Official" | "Current CHHF" | "Recommended"): string =>
   ({
     Official: "curPercent",
     "Current CHHF": "curHHFPercent",
