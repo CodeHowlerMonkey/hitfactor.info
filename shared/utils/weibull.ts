@@ -16,7 +16,7 @@ const optimize = (lossFn, start, precision = DEFAULT_PRECISION) => {
       }
     }
   }
-  return bestParams;
+  return [...bestParams, bestLoss];
 };
 
 const probabilityDistributionFn = (x: number, k: number, lambda: number): number =>
@@ -55,7 +55,7 @@ export const solveWeibull = (
   dataPoints: number[],
   precision: number = DEFAULT_PRECISION,
 ) => {
-  const [k, lambda] = findParams(dataPoints, precision);
+  const [k, lambda, loss] = findParams(dataPoints, precision);
 
   const cdf = x => 100 - 100 * (1 - Math.exp(-Math.pow(x / lambda, k)));
   const reverseCDF = y => lambda * Math.pow(Math.log(100 / y), 1 / k);
@@ -63,5 +63,5 @@ export const solveWeibull = (
   const hhf5 = reverseCDF(5) / 0.85;
   const hhf15 = reverseCDF(15) / 0.75;
 
-  return { k, lambda, cdf, reverseCDF, hhf1, hhf5, hhf15 };
+  return { k, lambda, loss, cdf, reverseCDF, hhf1, hhf5, hhf15 };
 };

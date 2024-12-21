@@ -17,6 +17,7 @@ import {
   yLine,
   xLine,
   annotationColor,
+  wbl1AnnotationColor,
   r5annotationColor,
   r15annotationColor,
   r1annotationColor,
@@ -49,7 +50,7 @@ const colorForPrefix = (prefix, alpha) =>
     r1: r1annotationColor,
     r5: r5annotationColor,
     r15: r15annotationColor,
-    wbl1: r1annotationColor,
+    wbl1: wbl1AnnotationColor,
     wbl5: r5annotationColor,
     wbl15: r15annotationColor,
   })[prefix](alpha);
@@ -59,9 +60,9 @@ const extraLabelOffsets = {
   r1: 5,
   r5: 15,
   r15: 20,
-  wbl1: 5,
-  wbl5: 15,
-  wbl15: 20,
+  wbl1: 10,
+  wbl5: 20,
+  wbl15: 30,
 };
 
 // TODO: #23 Fix Negative Recommended HHFs Properly, so we don't need  hhf <= 0 check
@@ -179,8 +180,9 @@ export const ScoresChart = ({
   const [numberOfScores, setNumberOfScores] = useState(
     SCORES_STEP * Math.ceil(totalScores / SCORES_STEP),
   );
+  const numberOfScoresUsed = useDebounce(numberOfScores, 300)[0];
   const { json: curData, loading } = useApi(
-    `/classifiers/${division}/${classifier}/chart?full=${full ? 1 : 1}&limit=${useDebounce(numberOfScores, 300)[0]}`,
+    `/classifiers/${division}/${classifier}/chart?full=${full ? 1 : 1}&limit=${numberOfScoresUsed}`,
   );
   const [lastData, setLastData] = useState(null);
   useEffect(() => {
@@ -203,12 +205,32 @@ export const ScoresChart = ({
       ),
     [data, precision],
   );
-  const { k, lambda, cdf, hhf1, hhf5, hhf15 } = weibull;
-  const maxHF = data?.[0].x || 0;
-  const minHF = data?.[data?.length - 1].x || 0;
+  const partialScoresDate = useMemo(() => {
+    if (!data?.length) {
+      return "";
+    }
+
+    const sortedByDate = data?.toSorted((a, b) => b.date - a.date);
+    const last = new Date(sortedByDate[0].date);
+    const first = new Date(sortedByDate[sortedByDate.length - 1].date);
+
+    const lengthInMonths = `(${Math.floor((last - first) / 2_592_000_000)} mo)`;
+
+    return [
+      `${first.toLocaleDateString()} — ${last.toLocaleDateString()}`,
+      lengthInMonths,
+    ];
+  }, [data]);
+  const { k, lambda, loss, cdf, hhf1, hhf5, hhf15 } = weibull;
+  const maxHF = Math.ceil(data?.[0].x) || 0;
+  const minHF = 0; //data?.[data?.length - 1].x || 0;
   const modeRecHHFs = [recHHF, hhf1, hhf5, hhf15];
   const xLinesForModeIndex = modeIndex => {
     const shortModeNames = ["r", "wbl1", "wbl5", "wbl15"];
+    return {
+      ...xLinesForHHF(shortModeNames[0], modeRecHHFs[0]),
+      ...xLinesForHHF(shortModeNames[1], modeRecHHFs[1]),
+    };
     return xLinesForHHF(shortModeNames[modeIndex], modeRecHHFs[modeIndex]);
   };
 
@@ -251,6 +273,7 @@ export const ScoresChart = ({
             callbacks: {
               label: ({ raw, raw: { x, y, memberNumber, pointsGraphName } }) => {
                 if (pointsGraphName) {
+                  return null;
                   return `${pointsGraphName} HF ${x.toFixed(4)}, Top ${y.toFixed(2)}%)`;
                 }
                 // TODO: show classificaiton for SCSA when available
@@ -268,7 +291,7 @@ export const ScoresChart = ({
               ...yLine("40th", 40, annotationColor(0.3)),
               ...yLine("80th", 80, annotationColor(0.2)),
 
-              ...(sport === "uspsa" || sport === "scsa" ? xLinesForHHF("", hhf) : []),
+              // ...(sport === "uspsa" || sport === "scsa" ? xLinesForHHF("", hhf) : []),
               ...xLinesForModeIndex(modes.indexOf(mode)),
             },
           },
@@ -281,17 +304,18 @@ export const ScoresChart = ({
             data: pointsGraph({
               yFn: cdf,
               minX: minHF,
-              maxX: maxHF * 1.1,
+              maxX: maxHF,
               name: "Weibull",
             }),
-            pointRadius: 1.0,
+            pointRadius: 1,
             pointBorderColor: "black",
             pointBorderWidth: 0,
-            pointBackgroundColor: annotationColor(0.7),
+            pointBackgroundColor: wbl1AnnotationColor(0.66),
           },
           {
             label: chartLabel || "HF / Percentile",
             data,
+            pointRadius: 3,
             pointBorderColor: "white",
             pointBorderWidth: 0,
             backgroundColor: "#ae9ef1",
@@ -318,19 +342,8 @@ export const ScoresChart = ({
         onHide={() => setFull(false)}
       >
         {sport === "uspsa" && (
-          <div className="flex flex-column justify-content-center align-items-center gap-2 mt-4">
-            <div
-              style={{
-                position: "absolute",
-                top: "52px",
-                display: "flex",
-                justifyContent: "space-between",
-                left: 0,
-                right: 0,
-                margin: "auto",
-                zIndex: 1,
-              }}
-            >
+          <div className="absolute w-full z-1 flex flex-column justify-content-center align-items-center gap-2">
+            <div className="flex justify-content-between m-auto w-full surface-card">
               <SelectButton
                 className="compact text-xs md:text-base"
                 allowEmpty={false}
@@ -364,6 +377,8 @@ export const ScoresChart = ({
                 />
               </div>
             </div>
+            <div className="text-sm">{partialScoresDate[0]}</div>
+            <div className="text-sm">{partialScoresDate[1]}</div>
             <div className="flex justify-content-center gap-4">
               <div>k = {k?.toFixed(5)}</div>
               <div>λ = {lambda?.toFixed(5)}</div>
