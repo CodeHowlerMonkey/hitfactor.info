@@ -50,6 +50,15 @@ const _replaceHFWithMinorHFIfNeeded = division =>
         },
       ];
 
+const _matchScoresForClassifierDivision = (number, division) => ({
+  $match: {
+    classifier: number,
+    division: { $in: divisionsForScoresAdapter(division) },
+    hf: { $gt: 0 },
+    bad: { $ne: true },
+  },
+});
+
 // override division and all division-derived fields to given division, used for correct lookup of HFU scores, even when they came from another division
 const _overwriteDivision = division => ({
   $addFields: {
@@ -75,14 +84,7 @@ const _runsAggregation = async ({
       },
     },
     ..._replaceHFWithMinorHFIfNeeded(division),
-    {
-      $match: {
-        classifier,
-        division: { $in: divisionsForScoresAdapter(division) },
-        hf: { $gt: 0 },
-        bad: { $ne: true },
-      },
-    },
+    _matchScoresForClassifierDivision(classifier, division),
     _overwriteDivision(division),
     {
       $lookup: {
@@ -189,11 +191,15 @@ const classifiersRoutes = async fastify => {
     }
 
     const basic = basicInfoForClassifier(c);
-    const [extended, recHHFInfo] = await Promise.all([
+    const [extended, recHHFInfo, totalScores] = await Promise.all([
       Classifiers.findOne({ division, classifier: number }).lean(),
       RecHHFs.findOne({ classifier: number, division })
         .select(["recHHF", "rec1HHF", "rec5HHF", "rec15HHF", "curHHF"])
         .lean(),
+      Scores.aggregate([
+        _matchScoresForClassifierDivision(number, division),
+        { $count: "totalScores" },
+      ]),
     ]);
 
     const result = {
@@ -205,6 +211,7 @@ const classifiersRoutes = async fastify => {
         recommendedHHF1: recHHFInfo?.rec1HHF || 0,
         recommendedHHF5: recHHFInfo?.rec5HHF || 0,
         recommendedHHF15: recHHFInfo?.rec15HHF || 0,
+        totalScores: totalScores?.[0]?.totalScores || -1,
       },
     };
 
@@ -253,12 +260,14 @@ const classifiersRoutes = async fastify => {
 
   fastify.get("/:division/:number/chart", async req => {
     const { division, number } = req.params;
-    const { full: fullString } = req.query;
+    const { full: fullString, limit: limitString } = req.query;
     const full = Number(fullString);
+    const limit = Number(limitString) || 99999;
 
     const runs = await Scores.aggregate([
       {
         $project: {
+          sd: true,
           minorHF: true,
           hf: true,
           memberNumber: true,
@@ -270,14 +279,7 @@ const classifiersRoutes = async fastify => {
         },
       },
       ..._replaceHFWithMinorHFIfNeeded(division),
-      {
-        $match: {
-          classifier: number,
-          division: { $in: divisionsForScoresAdapter(division) },
-          hf: { $gt: 0 },
-          bad: { $ne: true },
-        },
-      },
+      _matchScoresForClassifierDivision(number, division),
       _overwriteDivision(division),
       {
         $lookup: {
@@ -335,6 +337,9 @@ const classifiersRoutes = async fastify => {
           recHHF: false,
         },
       },
+
+      { $sort: { sd: 1 } },
+      { $limit: limit },
       { $sort: { hf: -1 } },
     ]);
 
@@ -347,6 +352,7 @@ const classifiersRoutes = async fastify => {
       curHHFPercent: run.curHHFPercent || 0,
       recPercent: run.recPercent || 0,
       scoreRecPercent: run.scoreRecPercent || 0,
+      date: run.sd?.getTime(),
     }));
 
     // for zoomed in mode return all points

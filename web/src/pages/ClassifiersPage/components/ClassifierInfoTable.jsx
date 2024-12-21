@@ -136,6 +136,7 @@ export const ClassifierInfoTable = ({
       <h4 className="md:text-lg">Scores Distribution</h4>
       <div className="h-full w-auto flex-grow-1 bg-primary-reverse">
         <ScoresChart
+          totalScores={info.totalScores}
           division={division}
           classifier={classifier}
           hhf={hhf}
