@@ -4,30 +4,25 @@
   "version": "0.0.0",
   "type": "module",
   "engines": {
-    "node": "20.11.x"
+    "node": "20.x.x"
   },
   "scripts": {
     "========================= Dev Scripts ====================": "",
     "start": "concurrently -c \"auto\" --names \"API,WEB\" \"npm run start-api\" \"npm run start-web\"",
     "test": "tsx --test",
-
     "====================== Production / Build Scripts ================": "",
     "prod": "cd api && npm run prod",
     "postinstall": "(cd api && npm install); (cd web && npm install && npm run build);",
-
     "========================== Upload Scripts (Render.com Worker/CRON) ========================": "",
     "uploadMatches": "NODE_OPTIONS='--max-old-space-size=512' node --import=tsx scripts/upload/matchesLoop.ts",
     "uploadScores": "NODE_OPTIONS='--max-old-space-size=512' node --import=tsx scripts/upload/scoresLoop.ts",
     "uploadMeta": "NODE_OPTIONS='--max-old-space-size=2048' node --import=tsx scripts/upload/statsMetaLoop.ts",
     "members": "node scripts/activeMembers.js",
-
     "========================= DB Admin Scripts ============================": "",
     "dump": "mongodump $MONGO_URL",
-
     "===================== Internal (Don't Run Directly) ======================": "",
     "start-api": "cd api && npm start",
     "start-web": "cd web && npm start",
-
     "========================= Legacy / Broken Scripts ============================": "",
     "start-api-local": "cd api && npm run local",
     "local": "docker-compose up -d && concurrently -c \"auto\" --names \"API,WEB\" \"npm run start-api-local\" \"npm run start-web\"",
@@ -62,6 +57,7 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.637.0",
     "lodash.uniqby": "^4.7.0",
+    "simple-statistics": "^7.8.7",
     "undici": "^6.18.2",
     "uuid": "^9.0.1"
   }
