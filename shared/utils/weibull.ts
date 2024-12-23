@@ -1,6 +1,6 @@
 import * as ss from "simple-statistics";
 
-const DEFAULT_PRECISION = 5;
+const DEFAULT_PRECISION = 50;
 
 type NumberTuple = [number, number];
 const optimize = (
