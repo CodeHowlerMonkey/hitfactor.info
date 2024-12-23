@@ -384,6 +384,15 @@ const scsaMatchInfo = async matchInfo => {
   return EmptyMatchResultsFactory();
 };
 
+const normalizeClassifierCode = (psClassifierCode: string) => {
+  if (!psClassifierCode) {
+    return psClassifierCode;
+  }
+
+  // remove CM prefix if present
+  return psClassifierCode.replace(/^CM\s+/gi, "");
+};
+
 export const uspsaOrHitFactorMatchInfo = async matchInfo => {
   const { uuid } = matchInfo;
   const { matchDef: match, results, scores: scoresJson } = await fetchPS(uuid);
@@ -398,7 +407,7 @@ export const uspsaOrHitFactorMatchInfo = async matchInfo => {
   const classifiersMap = Object.fromEntries(
     match_stages
       .filter(s => !!s.stage_classifiercode)
-      .map(s => [s.stage_uuid, s.stage_classifiercode]),
+      .map(s => [s.stage_uuid, normalizeClassifierCode(s.stage_classifiercode)]),
   );
   const classifierUUIDs = Object.keys(classifiersMap);
   const classifierResults = results.filter(r => classifierUUIDs.includes(r.stageUUID));
