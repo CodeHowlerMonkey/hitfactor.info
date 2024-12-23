@@ -110,7 +110,7 @@ const xLinesForHHF = (prefix: string, hhf: number) =>
     ? {}
     : {
         ...xLine(
-          `HHF = ${hhf.toFixed(4)}`,
+          `HHF = ${hhf?.toFixed(4)}`,
           hhf,
           colorForPrefix(prefix, 1),
           0, // extraLabelOffsets[prefix],
