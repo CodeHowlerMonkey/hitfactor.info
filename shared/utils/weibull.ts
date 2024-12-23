@@ -2,13 +2,21 @@ import * as ss from "simple-statistics";
 
 const DEFAULT_PRECISION = 5;
 
-const optimize = (lossFn, start, precision = DEFAULT_PRECISION) => {
-  let bestParams = start;
+type NumberTuple = [number, number];
+const optimize = (
+  lossFn: ([k, lambda]: NumberTuple) => number,
+  start,
+  precision = DEFAULT_PRECISION,
+) => {
+  let bestParams: NumberTuple = start;
   let bestLoss = lossFn(start);
   const step = 0.5 / precision;
   for (let i = -precision; i <= precision; i++) {
     for (let j = -precision; j <= precision; j++) {
-      const testParams = [bestParams[0] + i * step, bestParams[1] + j * step];
+      const testParams: NumberTuple = [
+        bestParams[0] + i * step,
+        bestParams[1] + j * step,
+      ];
       const loss = lossFn(testParams);
       if (loss < bestLoss) {
         bestLoss = loss;
@@ -24,13 +32,13 @@ const probabilityDistributionFn = (x: number, k: number, lambda: number): number
 
 const lossFnFactory =
   (data: number[]) =>
-  ([k, lambda]: [number, number]) =>
+  ([k, lambda]: NumberTuple) =>
     data.reduce(
       (sum, x) => sum - Math.log(probabilityDistributionFn(x, k, lambda) || 1e-10),
       0,
     );
 
-const findParams = (data, precision) => {
+const findParams = (data: number[], precision: number) => {
   if (!data) {
     return [1, 1];
   }
@@ -64,4 +72,15 @@ export const solveWeibull = (
   const hhf15 = reverseCDF(15) / 0.75;
 
   return { k, lambda, loss, cdf, reverseCDF, hhf1, hhf5, hhf15 };
+};
+
+export const emptyWeibull = {
+  k: 1,
+  lambda: 1,
+  loss: 0,
+  cdf: () => 0,
+  reverseCDF: () => 0,
+  hhf1: 0,
+  hhf5: 0,
+  hhf15: 0,
 };

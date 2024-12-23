@@ -68,13 +68,11 @@ export const useRunsTableData = ({ division, classifier }) => {
   // const [filterHHF, setFilterHHF] = useState(undefined);
   const [filterClub, setFilterClub] = useState(undefined);
   useEffect(() => resetPage(), [filter, filterClub]); // eslint-disable-line react-hooks/exhaustive-deps
-  // const [legacy, setLegacy] = useState(undefined);
   const filtersQuery = qs.stringify(
     {
       filter,
       // hhf: filterHHF,
       club: filterClub,
-      // legacy: legacy ? 1 : undefined,
     },
     {},
   );
@@ -101,7 +99,6 @@ export const useRunsTableData = ({ division, classifier }) => {
     setFilter,
     // filterHHF,
     // setFilterHHF,
-    // setLegacy,
     filterClub,
     setFilterClub,
     downloadUrl,
@@ -119,7 +116,6 @@ const RunsTable = ({ classifier, division, clubs, onShooterSelection }) => {
     setFilter,
     // setFilterHHF,
     setFilterClub,
-    // setLegacy,
   } = useRunsTableData({
     division,
     classifier,
