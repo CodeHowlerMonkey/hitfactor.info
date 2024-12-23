@@ -21,7 +21,7 @@ export const queryKeyForPathAndQueryString = (pathAndQueryString: string): strin
 export const useApiQuery = (endpoint: string, options: UseQueryOptions) => {
   const url = API_URL + endpoint;
 
-  const { data, isPending } = useQuery({
+  const { data, isPending, isFetching } = useQuery({
     ...options,
     queryKey: queryKeyForPathAndQueryString(url),
     queryFn: async () => {
@@ -36,7 +36,7 @@ export const useApiQuery = (endpoint: string, options: UseQueryOptions) => {
     refetchOnWindowFocus: false,
   });
 
-  return { json: data, loading: isPending };
+  return { json: data, loading: isPending, isFetching };
 };
 
 export default useApiQuery;
