@@ -253,8 +253,16 @@ export const fetchAndSaveMoreMatchesByUpdatedDate = async () => {
       timeZone: "UTC",
     })}`,
   );
+
+  const now = new Date().getTime();
+  const lastMatchUpdated = lastMatch?.updated?.getTime() || now;
+  const validLastUpdated = lastMatchUpdated > now ? now : lastMatchUpdated;
+
+  // add extra 48 hours window to account for wrong timeZone on upload tablets
+  const TWO_DAYS_MS = 2 * 24 * 60 * 60 * 1000;
+
   return fetchMoreMatchesByTimestamp(
-    Math.floor((lastMatch?.updated || new Date()).getTime() / 1000 + 1),
+    Math.floor((validLastUpdated - TWO_DAYS_MS) / 1000),
     "",
     async matches =>
       Matches.bulkWrite(
