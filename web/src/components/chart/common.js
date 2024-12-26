@@ -63,12 +63,12 @@ export const point = (name, x, y, color) => ({
 /** Generates a dataset of points, with X within [minX, maxX] and y
  * determined by the yFn(x).
  */
-export const pointsGraph = ({ yFn, minX, maxX, name }) => {
+export const pointsGraph = ({ yFn, minX, maxX, name, step: stepParam }) => {
   if (!yFn || minX === maxX) {
     return [];
   }
 
-  const step = 0.005;
+  const step = stepParam || 0.005;
   const totalPoints = Math.ceil((maxX - minX) / step);
 
   const result = Array.from({ length: totalPoints }, (v, i) => {

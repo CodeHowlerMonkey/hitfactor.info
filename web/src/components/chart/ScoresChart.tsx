@@ -8,7 +8,12 @@ import { useDebounce } from "use-debounce";
 import { sportForDivision } from "../../../../shared/constants/divisions";
 import { classForPercent } from "../../../../shared/utils/classification";
 import { fuzzyEqual } from "../../../../shared/utils/hitfactor";
-import { emptyWeibull, solveWeibull } from "../../../../shared/utils/weibull";
+import {
+  DEFAULT_PRECISION,
+  emptyWeibull,
+  solveWeibull,
+  weibulCDFFactory,
+} from "../../../../shared/utils/weibull";
 import { useApi } from "../../utils/client";
 import { bgColorForClass } from "../../utils/color";
 
@@ -205,7 +210,7 @@ export const ScoresChart = ({
     [lastData],
   );
 
-  const [precision, setPrecision] = useState(30);
+  const [precision, setPrecision] = useState(DEFAULT_PRECISION);
   const precisionUsed = useDebounce(precision, 300)[0];
   useEffect(
     () => setNumberOfScores(SCORES_STEP * Math.ceil(totalScores / SCORES_STEP)),
@@ -238,7 +243,7 @@ export const ScoresChart = ({
     ];
   }, [data]);
 
-  const { k, lambda, cdf, hhf1, hhf5, hhf15 } = weibull;
+  const { k, lambda, hhf1, hhf5, hhf15 } = weibull;
   const maxHF = Math.ceil(sortedByHFData?.[0].x || 0);
   const minHF = 0;
   const modeHHFs = {
@@ -370,7 +375,7 @@ export const ScoresChart = ({
                 {
                   label: "Weibull",
                   data: pointsGraph({
-                    yFn: cdf,
+                    yFn: weibulCDFFactory(k, lambda),
                     minX: minHF,
                     maxX: maxHF,
                     name: "Weibull",

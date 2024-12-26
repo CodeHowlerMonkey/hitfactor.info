@@ -16,7 +16,8 @@ export const connect = async () => {
   }
   const url = !LOCAL_DEV ? MONGO_URL : MONGO_URL_LOCAL;
 
-  const publicLogsDBName = url!.split("@")[1]?.split(".")[0] || "local";
+  const publicLogsDBHost = url!.split("@")[1]?.split(".")[0] || "local";
+  const dbName = url!.split("?")[0]?.split("/").reverse()[0] || "root";
 
   const _connect = () => {
     console.error("DB: connecting");
@@ -35,7 +36,7 @@ export const connect = async () => {
     await _connect();
   });
   mongoose.connection.on("connected", () => {
-    console.error(`DB: connected to ${publicLogsDBName}`);
+    console.error(`DB: connected to ${publicLogsDBHost} ${dbName}`);
   });
 
   mongoose.connection.on("reconnected", () => {

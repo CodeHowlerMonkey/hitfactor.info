@@ -1,13 +1,28 @@
 import { ProgressSpinner } from "primereact/progressspinner";
 import { SelectButton } from "primereact/selectbutton";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import { classForPercent } from "../../../../shared/utils/classification";
+import {
+  skewness,
+  kurtosis,
+  solveWeibull,
+  weibulCDFFactory,
+} from "../../../../shared/utils/weibull";
 import { useApi } from "../../utils/client";
 import { bgColorForClass } from "../../utils/color";
 import { useIsHFU } from "../../utils/useIsHFU";
 
-import { annotationColor, r5annotationColor, xLine, yLine, Scatter } from "./common";
+import {
+  annotationColor,
+  r5annotationColor,
+  xLine,
+  yLine,
+  Scatter,
+  wbl1AnnotationColor,
+  pointsGraph,
+} from "./common";
+import { useAsyncWeibull } from "./useAsyncWeibull";
 
 const lines = {
   ...yLine("1th", 1.0, annotationColor(0.7)),
@@ -42,11 +57,31 @@ export const ShootersDistributionChart = ({ division, style }) => {
 
   const { json: data, loading } = useApi(`/shooters/${division}/chart`);
 
+  const curModeData = useMemo(
+    () =>
+      data?.map(c => ({
+        ...c,
+        x: c[fieldForMode(xMode)],
+        y: c[`${fieldForMode(xMode)}Percentile`],
+      })) || [],
+    [data, xMode],
+  );
+
+  const curModeDataPoints = useMemo(() => curModeData.map(c => c.x), [curModeData]);
+
+  const {
+    k,
+    lambda,
+    kurtosis: curModeKurtosis,
+    skewness: curModeSkewness,
+    loading: loadingWeibull,
+  } = useAsyncWeibull(curModeDataPoints);
+
   if (loading) {
     return <ProgressSpinner />;
   }
 
-  if (!data) {
+  if (!curModeData.length) {
     return null;
   }
 
@@ -77,11 +112,22 @@ export const ShootersDistributionChart = ({ division, style }) => {
           tooltip: {
             callbacks: {
               label: ({
-                raw: { recPercent, curHHFPercent, curPercent, memberNumber, y },
-              }) =>
-                `${memberNumber}; ${y.toFixed(
+                raw: {
+                  recPercent,
+                  curHHFPercent,
+                  curPercent,
+                  memberNumber,
+                  y,
+                  pointsGraphName,
+                },
+              }) => {
+                if (pointsGraphName) {
+                  return null;
+                }
+                return `${memberNumber}; ${y.toFixed(
                   2,
-                )}th, Rec: ${recPercent}%, curHHF: ${curHHFPercent}%, HQ: ${curPercent}%`,
+                )}th, Rec: ${recPercent}%, curHHF: ${curHHFPercent}%, HQ: ${curPercent}%`;
+              },
             },
           },
           annotation: { annotations: lines },
@@ -90,12 +136,22 @@ export const ShootersDistributionChart = ({ division, style }) => {
       data={{
         datasets: [
           {
+            label: "Weibull",
+            data: pointsGraph({
+              yFn: weibulCDFFactory(k, lambda),
+              minX: 0,
+              maxX: 100,
+              step: 0.1,
+              name: "Weibull",
+            }),
+            pointRadius: 1,
+            pointBorderColor: "black",
+            pointBorderWidth: 0,
+            pointBackgroundColor: wbl1AnnotationColor(0.66),
+          },
+          {
             label: "Classification / Percentile",
-            data: data?.map(c => ({
-              ...c,
-              x: c[fieldForMode(xMode)],
-              y: c[`${fieldForMode(xMode)}Percentile`],
-            })),
+            data: curModeData,
             pointBorderColor: "white",
             pointBorderWidth: 0,
             backgroundColor: "#ae9ef1",
@@ -110,30 +166,57 @@ export const ShootersDistributionChart = ({ division, style }) => {
 
   return (
     <div style={style}>
-      {!isHFU && (
-        <div className="flex mt-4 justify-content-around text-base lg:text-xl">
-          <div className="flex flex-row flex-wrap justify-content-center gap-2">
-            <span className="mx-4">Color:</span>
-            <SelectButton
-              className="compact"
-              allowEmpty={false}
-              options={modes}
-              value={colorMode}
-              onChange={e => setColorMode(e.value)}
-            />
+      <div className="flex mt-4 justify-content-around text-base lg:text-xl">
+        {!isHFU && (
+          <>
+            <div className="flex flex-column justify-content-center align-items-start">
+              <span className="text-md text-500 font-bold">Color</span>
+              <SelectButton
+                className="compact text-xs"
+                allowEmpty={false}
+                options={modes}
+                value={colorMode}
+                onChange={e => setColorMode(e.value)}
+              />
+            </div>
+            <div className="flex flex-column justify-content-center align-items-start">
+              <span className="text-md text-500 font-bold">Position</span>
+              <SelectButton
+                className="compact text-xs"
+                allowEmpty={false}
+                options={modes}
+                value={xMode}
+                onChange={e => setXMode(e.value)}
+              />
+            </div>
+          </>
+        )}
+        <div className="flex flex-column justify-content-center align-items-start">
+          <div className="flex flex-column justify-content-center text-md text-500 font-bold">
+            {loadingWeibull ? (
+              <div className="flex gap-2 align-items-center">
+                <ProgressSpinner
+                  strokeWidth={4}
+                  style={{ width: "1.5em", height: "1.5em" }}
+                />
+                Calculating...
+              </div>
+            ) : (
+              "Weibull Ready"
+            )}
           </div>
-          <div className="flex flex-row flex-wrap justify-content-center gap-2">
-            <span className="mx-4">Position:</span>
-            <SelectButton
-              className="compact"
-              allowEmpty={false}
-              options={modes}
-              value={xMode}
-              onChange={e => setXMode(e.value)}
-            />
+          <div className="flex gap-4 text-sm">
+            <div className="flex flex-column justify-content-center text-md text-500 font-bold">
+              <div>k = {k.toFixed(6)}</div>
+              <div>𝛌 = {lambda.toFixed(6)}</div>
+            </div>
+            <div className="flex flex-column justify-content-center text-md text-500 font-bold">
+              <div>Skewness = {curModeSkewness.toFixed(6)}</div>
+              <div>Kurtosis = {curModeKurtosis.toFixed(6)}</div>
+            </div>
           </div>
         </div>
-      )}
+      </div>
       <div style={{ maxWidth: "100%", height: "calc(100vh - 420px)", minHeight: 360 }}>
         {graph}
       </div>
