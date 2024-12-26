@@ -16,22 +16,10 @@ import {
   Scatter,
   wbl1AnnotationColor,
   pointsGraph,
+  closestYForX,
 } from "./common";
 import { useAsyncWeibull } from "./useAsyncWeibull";
 import { WeibullStatus } from "./WeibullStatus";
-
-const lines = {
-  ...yLine("1th", 1.0, annotationColor(0.7)),
-  ...yLine("4.5th", 4.5, annotationColor(0.5)),
-  ...yLine("15th", 14.5, annotationColor(0.4)),
-  ...yLine("45th", 45, annotationColor(0.3)),
-  ...yLine("85th", 85, annotationColor(0.2)),
-  ...xLine("95%", 95, r5annotationColor(0.5), 2.5),
-  ...xLine("85%", 85, r5annotationColor(0.5), 2.5),
-  ...xLine("75%", 75, r5annotationColor(0.5), 2.5),
-  ...xLine("60%", 60, r5annotationColor(0.5), 2.5),
-  ...xLine("40%", 40, r5annotationColor(0.5), 2.5),
-};
 
 const fieldModeMap = {
   HQ: "curPercent",
@@ -61,6 +49,18 @@ export const ShootersDistributionChart = ({ division, style }) => {
         y: c[`${fieldForMode(xMode)}Percentile`],
       })) || [],
     [data, xMode],
+  );
+
+  const percentiles = useMemo(
+    () => [
+      closestYForX(95, curModeData),
+      closestYForX(90, curModeData),
+      closestYForX(85, curModeData),
+      closestYForX(75, curModeData),
+      closestYForX(60, curModeData),
+      closestYForX(40, curModeData),
+    ],
+    [curModeData],
   );
 
   const curModeDataPoints = useMemo(() => curModeData.map(c => c.x), [curModeData]);
@@ -115,13 +115,32 @@ export const ShootersDistributionChart = ({ division, style }) => {
                 if (pointsGraphName) {
                   return null;
                 }
-                return `${memberNumber}; ${y.toFixed(
+                return `${memberNumber}; Top ${y.toFixed(
                   2,
-                )}th, Rec: ${recPercent}%, curHHF: ${curHHFPercent}%, HQ: ${curPercent}%`;
+                )}%, Rec: ${recPercent}%, HQ/curHHF: ${curHHFPercent}%`;
               },
             },
           },
-          annotation: { annotations: lines },
+          annotation: {
+            annotations: {
+              ...Object.assign(
+                {},
+                ...percentiles.map((perc, i) =>
+                  yLine(
+                    `Top ${perc.toFixed(2)}% = ${["GM", "HiM", "M", "A", "B", "C"][i]}`,
+                    perc,
+                    annotationColor(0.75),
+                  ),
+                ),
+              ),
+              ...xLine("95%", 95, r5annotationColor(0.5), 2.5),
+              ...xLine("90%", 95, r5annotationColor(0.5), 2.5),
+              ...xLine("85%", 85, r5annotationColor(0.5), 2.5),
+              ...xLine("75%", 75, r5annotationColor(0.5), 2.5),
+              ...xLine("60%", 60, r5annotationColor(0.5), 2.5),
+              ...xLine("40%", 40, r5annotationColor(0.5), 2.5),
+            },
+          },
         },
       }}
       data={{
