@@ -7,7 +7,6 @@ import { useDebounce } from "use-debounce";
 
 import { sportForDivision } from "../../../../shared/constants/divisions";
 import { classForPercent } from "../../../../shared/utils/classification";
-import { fuzzyEqual } from "../../../../shared/utils/hitfactor";
 import { DEFAULT_PRECISION, weibulCDFFactory } from "../../../../shared/utils/weibull";
 import { useApi } from "../../utils/client";
 import { bgColorForClass } from "../../utils/color";
@@ -23,6 +22,8 @@ import {
   r5annotationColor,
   pointsGraph,
 } from "./common";
+import { closestYForX } from "./common";
+import { GraphPoint } from "./common";
 import { useAsyncWeibull } from "./useAsyncWeibull";
 import { WeibullStatus } from "./WeibullStatus";
 
@@ -61,48 +62,7 @@ export const extraLabelOffsets = {
   wbl15: 30,
 };
 
-// data must be sorted ascending
-interface GraphPoint {
-  x: number;
-  y: number;
-}
-const closestPercentileForHF = (hf: number, dataRaw: GraphPoint[]): number => {
-  if (!dataRaw?.length) {
-    return -1;
-  }
-
-  const perfect = dataRaw.find(c => fuzzyEqual(hf, c.x, 0.01));
-  if (perfect) {
-    return perfect.y;
-  }
-
-  const data = dataRaw.toSorted((a, b) => a.x - b.x);
-  let lowIndex = data.findLastIndex(c => c.x < hf);
-  let highIndex = data.findIndex(c => c.x > hf);
-  let indexOffset = 0;
-
-  if (highIndex < 0) {
-    highIndex = lowIndex;
-    lowIndex = lowIndex - 1;
-    indexOffset = 1;
-  }
-
-  if (lowIndex < 0) {
-    return -1;
-  }
-
-  const lowPoint = data[lowIndex];
-  const highPoint = data[highIndex];
-  const startPoint = data[lowIndex + indexOffset];
-
-  if (highPoint.x === lowPoint.x) {
-    return lowPoint.y;
-  }
-
-  const k = (highPoint.y - lowPoint.y) / (highPoint.x - lowPoint.x);
-  const result = startPoint.y + k * (hf - startPoint.x);
-  return result;
-};
+const closestPercentileForHF = (hf: number, data: GraphPoint[]) => closestYForX(hf, data);
 
 const xLinesForHHF = (prefix: string, hhf: number) =>
   hhf <= 0
