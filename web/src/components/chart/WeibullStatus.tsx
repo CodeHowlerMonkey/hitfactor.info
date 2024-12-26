@@ -6,6 +6,8 @@ interface WeibullStatusProps {
   weibull: AsyncWeibullResult;
 }
 
+// TODO: Mean Absolute Error, Mean Squared Error, Max Error
+// and their quantile counterparts  MAQE, QMSE, Max Quantile Error
 export const WeibullStatus = ({
   weibull: { loading, k, lambda, skewness, kurtosis },
 }: WeibullStatusProps) => (
