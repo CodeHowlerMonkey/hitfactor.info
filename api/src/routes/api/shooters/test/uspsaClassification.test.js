@@ -258,10 +258,59 @@ test("canBeInserted", () => {
   assert.strictEqual(canBeInserted(makeClassifier({ percent: 70 }), state), false);
 
   // check C flag logic
+  assert.strictEqual(
+    canBeInserted(makeClassifier({ percent: 70, recPercent: 70 }), state, "recPercent"),
+    true,
+  );
+  assert.strictEqual(
+    canBeInserted(
+      makeClassifier({ percent: 70, recPercent: 70 }),
+      state,
+      "recPercent",
+      "allowBCFlags",
+    ),
+    false,
+  );
+
+  // check C flag logic without and with recPercent field + allow BC flags mode
   state.ss.highPercent = 75.001;
   assert.strictEqual(canBeInserted(makeClassifier({ percent: 70.01 }), state), true);
+  assert.strictEqual(
+    canBeInserted(
+      makeClassifier({ percent: 70.01, recPercent: 70.01 }),
+      state,
+      "recPercent",
+    ),
+    true,
+  );
+  assert.strictEqual(
+    canBeInserted(
+      makeClassifier({ percent: 70.01, recPercent: 70.01 }),
+      state,
+      "recPercent",
+      "allowBCFlags",
+    ),
+    true,
+  );
   state.rev.highPercent = 86;
   assert.strictEqual(canBeInserted(makeClassifier({ percent: 70.01 }), state), false);
+  assert.strictEqual(
+    canBeInserted(
+      makeClassifier({ percent: 70.01, recPercent: 70.01 }),
+      state,
+      "recPercent",
+    ),
+    true,
+  );
+  assert.strictEqual(
+    canBeInserted(
+      makeClassifier({ percent: 70.01, recPercent: 70.01 }),
+      state,
+      "recPercent",
+      "allowBCFlags",
+    ),
+    false,
+  );
 
   // check that B and C checks don't count if window is smaller than 4
   state.ss.window = [makeClassifier(), makeClassifier(), makeClassifier()];
@@ -385,9 +434,9 @@ test("percentAndAgesForDivWindow", () => {
     (97 + 95 + 90 + 75 + 65 + 45) / 6,
   );
 
-  // best 6 out of 8
+  // best 6 out of 8 capped
   state.ss.window.push(
-    makeClassifier({ classifier: "01-07", percent: 100, sd: "2/01/2023" }),
+    makeClassifier({ classifier: "01-07", percent: 114, sd: "2/01/2023" }),
   );
   assert.strictEqual(
     percentAndAgesForDivWindow("ss", state).percent,
@@ -400,6 +449,16 @@ test("percentAndAgesForDivWindow", () => {
   );
   assert.strictEqual(
     percentAndAgesForDivWindow("ss", state).percent,
+    (100 + 97 + 95 + 90 + 75 + 65) / 6,
+  );
+
+  // uncapped vs capped
+  assert.strictEqual(
+    percentAndAgesForDivWindow("ss", state, "percent", new Date(), "uncapped").percent,
+    (114 + 97 + 95 + 90 + 75 + 65) / 6,
+  );
+  assert.strictEqual(
+    percentAndAgesForDivWindow("ss", state, "percent", new Date()).percent,
     (100 + 97 + 95 + 90 + 75 + 65) / 6,
   );
 });
@@ -772,6 +831,16 @@ test("calculateUSPSAClassification CS should have curPercent", () => {
 test("calculateUSPSAClassification CS should have curPercent in Open", () => {
   const result = calculateUSPSAClassification(csOpenClassifiers, "curPercent");
   assert.strictEqual(Number(result.opn.percent.toFixed(2)), 100);
+});
+
+test("calculateUSPSAClassification CS should have higher uncapped curPercent in Open", () => {
+  const result = calculateUSPSAClassification(
+    csOpenClassifiers,
+    "curPercent",
+    new Date(),
+    "uncapped",
+  );
+  assert.strictEqual(Number(result.opn.percent.toFixed(2)), 100.91);
 });
 
 test("calculateUSPSAClassification A111317 should have co", () => {
