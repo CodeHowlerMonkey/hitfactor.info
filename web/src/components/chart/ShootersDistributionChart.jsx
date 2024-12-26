@@ -123,6 +123,13 @@ export const ShootersDistributionChart = ({ division, style }) => {
           },
           annotation: {
             annotations: {
+              // TODO: [local experiment only] uncap hundo and reclassify all CO
+              // shooters to see how it affects percentiles.
+              //
+              // Intuition: currently M is around target, A,B,C are easier than 85th/60th/20th
+              // and GM is harder than 99th, possibly due to "compression" of GM classifier
+              // scores on the upper end. By removing the hundo-cap we should increase classification of
+              // people, who have >100% runs, which should be relatively small, but increases number of GMs
               ...Object.assign(
                 {},
                 ...percentiles.map((perc, i) =>
