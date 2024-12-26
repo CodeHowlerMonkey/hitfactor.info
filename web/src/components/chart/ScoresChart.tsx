@@ -8,12 +8,7 @@ import { useDebounce } from "use-debounce";
 import { sportForDivision } from "../../../../shared/constants/divisions";
 import { classForPercent } from "../../../../shared/utils/classification";
 import { fuzzyEqual } from "../../../../shared/utils/hitfactor";
-import {
-  DEFAULT_PRECISION,
-  emptyWeibull,
-  solveWeibull,
-  weibulCDFFactory,
-} from "../../../../shared/utils/weibull";
+import { DEFAULT_PRECISION, weibulCDFFactory } from "../../../../shared/utils/weibull";
 import { useApi } from "../../utils/client";
 import { bgColorForClass } from "../../utils/color";
 
@@ -24,13 +19,12 @@ import {
   xLine,
   annotationColor,
   wbl1AnnotationColor,
-  wbl5AnnotationColor,
   wbl15AnnotationColor,
   r5annotationColor,
-  r15annotationColor,
-  r1annotationColor,
   pointsGraph,
 } from "./common";
+import { useAsyncWeibull } from "./useAsyncWeibull";
+import { WeibullStatus } from "./WeibullStatus";
 
 const modes = [
   "HQ",
@@ -216,16 +210,8 @@ export const ScoresChart = ({
     () => setNumberOfScores(SCORES_STEP * Math.ceil(totalScores / SCORES_STEP)),
     [totalScores],
   );
-  const weibull = useMemo(
-    () =>
-      !full
-        ? emptyWeibull
-        : solveWeibull(
-            data?.map(c => c.x),
-            precisionUsed,
-          ),
-    [full, data, precisionUsed],
-  );
+  const weibullData = useMemo(() => (full ? data?.map(c => c.x) : []), [data, full]);
+  const weibull = useAsyncWeibull(weibullData, precisionUsed);
   const partialScoresDate = useMemo(() => {
     if (!data?.length) {
       return "";
@@ -455,6 +441,7 @@ export const ScoresChart = ({
                   onChange={e => setNumberOfScores(Number(e.target.value))}
                 />
               </div>
+              <WeibullStatus weibull={weibull} />
             </div>
             <div className="text-sm">{partialScoresDate[0]}</div>
             <div className="text-sm">{partialScoresDate[1]}</div>
