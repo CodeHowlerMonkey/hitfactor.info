@@ -68,7 +68,12 @@ export const lowestAllowedPercentForOtherDivisionClass = highestClassificationLe
     B: 40,
   })[highestClassificationLetter] || 0;
 
-export const canBeInserted = (c, state, percentField = "percent") => {
+export const canBeInserted = (
+  c,
+  state,
+  percentField = "percent",
+  mode = percentField,
+) => {
   try {
     const { division } = c;
     if (!allDivShortNames.includes(division)) {
@@ -97,7 +102,7 @@ export const canBeInserted = (c, state, percentField = "percent") => {
     }
 
     // recPercent == special recommended mode, no B/C flags, best 6 out of last 10
-    if ((isCFlag || isBFlag) && percentField !== "recPercent") {
+    if ((isCFlag || isBFlag) && mode !== "recPercent") {
       return false;
     }
 
@@ -144,14 +149,16 @@ export const percentAndAgesForDivWindow = (
   state,
   percentField = "percent",
   now = new Date(),
+  mode = percentField,
 ) => {
   //de-dupe needs to be done in reverse, because percent are sorted asc
   let window = state[div].window;
-  if (percentField !== "recPercent") {
+  if (mode !== "recPercent") {
     // don't use best dupe for recommended, only most recent one
     window = window.toSorted((a, b) => numSort(a, b, percentField, -1));
   }
   const dFlagsApplied = uniqBy(window, c => c.classifier);
+  const percentCap = mode.includes("uncapped") ? 120 : 100;
 
   // remove lowest 2
   const newLength = windowSizeForScore(dFlagsApplied.length);
@@ -160,7 +167,7 @@ export const percentAndAgesForDivWindow = (
     .slice(0, newLength);
   const percent = fFlagsApplied.reduce(
     (acc, curValue, curIndex, allInWindow) =>
-      acc + Math.min(100, curValue[percentField]) / allInWindow.length,
+      acc + Math.min(percentCap, curValue[percentField]) / allInWindow.length,
     0,
   );
 
@@ -208,6 +215,7 @@ export const calculateUSPSAClassification = (
   classifiers,
   percentField = "percent",
   now = new Date(),
+  mode = percentField,
 ) => {
   const state = newClassificationCalculationState();
   if (!classifiers?.length) {
@@ -231,13 +239,13 @@ export const calculateUSPSAClassification = (
     .filter(c => c[percentField] >= 0);
 
   const scoringFunction = c => {
-    if (!canBeInserted(c, state, percentField)) {
+    if (!canBeInserted(c, state, percentField, mode)) {
       return;
     }
     const { division } = c;
     const curWindow = state[c.division].window;
 
-    addToCurWindow(c, curWindow, percentField === "recPercent" ? 10 : 8);
+    addToCurWindow(c, curWindow, mode === "recPercent" ? 10 : 8);
 
     // age1 can be set even before we have enough classifiers
     if (curWindow.length >= 1) {
@@ -253,7 +261,7 @@ export const calculateUSPSAClassification = (
         percent: newPercent,
         age,
         age1,
-      } = percentAndAgesForDivWindow(division, state, percentField, now);
+      } = percentAndAgesForDivWindow(division, state, percentField, now, mode);
 
       if (newPercent > oldHighPercent) {
         state[division].highPercent = newPercent;
