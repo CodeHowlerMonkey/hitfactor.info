@@ -3,12 +3,7 @@ import { SelectButton } from "primereact/selectbutton";
 import { useMemo, useState } from "react";
 
 import { classForPercent } from "../../../../shared/utils/classification";
-import {
-  skewness,
-  kurtosis,
-  solveWeibull,
-  weibulCDFFactory,
-} from "../../../../shared/utils/weibull";
+import { weibulCDFFactory } from "../../../../shared/utils/weibull";
 import { useApi } from "../../utils/client";
 import { bgColorForClass } from "../../utils/color";
 import { useIsHFU } from "../../utils/useIsHFU";
@@ -23,6 +18,7 @@ import {
   pointsGraph,
 } from "./common";
 import { useAsyncWeibull } from "./useAsyncWeibull";
+import { WeibullStatus } from "./WeibullStatus";
 
 const lines = {
   ...yLine("1th", 1.0, annotationColor(0.7)),
@@ -69,13 +65,8 @@ export const ShootersDistributionChart = ({ division, style }) => {
 
   const curModeDataPoints = useMemo(() => curModeData.map(c => c.x), [curModeData]);
 
-  const {
-    k,
-    lambda,
-    kurtosis: curModeKurtosis,
-    skewness: curModeSkewness,
-    loading: loadingWeibull,
-  } = useAsyncWeibull(curModeDataPoints);
+  const weibull = useAsyncWeibull(curModeDataPoints);
+  const { k, lambda } = weibull;
 
   if (loading) {
     return <ProgressSpinner />;
@@ -191,31 +182,7 @@ export const ShootersDistributionChart = ({ division, style }) => {
             </div>
           </>
         )}
-        <div className="flex flex-column justify-content-center align-items-start">
-          <div className="flex flex-column justify-content-center text-md text-500 font-bold">
-            {loadingWeibull ? (
-              <div className="flex gap-2 align-items-center">
-                <ProgressSpinner
-                  strokeWidth={4}
-                  style={{ width: "1.5em", height: "1.5em" }}
-                />
-                Calculating...
-              </div>
-            ) : (
-              "Weibull Ready"
-            )}
-          </div>
-          <div className="flex gap-4 text-sm">
-            <div className="flex flex-column justify-content-center text-md text-500 font-bold">
-              <div>k = {k.toFixed(6)}</div>
-              <div>𝛌 = {lambda.toFixed(6)}</div>
-            </div>
-            <div className="flex flex-column justify-content-center text-md text-500 font-bold">
-              <div>Skewness = {curModeSkewness.toFixed(6)}</div>
-              <div>Kurtosis = {curModeKurtosis.toFixed(6)}</div>
-            </div>
-          </div>
-        </div>
+        <WeibullStatus weibull={weibull} />
       </div>
       <div style={{ maxWidth: "100%", height: "calc(100vh - 420px)", minHeight: 360 }}>
         {graph}

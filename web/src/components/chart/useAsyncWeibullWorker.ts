@@ -1,15 +1,10 @@
-import {
-  DEFAULT_PRECISION,
-  kurtosis,
-  skewness,
-  solveWeibull,
-} from "../../../../shared/utils/weibull";
+import { kurtosis, skewness, solveWeibull } from "../../../../shared/utils/weibull";
 
 self.onmessage = e => {
-  const dataPoints = e.data as number[];
+  const { dataPoints, precision } = e.data || {};
   const skew = skewness(dataPoints);
   const kurt = kurtosis(dataPoints);
-  const weibull = solveWeibull(dataPoints, DEFAULT_PRECISION, partialResult =>
+  const weibull = solveWeibull(dataPoints, precision, partialResult =>
     self.postMessage({
       ...partialResult,
       skewness: skew,
