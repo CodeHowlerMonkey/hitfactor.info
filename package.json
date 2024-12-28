@@ -17,7 +17,7 @@
     "uploadMatches": "NODE_OPTIONS='--max-old-space-size=512' node --import=tsx scripts/upload/matchesLoop.ts",
     "uploadScores": "NODE_OPTIONS='--max-old-space-size=512' node --import=tsx scripts/upload/scoresLoop.ts",
     "uploadMeta": "NODE_OPTIONS='--max-old-space-size=2048' node --import=tsx scripts/upload/statsMetaLoop.ts",
-    "members": "node scripts/activeMembers.js",
+    "members": "node --import=tsx scripts/activeMembers.ts",
     "========================= DB Admin Scripts ============================": "",
     "dump": "mongodump $MONGO_URL",
     "===================== Internal (Don't Run Directly) ======================": "",
