@@ -24,11 +24,14 @@ import { WeibullStatus } from "./WeibullStatus";
 const fieldModeMap = {
   HQ: "curPercent",
   "Cur.HHF": "curHHFPercent",
-  "Rec.": "recPercent",
+  "Rec.HHFOnly": "recHHFOnlyPercent",
+  "Rec.Soft": "recSoftPercent",
+  "Rec.Brutal": "recPercent",
+  "Rec.Brutal Uncapped": "recPercentUncapped",
 };
 const fieldForMode = mode => fieldModeMap[mode];
 const modes = Object.keys(fieldModeMap);
-const recommendedMode = modes[2];
+const recommendedMode = modes[4];
 
 export const ShootersDistributionChart = ({ division, style }) => {
   const isHFU = useIsHFU(division);
@@ -54,7 +57,6 @@ export const ShootersDistributionChart = ({ division, style }) => {
   const percentiles = useMemo(
     () => [
       closestYForX(95, curModeData),
-      closestYForX(90, curModeData),
       closestYForX(85, curModeData),
       closestYForX(75, curModeData),
       closestYForX(60, curModeData),
@@ -134,14 +136,13 @@ export const ShootersDistributionChart = ({ division, style }) => {
                 {},
                 ...percentiles.map((perc, i) =>
                   yLine(
-                    `Top ${perc.toFixed(2)}% = ${["GM", "HiM", "M", "A", "B", "C"][i]}`,
+                    `Top ${perc?.toFixed(2)}% = ${["GM", "M", "A", "B", "C"][i]}`,
                     perc,
                     annotationColor(0.75),
                   ),
                 ),
               ),
               ...xLine("95%", 95, r5annotationColor(0.5), 2.5),
-              ...xLine("90%", 95, r5annotationColor(0.5), 2.5),
               ...xLine("85%", 85, r5annotationColor(0.5), 2.5),
               ...xLine("75%", 75, r5annotationColor(0.5), 2.5),
               ...xLine("60%", 60, r5annotationColor(0.5), 2.5),

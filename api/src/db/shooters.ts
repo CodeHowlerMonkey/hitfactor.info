@@ -71,6 +71,30 @@ ShooterSchema.index({
   division: 1,
   reclassificationsCurPercentCurrent: 1,
 });
+ShooterSchema.index({
+  division: 1,
+  reclassificationsRecHHFOnlyPercentCurrent: -1,
+});
+ShooterSchema.index({
+  division: 1,
+  reclassificationsRecHHFOnlyPercentCurrent: 1,
+});
+ShooterSchema.index({
+  division: 1,
+  reclassificationsSoftPercentCurrent: -1,
+});
+ShooterSchema.index({
+  division: 1,
+  reclassificationsSoftPercentCurrent: 1,
+});
+ShooterSchema.index({
+  division: 1,
+  reclassificationsRecPercentUncappedCurrent: -1,
+});
+ShooterSchema.index({
+  division: 1,
+  reclassificationsRecPercentUncappedCurrent: 1,
+});
 
 export const Shooters = mongoose.model("Shooters", ShooterSchema);
 
