@@ -150,6 +150,14 @@ const ShootersTable = ({
           )}
         />
         <Column
+          field="reclassificationsRecPercentUncappedCurrent"
+          header="Rec. Uncapped"
+          headerTooltip="Like Recommended, but Scores aren't capped at 100%"
+          headerTooltipOptions={headerTooltipOptions}
+          sortable
+          body={renderPercent}
+        />
+        <Column
           field="reclassificationsRecPercentCurrent"
           header={isHFU ? "Percent" : "Rec."}
           headerTooltip="Recommended classification percent of this shooter, using best 6 out of most recent 10 scores and recommended HHFs for classifiers."
@@ -158,21 +166,38 @@ const ShootersTable = ({
           body={renderPercent}
         />
         <Column
-          hidden={isHFU}
-          field="reclassificationsCurPercentCurrent"
-          header="Cur."
-          headerTooltip="Current HHF classification percent of this shooter, if all their classifier scores would use the most recent HHFs. Major Matches results stay the same."
+          field="reclassificationsSoftPercentCurrent"
+          header="Rec. Soft"
+          headerTooltip="Like Recommended, but D-flags still work"
+          headerTooltipOptions={headerTooltipOptions}
+          sortable
+          body={renderPercent}
+        />
+        <Column
+          field="reclassificationsRecHHFOnlyPercentCurrent"
+          header="Rec.HHFOnly"
+          headerTooltip="Like HQ (BCD-flags on), but using RecHHFs"
           headerTooltipOptions={headerTooltipOptions}
           sortable
           body={renderPercent}
         />
         <Column
           hidden={isHFU}
+          field="reclassificationsCurPercentCurrent"
+          header="HQ"
+          // header="Cur."
+          headerTooltip="Current HHF classification percent of this shooter, if all their classifier scores would use the most recent HHFs. Major Matches results stay the same."
+          headerTooltipOptions={headerTooltipOptions}
+          sortable
+          body={renderPercent}
+        />
+        {/*<Column
+          hidden={isHFU}
           field="current"
           header="HQ"
           sortable
           body={renderPercent}
-        />
+        />*/}
         <Column
           field="age"
           header="Age"
