@@ -70,6 +70,7 @@ export interface ScoreVirtuals {
 }
 
 type ScoreModel = Model<Score, object, ScoreVirtuals>;
+export type ScoreObjectWithVirtuals = Score & ScoreVirtuals & { _id: string };
 
 const ScoreSchema = new mongoose.Schema<Score, ScoreModel, ScoreVirtuals>(
   {

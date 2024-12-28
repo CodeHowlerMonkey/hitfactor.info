@@ -156,6 +156,8 @@ const shootersRoutes = async fastify => {
         "current",
         "reclassificationsCurPercentCurrent",
         "reclassificationsRecPercentCurrent",
+        "reclassificationsRecHHFOnlyPercentCurrent",
+        "reclassificationsRecPercentUncappedCurrent",
         "memberNumber",
       ])
       .lean()
@@ -165,7 +167,9 @@ const shootersRoutes = async fastify => {
       .map(c => ({
         curPercent: c.current,
         curHHFPercent: c.reclassificationsCurPercentCurrent,
-        recPercent: c.reclassificationsRecPercentCurrent,
+        recPercent: c.reclassificationsRecHHFOnlyPercentCurrent, //c.reclassificationsRecPercentCurrent,
+        // TODO: recHHFOnlyPercent:
+        // TODO: uncapped:
         memberNumber: c.memberNumber,
       }))
       .sort(safeNumSort("curPercent"))

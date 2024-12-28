@@ -1,10 +1,11 @@
 /* eslint-disable no-console */
 import uniqBy from "lodash.uniqby";
-import mongoose, { Schema } from "mongoose";
+import mongoose, { Model, Schema } from "mongoose";
 
 import {
   calculateUSPSAClassification,
   classForPercent,
+  ClassificationMode,
   rankForClass,
 } from "../../../shared/utils/classification";
 import {
@@ -17,7 +18,7 @@ import {
 import { psClassUpdatesByMemberNumber } from "../dataUtil/uspsa";
 import { loadJSON, processImportAsyncSeq } from "../utils";
 
-import { Scores } from "./scores";
+import { Score, ScoreObjectWithVirtuals, Scores, ScoreVirtuals } from "./scores";
 import { getField, percentAggregationOp } from "./utils";
 
 const memberIdToNumberMap = loadJSON("../../data/meta/memberIdToNumber.json");
@@ -35,8 +36,15 @@ const memberNumberFromMemberData = memberData => {
   return "BAD DATA";
 };
 
-// TODO: write up the schema once it's stable
-const ShooterSchema = new Schema({}, { strict: false });
+// TODO: finish up the interfaces as schema
+export interface Shooter {
+  memberNumber: string;
+  memberNumberDivision: string;
+  name: string;
+}
+
+type ShooterModel = Model<Shooter, object>;
+const ShooterSchema = new Schema<Shooter, ShooterModel>({}, { strict: false });
 ShooterSchema.index({ memberNumber: 1, division: 1 });
 ShooterSchema.index({ memberNumber: 1 });
 ShooterSchema.index({ memberNumberDivision: 1 });
@@ -89,7 +97,12 @@ export const allDivisionsScores = async memberNumbers => {
     .sort({ sd: -1 });
   const data = await query;
 
-  return data.map(doc => doc.toObject({ virtuals: true }));
+  return data.map(doc => {
+    const obj: ScoreObjectWithVirtuals = doc.toObject({ virtuals: true });
+    const classifier = obj.isMajor ? obj._id : obj.classifier;
+    const classifierDivision = `${classifier}:${obj.division}`;
+    return { ...obj, classifier, classifierDivision };
+  });
 };
 
 export const allDivisionsScoresByMemberNumber = async memberNumbers => {
@@ -315,8 +328,21 @@ const shooterObjectsForMemberNumber = (c, recMemberScores, curMemberScores) => {
   const memberNumber = memberNumberFromMemberData(c.member_data);
   const hqClasses = reduceByDiv(c.classifications, r => r.class);
   const hqCurrents = reduceByDiv(c.classifications, r => Number(r.current_percent));
-  const recalcByCurPercent = calculateUSPSAClassification(curMemberScores, "curPercent");
-  const recalcByRecPercent = calculateUSPSAClassification(recMemberScores, "recPercent");
+  const now = new Date();
+  const recalcByCurPercent = calculateUSPSAClassification(
+    curMemberScores,
+    "curPercent",
+    now,
+    "uspsa",
+    8,
+  );
+  const recalcByRecPercent = calculateUSPSAClassification(
+    recMemberScores,
+    "recPercent",
+    now,
+    "brutal",
+    10,
+  );
 
   return Object.values(
     mapDivisions(division => {
@@ -444,7 +470,7 @@ const batchHydrateShooters = async letter => {
     "../../data/imported",
     new RegExp(`classification\\.${letter}\\.\\d+\\.json`),
     async obj => {
-      curBatch.push(obj.value);
+      curBatch.push(obj.value as USPSAAPIClassificationResponse);
       if (curBatch.length >= 128) {
         await processBatchHydrateShooters(curBatch);
         curBatch = [];
@@ -495,23 +521,69 @@ export const reclassifyShooters = async shooters => {
         }
         const recMemberScores = recScoresByMemberNumber[memberNumber];
         const curMemberScores = curScoresByMemberNumber[memberNumber];
+        const now = new Date();
         const recalcByCurPercent = calculateUSPSAClassification(
           curMemberScores,
           "curPercent",
+          now,
+          "uspsa",
+          8,
+        );
+        const recalcByRecHHFOnlyPercent = calculateUSPSAClassification(
+          curMemberScores, // cur, not rec, to enable old D flag behavior
+          "recPercent",
+          now,
+          "uspsa",
+          10,
+        );
+        const recalcByRecPercentSoft = calculateUSPSAClassification(
+          curMemberScores, // cur, not rec, to enable old D flag behavior
+          "recPercent",
+          now,
+          "soft",
+          10,
         );
         const recalcByRecPercent = calculateUSPSAClassification(
           recMemberScores,
           "recPercent",
+          now,
+          "brutal",
+          10,
+        );
+        const recalcByRecPercentUncapped = calculateUSPSAClassification(
+          recMemberScores,
+          "recPercent",
+          now,
+          "brutal+uncapped",
+          10,
         );
 
         const recalcDivCur = reclassificationBreakdown(recalcByCurPercent, division);
+        const recalcDivRecHHFOnly = reclassificationBreakdown(
+          recalcByRecHHFOnlyPercent,
+          division,
+        );
+        const recalcDivSoft = reclassificationBreakdown(recalcByRecPercentSoft, division);
         const recalcDivRec = reclassificationBreakdown(recalcByRecPercent, division);
+        const recalcDivRecUncapped = reclassificationBreakdown(
+          recalcByRecPercentUncapped,
+          division,
+        );
 
         const reclassificationsCurPercentCurrent = Number(
           (recalcDivCur?.current ?? 0).toFixed(4),
         );
+        const reclassificationsRecHHFOnlyPercentCurrent = Number(
+          (recalcDivRecHHFOnly?.current ?? 0).toFixed(4),
+        );
+        const reclassificationsSoftPercentCurrent = Number(
+          (recalcDivSoft?.current ?? 0).toFixed(4),
+        );
         const reclassificationsRecPercentCurrent = Number(
           (recalcDivRec?.current ?? 0).toFixed(4),
+        );
+        const reclassificationsRecPercentUncappedCurrent = Number(
+          (recalcDivRecUncapped?.current ?? 0).toFixed(4),
         );
 
         const hqClass = psClassUpdates?.[memberNumber]?.[division] || "U";
@@ -560,7 +632,10 @@ export const reclassifyShooters = async shooters => {
                     age1: recalcByRecPercent?.[division]?.age1,
 
                     reclassificationsCurPercentCurrent, // aka curHHFPercent
+                    reclassificationsRecHHFOnlyPercentCurrent, //aka recHHFOnlyPercent
+                    reclassificationsSoftPercentCurrent, //aka recSoftPercent
                     reclassificationsRecPercentCurrent, // aka recPercent
+                    reclassificationsRecPercentUncappedCurrent, //aka recPercentUncapped
 
                     recClass: recalcDivRec.class,
                     recClassRank: rankForClass(recalcDivRec.class),
@@ -582,16 +657,40 @@ export const reclassifyShooters = async shooters => {
   }
 };
 
-export const reclassificationForProgressMode = async (mode, memberNumber) => {
-  switch (mode) {
-    case "curPercent": {
+/** used for shooter's page chart / progression */
+export const reclassificationForProgressMode = async (
+  mode: ClassificationMode | "curPercent" | "recPercent",
+  memberNumber: string,
+) => {
+  const classificationMode: ClassificationMode =
+    mode === "curPercent" ? "uspsa" : mode === "recPercent" ? "brutal" : mode;
+
+  const now = new Date();
+  switch (classificationMode) {
+    case "uspsa":
+    case "uspsa+uncapped": {
       const scores = await allDivisionsScores([memberNumber]);
-      return calculateUSPSAClassification(scores, "curPercent");
+      return calculateUSPSAClassification(
+        scores,
+        "curPercent",
+        now,
+        classificationMode,
+        8,
+      );
     }
 
-    case "recPercent": {
+    case "soft":
+    case "soft+uncapped":
+    case "brutal":
+    case "brutal+uncapped": {
       const scores = await scoresForRecommendedClassification([memberNumber]);
-      return calculateUSPSAClassification(scores, "recPercent");
+      return calculateUSPSAClassification(
+        scores,
+        "recPercent",
+        now,
+        classificationMode,
+        10,
+      );
     }
   }
 
