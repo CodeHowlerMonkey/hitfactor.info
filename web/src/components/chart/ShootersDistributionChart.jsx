@@ -46,11 +46,13 @@ export const ShootersDistributionChart = ({ division, style }) => {
 
   const curModeData = useMemo(
     () =>
-      data?.map(c => ({
-        ...c,
-        x: c[fieldForMode(xMode)],
-        y: c[`${fieldForMode(xMode)}Percentile`],
-      })) || [],
+      data
+        ?.map(c => ({
+          ...c,
+          x: c[fieldForMode(xMode)],
+          y: c[`${fieldForMode(xMode)}Percentile`],
+        }))
+        ?.filter(c => !isNaN(Number(c.x)) && !isNaN(Number(c.y))) || [],
     [data, xMode],
   );
 
