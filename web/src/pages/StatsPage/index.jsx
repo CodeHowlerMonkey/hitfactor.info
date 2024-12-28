@@ -19,6 +19,7 @@ import { useApi } from "../../utils/client";
 
 import Activity from "./Activity";
 import Distribution from "./Distribution";
+import ELO from "./ELO";
 import Inconsistencies from "./Inconsistencies";
 
 export const ClassificationsChart = ({
@@ -536,6 +537,9 @@ export const StatsPage = () => {
         </TabPanel>
         <TabPanel header="Distribution" className="p-0 text-sm md:text-base">
           <Distribution />
+        </TabPanel>
+        <TabPanel header="ELO" className="p-0 text-sm md:text-base">
+          <ELO />
         </TabPanel>
         <TabPanel header="Divisions" className="p-0 text-sm md:text-base">
           <Divisions />

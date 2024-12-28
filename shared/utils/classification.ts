@@ -71,6 +71,27 @@ export const classForPercent = curPercent => {
 
   return "U";
 };
+
+export const eloClasses = [1500, 1300, 1100, 900, 700];
+export const classForELO = (eloRating: number) => {
+  if (eloRating <= 0) {
+    return "U";
+  } else if (eloRating < 700) {
+    return "D";
+  } else if (eloRating < 900) {
+    return "C";
+  } else if (eloRating < 1100) {
+    return "B";
+  } else if (eloRating < 1300) {
+    return "A";
+  } else if (eloRating < 1500) {
+    return "M";
+  } else if (eloRating >= 1500) {
+    return "GM";
+  }
+
+  return "U";
+};
 export const rankForClass = classification =>
   ({
     GM: 95,
