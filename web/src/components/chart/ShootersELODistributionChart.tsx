@@ -2,11 +2,15 @@ import { ProgressSpinner } from "primereact/progressspinner";
 import { SelectButton } from "primereact/selectbutton";
 import { useMemo, useState } from "react";
 
-import { classForPercent } from "../../../../shared/utils/classification";
+import coElo from "../../../../data/elo/co.json";
+import {
+  classForELO,
+  classForPercent,
+  eloClasses,
+} from "../../../../shared/utils/classification";
 import { weibulCDFFactory } from "../../../../shared/utils/weibull";
 import { useApi } from "../../utils/client";
 import { bgColorForClass } from "../../utils/color";
-import { useIsHFU } from "../../utils/useIsHFU";
 
 import {
   annotationColor,
@@ -21,7 +25,16 @@ import {
 import { useAsyncWeibull } from "./useAsyncWeibull";
 import { WeibullStatus } from "./WeibullStatus";
 
+const mainModeMap = {
+  "ELO Only": "elo",
+  Versus: "vs",
+};
+const mainModeFieldForMode = mode => mainModeMap[mode];
+const mainModes = Object.keys(mainModeMap);
+const defaultMainMode = mainModes[0];
+
 const fieldModeMap = {
+  ELO: "elo",
   HQ: "curPercent",
   "Cur.HHF": "curHHFPercent",
   "Rec.HHFOnly": "recHHFOnlyPercent",
@@ -33,37 +46,54 @@ const fieldForMode = mode => fieldModeMap[mode];
 const modes = Object.keys(fieldModeMap);
 const recommendedMode = modes[4];
 
-export const ShootersDistributionChart = ({ division, style }) => {
-  const isHFU = useIsHFU(division);
-  const [colorModeState, setColorMode] = useState(recommendedMode);
-  const [xModeState, setXMode] = useState(recommendedMode);
+interface RawDataPoint {
+  x: number;
+  y: number;
+  pointsGraphName?: string;
+  name: string;
+  rating: number;
+  memberNumber: string;
+}
 
-  // only use recommended in HFU
-  const colorMode = isHFU ? recommendedMode : colorModeState;
-  const xMode = isHFU ? recommendedMode : xModeState;
+interface ShootersELODistributionChartProps {
+  division: string;
+}
 
-  const { json: data, loading } = useApi(`/shooters/${division}/chart`);
+export const ShootersELODistributionChart = ({ division }) => {
+  const [mainMode, setMainMode] = useState(defaultMainMode);
+  const [colorMode, setColorMode] = useState(recommendedMode);
+  const [xMode, setXMode] = useState(recommendedMode);
+  const [yMode, setYMode] = useState(recommendedMode);
 
-  const curModeData = useMemo(
-    () =>
+  // const { json: data, loading } = useApi(`/shooters/${division}/chart`);
+  const data = coElo;
+  const loading = false;
+
+  const curModeData = useMemo(() => {
+    if (mainModeFieldForMode(mainMode) === "elo") {
+      const s = coElo.map((c, i, all) => ({
+        ...c,
+        x: c.rating,
+        y: (100 * i) / all.length,
+      }));
+      console.log(JSON.stringify(s[0]));
+      return s;
+    }
+
+    // TODO: pick x/y
+    return (
       data
         ?.map(c => ({
           ...c,
           x: c[fieldForMode(xMode)],
           y: c[`${fieldForMode(xMode)}Percentile`],
         }))
-        ?.filter(c => !isNaN(Number(c.x)) && !isNaN(Number(c.y))) || [],
-    [data, xMode],
-  );
+        ?.filter(c => !isNaN(Number(c.x)) && !isNaN(Number(c.y))) || []
+    );
+  }, [data, xMode, yMode, mainMode]);
 
   const percentiles = useMemo(
-    () => [
-      closestYForX(95, curModeData),
-      closestYForX(85, curModeData),
-      closestYForX(75, curModeData),
-      closestYForX(60, curModeData),
-      closestYForX(40, curModeData),
-    ],
+    () => eloClasses.map(c => closestYForX(c, curModeData)),
     [curModeData],
   );
 
@@ -95,7 +125,6 @@ export const ShootersDistributionChart = ({ division, style }) => {
             pan: { enabled: true },
             zoom: {
               mode: "xy",
-              enabled: true,
               wheel: {
                 enabled: true,
               },
@@ -106,34 +135,18 @@ export const ShootersDistributionChart = ({ division, style }) => {
           },
           tooltip: {
             callbacks: {
-              label: ({
-                raw: {
-                  recPercent,
-                  curHHFPercent,
-                  curPercent,
-                  memberNumber,
-                  y,
-                  pointsGraphName,
-                },
-              }) => {
+              label: ({ raw }) => {
+                const { memberNumber, name, rating, y, pointsGraphName } =
+                  raw as RawDataPoint;
                 if (pointsGraphName) {
-                  return null;
+                  return undefined;
                 }
-                return `${memberNumber}; Top ${y.toFixed(
-                  2,
-                )}%, Rec: ${recPercent}%, HQ/curHHF: ${curHHFPercent}%`;
+                return `${memberNumber} ${name}; Top ${y.toFixed(2)}%, ELO: ${rating.toFixed(2)}`;
               },
             },
           },
           annotation: {
             annotations: {
-              // TODO: [local experiment only] uncap hundo and reclassify all CO
-              // shooters to see how it affects percentiles.
-              //
-              // Intuition: currently M is around target, A,B,C are easier than 85th/60th/20th
-              // and GM is harder than 99th, possibly due to "compression" of GM classifier
-              // scores on the upper end. By removing the hundo-cap we should increase classification of
-              // people, who have >100% runs, which should be relatively small, but increases number of GMs
               ...Object.assign(
                 {},
                 ...percentiles.map((perc, i) =>
@@ -144,11 +157,12 @@ export const ShootersDistributionChart = ({ division, style }) => {
                   ),
                 ),
               ),
-              ...xLine("95%", 95, r5annotationColor(0.5), 2.5),
-              ...xLine("85%", 85, r5annotationColor(0.5), 2.5),
-              ...xLine("75%", 75, r5annotationColor(0.5), 2.5),
-              ...xLine("60%", 60, r5annotationColor(0.5), 2.5),
-              ...xLine("40%", 40, r5annotationColor(0.5), 2.5),
+              ...Object.assign(
+                {},
+                ...eloClasses.map(eloRating =>
+                  xLine(String(eloRating), eloRating, r5annotationColor(0.5), 2.5),
+                ),
+              ),
             },
           },
         },
@@ -160,7 +174,7 @@ export const ShootersDistributionChart = ({ division, style }) => {
             data: pointsGraph({
               yFn: weibulCDFFactory(k, lambda),
               minX: 0,
-              maxX: 100,
+              maxX: 1.05 * curModeData[0].x,
               step: 0.1,
               name: "Weibull",
             }),
@@ -170,14 +184,12 @@ export const ShootersDistributionChart = ({ division, style }) => {
             pointBackgroundColor: wbl1AnnotationColor(0.66),
           },
           {
-            label: "Classification / Percentile",
+            label: "ELO / Percentile",
             data: curModeData,
             pointBorderColor: "white",
             pointBorderWidth: 0,
             backgroundColor: "#ae9ef1",
-            pointBackgroundColor: data?.map(
-              c => bgColorForClass[classForPercent(c[fieldForMode(colorMode)])],
-            ),
+            pointBackgroundColor: data?.map(c => bgColorForClass[classForELO(c.rating)]),
           },
         ],
       }}
@@ -185,32 +197,8 @@ export const ShootersDistributionChart = ({ division, style }) => {
   );
 
   return (
-    <div style={style}>
+    <div>
       <div className="flex mt-4 justify-content-around text-base lg:text-xl">
-        {!isHFU && (
-          <>
-            <div className="flex flex-column justify-content-center align-items-start">
-              <span className="text-md text-500 font-bold">Color</span>
-              <SelectButton
-                className="compact text-xs"
-                allowEmpty={false}
-                options={modes}
-                value={colorMode}
-                onChange={e => setColorMode(e.value)}
-              />
-            </div>
-            <div className="flex flex-column justify-content-center align-items-start">
-              <span className="text-md text-500 font-bold">Position</span>
-              <SelectButton
-                className="compact text-xs"
-                allowEmpty={false}
-                options={modes}
-                value={xMode}
-                onChange={e => setXMode(e.value)}
-              />
-            </div>
-          </>
-        )}
         <WeibullStatus weibull={weibull} />
       </div>
       <div
@@ -226,4 +214,4 @@ export const ShootersDistributionChart = ({ division, style }) => {
   );
 };
 
-export default ShootersDistributionChart;
+export default ShootersELODistributionChart;
