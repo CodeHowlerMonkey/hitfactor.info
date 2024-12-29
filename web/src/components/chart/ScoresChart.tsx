@@ -277,7 +277,7 @@ export const ScoresChart = ({
                 // TODO: show classificaiton for SCSA when available
                 const classification =
                   sport !== "scsa" ? `(${raw[modeBucketForMode()].toFixed(2)}%)` : "";
-                return `HF ${x.toFixed(4)}, Top ${y.toFixed(2)}%: ${memberNumber}${classification}`;
+                return `HF ${x.toFixed(4)}(${((100 * x) / curModeHHF).toFixed(2)}%), Top ${y.toFixed(2)}%: ${memberNumber}${classification}`;
               },
             },
           },
