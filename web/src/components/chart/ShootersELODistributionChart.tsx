@@ -89,6 +89,7 @@ export const ShootersELODistributionChart = ({
     }
     const dataWithElo = data
       .map(c => {
+        const ogMemberNumber = c.memberNumber;
         const normalizedMemberNumber = c.memberNumber.replace(
           /^(A|TY|FY|FYF|F|TYF|CA)/gi,
           "",
@@ -100,6 +101,7 @@ export const ShootersELODistributionChart = ({
         return {
           ...c,
           memberNumber: c.memberNumber.replace(/^(A|TY|FY|FYF|F|TYF|CA)/gi, ""),
+          ogMemberNumber,
           ...eloPoint,
         };
       })
@@ -171,11 +173,18 @@ export const ShootersELODistributionChart = ({
           tooltip: {
             callbacks: {
               label: ({ raw }) => {
+                const {
+                  ogMemberNumber,
+                  memberNumber,
+                  name,
+                  rating,
+                  x,
+                  y,
+                  pointsGraphName,
+                } = raw as RawDataPoint;
                 if (isVersus) {
-                  return null;
+                  return `${ogMemberNumber} ${name}; X ${x.toFixed(2)}; Y ${y.toFixed(2)}; ELO: ${rating.toFixed(2)}`;
                 }
-                const { memberNumber, name, rating, y, pointsGraphName } =
-                  raw as RawDataPoint;
                 if (pointsGraphName) {
                   return null;
                 }
