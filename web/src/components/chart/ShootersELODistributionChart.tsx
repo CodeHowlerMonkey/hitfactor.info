@@ -9,7 +9,11 @@ import {
   classForPercent,
   eloClasses,
 } from "../../../../shared/utils/classification";
-import { weibulCDFFactory } from "../../../../shared/utils/weibull";
+import {
+  covariance,
+  correlation,
+  weibulCDFFactory,
+} from "../../../../shared/utils/weibull";
 import { useApi } from "../../utils/client";
 import { bgColorForClass } from "../../utils/color";
 
@@ -138,6 +142,26 @@ export const ShootersELODistributionChart = ({
 
   const weibull = useAsyncWeibull(isVersus ? [] : curModeDataPoints, 10);
   const { k, lambda } = weibull;
+  const correl = useMemo(
+    () =>
+      !isVersus
+        ? 0
+        : correlation(
+            curModeData.map(c => c.x),
+            curModeData.map(c => c.y),
+          ),
+    [isVersus, curModeData],
+  );
+  const covar = useMemo(
+    () =>
+      !isVersus
+        ? 0
+        : covariance(
+            curModeData.map(c => c.x),
+            curModeData.map(c => c.y),
+          ),
+    [isVersus, curModeData],
+  );
 
   if (loading) {
     return <ProgressSpinner />;
@@ -303,7 +327,16 @@ export const ShootersELODistributionChart = ({
             />
           </div>
         </div>
-        {!isVersus && <WeibullStatus weibull={weibull} />}
+        {!isVersus ? (
+          <WeibullStatus weibull={weibull} />
+        ) : (
+          <div className="flex gap-4 text-sm">
+            <div className="flex flex-column justify-content-center text-md text-500 font-bold">
+              <div>Correlation = {correl.toFixed(6)}</div>
+              <div>Covariance = {covar.toFixed(6)}</div>
+            </div>
+          </div>
+        )}
       </div>
       <div
         style={{

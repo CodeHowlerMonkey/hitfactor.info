@@ -154,3 +154,6 @@ export const kurtosis = (dataPoints: number[]) => {
   }
   return ss.sampleKurtosis(dataPoints);
 };
+
+export const correlation = ss.sampleCorrelation;
+export const covariance = ss.sampleCovariance;
