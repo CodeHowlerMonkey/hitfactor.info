@@ -198,7 +198,9 @@ export const DivisionNavigation = ({
       ? []
       : uspsaDivisions.map(uspsaDiv => (
           <TabPanel
-            disabled={uspsaDiv.short_name.toLowerCase() !== forcedDivision}
+            disabled={
+              !!forcedDivision && uspsaDiv.short_name.toLowerCase() !== forcedDivision
+            }
             key={uspsaDiv.id}
             header={uspsaDiv.long_name}
             className="p-0 text-sm md:text-base"
@@ -208,7 +210,7 @@ export const DivisionNavigation = ({
       ? []
       : scsaDivisions.map(curDiv => (
           <TabPanel
-            disabled={curDiv.short !== forcedDivision}
+            disabled={!!forcedDivision && curDiv.short !== forcedDivision}
             key={curDiv.long}
             header={curDiv.long}
             className="p-0 text-sm md:text-base"
