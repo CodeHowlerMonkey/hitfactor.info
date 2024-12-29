@@ -233,7 +233,7 @@ export const ShootersELODistributionChart = ({
                 },
               ]),
           {
-            label: "ELO / Percentile",
+            label: isVersus ? "Comparison" : "ELO / Percentile",
             data: curModeData as RawDataPoint[],
             pointBorderColor: "white",
             pointBorderWidth: 0,
