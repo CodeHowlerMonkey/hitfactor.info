@@ -72,21 +72,21 @@ export const classForPercent = curPercent => {
   return "U";
 };
 
-export const eloClasses = [1500, 1300, 1100, 900, 700];
+export const eloClasses = [1625, 1434, 1245, 998, 700];
 export const classForELO = (eloRating: number) => {
   if (eloRating <= 0) {
     return "U";
-  } else if (eloRating < 700) {
+  } else if (eloRating < eloClasses[4]) {
     return "D";
-  } else if (eloRating < 900) {
+  } else if (eloRating < eloClasses[3]) {
     return "C";
-  } else if (eloRating < 1100) {
+  } else if (eloRating < eloClasses[2]) {
     return "B";
-  } else if (eloRating < 1300) {
+  } else if (eloRating < eloClasses[1]) {
     return "A";
-  } else if (eloRating < 1500) {
+  } else if (eloRating < eloClasses[0]) {
     return "M";
-  } else if (eloRating >= 1500) {
+  } else if (eloRating >= eloClasses[0]) {
     return "GM";
   }
 
