@@ -165,7 +165,7 @@ const classifiersRoutes = async fastify => {
         division,
         classifier: { $exists: true, $ne: null },
         code: { $exists: true, $ne: null },
-      }),
+      }).populate("recHHFs"),
       division.startsWith("scsa")
         ? allScsaDivisionClassifiersQuality()
         : allDivisionClassifiersQuality(),

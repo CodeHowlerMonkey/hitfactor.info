@@ -14,6 +14,57 @@ import { letterRatingForPercent, renderPercent } from "../../../components/Table
 import useTableSort from "../../../components/Table/useTableSort";
 import { useApi } from "../../../utils/client";
 
+//isSCSA ? 2 : 4
+//isSCSA ? 's' : 0
+const numFieldsDiff =
+  (b, a, precision = 4, suffix = "") =>
+  c => {
+    if (!c[a] || !c[b]) {
+      return "—";
+    }
+    const sign = c[a] > c[b] ? "" : "+";
+    const diff = c[b] - c[a];
+    const diffPercent = 100 * (c[b] / c[a] - 1);
+
+    const hfDifference = `${sign} ${diff.toFixed(precision)}${suffix}`;
+    const percentDifference = `${sign} ${diffPercent.toFixed(2)}`;
+
+    return (
+      <div>
+        <div>{hfDifference}</div>
+        <div style={{ fontSize: "0.8em" }}>({percentDifference}%)</div>
+      </div>
+    );
+  };
+
+const doubleFieldDiff =
+  (b, a, precision = 4, suffix = "", boldFn = () => false) =>
+  c => {
+    if (!c[a] || !c[b]) {
+      return "—";
+    }
+    const sign = c[a] > c[b] ? "" : "+";
+    const diff = c[b] - c[a];
+    const diffPercent = 100 * (c[b] / c[a] - 1);
+
+    const hfDifference = `${sign} ${diff.toFixed(precision)}${suffix}`;
+    const percentDifference = `${sign} ${diffPercent.toFixed(2)}`;
+
+    const boldStyle = boldFn(c)
+      ? { fontWeight: "bold", WebkitTextStroke: "crimson", WebkitTextStrokeWidth: 0.5 }
+      : {};
+
+    return (
+      <div className="flex flex-column" style={boldStyle}>
+        <div className="text-lg">{c[a].toFixed(precision)}</div>
+        <div className="text-xs">
+          <div>{hfDifference}</div>
+          <div>({percentDifference}%)</div>
+        </div>
+      </div>
+    );
+  };
+
 const ClassifiersTable = ({ division, onClassifierSelection }) => {
   const isSCSA = division.startsWith("scsa");
 
@@ -57,7 +108,7 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
     <DataTable
       size="small"
       className="text-xs md:text-base"
-      style={{ maxWidth: "840px", margin: "auto" }}
+      style={{ width: "fit-content", margin: "auto" }}
       loading={loading}
       showGridlines
       selectionMode="single"
@@ -84,6 +135,7 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
       {...sortProps}
     >
       <Column
+        style={{ width: "5.5em" }}
         field="code"
         header="Classifier"
         sortable
@@ -114,10 +166,11 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
         )}
       />
       <Column
+        hidden
         field="allDivQuality"
         header="OA Qual."
         sortable
-        style={{ width: "7em" }}
+        style={{ maxWidth: "7em" }}
         body={(c, { field }) => (
           <div className="flex gap-2 justify-content-center text-xs">
             <div className="flex flex-column">
@@ -137,39 +190,60 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
         bodyStyle={{ textAlign: "center" }}
       />
       <Column
-        field="recHHF"
-        header={isSCSA ? "Rec. Peak Time" : "Rec. HHF"}
+        field="rec1HHF"
+        header="rw1"
         sortable
-        style={{ width: "100px" }}
+        style={{ width: "100px", textAlign: "right" }}
+        body={doubleFieldDiff("wbl1HHF", "rec1HHF", 4, "", c => c.recHHF === c.rec1HHF)}
       />
       <Column
+        field="rec5HHF"
+        header="rw5"
+        headerTooltip="Rec. HHF using p95=85% targeting, and its difference to Weibul"
+        sortable
+        style={{ width: "100px", textAlign: "right" }}
+        body={doubleFieldDiff("wbl5HHF", "rec5HHF", 4, "", c => c.recHHF === c.rec5HHF)}
+      />
+      <Column
+        field="rec15HHF"
+        header="rw15"
+        sortable
+        style={{ width: "100px", textAlign: "right" }}
+        body={doubleFieldDiff(
+          "wbl15HHF",
+          "rec15HHF",
+          4,
+          "",
+          c => c.recHHF === c.rec15HHF,
+        )}
+      />
+      <Column
+        field="k"
+        header="k"
+        sortable
+        style={{ width: "100px", textAlign: "right" }}
+        body={(c, { field }) => c[field].toFixed(6)}
+      />
+      <Column
+        field="lambda"
+        header="lambda"
+        sortable
+        style={{ width: "100px", textAlign: "right" }}
+        body={(c, { field }) => c[field].toFixed(6)}
+      />
+      <Column
+        hidden
         field="hhf"
         header={isSCSA ? "HQ Peak Time" : "HQ HHF"}
         sortable
         style={{ width: "100px" }}
       />
       <Column
+        hidden
         field="recHHFChangePercent" /** field is Percent for sorting, still shows like PeakTime/HHF */
         header={isSCSA ? "HQ Minus Rec. Peak Time" : "HQ Minus Rec. HHF"}
         sortable
-        body={c => {
-          if (!c.recHHF) {
-            return "—";
-          }
-          const sign = c.recHHF > c.hhf ? "" : "+";
-          const diff = c.hhf - c.recHHF;
-          const diffPercent = 100 * (c.hhf / c.recHHF - 1);
-
-          const hfDifference = `${sign} ${diff.toFixed(isSCSA ? 2 : 4)}${isSCSA ? "s" : ""}`;
-          const percentDifference = `${sign} ${diffPercent.toFixed(2)}`;
-
-          return (
-            <div>
-              <div>{hfDifference}</div>
-              <div style={{ fontSize: "0.8em" }}>({percentDifference}%)</div>
-            </div>
-          );
-        }}
+        body={numFieldsDiff("hhf", "recHHF", isSCSA ? 2 : 4, isSCSA ? "s" : "")}
       />
     </DataTable>
   );

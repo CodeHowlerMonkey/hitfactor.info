@@ -40,6 +40,7 @@ export interface Classifier {
 }
 
 interface ClassifierVirtuals {
+  recHHFs: RecHHF;
   quality: number;
   hqQuality: number;
 }
@@ -211,6 +212,21 @@ const scoresCountOffset = runsCount => {
 
   return 0;
 };
+
+ClassifierSchema.virtual("recHHFs", {
+  ref: "RecHHFs",
+  foreignField: "classifier",
+  localField: "classifier",
+  match: classifier => ({ division: classifier.division }),
+  justOne: true,
+});
+
+["rec1HHF", "rec5HHF", "rec15HHF", "wbl1HHF", "wbl5HHF", "wbl15HHF", "k", "lambda"].map(
+  fieldName =>
+    ClassifierSchema.virtual(fieldName).get(function () {
+      return this.recHHFs?.[fieldName];
+    }),
+);
 
 ClassifierSchema.virtual("quality").get(function () {
   return (

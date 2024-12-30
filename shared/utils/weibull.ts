@@ -1,4 +1,4 @@
-import { throttle } from "lodash";
+import throttle from "lodash.throttle";
 import * as ss from "simple-statistics";
 
 export const DEFAULT_PRECISION = 8;
