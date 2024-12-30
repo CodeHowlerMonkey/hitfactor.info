@@ -1,6 +1,8 @@
 /* eslint-disable no-console */
 
+import { uspsaClassifiers } from "../../api/src/dataUtil/classifiersData";
 import { connect } from "../../api/src/db/index";
+import { rehydrateRecHHF } from "../../api/src/db/recHHF";
 import { reclassifyShooters, Shooters } from "../../api/src/db/shooters";
 
 const rehydrateCOShooters = async () => {
@@ -22,14 +24,15 @@ const rehydrateCOShooters = async () => {
     await reclassifyShooters(batch);
     process.stdout.write(`\r${i + actualBatchSize}/${shooters.length}`);
   }
-
-  console.error("\ndone");
-  process.exit(0);
 };
 
 const migrate = async () => {
   await connect();
+  await rehydrateRecHHF(["co"], uspsaClassifiers);
   await rehydrateCOShooters();
+
+  console.error("\ndone");
+  process.exit(0);
 };
 
 migrate();
