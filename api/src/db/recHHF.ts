@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 
+import { solveWeibull } from "../../../shared/utils/weibull";
 import { uspsaClassifiers } from "../dataUtil/classifiersData";
 import {
   allDivShortNames,
@@ -512,6 +513,13 @@ export interface RecHHF {
   rec1HHF: number;
   rec5HHF: number;
   rec15HHF: number;
+
+  // Weibull
+  k: number;
+  lambda: number;
+  wbl1HHF: number;
+  wbl5HHF: number;
+  wbl15HHF: number;
 }
 
 const RecHHFSchema = new mongoose.Schema<RecHHF>({
@@ -522,6 +530,14 @@ const RecHHFSchema = new mongoose.Schema<RecHHF>({
   rec1HHF: Number,
   rec5HHF: Number,
   rec15HHF: Number,
+
+  // Weibull
+  k: Number,
+  lambda: Number,
+  wbl1HHF: Number,
+  wbl5HHF: Number,
+  wbl15HHF: Number,
+
   classifierDivision: String,
 });
 
@@ -545,6 +561,17 @@ const recHHFUpdate = (runsRaw, division, classifier) => {
   const rec15HHF = r15(runs);
   const curHHF = curHHFForDivisionClassifier({ division, number: classifier }) || -1;
 
+  const {
+    k,
+    lambda,
+    hhf1: wbl1HHF,
+    hhf5: wbl5HHF,
+    hhf15: wbl15HHF,
+  } = solveWeibull(
+    runs.map(c => c.hf),
+    12,
+  );
+
   return {
     division,
     classifier,
@@ -554,6 +581,11 @@ const recHHFUpdate = (runsRaw, division, classifier) => {
     rec1HHF,
     rec5HHF,
     rec15HHF,
+    k,
+    lambda,
+    wbl1HHF,
+    wbl5HHF,
+    wbl15HHF,
   };
 };
 
