@@ -1,6 +1,7 @@
 import uniqBy from "lodash.uniqby";
 import { v4 as randomUUID } from "uuid";
 
+import { classifierRoundCount } from "../../api/src/dataUtil/classifiersData";
 import { allDivShortNames, mapAllDivisions } from "../../api/src/dataUtil/divisions";
 
 import { dateSort, numSort } from "./sort";
@@ -34,14 +35,20 @@ type ModeBrutal = "brutal";
  */
 type ModeSoft = "soft";
 
+type WeightedByRoundCount = /*"allEqual" |*/ "weighted";
+
 // capped (default) = scores higher than 100% count as 100
 // uncapped = scores higher than 100% count up to 120%
 // default is capped
 type ScoreLimitMode = /*"capped" |*/ "uncapped";
+type ScoreMode =
+  | ScoreLimitMode
+  | WeightedByRoundCount
+  | `${ScoreLimitMode}+${WeightedByRoundCount}`;
 
 type AlgorithmMode = ModeUSPSA | ModeSoft | ModeBrutal;
 
-type Mode = AlgorithmMode | `${AlgorithmMode}+${ScoreLimitMode}`;
+type Mode = AlgorithmMode | `${AlgorithmMode}+${ScoreMode}`;
 export type ClassificationMode = Mode;
 
 export const highestClassification = classificationsObj =>
@@ -217,11 +224,24 @@ export const percentAndAgesForDivWindow = (
   const fFlagsApplied = dFlagsApplied
     .toSorted((a, b) => numSort(a, b, percentField, -1))
     .slice(0, newLength);
-  const percent = fFlagsApplied.reduce(
-    (acc, curValue, curIndex, allInWindow) =>
-      acc + Math.min(percentCap, curValue[percentField]) / allInWindow.length,
-    0,
-  );
+  const useWeight = mode.includes("weighted");
+  const percent = fFlagsApplied.reduce((acc, curValue, curIndex, allInWindow) => {
+    const total = allInWindow.length;
+    const totalRoundCount = !useWeight
+      ? 0
+      : allInWindow.reduce((a, c) => {
+          const curRoundCount = classifierRoundCount[c.classifier];
+          if (!curRoundCount) {
+            throw new Error(`No rounds count for ${c.classifier}`);
+          }
+          return a + curRoundCount;
+        }, 0);
+    const curScorePercent = Math.min(percentCap, curValue[percentField]);
+    const curContribution = !useWeight
+      ? curScorePercent / total
+      : (curScorePercent * classifierRoundCount[curValue.classifier]) / totalRoundCount;
+    return acc + curContribution;
+  }, 0);
 
   const age = fFlagsApplied.reduce(
     (acc, curValue, curIndex, allInWindow) =>
@@ -297,7 +317,15 @@ export const calculateUSPSAClassification = (
       classifier: c.source === "Major Match" ? randomUUID() : c.classifier,
       curPercent: c.source === "Major Match" ? c.percent : c.curPercent,
     }))
-    .filter(c => c[percentField] >= 0);
+    .filter(c => {
+      // don't use majors in weighted mode for classification
+      // (we don't have round count for that, but even if we did it would make
+      // majors dictate the whole thing)
+      if (c.source === "Major Match" && mode.includes("weighted")) {
+        return false;
+      }
+      return c[percentField] >= 0;
+    });
 
   const scoringFunction = c => {
     if (!canBeInserted(c, state, percentField, mode)) {

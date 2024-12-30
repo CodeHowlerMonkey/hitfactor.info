@@ -19,6 +19,16 @@ export const classifiers: ClassifierJSON[] = loadJSON(
   "../../data/classifiers/classifiers.json",
 ).classifiers;
 
+export const classifierRoundCount: Record<string, number> = loadJSON(
+  "../../data/classifiers/classifier_info.json",
+).stage.reduce((acc, c) => {
+  if (!c.round_count) {
+    throw new Error(`classifier_info missing round count for ${c.number}`);
+  }
+  acc[c.number] = c.round_count;
+  return acc;
+}, {});
+
 export const classifiersByNumber: Record<string, ClassifierJSON> = classifiers.reduce(
   (acc, cur) => {
     acc[cur.classifier] = cur;
