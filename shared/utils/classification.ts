@@ -130,7 +130,12 @@ export const lowestAllowedPercentForOtherDivisionClass = highestClassificationLe
     B: 40,
   })[highestClassificationLetter] || 0;
 
-export const canBeInserted = (c, state, percentField = "percent", mode: Mode) => {
+export const canBeInserted = (
+  c,
+  state,
+  percentField = "percent",
+  mode: Mode = "uspsa",
+) => {
   try {
     const { division } = c;
     if (!allDivShortNames.includes(division)) {
@@ -166,8 +171,7 @@ export const canBeInserted = (c, state, percentField = "percent", mode: Mode) =>
     // D, F, E
     return true;
   } catch (all) {
-    console.error("canBeInserted crash");
-    console.error(c.division);
+    console.error(`canBeInserted crash ${c.division}`);
   }
   return false;
 };
