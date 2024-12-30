@@ -552,10 +552,6 @@ const recHHFUpdate = (runsRaw, division, classifier) => {
   }
 
   const runs = minorHFScoresAdapter(runsRaw, division);
-  const recHHF = recommendedHHFFunctionFor({
-    division,
-    number: classifier,
-  })(runs);
   const rec1HHF = r1(runs);
   const rec5HHF = r5(runs);
   const rec15HHF = r15(runs);
@@ -577,7 +573,7 @@ const recHHFUpdate = (runsRaw, division, classifier) => {
     classifier,
     classifierDivision: [classifier, division].join(":"),
     curHHF,
-    recHHF,
+    recHHF: wbl5HHF,
     rec1HHF,
     rec5HHF,
     rec15HHF,
