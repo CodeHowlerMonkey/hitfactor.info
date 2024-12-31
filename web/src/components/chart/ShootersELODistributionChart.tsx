@@ -77,6 +77,7 @@ const coEloByMemberNumber = coElo.reduce((acc, c, index, all) => {
   return acc;
 }, {});
 
+const EMPTY_ARRAY = [];
 export const ShootersELODistributionChart = ({
   division,
 }: ShootersELODistributionChartProps) => {
@@ -140,7 +141,7 @@ export const ShootersELODistributionChart = ({
 
   const curModeDataPoints = useMemo(() => curModeData.map(c => c.x), [curModeData]);
 
-  const weibull = useAsyncWeibull(isVersus ? [] : curModeDataPoints, 10);
+  const weibull = useAsyncWeibull(isVersus ? EMPTY_ARRAY : curModeDataPoints, 10);
   const { k, lambda } = weibull;
   const correl = useMemo(
     () =>
