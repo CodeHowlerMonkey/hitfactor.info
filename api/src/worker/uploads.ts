@@ -13,6 +13,7 @@ import { UTCDate } from "../../../shared/utils/date";
 import { minorHF } from "../../../shared/utils/hitfactor";
 import { uuidsFromUrlString } from "../../../shared/utils/uuid";
 import {
+  normalizeClassifierCode,
   scsaDivisionWithPrefix,
   scsaPeakTime,
   ScsaPeakTimesMap,
@@ -382,15 +383,6 @@ const scsaMatchInfo = async matchInfo => {
   } catch (e) {}
 
   return EmptyMatchResultsFactory();
-};
-
-const normalizeClassifierCode = (psClassifierCode: string) => {
-  if (!psClassifierCode) {
-    return psClassifierCode;
-  }
-
-  // remove CM prefix if present
-  return psClassifierCode.replace(/^CM\s+/gi, "");
 };
 
 export const uspsaOrHitFactorMatchInfo = async matchInfo => {

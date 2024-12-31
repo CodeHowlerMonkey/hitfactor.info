@@ -129,7 +129,7 @@ export const ShootersELODistributionChart = ({
           x: c[fieldForMode(xMode)],
           y: c[fieldForMode(yMode)],
         }))
-        ?.filter(c => !isNaN(Number(c.x)) && !isNaN(Number(c.y))) || []
+        ?.filter(c => c.y > 0 && c.x > 0) || []
     );
   }, [data, xMode, yMode, isVersus]);
 

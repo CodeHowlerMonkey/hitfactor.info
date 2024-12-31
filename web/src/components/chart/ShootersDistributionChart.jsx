@@ -52,7 +52,7 @@ export const ShootersDistributionChart = ({ division, style }) => {
           x: c[fieldForMode(xMode)],
           y: c[`${fieldForMode(xMode)}Percentile`],
         }))
-        ?.filter(c => !isNaN(Number(c.x)) && !isNaN(Number(c.y))) || [],
+        ?.filter(c => c.y > 0 && c.x > 0) || [],
     [data, xMode],
   );
 
