@@ -4,18 +4,22 @@ import { uspsaClassifiers } from "../../api/src/dataUtil/classifiersData";
 import { connect } from "../../api/src/db/index";
 import { rehydrateRecHHF } from "../../api/src/db/recHHF";
 import { reclassifyShooters, Shooters } from "../../api/src/db/shooters";
+import { hydrateStats } from "../../api/src/db/stats";
+import { uspsaDivShortNames } from "../../shared/constants/divisions";
 
-const rehydrateCOShooters = async () => {
+const rehydrateShooters = async (divisions: string[]) => {
   const shooters = await Shooters.find({
     memberNumberDivision: { $exists: true },
-    division: "co",
+    division: { $in: divisions },
     reclassificationsRecPercentCurrent: { $gt: 0 },
   })
     .limit(0)
     .select(["memberNumberDivision", "name", "memberNumber", "division"])
     .lean();
 
-  console.error(`Total CO Shooters to Process: ${shooters.length}`);
+  console.error(
+    `Total ${JSON.stringify(divisions)} Shooters to Process: ${shooters.length}`,
+  );
 
   const batchSize = 64;
   for (let i = 0; i < shooters.length; i += batchSize) {
@@ -28,8 +32,10 @@ const rehydrateCOShooters = async () => {
 
 const migrate = async () => {
   await connect();
-  await rehydrateRecHHF(["co"], uspsaClassifiers);
-  await rehydrateCOShooters();
+  await rehydrateRecHHF(uspsaDivShortNames, uspsaClassifiers);
+  await rehydrateShooters(uspsaDivShortNames);
+  // TODO: await rehydrateClassifiers(classifierDivision-s);
+  await hydrateStats();
 
   console.error("\ndone");
   process.exit(0);

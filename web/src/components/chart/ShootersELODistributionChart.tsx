@@ -1,9 +1,15 @@
-import { uniqBy } from "lodash";
 import { ProgressSpinner } from "primereact/progressspinner";
 import { SelectButton } from "primereact/selectbutton";
 import { useMemo, useState } from "react";
 
 import coElo from "../../../../data/elo/co.json";
+import ltdElo from "../../../../data/elo/lim.json";
+import loElo from "../../../../data/elo/lo.json";
+import opnElo from "../../../../data/elo/open.json";
+import pccElo from "../../../../data/elo/pcc.json";
+import prodElo from "../../../../data/elo/prod.json";
+import revElo from "../../../../data/elo/revo.json";
+import ssElo from "../../../../data/elo/ss.json";
 import {
   classForELO,
   classForPercent,
@@ -54,10 +60,11 @@ const recommendedMode = modes[4];
 interface RawDataPoint {
   x: number;
   y: number;
-  pointsGraphName?: string;
+  pointsGraphName: string;
   name: string;
   rating: number;
   memberNumber: string;
+  ogMemberNumber: string;
 }
 
 const colorForELOOrPercent = (colorMode: string, dataPoint: RawDataPoint) => {
@@ -72,11 +79,23 @@ interface ShootersELODistributionChartProps {
   division: string;
 }
 
-const coEloByMemberNumber = coElo.reduce((acc, c, index, all) => {
-  acc[c.memberNumber] = { ...c, elo: c.rating, eloRank: (100 * index) / all.length };
-  return acc;
-}, {});
+const divEloByMemberNumber = divElo =>
+  divElo.reduce((acc, c, index, all) => {
+    acc[c.memberNumber] = { ...c, elo: c.rating, eloRank: (100 * index) / all.length };
+    return acc;
+  }, {});
 
+const coEloByDivisionByMemberNumber = {
+  opn: divEloByMemberNumber(opnElo),
+  co: divEloByMemberNumber(coElo),
+  lo: divEloByMemberNumber(loElo),
+  pcc: divEloByMemberNumber(pccElo),
+  ltd: divEloByMemberNumber(ltdElo),
+  l10: divEloByMemberNumber(ltdElo), // placeholder, no l10 ELO available
+  prod: divEloByMemberNumber(prodElo),
+  ss: divEloByMemberNumber(ssElo),
+  rev: divEloByMemberNumber(revElo),
+};
 const EMPTY_ARRAY = [];
 export const ShootersELODistributionChart = ({
   division,
@@ -99,7 +118,7 @@ export const ShootersELODistributionChart = ({
           /^(A|TY|FY|FYF|F|TYF|CA)/gi,
           "",
         );
-        const eloPoint = coEloByMemberNumber[normalizedMemberNumber];
+        const eloPoint = coEloByDivisionByMemberNumber[division][normalizedMemberNumber];
         if (!eloPoint) {
           return null;
         }
@@ -132,7 +151,7 @@ export const ShootersELODistributionChart = ({
         }))
         ?.filter(c => c.y > 0 && c.x > 0) || []
     );
-  }, [data, xMode, yMode, isVersus]);
+  }, [division, data, xMode, yMode, isVersus]);
 
   const percentiles = useMemo(
     () => eloClasses.map(c => closestYForX(c, curModeData)),
@@ -145,7 +164,7 @@ export const ShootersELODistributionChart = ({
   const { k, lambda } = weibull;
   const correl = useMemo(
     () =>
-      !isVersus
+      !isVersus || !curModeData?.length
         ? 0
         : correlation(
             curModeData.map(c => c.x),
@@ -155,7 +174,7 @@ export const ShootersELODistributionChart = ({
   );
   const covar = useMemo(
     () =>
-      !isVersus
+      !isVersus || !curModeData?.length
         ? 0
         : covariance(
             curModeData.map(c => c.x),
@@ -197,6 +216,7 @@ export const ShootersELODistributionChart = ({
           },
           tooltip: {
             callbacks: {
+              // @ts-expect-error returning null is legit, but label cb is typed incorrectly
               label: ({ raw }) => {
                 const {
                   ogMemberNumber,
