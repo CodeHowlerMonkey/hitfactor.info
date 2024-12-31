@@ -1,5 +1,6 @@
+import classifierInfoJSON from "../../../data/classifiers/classifier_info.json";
+import classifiersJSON from "../../../data/classifiers/classifiers.json";
 import { HHFJSON } from "../../../data/types/USPSA";
-import { loadJSON } from "../utils";
 
 export type USPSAScoring = "Virginia" | "Comstock" | "Fixed Time";
 export type SCSAScoring = "Time Plus";
@@ -15,19 +16,17 @@ export interface ClassifierBasicInfo extends ClassifierJSON {
   code: string;
 }
 
-export const classifiers: ClassifierJSON[] = loadJSON(
-  "../../data/classifiers/classifiers.json",
-).classifiers;
+export const classifiers: ClassifierJSON[] =
+  classifiersJSON.classifiers as ClassifierJSON[];
 
-export const classifierRoundCount: Record<string, number> = loadJSON(
-  "../../data/classifiers/classifier_info.json",
-).stage.reduce((acc, c) => {
-  if (!c.round_count) {
-    throw new Error(`classifier_info missing round count for ${c.number}`);
-  }
-  acc[c.number] = c.round_count;
-  return acc;
-}, {});
+export const classifierRoundCount: Record<string, number> =
+  classifierInfoJSON.stage.reduce((acc, c) => {
+    if (!c.round_count) {
+      throw new Error(`classifier_info missing round count for ${c.number}`);
+    }
+    acc[c.number] = c.round_count;
+    return acc;
+  }, {});
 
 export const classifiersByNumber: Record<string, ClassifierJSON> = classifiers.reduce(
   (acc, cur) => {
@@ -249,3 +248,12 @@ export const scsaPeakTime = (
 ) =>
   // Indexing scheme based on the fact that the division peak times in the above structure are sorted in ascending order.
   ScsaPeakTimesMap[scsaDivision][parseInt(scsaClassifierCode.substr(3, 4)) - 101];
+
+export const normalizeClassifierCode = (psClassifierCode: string) => {
+  if (!psClassifierCode) {
+    return psClassifierCode;
+  }
+
+  // remove CM prefix if present
+  return psClassifierCode.replace(/^CM\s+/gi, "").trim();
+};

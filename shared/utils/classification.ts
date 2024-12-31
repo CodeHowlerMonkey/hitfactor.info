@@ -1,7 +1,10 @@
 import uniqBy from "lodash.uniqby";
 import { v4 as randomUUID } from "uuid";
 
-import { classifierRoundCount } from "../../api/src/dataUtil/classifiersData";
+import {
+  classifierRoundCount,
+  normalizeClassifierCode,
+} from "../../api/src/dataUtil/classifiersData";
 import { allDivShortNames, mapAllDivisions } from "../../api/src/dataUtil/divisions";
 
 import { dateSort, numSort } from "./sort";
@@ -234,16 +237,19 @@ export const percentAndAgesForDivWindow = (
     const totalRoundCount = !useWeight
       ? 0
       : allInWindow.reduce((a, c) => {
-          const curRoundCount = classifierRoundCount[c.classifier];
+          const curRoundCount =
+            classifierRoundCount[normalizeClassifierCode(c.classifier)];
           if (!curRoundCount) {
-            throw new Error(`No rounds count for ${c.classifier}`);
+            console.error(`No rounds count for ${c.classifier}`);
           }
           return a + curRoundCount;
         }, 0);
     const curScorePercent = Math.min(percentCap, curValue[percentField]);
     const curContribution = !useWeight
       ? curScorePercent / total
-      : (curScorePercent * classifierRoundCount[curValue.classifier]) / totalRoundCount;
+      : (curScorePercent *
+          classifierRoundCount[normalizeClassifierCode(curValue.classifier)]) /
+        totalRoundCount;
     return acc + curContribution;
   }, 0);
 
@@ -322,10 +328,13 @@ export const calculateUSPSAClassification = (
       curPercent: c.source === "Major Match" ? c.percent : c.curPercent,
     }))
     .filter(c => {
-      // don't use majors in weighted mode for classification
+      // don't use majors and unknown classifier codes in weighted mode for classification
       // (we don't have round count for that, but even if we did it would make
       // majors dictate the whole thing)
-      if (c.source === "Major Match" && mode.includes("weighted")) {
+      if (
+        mode.includes("weighted") &&
+        !classifierRoundCount[normalizeClassifierCode(c.classifier)]
+      ) {
         return false;
       }
       return c[percentField] >= 0;
