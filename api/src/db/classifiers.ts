@@ -231,6 +231,11 @@ ClassifierSchema.virtual("recHHFs", {
   "wbl15HHF",
   "k",
   "lambda",
+  "kurtosis",
+  "skewness",
+  "meanSquaredError",
+  "meanAbsoluteError",
+  "maxError",
 ].map(fieldName =>
   ClassifierSchema.virtual(fieldName).get(function () {
     return this.recHHFs?.[fieldName];
