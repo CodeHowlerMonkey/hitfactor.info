@@ -9,7 +9,16 @@ interface WeibullStatusProps {
 // TODO: Mean Absolute Error, Mean Squared Error, Max Error
 // and their quantile counterparts  MAQE, QMSE, Max Quantile Error
 export const WeibullStatus = ({
-  weibull: { loading, k, lambda, skewness, kurtosis },
+  weibull: {
+    loading,
+    k,
+    lambda,
+    skewness,
+    kurtosis,
+    meanSquaredError,
+    meanAbsoluteError,
+    maxError,
+  },
 }: WeibullStatusProps) => (
   <div className="flex flex-column justify-content-center align-items-start">
     <div className="flex flex-column justify-content-center text-md text-500 font-bold">
@@ -30,6 +39,11 @@ export const WeibullStatus = ({
       <div className="flex flex-column justify-content-center text-md text-500 font-bold">
         <div>Skewness = {skewness.toFixed(6)}</div>
         <div>Kurtosis = {kurtosis.toFixed(6)}</div>
+      </div>
+      <div className="flex flex-column justify-content-center text-md text-500 font-bold">
+        <div>MSE = {meanSquaredError.toFixed(6)}</div>
+        <div>MAE = {meanAbsoluteError.toFixed(6)}</div>
+        <div>ME = {maxError.toFixed(6)}</div>
       </div>
     </div>
   </div>

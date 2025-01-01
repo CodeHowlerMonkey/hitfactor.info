@@ -3,6 +3,7 @@ import { DataTable } from "primereact/datatable";
 import { InputText } from "primereact/inputtext";
 import { useState } from "react";
 
+import { recHHFFieldForDivisionAndClassifier } from "../../../../../shared/constants/preWeibullHHFs";
 import {
   classifierCodeSort,
   dateSort,
@@ -56,8 +57,8 @@ const doubleFieldDiff =
 
     return (
       <div className="flex flex-column" style={boldStyle}>
-        <div className="text-lg">{c[a].toFixed(precision)}</div>
-        <div className="text-xs">
+        {/*<div className="text-lg">{c[a].toFixed(precision)}</div>*/}
+        <div className="text-sm">
           <div>{hfDifference}</div>
           <div>({percentDifference}%)</div>
         </div>
@@ -190,32 +191,32 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
         bodyStyle={{ textAlign: "center" }}
       />
       <Column
-        field="rec1HHF"
-        header="rw1"
+        field="recHHF"
+        header="RHHF"
         sortable
         style={{ width: "100px", textAlign: "right" }}
-        body={doubleFieldDiff("wbl1HHF", "rec1HHF", 4, "", c => c.recHHF === c.rec1HHF)}
+        body={c => c.recHHF.toFixed(4)}
       />
       <Column
-        field="rec5HHF"
-        header="rw5"
-        headerTooltip="Rec. HHF using p95=85% targeting, and its difference to Weibul"
+        field="oldRecHHF"
+        header="Old RHHF"
         sortable
         style={{ width: "100px", textAlign: "right" }}
-        body={doubleFieldDiff("wbl5HHF", "rec5HHF", 4, "", c => c.recHHF === c.rec5HHF)}
+        body={c =>
+          c[recHHFFieldForDivisionAndClassifier(division, c.classifier)].toFixed(4)
+        }
       />
       <Column
-        field="rec15HHF"
-        header="rw15"
+        field="recHHFChange"
+        header="𝚫RHHF"
         sortable
         style={{ width: "100px", textAlign: "right" }}
-        body={doubleFieldDiff(
-          "wbl15HHF",
-          "rec15HHF",
-          4,
-          "",
-          c => c.recHHF === c.rec15HHF,
-        )}
+        body={c =>
+          doubleFieldDiff(
+            "recHHF",
+            recHHFFieldForDivisionAndClassifier(division, c.classifier),
+          )(c)
+        }
       />
       <Column
         field="k"
@@ -226,7 +227,7 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
       />
       <Column
         field="lambda"
-        header="lambda"
+        header="𝛌"
         sortable
         style={{ width: "100px", textAlign: "right" }}
         body={(c, { field }) => c[field].toFixed(6)}
