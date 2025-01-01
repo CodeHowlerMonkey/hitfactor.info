@@ -1,6 +1,7 @@
 /* eslint-disable no-console */
 
 import { uspsaClassifiers } from "../../api/src/dataUtil/classifiersData";
+import { rehydrateClassifiers } from "../../api/src/db/classifiers";
 import { connect } from "../../api/src/db/index";
 import { rehydrateRecHHF } from "../../api/src/db/recHHF";
 import { reclassifyShooters, Shooters } from "../../api/src/db/shooters";
@@ -30,15 +31,22 @@ const rehydrateShooters = async (divisions: string[]) => {
   }
 };
 
-const migrate = async () => {
+const go = async () => {
   await connect();
-  await rehydrateRecHHF(uspsaDivShortNames, uspsaClassifiers);
-  await rehydrateShooters(uspsaDivShortNames);
-  // TODO: await rehydrateClassifiers(classifierDivision-s);
-  await hydrateStats();
+
+  const classifiers = uspsaClassifiers;
+  const divisions = ["co"]; // uspsaDivShortNames
+  const classifierDivisions = divisions
+    .map(division => classifiers.map(classifier => ({ classifier, division })))
+    .flat();
+
+  await rehydrateRecHHF(divisions, classifiers);
+  // await rehydrateShooters(divisions);
+  await rehydrateClassifiers(classifierDivisions);
+  // await hydrateStats();
 
   console.error("\ndone");
   process.exit(0);
 };
 
-migrate();
+go();

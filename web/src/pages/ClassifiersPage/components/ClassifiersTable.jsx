@@ -235,6 +235,27 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
         body={(c, { field }) => c[field].toFixed(6)}
       />
       <Column
+        field="meanSquaredError"
+        header="MSE"
+        sortable
+        style={{ width: "100px", textAlign: "right" }}
+        body={(c, { field }) => c[field].toFixed(4)}
+      />
+      <Column
+        field="meanAbsoluteError"
+        header="MAE"
+        sortable
+        style={{ width: "100px", textAlign: "right" }}
+        body={(c, { field }) => c[field].toFixed(4)}
+      />
+      <Column
+        field="maxError"
+        header="MaxE"
+        sortable
+        style={{ width: "100px", textAlign: "right" }}
+        body={(c, { field }) => c[field].toFixed(4)}
+      />
+      <Column
         hidden
         field="hhf"
         header={isSCSA ? "HQ Peak Time" : "HQ HHF"}

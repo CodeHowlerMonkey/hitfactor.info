@@ -520,6 +520,11 @@ export interface RecHHF {
   wbl1HHF: number;
   wbl5HHF: number;
   wbl15HHF: number;
+  kurtosis: number;
+  skewness: number;
+  meanSquaredError: number;
+  meanAbsoluteError: number;
+  maxError: number;
 }
 
 const RecHHFSchema = new mongoose.Schema<RecHHF>({
@@ -537,6 +542,11 @@ const RecHHFSchema = new mongoose.Schema<RecHHF>({
   wbl1HHF: Number,
   wbl5HHF: Number,
   wbl15HHF: Number,
+  kurtosis: Number,
+  skewness: Number,
+  meanSquaredError: Number,
+  meanAbsoluteError: Number,
+  maxError: Number,
 
   classifierDivision: String,
 });
@@ -563,6 +573,11 @@ const recHHFUpdate = (runsRaw, division, classifier) => {
     hhf1: wbl1HHF,
     hhf5: wbl5HHF,
     hhf15: wbl15HHF,
+    kurtosis,
+    skewness,
+    meanSquaredError,
+    meanAbsoluteError,
+    maxError,
   } = solveWeibull(
     runs.map(c => c.hf),
     12,
@@ -577,11 +592,17 @@ const recHHFUpdate = (runsRaw, division, classifier) => {
     rec1HHF,
     rec5HHF,
     rec15HHF,
+
     k,
     lambda,
     wbl1HHF,
     wbl5HHF,
     wbl15HHF,
+    kurtosis,
+    skewness,
+    meanSquaredError,
+    meanAbsoluteError,
+    maxError,
   };
 };
 
