@@ -20,12 +20,13 @@ import { useApi } from "../../../utils/client";
 const numFieldsDiff =
   (b, a, precision = 4, suffix = "") =>
   c => {
-    if (!c[a] || !c[b]) {
+    const { [a]: ca, [b]: cb } = c;
+    if (!ca || !cb) {
       return "—";
     }
-    const sign = c[a] > c[b] ? "" : "+";
-    const diff = c[b] - c[a];
-    const diffPercent = 100 * (c[b] / c[a] - 1);
+    const sign = ca > cb ? "" : "+";
+    const diff = cb - ca;
+    const diffPercent = 100 * (cb / ca - 1);
 
     const hfDifference = `${sign} ${diff.toFixed(precision)}${suffix}`;
     const percentDifference = `${sign} ${diffPercent.toFixed(2)}`;
@@ -41,12 +42,13 @@ const numFieldsDiff =
 const doubleFieldDiff =
   (b, a, precision = 4, suffix = "", boldFn = () => false) =>
   c => {
-    if (!c[a] || !c[b]) {
+    const { [a]: ca, [b]: cb } = c;
+    if (!ca || !cb) {
       return "—";
     }
-    const sign = c[a] > c[b] ? "" : "+";
-    const diff = c[b] - c[a];
-    const diffPercent = 100 * (c[b] / c[a] - 1);
+    const sign = ca > cb ? "" : "+";
+    const diff = cb - ca;
+    const diffPercent = 100 * (cb / ca - 1);
 
     const hfDifference = `${sign} ${diff.toFixed(precision)}${suffix}`;
     const percentDifference = `${sign} ${diffPercent.toFixed(2)}`;
