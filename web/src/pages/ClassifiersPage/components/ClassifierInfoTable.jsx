@@ -54,7 +54,7 @@ export const ClassifierInfoTable = ({
                     {
                       label: "Cur. HHF",
                       tooltip: "Current HHF",
-                      hhf: curHHF,
+                      hhf: curHHF.toFixed(4),
                     },
                   ]),
               ...(!recHHF
@@ -63,7 +63,7 @@ export const ClassifierInfoTable = ({
                     {
                       label: "Rec. HHF",
                       tooltip: "Recommended HHF",
-                      hhf: recHHF,
+                      hhf: recHHF.toFixed(4),
                     },
                   ]),
               ...(recHHF || recommendedHHF1 <= 0

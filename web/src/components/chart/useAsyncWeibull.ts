@@ -9,15 +9,11 @@ import {
 import WeibullWorker from "./useAsyncWeibullWorker?worker";
 
 export interface AsyncWeibullResult extends WeibullResult {
-  skewness: number;
-  kurtosis: number;
   loading: boolean;
 }
 
 const pendingResult: AsyncWeibullResult = {
   ...emptyWeibull,
-  skewness: 0,
-  kurtosis: 0,
   loading: true,
 };
 

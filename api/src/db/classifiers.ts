@@ -221,11 +221,20 @@ ClassifierSchema.virtual("recHHFs", {
   justOne: true,
 });
 
-["rec1HHF", "rec5HHF", "rec15HHF", "wbl1HHF", "wbl5HHF", "wbl15HHF", "k", "lambda"].map(
-  fieldName =>
-    ClassifierSchema.virtual(fieldName).get(function () {
-      return this.recHHFs?.[fieldName];
-    }),
+[
+  "recHHF",
+  "rec1HHF",
+  "rec5HHF",
+  "rec15HHF",
+  "wbl1HHF",
+  "wbl5HHF",
+  "wbl15HHF",
+  "k",
+  "lambda",
+].map(fieldName =>
+  ClassifierSchema.virtual(fieldName).get(function () {
+    return this.recHHFs?.[fieldName];
+  }),
 );
 
 ClassifierSchema.virtual("quality").get(function () {

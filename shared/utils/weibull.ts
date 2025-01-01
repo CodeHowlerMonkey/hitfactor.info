@@ -1,7 +1,58 @@
 import throttle from "lodash.throttle";
 import * as ss from "simple-statistics";
 
+import { Percent } from "../../api/src/dataUtil/numbers";
+
 export const DEFAULT_PRECISION = 8;
+
+export interface WeibullResult {
+  k: number;
+  lambda: number;
+  loss: number;
+  /*
+  cdf: (x: number) => number;
+  reverseCDF: (y: number) => number;
+  */
+  hhf1: number;
+  hhf5: number;
+  hhf15: number;
+
+  skewness: number;
+  kurtosis: number;
+
+  meanSquaredError: number;
+  meanAbsoluteError: number;
+  maxError: number;
+}
+
+export const emptyWeibull: WeibullResult = {
+  k: 1,
+  lambda: 1,
+  loss: 0,
+  /*
+  cdf: () => 0,
+  reverseCDF: () => 0,
+  */
+  hhf1: 0,
+  hhf5: 0,
+  hhf15: 0,
+
+  skewness: 0,
+  kurtosis: 0,
+
+  meanAbsoluteError: 0,
+  meanSquaredError: 0,
+  maxError: 0,
+};
+
+/**
+ * Factory for solved Weibull Cumulative Distribution Function
+ *
+ * Returns a function that accepts a number datapoint and returns a predicted top rank %
+ * (ranges from 0 to 100, with 0 being the best score, 100 the worst )
+ */
+export const weibulCDFFactory = (k: number, lambda: number) => (x: number) =>
+  100 - 100 * (1 - Math.exp(-Math.pow(x / lambda, k)));
 
 type NumberTuple = [number, number];
 type NumberTruple = [number, number, number];
@@ -71,22 +122,6 @@ const findParams = (
   );
 };
 
-export interface WeibullResult {
-  k: number;
-  lambda: number;
-  loss: number;
-  /*
-  cdf: (x: number) => number;
-  reverseCDF: (y: number) => number;
-  */
-  hhf1: number;
-  hhf5: number;
-  hhf15: number;
-}
-
-export const weibulCDFFactory = (k: number, lambda: number) => (x: number) =>
-  100 - 100 * (1 - Math.exp(-Math.pow(x / lambda, k)));
-
 /**
  * Fits Weibull distribution to provided dataset and returns an bucket of stuff:
  *  - Cumulative Distribution Function y(x) and it's reverse x(y)
@@ -125,21 +160,25 @@ export const solveWeibull = (
   const hhf1 = reverseCDF(1) / 0.95;
   const hhf5 = reverseCDF(5) / 0.85;
   const hhf15 = reverseCDF(15) / 0.75;
+  const skew = skewness(dataPoints);
+  const kurt = kurtosis(dataPoints);
+  const mse = meanSquaredError(dataPoints, k, lambda);
+  const mae = meanAbsoluteError(dataPoints, k, lambda);
+  const me = maximumError(dataPoints, k, lambda);
 
-  return { k, lambda, loss, /*cdf, reverseCDF,*/ hhf1, hhf5, hhf15 };
-};
-
-export const emptyWeibull: WeibullResult = {
-  k: 1,
-  lambda: 1,
-  loss: 0,
-  /*
-  cdf: () => 0,
-  reverseCDF: () => 0,
-  */
-  hhf1: 0,
-  hhf5: 0,
-  hhf15: 0,
+  return {
+    k,
+    lambda,
+    loss,
+    /*cdf, reverseCDF,*/ hhf1,
+    hhf5,
+    hhf15,
+    skewness: skew,
+    kurtosis: kurt,
+    meanSquaredError: mse,
+    meanAbsoluteError: mae,
+    maxError: me,
+  };
 };
 
 export const skewness = (dataPoints: number[]) => {
@@ -148,6 +187,7 @@ export const skewness = (dataPoints: number[]) => {
   }
   return ss.sampleSkewness(dataPoints);
 };
+
 export const kurtosis = (dataPoints: number[]) => {
   if (dataPoints.length < 4) {
     return 0;
@@ -157,3 +197,30 @@ export const kurtosis = (dataPoints: number[]) => {
 
 export const correlation = ss.sampleCorrelation;
 export const covariance = ss.sampleCovariance;
+
+export const meanAbsoluteError = (dataPoints: number[], k: number, lambda: number) => {
+  const cdf = weibulCDFFactory(k, lambda);
+  const data = dataPoints
+    .toSorted((a, b) => b - a)
+    .map((x, i, all) => ({ x, y: Percent(i, all.length) }));
+  return data.reduce((acc, c) => acc + Math.abs(c.y - cdf(c.x)), 0) / data.length;
+};
+
+export const meanSquaredError = (dataPoints: number[], k: number, lambda: number) => {
+  const cdf = weibulCDFFactory(k, lambda);
+  const data = dataPoints
+    .toSorted((a, b) => b - a)
+    .map((x, i, all) => ({ x, y: Percent(i, all.length) }));
+  return data.reduce((acc, c) => acc + Math.pow(c.y - cdf(c.x), 2), 0) / data.length;
+};
+
+export const maximumError = (dataPoints: number[], k: number, lambda: number) => {
+  const cdf = weibulCDFFactory(k, lambda);
+  const data = dataPoints
+    .toSorted((a, b) => b - a)
+    .map((x, i, all) => ({ x, y: Percent(i, all.length) }));
+  return data.reduce((acc, c) => {
+    const error = Math.abs(cdf(c.x) - c.y);
+    return error > acc ? error : acc;
+  }, 0);
+};
