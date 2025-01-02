@@ -17,6 +17,8 @@ export const WeibullStatus = ({
     kurtosis,
     meanSquaredError,
     meanAbsoluteError,
+    superMeanSquaredError,
+    superMeanAbsoluteError,
     maxError,
   },
 }: WeibullStatusProps) => (
@@ -41,6 +43,8 @@ export const WeibullStatus = ({
         <div>Kurtosis = {kurtosis.toFixed(6)}</div>
       </div>
       <div className="flex flex-column justify-content-center text-md text-500 font-bold">
+        <div>SMSE = {superMeanSquaredError.toFixed(6)}</div>
+        <div>SMAE = {superMeanAbsoluteError.toFixed(6)}</div>
         <div>MSE = {meanSquaredError.toFixed(6)}</div>
         <div>MAE = {meanAbsoluteError.toFixed(6)}</div>
         <div>ME = {maxError.toFixed(6)}</div>
