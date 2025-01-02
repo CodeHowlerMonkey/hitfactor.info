@@ -2,14 +2,7 @@ import { ProgressSpinner } from "primereact/progressspinner";
 import { SelectButton } from "primereact/selectbutton";
 import { useMemo, useState } from "react";
 
-import coElo from "../../../../data/elo/co.json";
-import ltdElo from "../../../../data/elo/lim.json";
-import loElo from "../../../../data/elo/lo.json";
-import opnElo from "../../../../data/elo/open.json";
-import pccElo from "../../../../data/elo/pcc.json";
-import prodElo from "../../../../data/elo/prod.json";
-import revElo from "../../../../data/elo/revo.json";
-import ssElo from "../../../../data/elo/ss.json";
+import { eloPointForShooter } from "../../../../api/src/dataUtil/elo";
 import {
   classForELO,
   classForPercent,
@@ -79,23 +72,6 @@ interface ShootersELODistributionChartProps {
   division: string;
 }
 
-const divEloByMemberNumber = divElo =>
-  divElo.reduce((acc, c, index, all) => {
-    acc[c.memberNumber] = { ...c, elo: c.rating, eloRank: (100 * index) / all.length };
-    return acc;
-  }, {});
-
-const coEloByDivisionByMemberNumber = {
-  opn: divEloByMemberNumber(opnElo),
-  co: divEloByMemberNumber(coElo),
-  lo: divEloByMemberNumber(loElo),
-  pcc: divEloByMemberNumber(pccElo),
-  ltd: divEloByMemberNumber(ltdElo),
-  l10: divEloByMemberNumber(ltdElo), // placeholder, no l10 ELO available
-  prod: divEloByMemberNumber(prodElo),
-  ss: divEloByMemberNumber(ssElo),
-  rev: divEloByMemberNumber(revElo),
-};
 const EMPTY_ARRAY = [];
 export const ShootersELODistributionChart = ({
   division,
@@ -113,19 +89,12 @@ export const ShootersELODistributionChart = ({
     }
     const dataWithElo = data
       .map(c => {
-        const ogMemberNumber = c.memberNumber;
-        const normalizedMemberNumber = c.memberNumber.replace(
-          /^(A|TY|FY|FYF|F|TYF|CA)/gi,
-          "",
-        );
-        const eloPoint = coEloByDivisionByMemberNumber[division][normalizedMemberNumber];
+        const eloPoint = eloPointForShooter(division, c.memberNumber);
         if (!eloPoint) {
           return null;
         }
         return {
           ...c,
-          memberNumber: c.memberNumber.replace(/^(A|TY|FY|FYF|F|TYF|CA)/gi, ""),
-          ogMemberNumber,
           ...eloPoint,
         };
       })
