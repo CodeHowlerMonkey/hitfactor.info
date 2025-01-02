@@ -15,6 +15,7 @@ import {
   mapDivisions,
   uspsaDivShortNames,
 } from "../dataUtil/divisions";
+import { eloPointForShooter } from "../dataUtil/elo";
 import { psClassUpdatesByMemberNumber } from "../dataUtil/uspsa";
 import { loadJSON, processImportAsyncSeq } from "../utils";
 
@@ -655,6 +656,7 @@ export const reclassifyShooters = async shooters => {
                     age: recalcByRecPercent?.[division]?.age,
                     age1: recalcByRecPercent?.[division]?.age1,
 
+                    elo: eloPointForShooter(division, memberNumber)?.rating,
                     reclassificationsCurPercentCurrent, // aka curHHFPercent
                     reclassificationsRecHHFOnlyPercentCurrent, //aka recHHFOnlyPercent
                     reclassificationsSoftPercentCurrent, //aka recSoftPercent

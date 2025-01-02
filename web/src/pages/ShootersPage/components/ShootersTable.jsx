@@ -13,6 +13,7 @@ import {
   useTablePagination,
   headerTooltipOptions,
   renderPercent,
+  renderHFOrNA,
 } from "../../../components/Table";
 import { useApi } from "../../../utils/client";
 import { useIsHFU } from "../../../utils/useIsHFU";
@@ -149,6 +150,7 @@ const ShootersTable = ({
             />
           )}
         />
+        <Column field="elo" header="ELO" sortable body={renderHFOrNA} />
         <Column
           field="reclassificationsRecPercentUncappedCurrent"
           header="Rec. Uncapped"

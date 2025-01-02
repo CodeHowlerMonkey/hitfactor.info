@@ -35,7 +35,7 @@ const go = async () => {
   await connect();
 
   const classifiers = uspsaClassifiers;
-  const divisions = ["co"]; // uspsaDivShortNames
+  const divisions = uspsaDivShortNames;
   const classifierDivisions = divisions
     .map(division => classifiers.map(classifier => ({ classifier, division })))
     .flat();
