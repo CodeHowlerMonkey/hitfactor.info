@@ -3,6 +3,7 @@ import { DataTable } from "primereact/datatable";
 import { InputText } from "primereact/inputtext";
 import { useState } from "react";
 
+import { killList } from "../../../../../data/classifiers/kill";
 import { recHHFFieldForDivisionAndClassifier } from "../../../../../shared/constants/preWeibullHHFs";
 import {
   classifierCodeSort,
@@ -101,11 +102,31 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
           return numSort(a, b, sortState.sortField, sortState.sortOrder);
       }
     })
-    .filter(
-      cur =>
-        !filter ||
-        `${cur.code}###${cur.name}`.toLowerCase().includes(filter.toLowerCase()),
-    );
+    .filter(cur => {
+      if (!filter) {
+        return true;
+      }
+      const {
+        meanAbsoluteError: mae,
+        meanSquaredError: mse,
+        superMeanSquaredError: smse,
+        runs,
+      } = cur;
+      const kill = runs >= 600 && smse >= 20;
+      const killAll = killList.map(c => c.split(" ")[0]).includes(cur.code);
+
+      if (filter === "killAll") {
+        return killAll;
+      } else if (filter === "saveAll") {
+        return !killAll;
+      } else if (filter === "kill") {
+        return kill;
+      } else if (filter === "save") {
+        return !kill;
+      }
+
+      return `${cur.code}###${cur.name}`.toLowerCase().includes(filter.toLowerCase());
+    });
 
   return (
     <DataTable
