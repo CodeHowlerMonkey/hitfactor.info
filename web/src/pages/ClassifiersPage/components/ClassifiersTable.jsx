@@ -119,7 +119,8 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
       onSelectionChange={({ value }) => onClassifierSelection(value.code)}
       stripedRows
       header={
-        <div className="flex">
+        <div className="flex align-items-end">
+          {data.length} classifiers
           <div className="md:flex-grow-1" />
           <span className="w-12 md:w-16rem p-input-icon-left">
             <i className="pi pi-search" />
@@ -244,6 +245,20 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
       <Column
         field="meanAbsoluteError"
         header="MAE"
+        sortable
+        style={{ width: "100px", textAlign: "right" }}
+        body={(c, { field }) => c[field].toFixed(4)}
+      />
+      <Column
+        field="superMeanSquaredError"
+        header="SMSE"
+        sortable
+        style={{ width: "100px", textAlign: "right" }}
+        body={(c, { field }) => c[field].toFixed(4)}
+      />
+      <Column
+        field="superMeanAbsoluteError"
+        header="SMAE"
         sortable
         style={{ width: "100px", textAlign: "right" }}
         body={(c, { field }) => c[field].toFixed(4)}
