@@ -524,6 +524,8 @@ export interface RecHHF {
   skewness: number;
   meanSquaredError: number;
   meanAbsoluteError: number;
+  superMeanSquaredError: number;
+  superMeanAbsoluteError: number;
   maxError: number;
 }
 
@@ -546,6 +548,8 @@ const RecHHFSchema = new mongoose.Schema<RecHHF>({
   skewness: Number,
   meanSquaredError: Number,
   meanAbsoluteError: Number,
+  superMeanSquaredError: Number,
+  superMeanAbsoluteError: Number,
   maxError: Number,
 
   classifierDivision: String,
@@ -577,6 +581,8 @@ const recHHFUpdate = (runsRaw, division, classifier) => {
     skewness,
     meanSquaredError,
     meanAbsoluteError,
+    superMeanSquaredError,
+    superMeanAbsoluteError,
     maxError,
   } = solveWeibull(
     runs.map(c => c.hf),
@@ -602,6 +608,8 @@ const recHHFUpdate = (runsRaw, division, classifier) => {
     skewness,
     meanSquaredError,
     meanAbsoluteError,
+    superMeanSquaredError,
+    superMeanAbsoluteError,
     maxError,
   };
 };

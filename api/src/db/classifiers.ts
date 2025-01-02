@@ -235,6 +235,8 @@ ClassifierSchema.virtual("recHHFs", {
   "skewness",
   "meanSquaredError",
   "meanAbsoluteError",
+  "superMeanSquaredError",
+  "superMeanAbsoluteError",
   "maxError",
 ].map(fieldName =>
   ClassifierSchema.virtual(fieldName).get(function () {

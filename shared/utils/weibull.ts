@@ -22,6 +22,8 @@ export interface WeibullResult {
 
   meanSquaredError: number;
   meanAbsoluteError: number;
+  superMeanSquaredError: number; // MSE but k=3.6
+  superMeanAbsoluteError: number; // MAE but k=3.6
   maxError: number;
 }
 
@@ -42,6 +44,8 @@ export const emptyWeibull: WeibullResult = {
 
   meanAbsoluteError: 0,
   meanSquaredError: 0,
+  superMeanAbsoluteError: 0,
+  superMeanSquaredError: 0,
   maxError: 0,
 };
 
@@ -164,6 +168,8 @@ export const solveWeibull = (
   const kurt = kurtosis(dataPoints);
   const mse = meanSquaredError(dataPoints, k, lambda);
   const mae = meanAbsoluteError(dataPoints, k, lambda);
+  const smse = meanSquaredError(dataPoints, 3.6, lambda);
+  const smae = meanAbsoluteError(dataPoints, 3.6, lambda);
   const me = maximumError(dataPoints, k, lambda);
 
   return {
@@ -177,6 +183,8 @@ export const solveWeibull = (
     kurtosis: kurt,
     meanSquaredError: mse,
     meanAbsoluteError: mae,
+    superMeanSquaredError: smse,
+    superMeanAbsoluteError: smae,
     maxError: me,
   };
 };
