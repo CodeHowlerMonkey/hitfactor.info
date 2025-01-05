@@ -16,7 +16,7 @@ import { hhfsForDivision } from "../dataUtil/hhf";
 import { HF, Percent } from "../dataUtil/numbers";
 
 import { RecHHFs, RecHHF } from "./recHHF";
-import { minorHFScoresAdapter, Scores } from "./scores";
+import { minorHFScoresAdapter, ScoreObjectWithVirtuals, Scores } from "./scores";
 import { Score } from "./scores";
 
 export interface Classifier {
@@ -38,12 +38,20 @@ export interface Classifier {
   inverse75CurPercentPercentile: number;
   inverse60CurPercentPercentile: number;
   inverse40CurPercentPercentile: number;
+
+  // new cc fields
+  eloCorrelation: number;
+  classificationCorrelation: number;
 }
 
 interface ClassifierVirtuals {
   recHHFs: RecHHF;
   quality: number;
   hqQuality: number;
+
+  // new cc virtuals
+  superMeanSquaredError: number;
+  ccQuality: number;
 }
 
 type ClassifierModel = Model<Classifier, object, ClassifierVirtuals>;
@@ -195,6 +203,10 @@ const ClassifierSchema = new mongoose.Schema<
     inverse75CurPercentPercentile: Number,
     inverse60CurPercentPercentile: Number,
     inverse40CurPercentPercentile: Number,
+
+    // new cc fields
+    eloCorrelation: Number,
+    classificationCorrelation: Number,
   },
   { strict: false },
 );
@@ -244,6 +256,13 @@ ClassifierSchema.virtual("recHHFs", {
     return this.recHHFs?.[fieldName];
   }),
 );
+
+ClassifierSchema.virtual("ccQuality").get(function () {
+  return (
+    (200 * this.eloCorrelation + 100 * this.classificationCorrelation) / 2.4 -
+    this.superMeanSquaredError
+  );
+});
 
 ClassifierSchema.virtual("quality").get(function () {
   return (
@@ -300,18 +319,39 @@ export const singleClassifierExtendedMetaDoc = async (
       .limit(0),
   ]);
   const scores = hitFactorScoresRaw
-    .map(curScore => curScore.toObject({ virtuals: true }))
-    .map(curScore => ({ ...curScore, elo: curScore.Shooters?.[0]?.elo }));
+    .map(curScore => curScore.toObject({ virtuals: true }) as ScoreObjectWithVirtuals)
+    .map(curScore => ({
+      ...curScore,
+      elo: curScore.Shooters?.[0]?.elo,
+      recPercentUncapped:
+        curScore.Shooters?.[0]?.reclassificationsRecPercentUncappedCurrent,
+    }));
 
   // best scores correlate better than most recent on 20-01:co
   const eloCorrelationScores = uniqBy(
     scores.filter(cur => cur.elo > 0 && cur.hf > 0).sort((a, b) => b.hf - a.hf),
     cur => cur.memberNumber,
   );
-  const eloCorrelation = correlation(
-    eloCorrelationScores.map(cur => cur.elo),
-    eloCorrelationScores.map(cur => cur.hf),
+  const eloCorrelation =
+    eloCorrelationScores.length >= 4
+      ? correlation(
+          eloCorrelationScores.map(cur => cur.elo),
+          eloCorrelationScores.map(cur => cur.hf),
+        )
+      : 0;
+  const classificationCorrelationScores = uniqBy(
+    scores
+      .filter(cur => cur.recPercentUncapped > 0 && cur.hf > 0)
+      .sort((a, b) => b.hf - a.hf),
+    cur => cur.memberNumber,
   );
+  const classificationCorrelation =
+    classificationCorrelationScores.length >= 4
+      ? correlation(
+          classificationCorrelationScores.map(cur => cur.recPercentUncapped),
+          classificationCorrelationScores.map(cur => cur.hf),
+        )
+      : 0;
 
   const hitFactorScores: Score[] = minorHFScoresAdapter(scores, division);
 
@@ -338,6 +378,7 @@ export const singleClassifierExtendedMetaDoc = async (
     ...inverseRecPercentileStats(60),
     ...inverseRecPercentileStats(40),
     eloCorrelation,
+    classificationCorrelation,
   };
 };
 
@@ -350,10 +391,10 @@ export const allDivisionClassifiersQuality = async () => {
   }
 
   const [coDB, opnDB, ltdDB, pccDB] = await Promise.all([
-    Classifiers.find({ division: "co" }),
-    Classifiers.find({ division: "opn" }),
-    Classifiers.find({ division: "ltd" }),
-    Classifiers.find({ division: "pcc" }),
+    Classifiers.find({ division: "co" }).populate("recHHFs"),
+    Classifiers.find({ division: "opn" }).populate("recHHFs"),
+    Classifiers.find({ division: "ltd" }).populate("recHHFs"),
+    Classifiers.find({ division: "pcc" }).populate("recHHFs"),
   ]);
 
   const co: (Classifier & ClassifierVirtuals)[] = coDB.map(c =>
@@ -380,7 +421,8 @@ export const allDivisionClassifiersQuality = async () => {
 
   _allDivQuality = co.reduce((acc, c) => {
     const id = c.classifier;
-    acc[id] = (c.quality + opn[id].quality + ltd[id].quality + pcc[id].quality) / 4;
+    acc[id] =
+      (c.ccQuality + opn[id].ccQuality + ltd[id].ccQuality + pcc[id].ccQuality) / 4;
     return acc;
   }, {});
 
