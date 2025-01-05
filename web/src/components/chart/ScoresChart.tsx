@@ -1,3 +1,4 @@
+import { uniqBy } from "lodash";
 import { Button } from "primereact/button";
 import { Dialog } from "primereact/dialog";
 import { ProgressSpinner } from "primereact/progressspinner";
@@ -5,9 +6,14 @@ import { SelectButton } from "primereact/selectbutton";
 import { useEffect, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
 
+import { Percent, PositiveOrMinus1 } from "../../../../api/src/dataUtil/numbers";
 import { sportForDivision } from "../../../../shared/constants/divisions";
-import { classForPercent } from "../../../../shared/utils/classification";
-import { DEFAULT_PRECISION, weibulCDFFactory } from "../../../../shared/utils/weibull";
+import { classForELO, classForPercent } from "../../../../shared/utils/classification";
+import {
+  correlation,
+  DEFAULT_PRECISION,
+  weibulCDFFactory,
+} from "../../../../shared/utils/weibull";
 import { useApi } from "../../utils/client";
 import { bgColorForClass } from "../../utils/color";
 
@@ -27,18 +33,31 @@ import { GraphPoint } from "./common";
 import { useAsyncWeibull } from "./useAsyncWeibull";
 import { WeibullStatus } from "./WeibullStatus";
 
-const modes = [
-  "HQ",
-  "Recommended",
-  "Rec1",
-  "Rec5",
-  "Rec15",
-  "Wbl1",
-  "Wbl5",
-  "Wbl15",
-] as const;
-type Mode = (typeof modes)[number];
-const shortModeNames = ["", "r", "r1", "r5", "r15", "wbl1", "wbl5", "wbl15"];
+const versusModeMap = {
+  HF: "hf",
+  Percent: "scoreRecPercent",
+  Rank: "rank",
+  ELO: "elo",
+  /*
+  HQ: "curPercent",
+  "Cur.HHF": "curHHFPercent",
+  "Rec.HHFOnly": "recHHFOnlyPercent",
+  "Rec.Soft": "recSoftPercent",
+  "Rec.Brutal": "recPercent",
+  */
+  "Rec.Brutal Uncapped": "recPercentUncapped",
+};
+const versusDefaultClassificationMode = Object.keys(versusModeMap).pop();
+const versusFieldForMode = mode => versusModeMap[mode];
+const versusModes = Object.keys(versusModeMap);
+
+const colorForELOOrPercent = (colorMode: string, dataPoint: AdvancedScorePoint) => {
+  const field = versusFieldForMode(colorMode);
+  if (field === "elo") {
+    return bgColorForClass[classForELO(dataPoint.elo as number)];
+  }
+  return bgColorForClass[classForPercent(dataPoint[versusFieldForMode(colorMode)])];
+};
 
 const colorForPrefix = (prefix, alpha) =>
   ({
@@ -62,7 +81,11 @@ export const extraLabelOffsets = {
   wbl15: 30,
 };
 
-const closestPercentileForHF = (hf: number, data: GraphPoint[]) => closestYForX(hf, data);
+const closestPercentileForHF = (hf: number, data: AdvancedScorePoint[]) =>
+  closestYForX(
+    hf,
+    data.map(c => ({ ...c, x: c.hf })),
+  );
 
 const xLinesForHHF = (prefix: string, hhf: number) =>
   hhf <= 0
@@ -73,36 +96,42 @@ const xLinesForHHF = (prefix: string, hhf: number) =>
           hhf,
           colorForPrefix(prefix, 1),
           0, // extraLabelOffsets[prefix],
+          true,
         ),
         ...xLine(
           `GM`,
           0.95 * hhf,
           colorForPrefix(prefix, 0.8),
           0, // extraLabelOffsets[prefix],
+          true,
         ),
         ...xLine(
           `M`,
           0.85 * hhf,
           colorForPrefix(prefix, 0.6),
           0, // extraLabelOffsets[prefix],
+          true,
         ),
         ...xLine(
           `A`,
           0.75 * hhf,
           colorForPrefix(prefix, 0.5),
           0, // extraLabelOffsets[prefix],
+          true,
         ),
         ...xLine(
           `B`,
           0.6 * hhf,
           colorForPrefix(prefix, 0.4),
           0, // extraLabelOffsets[prefix],
+          true,
         ),
         ...xLine(
           `C`,
           0.4 * hhf,
           colorForPrefix(prefix, 0.3),
           0, // extraLabelOffsets[prefix],
+          true,
         ),
       };
 
@@ -123,6 +152,15 @@ const modeBucketForMode = (mode?: Mode) =>
 
 const SCORES_STEP = 50;
 
+// point for graph coming from API
+interface AdvancedScorePoint extends GraphPoint {
+  memberNumber: string;
+
+  date: number;
+  elo: number;
+  hf: number;
+}
+
 // TODO: different modes for class xLines (95/85/75-hhf, A-centric, 1/5/15/40/75-percentile, etc)
 // TODO: maybe split the modes into 2 dropdowns, one of xLines, one for yLines to play with
 // TODO: maybe different options / scale depending on viewport size and desktop/tablet/mobile
@@ -137,9 +175,14 @@ export const ScoresChart = ({
   recommendedHHF15,
   totalScores,
 }) => {
+  //const [mainMode, setMainMode] = useState(defaultMainMode);
+  // const isVersus = mainModeFieldForMode(mainMode) === "vs";
+  const [colorMode, setColorMode] = useState(versusDefaultClassificationMode);
+  const [xMode, setXMode] = useState("HF");
+  const [yMode, setYMode] = useState("Rank");
+
   const sport = sportForDivision(division);
   const [full, setFull] = useState(false);
-  const [mode, setMode] = useState(modes[1]);
   const [numberOfScores, setNumberOfScores] = useState(
     SCORES_STEP * Math.ceil(totalScores / SCORES_STEP),
   );
@@ -151,18 +194,63 @@ export const ScoresChart = ({
   } = useApi(
     `/classifiers/${division}/${classifier}/chart?full=${full ? 1 : 0}&limit=${numberOfScoresUsed}`,
   );
-  const [lastData, setLastData] = useState<GraphPoint[] | null>(null);
+  const [lastData, setLastData] = useState<AdvancedScorePoint[] | null>(null);
   useEffect(() => {
     if (curData) {
       setLastData(curData);
     }
   }, [curData]);
-  const data: any = lastData;
 
-  const sortedByHFData = useMemo(
-    () => lastData?.toSorted((a, b) => b.x - a.x),
-    [lastData],
+  const data = useMemo(() => {
+    let sorted = (lastData?.toSorted((a, b) => b.hf - a.hf) || []).map((c, i, all) => ({
+      ...c,
+      rank: PositiveOrMinus1(Percent(i, all.length)),
+    }));
+
+    if ([xMode, yMode].includes("ELO")) {
+      sorted = sorted.filter(c => c.elo > 0);
+      sorted = uniqBy(
+        sorted, //.toSorted((a, b) => b.date - a.date),
+        c => c.memberNumber,
+      );
+    } else if ([colorMode].includes("ELO")) {
+      sorted = sorted.filter(c => c.elo > 0);
+    }
+
+    /*
+    if (!isVersus) {
+      return sorted.map(c => ({
+        ...c,
+        x: c.hf,
+        y: c.rank,
+        id: c.memberNumber,
+      }));
+    }
+      */
+
+    return sorted
+      .map(c => ({
+        ...c,
+        x: c[versusFieldForMode(xMode)],
+        y: c[versusFieldForMode(yMode)],
+        id: c.memberNumber,
+      }))
+      .filter(c => c.x > 0 && c.y > 0);
+  }, [lastData, xMode, yMode, colorMode]);
+
+  const showWeibull = yMode === "Rank" && xMode === "HF";
+  const showCorrelation = !showWeibull && data?.length;
+  const correl = useMemo(
+    () =>
+      !showCorrelation
+        ? 0
+        : correlation(
+            data.map(c => c.x),
+            data.map(c => c.y),
+          ),
+    [data, showCorrelation],
   );
+  const maxX = useMemo(() => data.toSorted((a, b) => b.x - a.x)[0]?.x || 0, [data]);
 
   const [precision, setPrecision] = useState(DEFAULT_PRECISION);
   const precisionUsed = useDebounce(precision, 300)[0];
@@ -170,7 +258,10 @@ export const ScoresChart = ({
     () => setNumberOfScores(SCORES_STEP * Math.ceil(totalScores / SCORES_STEP)),
     [totalScores],
   );
-  const weibullData = useMemo(() => (full ? data?.map(c => c.x) : []), [data, full]);
+  const weibullData: number[] = useMemo(
+    () => (full ? (data?.map(c => c.x) ?? []) : []),
+    [data, full],
+  );
   const weibull = useAsyncWeibull(weibullData, precisionUsed);
   const partialScoresDate = useMemo(() => {
     if (!data?.length) {
@@ -189,32 +280,16 @@ export const ScoresChart = ({
     ];
   }, [data]);
 
-  const { k, lambda, hhf1, hhf5, hhf15 } = weibull;
-  const maxHF = Math.ceil(sortedByHFData?.[0].x || 0);
-  const minHF = 0;
-  const modeHHFs = {
-    HQ: hhf,
-    Recommended: recHHF,
-    Rec1: recommendedHHF1,
-    Rec5: recommendedHHF5,
-    Rec15: recommendedHHF15,
-    Wbl1: hhf1,
-    Wbl5: hhf5,
-    Wbl15: hhf15,
-  } as Record<Mode, number>;
-  const modeIndex = modes.indexOf(mode);
-  const curShortMode = shortModeNames[modeIndex];
-  const curModeHHF = modeHHFs[mode];
-
+  const { k, lambda, hhf5 } = weibull;
   const percentiles = useMemo(
     () => [
-      closestPercentileForHF(curModeHHF * 0.95, data),
-      closestPercentileForHF(curModeHHF * 0.85, data),
-      closestPercentileForHF(curModeHHF * 0.75, data),
-      closestPercentileForHF(curModeHHF * 0.6, data),
-      closestPercentileForHF(curModeHHF * 0.4, data),
+      closestPercentileForHF(recHHF * 0.95, data),
+      closestPercentileForHF(recHHF * 0.85, data),
+      closestPercentileForHF(recHHF * 0.75, data),
+      closestPercentileForHF(recHHF * 0.6, data),
+      closestPercentileForHF(recHHF * 0.4, data),
     ],
-    [data, curModeHHF],
+    [data, recHHF],
   );
 
   const chartLabel = sport === "hfu" && recHHF ? `Rec. HHF: ${recHHF}` : undefined;
@@ -227,26 +302,12 @@ export const ScoresChart = ({
     <Scatter
       style={{ position: "relative", height: "74vh" }}
       options={{
+        //aspectRatio: full ? 1 : undefined,
         responsive: true,
         // wanted false for rezize but annotations are bugged and draw HHF/GM lines wrong
         maintainAspectRatio: false,
         scales: {
-          y: { reverse: true, min: -10, max: 100 },
-          x: {
-            min: 0,
-            max:
-              Math.max(
-                maxHF,
-                hhf,
-                recHHF,
-                recommendedHHF1,
-                recommendedHHF5,
-                recommendedHHF15,
-                hhf1,
-                hhf5,
-                hhf15,
-              ) + 0.5,
-          },
+          y: { reverse: yMode === "Rank" },
         },
         elements: {
           point: {
@@ -258,7 +319,6 @@ export const ScoresChart = ({
             pan: { enabled: true },
             zoom: {
               mode: "xy",
-              enabled: true,
               wheel: {
                 enabled: true,
               },
@@ -269,61 +329,59 @@ export const ScoresChart = ({
           },
           tooltip: {
             callbacks: {
-              label: ({ raw, raw: { x, y, memberNumber, pointsGraphName } }) => {
+              label: ({ raw: { x, y, memberNumber, pointsGraphName } }) => {
                 if (pointsGraphName) {
                   return null;
-                  return `${pointsGraphName} HF ${x.toFixed(4)}, Top ${y.toFixed(2)}%)`;
                 }
-                // TODO: show classificaiton for SCSA when available
-                const classification =
-                  sport !== "scsa" ? `(${raw[modeBucketForMode()].toFixed(2)}%)` : "";
-                return `HF ${x.toFixed(4)}(${((100 * x) / curModeHHF).toFixed(2)}%), Top ${y.toFixed(2)}%: ${memberNumber}${classification}`;
+                return `${memberNumber}; X ${x.toFixed(4)}; Y ${y.toFixed(4)}`;
               },
             },
           },
           annotation: {
             annotations: {
-              ...Object.assign(
-                {},
-                ...percentiles.map((perc, i) =>
-                  yLine(
-                    `Top ${perc.toFixed(2)}% = ${["GM", "M", "A", "B", "C"][i]}`,
-                    perc,
-                    colorForPrefix(curShortMode, 0.7 - 0.1 * i),
-                  ),
-                ),
-              ),
-              ...Object.assign(
-                {},
-                ...percentiles.map((perc, i) =>
-                  point(
-                    ["pGM", "pM", "pA", "pB", "pC"][i] + curModeHHF,
-                    curModeHHF * [0.95, 0.85, 0.75, 0.6, 0.4][i],
-                    perc,
-                    colorForPrefix(curShortMode, 0.7),
-                    0, // extraLabelOffsets[prefix],
-                  ),
-                ),
-              ),
+              ...(yMode !== "Rank"
+                ? {}
+                : Object.assign(
+                    {},
+                    ...percentiles.map((perc, i) =>
+                      yLine(
+                        `Top ${perc?.toFixed(2)}% = ${["GM", "M", "A", "B", "C"][i]}`,
+                        perc,
+                        colorForPrefix("r", 0.7 - 0.1 * i),
+                      ),
+                    ),
+                  )),
+              ...(yMode !== "Rank"
+                ? {}
+                : Object.assign(
+                    {},
+                    ...percentiles.map((perc, i) =>
+                      point(
+                        ["pGM", "pM", "pA", "pB", "pC"][i] + recHHF,
+                        recHHF * [0.95, 0.85, 0.75, 0.6, 0.4][i],
+                        perc,
+                        colorForPrefix("r", 0.7),
+                      ),
+                    ),
+                  )),
 
-              // TODO: fix multisport here
               // ...(sport === "uspsa" || sport === "scsa" ? xLinesForHHF("", hhf) : []),
-              ...xLinesForHHF(curShortMode, curModeHHF),
+              ...(xMode !== "HF" ? {} : xLinesForHHF("r", recHHF)),
             },
           },
         },
       }}
       data={{
         datasets: [
-          ...(!full
+          ...(!full || !showWeibull
             ? []
             : [
                 {
                   label: "Weibull",
                   data: pointsGraph({
                     yFn: weibulCDFFactory(k, lambda),
-                    minX: minHF,
-                    maxX: maxHF,
+                    minX: 0,
+                    maxX,
                     name: "Weibull",
                   }),
                   pointRadius: 1,
@@ -334,19 +392,12 @@ export const ScoresChart = ({
               ]),
           {
             label: chartLabel || "HF / Percentile",
-            data: data?.map(c => ({ ...c, id: `${c.date}:${c.x}` })),
+            data,
             pointRadius: 3,
             pointBorderColor: "white",
             pointBorderWidth: 0,
             backgroundColor: "#ae9ef1",
-            pointBackgroundColor: data?.map(c => {
-              if (sport === "scsa") {
-                return bgColorForClass[classForPercent(c.scoreRecPercent || 0)];
-              }
-
-              const shooterClass = classForPercent(c[modeBucketForMode(mode)]);
-              return bgColorForClass[shooterClass];
-            }),
+            pointBackgroundColor: data?.map(c => colorForELOOrPercent(colorMode!, c)),
           },
         ],
       }}
@@ -356,9 +407,13 @@ export const ScoresChart = ({
   if (full) {
     return (
       <Dialog
-        header="Scores Distribution"
+        header=""
         visible
-        style={{ width: "96vw", height: "96vh", margin: "16px" }}
+        style={{
+          width: "calc(100vw - 24px)",
+          height: "calc(96vh - 24px)",
+          maxHeight: "unset",
+        }}
         onHide={() => setFull(false)}
       >
         {isFetching && (
@@ -367,22 +422,85 @@ export const ScoresChart = ({
           </div>
         )}
         {sport === "uspsa" && (
-          <div className="absolute w-full z-1 flex flex-column justify-content-center align-items-center gap-2">
-            <div className="flex justify-content-between m-auto w-full surface-card">
-              <SelectButton
-                className="compact text-xs md:text-base"
-                allowEmpty={false}
-                options={modes as unknown as string[]}
-                value={mode}
-                onChange={e => setMode(e.value)}
-                style={{ margin: "auto", transform: "scale(0.65)" }}
-              />
+          <div
+            style={{ top: 0, left: 64 }}
+            className="absolute z-1 flex flex-column justify-content-start align-items-center gap-2 surface-card mx-4 my-0"
+          >
+            <div className="flex flex-column-reverse gap-2 justify-content-center align-items-center">
+              {showCorrelation && (
+                <div className="flex gap-4 text-sm">
+                  <div className="flex flex-column justify-content-center text-md text-500 font-bold">
+                    <div>Correlation = {correl.toFixed(6)}</div>
+                  </div>
+                </div>
+              )}
+              <div className="flex gap-2 mt-4 justify-content-around text-base lg:text-xl">
+                {/*
+              <div className="flex flex-column justify-content-start align-items-start">
+                <span className="text-md text-500 font-bold">Mode</span>
+                <SelectButton
+                  className="compact text-xs"
+                  allowEmpty={false}
+                  options={mainModes}
+                  value={mainMode}
+                  onChange={e => setMainMode(e.value)}
+                />
+              </div>
+              */}
+                <div className="flex gap-4">
+                  <div className="flex flex-column justify-content-center align-items-start">
+                    <span style={{ fontSize: "1rem" }} className="text-500 font-bold">
+                      Color
+                    </span>
+                    <SelectButton
+                      className="compact text-xs"
+                      allowEmpty={false}
+                      options={versusModes.filter(c => !["Rank", "HF"].includes(c))}
+                      value={colorMode}
+                      onChange={e => setColorMode(e.value)}
+                    />
+                  </div>
+                  <div className="flex flex-column justify-content-center align-items-start">
+                    <span style={{ fontSize: "1rem" }} className="text-500 font-bold">
+                      Position X
+                    </span>
+                    <SelectButton
+                      //disabled={mainModeFieldForMode(mainMode) !== "vs"}
+                      className="compact text-xs"
+                      allowEmpty={false}
+                      options={versusModes}
+                      value={xMode}
+                      onChange={e => setXMode(e.value)}
+                    />
+                  </div>
+                  <div className="flex flex-column justify-content-center align-items-start">
+                    <span style={{ fontSize: "1rem" }} className="text-500 font-bold">
+                      Position Y
+                    </span>
+
+                    <SelectButton
+                      //disabled={mainModeFieldForMode(mainMode) !== "vs"}
+                      className="compact text-xs"
+                      allowEmpty={false}
+                      options={versusModes}
+                      value={yMode}
+                      onChange={e => setYMode(e.value)}
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
-            <div className="flex flex-row justify-content-center">
-              <div className="flex flex-column justify-content-center align-items-center gap-2">
-                Weibull Precision:{" "}
+          </div>
+        )}
+        {sport === "uspsa" && showWeibull && (
+          <div
+            style={{ bottom: 96, right: 64 }}
+            className="absolute z-1 flex flex-column justify-content-start align-items-center gap-2 surface-card mx-4 my-0 border-round border-1 p-4"
+          >
+            <div className="flex flex-column justify-content-center gap-2">
+              <div className="flex flex-row justify-content-end align-items-center gap-2">
+                Precision:{" "}
                 <input
-                  className="w-8"
                   type="number"
                   name="precision"
                   step={1}
@@ -390,10 +508,9 @@ export const ScoresChart = ({
                   onChange={e => setPrecision(Number(e.target.value))}
                 />
               </div>
-              <div className="flex flex-column justify-content-center align-items-center gap-2">
+              <div className="flex flex-row justify-content-end align-items-center gap-2">
                 Scores:{" "}
                 <input
-                  className="w-8"
                   type="number"
                   name="points"
                   step={SCORES_STEP}
@@ -401,10 +518,12 @@ export const ScoresChart = ({
                   onChange={e => setNumberOfScores(Number(e.target.value))}
                 />
               </div>
+              <div className="flex flex-column">
+                <div className="text-sm text-center">{partialScoresDate[0]}</div>
+                <div className="text-sm text-center">{partialScoresDate[1]}</div>
+              </div>
               <WeibullStatus weibull={weibull} />
             </div>
-            <div className="text-sm">{partialScoresDate[0]}</div>
-            <div className="text-sm">{partialScoresDate[1]}</div>
             <div className="hidden">
               <div className="flex justify-content-center gap-4">
                 <div>k = {k?.toFixed(5)}</div>
@@ -424,18 +543,6 @@ export const ScoresChart = ({
       {isFetching && (
         <div className="absolute w-full h-full z-1 flex justify-content-center align-items-center">
           <ProgressSpinner />
-        </div>
-      )}
-      {sport === "uspsa" && (
-        <div className="absolute" style={{ zIndex: 1, left: 0 }}>
-          <SelectButton
-            className="compact text-xs md:text-base"
-            allowEmpty={false}
-            options={(modes as unknown as string[]).slice(0, 5)}
-            value={mode}
-            onChange={e => setMode(e.value)}
-            style={{ transform: "scale(0.65)" }}
-          />
         </div>
       )}
       {graph}

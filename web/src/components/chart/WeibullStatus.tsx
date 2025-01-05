@@ -23,31 +23,35 @@ export const WeibullStatus = ({
   },
 }: WeibullStatusProps) => (
   <div className="flex flex-column justify-content-center align-items-start">
-    <div className="flex flex-column justify-content-center text-md text-500 font-bold">
+    <div
+      style={{ whiteSpace: "pre" }}
+      className="flex flex-column justify-content-center text-md text-500 font-bold w-full justify-content-center text-center"
+    >
       {loading ? (
-        <div className="flex gap-2 align-items-center">
-          <ProgressSpinner strokeWidth="4" style={{ width: "1.5em", height: "1.5em" }} />
+        <div className="flex gap-2 align-items-center justify-content-center">
+          <ProgressSpinner
+            strokeWidth="4"
+            style={{ width: "1.5em", height: "1.5em", margin: 0 }}
+          />
           Calculating...
         </div>
       ) : (
-        "Weibull Ready"
+        `Weibull Ready`
       )}
     </div>
-    <div className="flex gap-4 text-sm">
+    <div className="flex gap-4 text-sm align-items-start">
       <div className="flex flex-column justify-content-center text-md text-500 font-bold">
-        <div>k = {k.toFixed(6)}</div>
-        <div>𝛌 = {lambda.toFixed(6)}</div>
+        <div>k = {k.toFixed(4)}</div>
+        <div>𝛌 = {lambda.toFixed(4)}</div>
+        <div>Skewness = {skewness.toFixed(4)}</div>
+        <div>Kurtosis = {kurtosis.toFixed(4)}</div>
       </div>
       <div className="flex flex-column justify-content-center text-md text-500 font-bold">
-        <div>Skewness = {skewness.toFixed(6)}</div>
-        <div>Kurtosis = {kurtosis.toFixed(6)}</div>
-      </div>
-      <div className="flex flex-column justify-content-center text-md text-500 font-bold">
-        <div>SMSE = {superMeanSquaredError.toFixed(6)}</div>
-        <div>SMAE = {superMeanAbsoluteError.toFixed(6)}</div>
-        <div>MSE = {meanSquaredError.toFixed(6)}</div>
-        <div>MAE = {meanAbsoluteError.toFixed(6)}</div>
-        <div>ME = {maxError.toFixed(6)}</div>
+        <div>SMSE = {superMeanSquaredError.toFixed(4)}</div>
+        <div>SMAE = {superMeanAbsoluteError.toFixed(4)}</div>
+        <div>MSE = {meanSquaredError.toFixed(4)}</div>
+        <div>MAE = {meanAbsoluteError.toFixed(4)}</div>
+        <div>ME = {maxError.toFixed(4)}</div>
       </div>
     </div>
   </div>

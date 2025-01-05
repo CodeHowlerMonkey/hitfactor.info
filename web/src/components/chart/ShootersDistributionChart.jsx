@@ -186,9 +186,9 @@ export const ShootersDistributionChart = ({ division, style }) => {
 
   return (
     <div style={style}>
-      <div className="flex mt-4 justify-content-around text-base lg:text-xl">
+      <div className="flex mt-4 justify-content-start gap-4 mb-2 text-base lg:text-xl">
         {!isHFU && (
-          <>
+          <div className="flex flex-column gap-2">
             <div className="flex flex-column justify-content-center align-items-start">
               <span className="text-md text-500 font-bold">Color</span>
               <SelectButton
@@ -209,7 +209,7 @@ export const ShootersDistributionChart = ({ division, style }) => {
                 onChange={e => setXMode(e.value)}
               />
             </div>
-          </>
+          </div>
         )}
         <WeibullStatus weibull={weibull} />
       </div>
