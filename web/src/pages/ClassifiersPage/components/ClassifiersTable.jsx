@@ -167,8 +167,9 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
         body={c => <ClassifierCell info={c} showScoring />}
       />
       <Column
-        field="quality"
-        header="Div. Qual."
+        field="ccQuality"
+        header="Quality"
+        headerTooltip="New Quality for Classifier Committee, using correlations and SMSE"
         sortable
         style={{ width: "9em", minWidth: "9em", maxWidth: "9em" }}
         body={(c, { field }) => (
@@ -191,9 +192,9 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
         )}
       />
       <Column
-        hidden
         field="allDivQuality"
         header="OA Qual."
+        headerTooltip="New All Division Quality for Classifier Committee, using correlations and SMSE"
         sortable
         style={{ maxWidth: "7em" }}
         body={(c, { field }) => (
@@ -311,6 +312,14 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
       <Column
         field="eloCorrelation"
         header="rELO"
+        sortable
+        style={{ width: "100px", textAlign: "right" }}
+        body={(c, { field }) => c[field]?.toFixed(4) || "?"}
+      />
+      <Column
+        field="classificationCorrelation"
+        header="rClass"
+        headerTooltip="Classification Percentage Correlation"
         sortable
         style={{ width: "100px", textAlign: "right" }}
         body={(c, { field }) => c[field]?.toFixed(4) || "?"}
