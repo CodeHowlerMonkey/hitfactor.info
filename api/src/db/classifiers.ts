@@ -4,6 +4,7 @@ import uniqBy from "lodash.uniqby";
 import mongoose, { Model } from "mongoose";
 
 import { stringSort } from "../../../shared/utils/sort";
+import { correlation } from "../../../shared/utils/weibull";
 import {
   basicInfoForClassifier,
   classifiers as _classifiers,
@@ -96,7 +97,7 @@ const extendedInfoForClassifier = (
     return {};
   }
   const curHHFInfo = divisionHHFs.find(dHHF => dHHF.classifier === c.id);
-  const hhf = Number(curHHFInfo.hhf);
+  const hhf = Number(curHHFInfo?.hhf);
 
   const topXPercentileStats = x => ({
     [`top${x}PercentilePercent`]:
@@ -141,7 +142,7 @@ const extendedInfoForClassifier = (
     .sort((a, b) => stringSort(a, b, "id", 1));
 
   const result = {
-    updated: curHHFInfo.updated, //actualLastUpdate, // before was using curHHFInfo.updated, and it's bs
+    updated: curHHFInfo?.updated, //actualLastUpdate, // before was using curHHFInfo.updated, and it's bs
     hhf,
     prevHHF: hhfs.findLast(curHistorical => curHistorical.hhf !== hhf)?.hhf ?? hhf,
     hhfs,
@@ -288,17 +289,31 @@ export const singleClassifierExtendedMetaDoc = async (
   }
   const [recHHFQuery, hitFactorScoresRaw] = await Promise.all([
     recHHFReady ?? RecHHFs.findOne({ division, classifier }).select("recHHF").lean(),
-    Scores.find<Score>({
+    Scores.find({
       division: { $in: divisionsForScoresAdapter(division) },
       classifier,
       hf: { $gte: 0 },
       bad: { $ne: true },
     })
+      .populate("Shooters")
       .sort({ hf: -1 })
-      .limit(0)
-      .lean(),
+      .limit(0),
   ]);
-  const hitFactorScores: Score[] = minorHFScoresAdapter(hitFactorScoresRaw, division);
+  const scores = hitFactorScoresRaw
+    .map(curScore => curScore.toObject({ virtuals: true }))
+    .map(curScore => ({ ...curScore, elo: curScore.Shooters?.[0]?.elo }));
+
+  // best scores correlate better than most recent on 20-01:co
+  const eloCorrelationScores = uniqBy(
+    scores.filter(cur => cur.elo > 0 && cur.hf > 0).sort((a, b) => b.hf - a.hf),
+    cur => cur.memberNumber,
+  );
+  const eloCorrelation = correlation(
+    eloCorrelationScores.map(cur => cur.elo),
+    eloCorrelationScores.map(cur => cur.hf),
+  );
+
+  const hitFactorScores: Score[] = minorHFScoresAdapter(scores, division);
 
   const recHHF = recHHFQuery?.recHHF ?? 0;
   const inverseRecPercentileStats = xPercent => ({
@@ -322,6 +337,7 @@ export const singleClassifierExtendedMetaDoc = async (
     ...inverseRecPercentileStats(75),
     ...inverseRecPercentileStats(60),
     ...inverseRecPercentileStats(40),
+    eloCorrelation,
   };
 };
 

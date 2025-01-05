@@ -264,6 +264,7 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
         body={(c, { field }) => c[field].toFixed(4)}
       />
       <Column
+        hidden
         field="meanAbsoluteError"
         header="MAE"
         sortable
@@ -278,6 +279,7 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
         body={(c, { field }) => c[field].toFixed(4)}
       />
       <Column
+        hidden
         field="superMeanAbsoluteError"
         header="SMAE"
         sortable
@@ -285,6 +287,7 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
         body={(c, { field }) => c[field].toFixed(4)}
       />
       <Column
+        hidden
         field="maxError"
         header="MaxE"
         sortable
@@ -304,6 +307,13 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
         header={isSCSA ? "HQ Minus Rec. Peak Time" : "HQ Minus Rec. HHF"}
         sortable
         body={numFieldsDiff("hhf", "recHHF", isSCSA ? 2 : 4, isSCSA ? "s" : "")}
+      />
+      <Column
+        field="eloCorrelation"
+        header="rELO"
+        sortable
+        style={{ width: "100px", textAlign: "right" }}
+        body={(c, { field }) => c[field]?.toFixed(4) || "?"}
       />
     </DataTable>
   );

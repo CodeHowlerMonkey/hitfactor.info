@@ -31,7 +31,7 @@ export const yLine = (name, y, color) => ({
   },
 });
 
-export const xLine = (name, x, color, extraLabelOffset = 0) => ({
+export const xLine = (name, x, color, extraLabelOffset = 0, lowY = false) => ({
   [name]: {
     type: "line",
     xMin: x,
@@ -42,7 +42,7 @@ export const xLine = (name, x, color, extraLabelOffset = 0) => ({
   [`${name}Label`]: {
     type: "label",
     xValue: x,
-    yValue: 95 - 2 * extraLabelOffset,
+    yValue: lowY ? 15 + 2 * extraLabelOffset : 95 - 2 * extraLabelOffset,
     color,
     position: "start",
     content: [name],
