@@ -40,10 +40,14 @@ const go = async () => {
     .map(division => classifiers.map(classifier => ({ classifier, division })))
     .flat();
 
+  console.error("rechhf go");
   await rehydrateRecHHF(divisions, classifiers);
-  // await rehydrateShooters(divisions);
+  console.error("shooters go");
+  await rehydrateShooters(divisions);
+  console.error("classifiers go");
   await rehydrateClassifiers(classifierDivisions);
-  // await hydrateStats();
+  console.error("stats go");
+  await hydrateStats();
 
   console.error("\ndone");
   process.exit(0);
