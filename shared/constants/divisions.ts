@@ -287,6 +287,10 @@ export const divisionsForRecHHFAdapter = division => {
     return hfu;
   }
 
+  if (division === "lo") {
+    return ["lo", "co"];
+  }
+
   return [division];
 };
 
