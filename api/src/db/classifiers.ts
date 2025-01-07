@@ -161,6 +161,10 @@ const extendedInfoForClassifier = (
       (r, v, k) => (r[`runsTotalsLegit${k}`] = v),
     ),
     runs: hitFactorScores.length,
+    prod10Runs: hitFactorScores.filter(c => new Date(c.sd).getTime() < 1706770800000)
+      .length,
+    prod15Runs: hitFactorScores.filter(c => new Date(c.sd).getTime() >= 1706770800000)
+      .length,
     top10CurPercentAvg:
       hitFactorScores
         .slice(0, 10)

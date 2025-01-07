@@ -11,7 +11,7 @@ import {
 import { curHHFForDivisionClassifier } from "../dataUtil/hhf";
 import { HF, Percent, PositiveOrMinus1 } from "../dataUtil/numbers";
 
-import { minorHFScoresAdapter, Scores } from "./scores";
+import { minorHFScoresAdapter, Score, Scores } from "./scores";
 
 const LOW_SAMPLE_SIZE_DIVISIONS = new Set([
   "rev",
@@ -440,7 +440,11 @@ const recommendedHHFFunctionFor = ({ division, number }) => {
   return r1;
 };
 
-const runsForRecs = async ({ division, number }) =>
+interface ScoreWithPercentile extends Score {
+  percentile: number;
+}
+
+const runsForRecs = async ({ division, number }): Promise<ScoreWithPercentile[]> =>
   (
     await Scores.find({
       classifier: number,
@@ -560,7 +564,11 @@ RecHHFSchema.index({ classifierDivision: 1 }, { unique: true });
 
 export const RecHHFs = mongoose.model("RecHHFs", RecHHFSchema);
 
-const recHHFUpdate = (runsRaw, division, classifier) => {
+const recHHFUpdate = (
+  runsRaw: ScoreWithPercentile[],
+  division: string,
+  classifier: string,
+) => {
   if (!runsRaw) {
     return null;
   }
