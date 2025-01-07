@@ -99,7 +99,7 @@ const probabilityDistributionFn = (x: number, k: number, lambda: number): number
 
 const lossFnFactory =
   (data: number[]) =>
-  ([k, lambda]: NumberTuple) =>
+  ([k, lambda]: number[]) =>
     data.reduce(
       (sum, x) => sum - Math.log(probabilityDistributionFn(x, k, lambda) || 1e-10),
       0,
@@ -115,6 +115,8 @@ const findParams = (
   }
   const mean = ss.mean(data);
   // const variance = ss.variance(data);
+
+  return optimizeNelderMead(lossFnFactory(data), [3.6, mean], 1e-11, partialCb);
 
   return optimize(
     lossFnFactory(data),
@@ -231,4 +233,125 @@ export const maximumError = (dataPoints: number[], k: number, lambda: number) =>
     const error = Math.abs(cdf(c.x) - c.y);
     return error > acc ? error : acc;
   }, 0);
+};
+
+const _matrixAdd = (a: number[], b: number[]): number[] => a.map((c, i) => c + b[i] || 0);
+const _matrixSubtract = (a: number[], b: number[]): number[] =>
+  a.map((c, i) => c - b[i] || 0);
+const _matrixMultiply = (a: number, b: number[]): number[] => b.map(c => c * a);
+const _numpyMeanZeroAxis = (a: number[][]): number[] =>
+  a.reduce((acc, c) => _matrixAdd(acc, c)).map(c => c / a.length);
+
+const optimizeNelderMead = (
+  lossFn: (variables: number[]) => number,
+  initialVariables: number[],
+  tolerance: number = 1e-15,
+  partialCb?: (partialResults: number[]) => void,
+) => {
+  const throttledCb = throttle(partialCb ?? (() => {}), 250);
+  const nParams = initialVariables.length;
+  const nVertices = nParams + 1;
+
+  const simplex = new Array(nVertices).fill(new Array(nParams));
+  simplex[0] = [...initialVariables];
+  for (let i = 1; i < simplex.length; ++i) {
+    const j = i - 1;
+    const xj = initialVariables[j];
+
+    const hj = xj === 0 ? 0.00025 : 0.05;
+    const xs = new Array(initialVariables.length).fill(0);
+    xs[j] = hj;
+    simplex[i] = _matrixAdd(initialVariables, xs);
+  }
+
+  // eslint-disable-next-line no-constant-condition
+  while (true) {
+    // 1. Sort by loss/cost least to most
+    const costSimplex: number[] = simplex.map(c => lossFn(c));
+    costSimplex.sort((a, b) => a - b);
+    simplex.sort((a, b) => lossFn(a) - lossFn(b));
+    throttledCb?.([...simplex[0], costSimplex[0]]);
+
+    // termination condition
+    const std = ss.standardDeviation(costSimplex);
+    if (std < tolerance) {
+      break;
+    }
+
+    // 2. Calculate centroid of the best vertices
+    const xCentroid = _numpyMeanZeroAxis(simplex.slice(0, -1));
+
+    // 3. Reflection
+    const alpha = 1;
+    // x_reflect = x_centroid + alpha*(x_centroid-simplex[-1])
+    const xReflect = _matrixAdd(
+      xCentroid,
+      _matrixMultiply(alpha, _matrixSubtract(xCentroid, simplex[simplex.length - 1])),
+    );
+    const costReflect = lossFn(xReflect);
+    if (
+      costReflect < costSimplex[costSimplex.length - 2] &&
+      costReflect > costSimplex[0]
+    ) {
+      // replace worst simplex
+      simplex[simplex.length - 1] = xReflect;
+    }
+
+    // 4. Expansion
+    if (costReflect < costSimplex[0]) {
+      const gamma = 2;
+      // x_expand = x_centroid + gamma*(x_reflect-x_centroid)
+      const xExpand = _matrixAdd(
+        xCentroid,
+        _matrixMultiply(gamma, _matrixSubtract(xReflect, xCentroid)),
+      );
+      const costExpand = lossFn(xExpand);
+      if (costExpand < costReflect) {
+        simplex[simplex.length - 1] = xExpand;
+      } else {
+        simplex[simplex.length - 1] = xReflect;
+      }
+      continue;
+    }
+
+    // 5. Contraction
+    const pho = 0.5;
+    if (costReflect < costSimplex[costSimplex.length - 1]) {
+      // x_contract = x_centroid + pho*(x_reflect-x_centroid)
+      const xContract = _matrixAdd(
+        xCentroid,
+        _matrixMultiply(pho, _matrixSubtract(xReflect, xCentroid)),
+      );
+      const costContract = lossFn(xContract);
+      if (costContract < costReflect) {
+        simplex[simplex.length - 1] = xContract;
+        continue;
+      }
+    } else {
+      // x_contract = x_centroid + pho*(simplex[-1]-x_centroid)
+      const xContract = _matrixAdd(
+        xCentroid,
+        _matrixMultiply(pho, _matrixSubtract(simplex[simplex.length - 1], xCentroid)),
+      );
+      const costContract = lossFn(xContract);
+      if (costContract < costSimplex[costSimplex.length - 1]) {
+        simplex[simplex.length - 1] = xContract;
+        continue;
+      }
+    }
+
+    // 6. Shrink
+    const sigma = 0.5;
+    for (let i = 1; i < simplex.length; ++i) {
+      simplex[i] = _matrixAdd(
+        simplex[0],
+        _matrixMultiply(sigma, _matrixSubtract(simplex[i], simplex[0])),
+      );
+    }
+  }
+
+  throttledCb([...simplex[0], lossFn(simplex[0])]);
+  throttledCb.flush();
+  throttledCb.cancel();
+  return simplex[0];
 };
