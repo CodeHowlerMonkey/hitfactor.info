@@ -216,6 +216,20 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
         bodyStyle={{ textAlign: "center" }}
       />
       <Column
+        field="prod10Runs"
+        header="Prod.10 Scores"
+        sortable
+        style={{ width: "100px" }}
+        bodyStyle={{ textAlign: "center" }}
+      />
+      <Column
+        field="prod15Runs"
+        header="Prod.15 Scores"
+        sortable
+        style={{ width: "100px" }}
+        bodyStyle={{ textAlign: "center" }}
+      />
+      <Column
         field="recHHF"
         header="RHHF"
         sortable
