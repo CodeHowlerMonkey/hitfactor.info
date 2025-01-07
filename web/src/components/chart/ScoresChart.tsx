@@ -202,7 +202,11 @@ export const ScoresChart = ({
   }, [curData]);
 
   const data = useMemo(() => {
-    let sorted = (lastData?.toSorted((a, b) => b.hf - a.hf) || []).map((c, i, all) => ({
+    const prodData =
+      prodMode === "Prod. 10"
+        ? lastData?.filter(c => c.date < 1706770800000)
+        : lastData?.filter(c => c.date >= 1706770800000);
+    let sorted = (prodData?.toSorted((a, b) => b.hf - a.hf) || []).map((c, i, all) => ({
       ...c,
       rank: PositiveOrMinus1(Percent(i, all.length)),
     }));
@@ -236,7 +240,7 @@ export const ScoresChart = ({
         id: c.memberNumber,
       }))
       .filter(c => c.x > 0 && c.y > 0);
-  }, [lastData, xMode, yMode, colorMode]);
+  }, [lastData, xMode, yMode, colorMode, prodMode]);
 
   const showWeibull = yMode === "Rank" && xMode === "HF";
   const showCorrelation = !showWeibull && data?.length;
@@ -329,11 +333,11 @@ export const ScoresChart = ({
           },
           tooltip: {
             callbacks: {
-              label: ({ raw: { x, y, memberNumber, pointsGraphName } }) => {
+              label: ({ raw: { x, y, memberNumber, name, pointsGraphName, date } }) => {
                 if (pointsGraphName) {
                   return null;
                 }
-                return `${memberNumber}; X ${x.toFixed(4)}; Y ${y.toFixed(4)}`;
+                return `${memberNumber} ${name}; X ${x.toFixed(4)}; Y ${y.toFixed(4)}; ${new Date(date).toLocaleDateString()}`;
               },
             },
           },
@@ -392,7 +396,7 @@ export const ScoresChart = ({
               ]),
           {
             label: chartLabel || "HF / Percentile",
-            data,
+            data: data,
             pointRadius: 3,
             pointBorderColor: "white",
             pointBorderWidth: 0,
@@ -485,6 +489,15 @@ export const ScoresChart = ({
                       options={versusModes}
                       value={yMode}
                       onChange={e => setYMode(e.value)}
+                    />
+                  </div>
+                  <div className="flex flex-column justify-content-center align-items-start ml-8">
+                    <SelectButton
+                      className="compact text-xs"
+                      allowEmpty={false}
+                      options={["Prod. 10", "Prod. 15"]}
+                      value={prodMode}
+                      onChange={e => setProdMode(e.value)}
                     />
                   </div>
                 </div>

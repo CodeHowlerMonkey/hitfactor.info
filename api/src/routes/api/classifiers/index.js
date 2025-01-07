@@ -319,6 +319,7 @@ const classifiersRoutes = async fastify => {
             "reclassificationsRecPercentUncappedCurrent",
           ),
           elo: _getShooterField("elo"),
+          name: _getShooterField("name"),
         },
       },
       {
