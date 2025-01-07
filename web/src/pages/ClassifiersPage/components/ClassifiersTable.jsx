@@ -1,3 +1,4 @@
+import cx from "classnames";
 import { Column } from "primereact/column";
 import { DataTable } from "primereact/datatable";
 import { InputText } from "primereact/inputtext";
@@ -74,7 +75,7 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { resetSort, ...sortProps } = useTableSort({
-    initial: { field: "code", order: 1 },
+    initial: { field: "allDivQuality", order: -1 },
   });
   const [filter, setFilter] = useState("");
   const sortState = sortProps;
@@ -135,6 +136,7 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
       style={{ width: "fit-content", margin: "auto" }}
       loading={loading}
       showGridlines
+      rowClassName={data => cx({ "opacity-30": data.allDivQuality < 59 })}
       selectionMode="single"
       selection={null}
       onSelectionChange={({ value }) => onClassifierSelection(value.code)}
