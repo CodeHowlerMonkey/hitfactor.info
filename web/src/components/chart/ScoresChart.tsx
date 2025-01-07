@@ -95,42 +95,42 @@ const xLinesForHHF = (prefix: string, hhf: number) =>
           `HHF = ${hhf?.toFixed(4)}`,
           hhf,
           colorForPrefix(prefix, 1),
-          0, // extraLabelOffsets[prefix],
+          prefix.startsWith("wbl") ? 20 : 0, // extraLabelOffsets[prefix],
           true,
         ),
         ...xLine(
           `GM`,
           0.95 * hhf,
           colorForPrefix(prefix, 0.8),
-          0, // extraLabelOffsets[prefix],
+          prefix.startsWith("wbl") ? 20 : 0, // extraLabelOffsets[prefix],
           true,
         ),
         ...xLine(
           `M`,
           0.85 * hhf,
           colorForPrefix(prefix, 0.6),
-          0, // extraLabelOffsets[prefix],
+          prefix.startsWith("wbl") ? 20 : 0, // extraLabelOffsets[prefix],
           true,
         ),
         ...xLine(
           `A`,
           0.75 * hhf,
           colorForPrefix(prefix, 0.5),
-          0, // extraLabelOffsets[prefix],
+          prefix.startsWith("wbl") ? 20 : 0, // extraLabelOffsets[prefix],
           true,
         ),
         ...xLine(
           `B`,
           0.6 * hhf,
           colorForPrefix(prefix, 0.4),
-          0, // extraLabelOffsets[prefix],
+          prefix.startsWith("wbl") ? 20 : 0, // extraLabelOffsets[prefix],
           true,
         ),
         ...xLine(
           `C`,
           0.4 * hhf,
           colorForPrefix(prefix, 0.3),
-          0, // extraLabelOffsets[prefix],
+          prefix.startsWith("wbl") ? 20 : 0, // extraLabelOffsets[prefix],
           true,
         ),
       };
@@ -180,6 +180,7 @@ export const ScoresChart = ({
   const [colorMode, setColorMode] = useState(versusDefaultClassificationMode);
   const [xMode, setXMode] = useState("HF");
   const [yMode, setYMode] = useState("Rank");
+  const [prodMode, setProdMode] = useState("Prod. 10");
 
   const sport = sportForDivision(division);
   const [full, setFull] = useState(false);
@@ -287,16 +288,16 @@ export const ScoresChart = ({
   const { k, lambda, hhf5 } = weibull;
   const percentiles = useMemo(
     () => [
-      closestPercentileForHF(recHHF * 0.95, data),
-      closestPercentileForHF(recHHF * 0.85, data),
-      closestPercentileForHF(recHHF * 0.75, data),
-      closestPercentileForHF(recHHF * 0.6, data),
-      closestPercentileForHF(recHHF * 0.4, data),
+      closestPercentileForHF(hhf5 * 0.95, data),
+      closestPercentileForHF(hhf5 * 0.85, data),
+      closestPercentileForHF(hhf5 * 0.75, data),
+      closestPercentileForHF(hhf5 * 0.6, data),
+      closestPercentileForHF(hhf5 * 0.4, data),
     ],
-    [data, recHHF],
+    [data, hhf5],
   );
 
-  const chartLabel = sport === "hfu" && recHHF ? `Rec. HHF: ${recHHF}` : undefined;
+  const chartLabel = sport === "hfu" && hhf5 ? `Rec. HHF: ${hhf5}` : undefined;
 
   if (!lastData && loading) {
     return <ProgressSpinner />;
@@ -361,8 +362,8 @@ export const ScoresChart = ({
                     {},
                     ...percentiles.map((perc, i) =>
                       point(
-                        ["pGM", "pM", "pA", "pB", "pC"][i] + recHHF,
-                        recHHF * [0.95, 0.85, 0.75, 0.6, 0.4][i],
+                        ["pGM", "pM", "pA", "pB", "pC"][i] + hhf5,
+                        hhf5 * [0.95, 0.85, 0.75, 0.6, 0.4][i],
                         perc,
                         colorForPrefix("r", 0.7),
                       ),
@@ -371,6 +372,7 @@ export const ScoresChart = ({
 
               // ...(sport === "uspsa" || sport === "scsa" ? xLinesForHHF("", hhf) : []),
               ...(xMode !== "HF" ? {} : xLinesForHHF("r", recHHF)),
+              ...(xMode !== "HF" ? {} : xLinesForHHF("wbl5", hhf5)),
             },
           },
         },
