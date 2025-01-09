@@ -595,6 +595,8 @@ const recHHFUpdate = (
   } = solveWeibull(
     runs.map(c => c.hf),
     12,
+    undefined,
+    "neldermead",
   );
 
   return {
