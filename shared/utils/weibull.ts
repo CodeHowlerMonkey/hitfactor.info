@@ -5,6 +5,8 @@ import { Percent } from "../../api/src/dataUtil/numbers";
 
 export const DEFAULT_PRECISION = 8;
 
+type OptimizationMethod = "bad" | "neldermead";
+
 export interface WeibullResult {
   k: number;
   lambda: number;
@@ -109,6 +111,7 @@ const findParams = (
   data: number[],
   precision: number,
   partialCb?: (params: number[]) => void,
+  method: OptimizationMethod = "bad",
 ) => {
   if (!data.length) {
     return [1, 1];
@@ -116,7 +119,9 @@ const findParams = (
   const mean = ss.mean(data);
   // const variance = ss.variance(data);
 
-  return optimizeNelderMead(lossFnFactory(data), [3.6, mean], 1e-11, partialCb);
+  if (method === "neldermead") {
+    return optimizeNelderMead(lossFnFactory(data), [3.6, mean], 1e-16, partialCb);
+  }
 
   return optimize(
     lossFnFactory(data),
@@ -143,6 +148,7 @@ export const solveWeibull = (
   dataPoints: number[],
   precision: number = DEFAULT_PRECISION,
   partialResultCb?: (partial: WeibullResult) => void,
+  method: OptimizationMethod = "bad",
 ): WeibullResult => {
   if (!dataPoints.length) {
     return emptyWeibull;
@@ -159,6 +165,7 @@ export const solveWeibull = (
             loss: pLoss,
           })
       : undefined,
+    method,
   );
 
   // const cdf = x => 100 - 100 * (1 - Math.exp(-Math.pow(x / lambda, k)));
@@ -264,6 +271,9 @@ const optimizeNelderMead = (
     simplex[i] = _matrixAdd(initialVariables, xs);
   }
 
+  let stableSTDSteps = 0;
+  let lastSTD = -1;
+  const stdTolerance = tolerance / 100;
   // eslint-disable-next-line no-constant-condition
   while (true) {
     // 1. Sort by loss/cost least to most
@@ -277,6 +287,15 @@ const optimizeNelderMead = (
     if (std < tolerance) {
       break;
     }
+    if (Math.abs(lastSTD - std) <= stdTolerance) {
+      if (stableSTDSteps >= 2) {
+        break;
+      }
+      stableSTDSteps++;
+    } else {
+      stableSTDSteps = 0;
+    }
+    lastSTD = std;
 
     // 2. Calculate centroid of the best vertices
     const xCentroid = _numpyMeanZeroAxis(simplex.slice(0, -1));
@@ -353,5 +372,5 @@ const optimizeNelderMead = (
   throttledCb([...simplex[0], lossFn(simplex[0])]);
   throttledCb.flush();
   throttledCb.cancel();
-  return simplex[0];
+  return [...simplex[0], lossFn(simplex[0])];
 };
