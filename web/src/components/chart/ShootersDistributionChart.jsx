@@ -175,7 +175,7 @@ export const ShootersDistributionChart = ({ division, style }) => {
             pointBorderColor: "white",
             pointBorderWidth: 0,
             backgroundColor: "#ae9ef1",
-            pointBackgroundColor: data?.map(
+            pointBackgroundColor: curModeData?.map(
               c => bgColorForClass[classForPercent(c[fieldForMode(colorMode)])],
             ),
           },
