@@ -27,6 +27,7 @@ const _inconsistencyFilter = inconString => {
   const [inconsistencies, inconsistenciesMode] = inconString.split("-");
   const field = `$${inconsistencies}Rank`;
   const operator = inconsistenciesMode === "paper" ? "$lt" : "$gt";
+  // TODO: should this change to curHHFClassRank?
   return [{ $match: { $expr: { [operator]: [field, "$hqClassRank"] } } }];
 };
 

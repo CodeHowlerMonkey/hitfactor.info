@@ -2,7 +2,7 @@
 import mongoose from "mongoose";
 
 import { ClassificationLetter } from "../../../data/types/USPSA";
-import { divShortNames, mapDivisions } from "../dataUtil/divisions";
+import { divShortNames, mapDivisions, uspsaDivShortNames } from "../dataUtil/divisions";
 
 import { Shooters } from "./shooters";
 
@@ -94,17 +94,24 @@ export const statsByDivision = async (field: string) => {
   return byDiv;
 };
 
-const classesRanked: ClassificationLetter[] = ["X", "U", "D", "C", "B", "A", "M", "GM"];
+const classesRanked: ClassificationLetter[] = ["U", "X", "D", "C", "B", "A", "M", "GM"];
 export const statsByAll = async (field: string) => {
   const aggregateResult = await Shooters.aggregate([
-    addCurClassField(),
+    {
+      $match: {
+        division: { $in: uspsaDivShortNames },
+      },
+    },
     {
       $project: {
         _id: false,
         [field]: true,
+        division: true,
         memberNumber: true,
+        current: true,
       },
     },
+    addCurClassField(),
     {
       $addFields: {
         classRank: {
@@ -117,6 +124,13 @@ export const statsByAll = async (field: string) => {
         _id: "$memberNumber",
         maxClassRank: {
           $max: "$classRank",
+        },
+      },
+    },
+    {
+      $addFields: {
+        maxClassRank: {
+          $max: ["$maxClassRank", 0],
         },
       },
     },
@@ -178,6 +192,9 @@ export const hydrateStats = async () => {
   const byPercent = await statsByDivAndAll("curClass");
   const byCurHHFPercent = await statsByDivAndAll("curHHFClass");
   const byRecHHFPercent = await statsByDivAndAll("recClass");
+  const byRecHHFOnlyPercent = await statsByDivAndAll("recHHFOnlyClass");
+  const byRecSoftPercent = await statsByDivAndAll("recSoftClass");
+  const byRecUncappedPercent = await statsByDivAndAll("recUncappedClass");
 
   await Stats.updateOne(
     {},
@@ -187,6 +204,9 @@ export const hydrateStats = async () => {
         byPercent,
         byCurHHFPercent,
         byRecHHFPercent,
+        byRecHHFOnlyPercent,
+        byRecSoftPercent,
+        byRecUncappedPercent,
       },
     },
     { upsert: true },
