@@ -19,7 +19,7 @@ import { eloPointForShooter } from "../dataUtil/elo";
 import { psClassUpdatesByMemberNumber } from "../dataUtil/uspsa";
 import { loadJSON, processImportAsyncSeq } from "../utils";
 
-import { Score, ScoreObjectWithVirtuals, Scores, ScoreVirtuals } from "./scores";
+import { ScoreObjectWithVirtuals, Scores } from "./scores";
 import { getField, percentAggregationOp } from "./utils";
 
 const memberIdToNumberMap = loadJSON("../../data/meta/memberIdToNumber.json");
@@ -667,6 +667,12 @@ export const reclassifyShooters = async shooters => {
                     recClassRank: rankForClass(recalcDivRec.class),
                     curHHFClass: recalcDivCur.class,
                     curHHFClassRank: rankForClass(recalcDivCur.class),
+                    recHHFOnlyClass: recalcDivRecHHFOnly.class,
+                    recHHFOnlyClassRank: rankForClass(recalcDivRecHHFOnly.class),
+                    recSoftClass: recalcDivSoft.class,
+                    recSoftClassRank: rankForClass(recalcDivSoft.class),
+                    recUncappedClass: recalcDivRecUncapped.class,
+                    recUncappedClassRank: rankForClass(recalcDivRecUncapped.class),
                   },
                 },
               ],

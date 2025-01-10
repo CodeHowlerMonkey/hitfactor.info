@@ -12,7 +12,6 @@ const rehydrateShooters = async (divisions: string[]) => {
   const shooters = await Shooters.find({
     memberNumberDivision: { $exists: true },
     division: { $in: divisions },
-    reclassificationsRecPercentCurrent: { $gt: 0 },
   })
     .limit(0)
     .select(["memberNumberDivision", "name", "memberNumber", "division"])
@@ -22,7 +21,7 @@ const rehydrateShooters = async (divisions: string[]) => {
     `Total ${JSON.stringify(divisions)} Shooters to Process: ${shooters.length}`,
   );
 
-  const batchSize = 64;
+  const batchSize = 128;
   for (let i = 0; i < shooters.length; i += batchSize) {
     const batch = shooters.slice(i, i + batchSize);
     const actualBatchSize = batch.length;
