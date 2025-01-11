@@ -148,6 +148,7 @@ const importEverything = async () => {
     JSON.stringify(classifiers, null, 4),
   );
   console.log("done");
+  return
 
   console.log("fetching meta...");
   const response = await fetch(

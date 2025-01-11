@@ -11,7 +11,11 @@ import {
   classifiersByNumber,
   ClassifierJSON,
 } from "../dataUtil/classifiersData";
-import { divisionsForScoresAdapter, divShortNames } from "../dataUtil/divisions";
+import {
+  divisionsForScoresAdapter,
+  divShortNames,
+  PROD_15_EFFECTIVE_TS,
+} from "../dataUtil/divisions";
 import { hhfsForDivision } from "../dataUtil/hhf";
 import { HF, Percent } from "../dataUtil/numbers";
 
@@ -161,10 +165,12 @@ const extendedInfoForClassifier = (
       (r, v, k) => (r[`runsTotalsLegit${k}`] = v),
     ),
     runs: hitFactorScores.length,
-    prod10Runs: hitFactorScores.filter(c => new Date(c.sd).getTime() < 1706770800000)
-      .length,
-    prod15Runs: hitFactorScores.filter(c => new Date(c.sd).getTime() >= 1706770800000)
-      .length,
+    prod10Runs: hitFactorScores.filter(
+      c => new Date(c.sd).getTime() < PROD_15_EFFECTIVE_TS,
+    ).length,
+    prod15Runs: hitFactorScores.filter(
+      c => new Date(c.sd).getTime() >= PROD_15_EFFECTIVE_TS,
+    ).length,
     top10CurPercentAvg:
       hitFactorScores
         .slice(0, 10)
@@ -239,6 +245,7 @@ ClassifierSchema.virtual("recHHFs", {
 });
 
 [
+  "curHHF",
   "recHHF",
   "rec1HHF",
   "rec5HHF",
@@ -255,6 +262,8 @@ ClassifierSchema.virtual("recHHFs", {
   "superMeanSquaredError",
   "superMeanAbsoluteError",
   "maxError",
+  "prod10HHF",
+  "prod15HHF",
 ].map(fieldName =>
   ClassifierSchema.virtual(fieldName).get(function () {
     return this.recHHFs?.[fieldName];

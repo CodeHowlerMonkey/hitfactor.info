@@ -535,7 +535,7 @@ export const StatsPage = () => {
             />
           </div>
         </TabPanel>
-        <TabPanel header="Inconsistencies" className="p-0 text-sm md:text-base">
+        <TabPanel header="Inconsistencies" className="hidden p-0 text-sm md:text-base">
           <Inconsistencies />
         </TabPanel>
         <TabPanel header="Distribution" className="p-0 text-sm md:text-base">
@@ -547,7 +547,7 @@ export const StatsPage = () => {
         <TabPanel header="Divisions" className="p-0 text-sm md:text-base">
           <Divisions />
         </TabPanel>
-        <TabPanel header="Activity" className="p-0 text-sm md:text-base">
+        <TabPanel header="Activity" className="hidden p-0 text-sm md:text-base">
           <Activity />
         </TabPanel>
       </TabView>
