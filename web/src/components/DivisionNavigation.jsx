@@ -14,6 +14,9 @@ import features from "../../../shared/features";
 import usePreviousEffect from "../utils/usePreviousEffect";
 
 const SportSelector = ({ sportCode, setSportCode, uspsaOnly, disableSCSA, hideSCSA }) => {
+  // cc mode
+  return null;
+
   const menu = useRef(null);
   const items = [
     {

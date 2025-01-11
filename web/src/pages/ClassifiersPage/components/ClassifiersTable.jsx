@@ -1,4 +1,5 @@
 import cx from "classnames";
+import { Checkbox } from "primereact/checkbox";
 import { Column } from "primereact/column";
 import { DataTable } from "primereact/datatable";
 import { InputText } from "primereact/inputtext";
@@ -16,6 +17,8 @@ import ClassifierCell from "../../../components/ClassifierCell";
 import { letterRatingForPercent, renderPercent } from "../../../components/Table";
 import useTableSort from "../../../components/Table/useTableSort";
 import { useApi } from "../../../utils/client";
+
+const weibullIsBetter = true;
 
 //isSCSA ? 2 : 4
 //isSCSA ? 's' : 0
@@ -78,6 +81,8 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
     initial: { field: "allDivQuality", order: -1 },
   });
   const [filter, setFilter] = useState("");
+  const [nerdMode, setNerdMode] = useState(false);
+  const [prod1015Mode, setProd1015Mode] = useState(false);
   const sortState = sortProps;
 
   const { json: dataRaw, loading } = useApi(`/classifiers/${division ?? ""}`);
@@ -143,7 +148,23 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
       stripedRows
       header={
         <div className="flex align-items-end">
-          {data.length} classifiers
+          <div className="flex flex-column gap-1">
+            <div>{data.length} classifiers</div>
+            <div className="text-xs flex gap-2 align-items-center">
+              Nerd Mode
+              <Checkbox onChange={e => setNerdMode(e.checked)} checked={nerdMode} />
+              {division === "prod" && (
+                <>
+                  <div className="ml-8" />
+                  Prod 10 vs 15
+                  <Checkbox
+                    onChange={e => setProd1015Mode(e.checked)}
+                    checked={prod1015Mode}
+                  />
+                </>
+              )}
+            </div>
+          </div>
           <div className="md:flex-grow-1" />
           <span className="w-12 md:w-16rem p-input-icon-left">
             <i className="pi pi-search" />
@@ -218,6 +239,7 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
         bodyStyle={{ textAlign: "center" }}
       />
       <Column
+        hidden={!prod1015Mode}
         field="prod10Runs"
         header="Prod.10 Scores"
         sortable
@@ -225,6 +247,7 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
         bodyStyle={{ textAlign: "center" }}
       />
       <Column
+        hidden={!prod1015Mode}
         field="prod15Runs"
         header="Prod.15 Scores"
         sortable
@@ -233,12 +256,29 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
       />
       <Column
         field="recHHF"
-        header="RHHF"
+        header="Rec. HHF"
         sortable
         style={{ width: "100px", textAlign: "right" }}
         body={c => c.recHHF.toFixed(4)}
       />
       <Column
+        hidden={!prod1015Mode}
+        field="prod10HHF"
+        header="Prod10 RHHF"
+        sortable
+        style={{ width: "100px", textAlign: "right" }}
+        body={c => (c.prod10HHF ? c.prod10HHF.toFixed(4) : "N/A")}
+      />
+      <Column
+        hidden={!prod1015Mode}
+        field="prod15HHF"
+        header="Prod15 RHHF"
+        sortable
+        style={{ width: "100px", textAlign: "right" }}
+        body={c => (c.prod15HHF ? c.prod15HHF.toFixed(4) : "N/A")}
+      />
+      <Column
+        hidden={weibullIsBetter}
         field="oldRecHHF"
         header="Old RHHF"
         sortable
@@ -248,6 +288,7 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
         }
       />
       <Column
+        hidden={weibullIsBetter}
         field="recHHFChange"
         header="𝚫RHHF"
         sortable
@@ -260,6 +301,7 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
         }
       />
       <Column
+        hidden={!nerdMode}
         field="k"
         header="k"
         sortable
@@ -267,6 +309,7 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
         body={(c, { field }) => c[field].toFixed(6)}
       />
       <Column
+        hidden={!nerdMode}
         field="lambda"
         header="𝛌"
         sortable
@@ -274,6 +317,7 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
         body={(c, { field }) => c[field].toFixed(6)}
       />
       <Column
+        hidden={!nerdMode}
         field="meanSquaredError"
         header="MSE"
         sortable
@@ -289,6 +333,7 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
         body={(c, { field }) => c[field].toFixed(4)}
       />
       <Column
+        hidden={!nerdMode}
         field="superMeanSquaredError"
         header="SMSE"
         sortable
@@ -312,20 +357,19 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
         body={(c, { field }) => c[field].toFixed(4)}
       />
       <Column
-        hidden
-        field="hhf"
+        field="curHHF"
         header={isSCSA ? "HQ Peak Time" : "HQ HHF"}
         sortable
         style={{ width: "100px" }}
       />
       <Column
-        hidden
         field="recHHFChangePercent" /** field is Percent for sorting, still shows like PeakTime/HHF */
-        header={isSCSA ? "HQ Minus Rec. Peak Time" : "HQ Minus Rec. HHF"}
+        header="Rec. minus HQ"
         sortable
-        body={numFieldsDiff("hhf", "recHHF", isSCSA ? 2 : 4, isSCSA ? "s" : "")}
+        body={numFieldsDiff("recHHF", "curHHF", isSCSA ? 2 : 4, isSCSA ? "s" : " HF")}
       />
       <Column
+        hidden={!nerdMode}
         field="eloCorrelation"
         header="rELO"
         sortable
@@ -333,6 +377,7 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
         body={(c, { field }) => c[field]?.toFixed(4) || "?"}
       />
       <Column
+        hidden={!nerdMode}
         field="classificationCorrelation"
         header="rClass"
         headerTooltip="Classification Percentage Correlation"

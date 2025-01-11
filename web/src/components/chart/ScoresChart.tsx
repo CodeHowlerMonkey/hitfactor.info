@@ -61,6 +61,7 @@ const colorForELOOrPercent = (colorMode: string, dataPoint: AdvancedScorePoint) 
 
 const colorForPrefix = (prefix, alpha) =>
   ({
+    hq: annotationColor,
     "": annotationColor,
     r: r5annotationColor,
     r1: r5annotationColor,
@@ -71,6 +72,7 @@ const colorForPrefix = (prefix, alpha) =>
     wbl15: wbl15AnnotationColor,
   })[prefix](alpha);
 export const extraLabelOffsets = {
+  hq: 0,
   "": 0,
   r: 5,
   r1: 5,
@@ -92,45 +94,45 @@ const xLinesForHHF = (prefix: string, hhf: number) =>
     ? {}
     : {
         ...xLine(
-          `HHF = ${hhf?.toFixed(4)}`,
+          `${prefix}HHF = ${hhf?.toFixed(4)}`,
           hhf,
           colorForPrefix(prefix, 1),
-          prefix.startsWith("wbl") ? 20 : 0, // extraLabelOffsets[prefix],
+          prefix.startsWith("hq") ? 20 : 0, // extraLabelOffsets[prefix],
           true,
         ),
         ...xLine(
-          `GM`,
+          `${prefix}GM`,
           0.95 * hhf,
           colorForPrefix(prefix, 0.8),
-          prefix.startsWith("wbl") ? 20 : 0, // extraLabelOffsets[prefix],
+          prefix.startsWith("hq") ? 20 : 0, // extraLabelOffsets[prefix],
           true,
         ),
         ...xLine(
-          `M`,
+          `${prefix}M`,
           0.85 * hhf,
           colorForPrefix(prefix, 0.6),
-          prefix.startsWith("wbl") ? 20 : 0, // extraLabelOffsets[prefix],
+          prefix.startsWith("hq") ? 20 : 0, // extraLabelOffsets[prefix],
           true,
         ),
         ...xLine(
-          `A`,
+          `${prefix}A`,
           0.75 * hhf,
           colorForPrefix(prefix, 0.5),
-          prefix.startsWith("wbl") ? 20 : 0, // extraLabelOffsets[prefix],
+          prefix.startsWith("hq") ? 20 : 0, // extraLabelOffsets[prefix],
           true,
         ),
         ...xLine(
-          `B`,
+          `${prefix}B`,
           0.6 * hhf,
           colorForPrefix(prefix, 0.4),
-          prefix.startsWith("wbl") ? 20 : 0, // extraLabelOffsets[prefix],
+          prefix.startsWith("hq") ? 20 : 0, // extraLabelOffsets[prefix],
           true,
         ),
         ...xLine(
-          `C`,
+          `${prefix}C`,
           0.4 * hhf,
           colorForPrefix(prefix, 0.3),
-          prefix.startsWith("wbl") ? 20 : 0, // extraLabelOffsets[prefix],
+          prefix.startsWith("hq") ? 20 : 0, // extraLabelOffsets[prefix],
           true,
         ),
       };
@@ -180,7 +182,7 @@ export const ScoresChart = ({
   const [colorMode, setColorMode] = useState(versusDefaultClassificationMode);
   const [xMode, setXMode] = useState("HF");
   const [yMode, setYMode] = useState("Rank");
-  const [prodMode, setProdMode] = useState("Prod. 10");
+  const [prodMode, setProdMode] = useState("All");
 
   const sport = sportForDivision(division);
   const [full, setFull] = useState(false);
@@ -204,9 +206,11 @@ export const ScoresChart = ({
 
   const data = useMemo(() => {
     const prodData =
-      prodMode === "Prod. 10"
-        ? lastData?.filter(c => c.date < 1706770800000)
-        : lastData?.filter(c => c.date >= 1706770800000);
+      prodMode === "All"
+        ? lastData
+        : prodMode === "Prod. 10"
+          ? lastData?.filter(c => c.date < 1706770800000)
+          : lastData?.filter(c => c.date >= 1706770800000);
     let sorted = (prodData?.toSorted((a, b) => b.hf - a.hf) || []).map((c, i, all) => ({
       ...c,
       rank: PositiveOrMinus1(Percent(i, all.length)),
@@ -240,7 +244,7 @@ export const ScoresChart = ({
         y: c[versusFieldForMode(yMode)],
         id: c.memberNumber,
       }))
-      .filter(c => c.x > 0 && c.y > 0);
+      .filter(c => c.x > 0 && c.y >= 0);
   }, [lastData, xMode, yMode, colorMode, prodMode]);
 
   const showWeibull = yMode === "Rank" && xMode === "HF";
@@ -288,13 +292,13 @@ export const ScoresChart = ({
   const { k, lambda, hhf5 } = weibull;
   const percentiles = useMemo(
     () => [
-      closestPercentileForHF(hhf5 * 0.95, data),
-      closestPercentileForHF(hhf5 * 0.85, data),
-      closestPercentileForHF(hhf5 * 0.75, data),
-      closestPercentileForHF(hhf5 * 0.6, data),
-      closestPercentileForHF(hhf5 * 0.4, data),
+      closestPercentileForHF((hhf5 || recHHF) * 0.95, data),
+      closestPercentileForHF((hhf5 || recHHF) * 0.85, data),
+      closestPercentileForHF((hhf5 || recHHF) * 0.75, data),
+      closestPercentileForHF((hhf5 || recHHF) * 0.6, data),
+      closestPercentileForHF((hhf5 || recHHF) * 0.4, data),
     ],
-    [data, hhf5],
+    [data, recHHF, hhf5],
   );
 
   const chartLabel = sport === "hfu" && hhf5 ? `Rec. HHF: ${hhf5}` : undefined;
@@ -371,8 +375,8 @@ export const ScoresChart = ({
                   )),
 
               // ...(sport === "uspsa" || sport === "scsa" ? xLinesForHHF("", hhf) : []),
+              ...(xMode !== "HF" ? {} : xLinesForHHF("hq", hhf)),
               ...(xMode !== "HF" ? {} : xLinesForHHF("r", recHHF)),
-              ...(xMode !== "HF" ? {} : xLinesForHHF("wbl5", hhf5)),
             },
           },
         },
@@ -493,15 +497,17 @@ export const ScoresChart = ({
                       onChange={e => setYMode(e.value)}
                     />
                   </div>
-                  <div className="flex flex-column justify-content-center align-items-start ml-8">
-                    <SelectButton
-                      className="compact text-xs"
-                      allowEmpty={false}
-                      options={["Prod. 10", "Prod. 15"]}
-                      value={prodMode}
-                      onChange={e => setProdMode(e.value)}
-                    />
-                  </div>
+                  {division === "prod" && (
+                    <div className="flex flex-column justify-content-center align-items-start ml-8">
+                      <SelectButton
+                        className="compact text-xs"
+                        allowEmpty={false}
+                        options={["All", "Prod. 10", "Prod. 15"]}
+                        value={prodMode}
+                        onChange={e => setProdMode(e.value)}
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

@@ -359,3 +359,6 @@ export const scsaDivisions = [
 ];
 
 export const scsaDivisionsShortNames = scsaDivisions.map(div => div.short);
+
+// February 1st 2024
+export const PROD_15_EFFECTIVE_TS = 1706770800000;

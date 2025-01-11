@@ -7,6 +7,7 @@ import {
   classifierDivisionArrayForHFURecHHFs,
   divisionsForRecHHFAdapter,
   hfuDivisionCompatabilityMap,
+  PROD_15_EFFECTIVE_TS,
 } from "../dataUtil/divisions";
 import { curHHFForDivisionClassifier } from "../dataUtil/hhf";
 import { HF, Percent, PositiveOrMinus1 } from "../dataUtil/numbers";
@@ -34,7 +35,7 @@ const LOW_SAMPLE_SIZE_DIVISIONS = new Set([
  * @todo un-export
  */
 export const recommendedHHFByPercentileAndPercent = (runs, targetPercentile, percent) => {
-  const closestPercentileRun = runs.sort(
+  const closestPercentileRun = runs.toSorted(
     (a, b) =>
       Math.abs(a.percentile - targetPercentile) -
       Math.abs(b.percentile - targetPercentile),
@@ -531,6 +532,10 @@ export interface RecHHF {
   superMeanSquaredError: number;
   superMeanAbsoluteError: number;
   maxError: number;
+
+  // Prod 10 vs 15 extras
+  prod10HHF?: number;
+  prod15HHF?: number;
 }
 
 const RecHHFSchema = new mongoose.Schema<RecHHF>({
@@ -556,6 +561,10 @@ const RecHHFSchema = new mongoose.Schema<RecHHF>({
   superMeanAbsoluteError: Number,
   maxError: Number,
 
+  // Prod 10 vs 15 extras
+  prod10HHF: Number,
+  prod15HHF: Number,
+
   classifierDivision: String,
 });
 
@@ -563,6 +572,24 @@ RecHHFSchema.index({ classifier: 1, division: 1 }, { unique: true });
 RecHHFSchema.index({ classifierDivision: 1 }, { unique: true });
 
 export const RecHHFs = mongoose.model("RecHHFs", RecHHFSchema);
+
+const extraHHFsForProd = (allScoresRecHHF: number, runs: ScoreWithPercentile[]) => {
+  const prod10Runs = runs
+    .filter(c => new Date(c.sd).getTime() < PROD_15_EFFECTIVE_TS)
+    .map(c => c.hf);
+  const prod15Runs = runs
+    .filter(c => new Date(c.sd).getTime() >= PROD_15_EFFECTIVE_TS)
+    .map(c => c.hf);
+  const { hhf5: prod10HHF } = solveWeibull(prod10Runs, 0, undefined, "neldermead");
+  const { hhf5: prod15HHF } = solveWeibull(prod15Runs, 0, undefined, "neldermead");
+  const prod1015HHF = Math.max(allScoresRecHHF, prod10HHF, prod15HHF);
+
+  return {
+    recHHF: prod1015HHF,
+    prod10HHF,
+    prod15HHF,
+  };
+};
 
 const recHHFUpdate = (
   runsRaw: ScoreWithPercentile[],
@@ -605,6 +632,7 @@ const recHHFUpdate = (
     classifierDivision: [classifier, division].join(":"),
     curHHF,
     recHHF: wbl5HHF,
+    ...(division === "prod" ? extraHHFsForProd(wbl5HHF, runs) : {}),
     rec1HHF,
     rec5HHF,
     rec15HHF,
