@@ -301,6 +301,18 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
         }
       />
       <Column
+        field="curHHF"
+        header={isSCSA ? "HQ Peak Time" : "HQ HHF"}
+        sortable
+        style={{ width: "100px" }}
+      />
+      <Column
+        field="recHHFChangePercent" /** field is Percent for sorting, still shows like PeakTime/HHF */
+        header="Rec. minus HQ"
+        sortable
+        body={numFieldsDiff("recHHF", "curHHF", isSCSA ? 2 : 4, isSCSA ? "s" : " HF")}
+      />
+      <Column
         hidden={!nerdMode}
         field="k"
         header="k"
@@ -355,18 +367,6 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
         sortable
         style={{ width: "100px", textAlign: "right" }}
         body={(c, { field }) => c[field].toFixed(4)}
-      />
-      <Column
-        field="curHHF"
-        header={isSCSA ? "HQ Peak Time" : "HQ HHF"}
-        sortable
-        style={{ width: "100px" }}
-      />
-      <Column
-        field="recHHFChangePercent" /** field is Percent for sorting, still shows like PeakTime/HHF */
-        header="Rec. minus HQ"
-        sortable
-        body={numFieldsDiff("recHHF", "curHHF", isSCSA ? 2 : 4, isSCSA ? "s" : " HF")}
       />
       <Column
         hidden={!nerdMode}

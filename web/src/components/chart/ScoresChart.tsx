@@ -3,17 +3,14 @@ import { Button } from "primereact/button";
 import { Dialog } from "primereact/dialog";
 import { ProgressSpinner } from "primereact/progressspinner";
 import { SelectButton } from "primereact/selectbutton";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useDebounce } from "use-debounce";
 
 import { Percent, PositiveOrMinus1 } from "../../../../api/src/dataUtil/numbers";
 import { sportForDivision } from "../../../../shared/constants/divisions";
 import { classForELO, classForPercent } from "../../../../shared/utils/classification";
-import {
-  correlation,
-  DEFAULT_PRECISION,
-  weibulCDFFactory,
-} from "../../../../shared/utils/weibull";
+import { correlation, weibulCDFFactory } from "../../../../shared/utils/weibull";
 import { useApi } from "../../utils/client";
 import { bgColorForClass } from "../../utils/color";
 
@@ -47,9 +44,35 @@ const versusModeMap = {
   */
   "Rec.Brutal Uncapped": "recPercentUncapped",
 };
+const versusModeLabelMap = {
+  HF: "HF",
+  Percent: "Percent",
+  Rank: "Percentile",
+  ELO: "ELO",
+  "Rec.Brutal Uncapped": "Rec. Classification",
+};
 const versusDefaultClassificationMode = Object.keys(versusModeMap).pop();
 const versusFieldForMode = mode => versusModeMap[mode];
 const versusModes = Object.keys(versusModeMap);
+
+type VersusMode = keyof typeof versusModeMap;
+const filterXYForModes = (
+  data: AdvancedScorePoint[],
+  xMode: VersusMode,
+  yMode: VersusMode,
+) => {
+  let result = data;
+
+  if (xMode !== "Rank") {
+    result = result.filter(c => c.x > 0);
+  }
+
+  if (yMode !== "Rank") {
+    result = result.filter(c => c.y > 0);
+  }
+
+  return result;
+};
 
 const colorForELOOrPercent = (colorMode: string, dataPoint: AdvancedScorePoint) => {
   const field = versusFieldForMode(colorMode);
@@ -137,21 +160,6 @@ const xLinesForHHF = (prefix: string, hhf: number) =>
         ),
       };
 
-// Used for point color and hover info classificaiton text
-const modeBucketForMode = (mode?: Mode) =>
-  (
-    ({
-      HQ: "curHHFPercent",
-      Recommended: "recPercent",
-      Rec1: "recPercent",
-      Rec5: "recPercent",
-      Rec15: "recPercent",
-      Wbl1: "recPercent",
-      Wbl5: "recPercent",
-      Wbl15: "recPercent",
-    }) as Record<Mode, string>
-  )[mode || "Rec1"];
-
 const SCORES_STEP = 50;
 
 // point for graph coming from API
@@ -162,9 +170,14 @@ interface AdvancedScorePoint extends GraphPoint {
   elo: number;
   hf: number;
 }
+const urlWithParams = (
+  division: string,
+  classifier: string,
+  full: boolean,
+  limit: number,
+) => `/classifiers/${division}/${classifier}/chart?full=${full ? 1 : 0}&limit=${limit}`;
 
 // TODO: different modes for class xLines (95/85/75-hhf, A-centric, 1/5/15/40/75-percentile, etc)
-// TODO: maybe split the modes into 2 dropdowns, one of xLines, one for yLines to play with
 // TODO: maybe different options / scale depending on viewport size and desktop/tablet/mobile
 // TODO: all vs current search mode
 export const ScoresChart = ({
@@ -180,12 +193,14 @@ export const ScoresChart = ({
   //const [mainMode, setMainMode] = useState(defaultMainMode);
   // const isVersus = mainModeFieldForMode(mainMode) === "vs";
   const [colorMode, setColorMode] = useState(versusDefaultClassificationMode);
-  const [xMode, setXMode] = useState("HF");
-  const [yMode, setYMode] = useState("Rank");
+  const [xMode, setXMode] = useState<VersusMode>("HF");
+  const [yMode, setYMode] = useState<VersusMode>("Rank");
   const [prodMode, setProdMode] = useState("All");
 
+  const [search, setSearch] = useSearchParams();
+  const urlParamFull = search.has("full");
   const sport = sportForDivision(division);
-  const [full, setFull] = useState(false);
+  const [full, setFullState] = useState(urlParamFull);
   const [numberOfScores, setNumberOfScores] = useState(
     SCORES_STEP * Math.ceil(totalScores / SCORES_STEP),
   );
@@ -194,15 +209,29 @@ export const ScoresChart = ({
     json: curData,
     loading,
     isFetching,
-  } = useApi(
-    `/classifiers/${division}/${classifier}/chart?full=${full ? 1 : 0}&limit=${numberOfScoresUsed}`,
-  );
+  } = useApi(urlWithParams(division, classifier, full, numberOfScoresUsed));
   const [lastData, setLastData] = useState<AdvancedScorePoint[] | null>(null);
   useEffect(() => {
     if (curData) {
       setLastData(curData);
     }
   }, [curData]);
+  const setFull = useCallback(
+    (v: boolean) => {
+      setSearch(prev => {
+        if (!v) {
+          prev.delete("full");
+          setXMode("HF");
+          setYMode("Rank");
+        } else {
+          prev.set("full", "");
+        }
+        return prev;
+      });
+      setFullState(v);
+    },
+    [setSearch],
+  );
 
   const data = useMemo(() => {
     const prodData =
@@ -237,14 +266,13 @@ export const ScoresChart = ({
     }
       */
 
-    return sorted
-      .map(c => ({
-        ...c,
-        x: c[versusFieldForMode(xMode)],
-        y: c[versusFieldForMode(yMode)],
-        id: c.memberNumber,
-      }))
-      .filter(c => c.x > 0 && c.y >= 0);
+    const withXY = sorted.map(c => ({
+      ...c,
+      x: c[versusFieldForMode(xMode)],
+      y: c[versusFieldForMode(yMode)],
+      id: c.memberNumber,
+    }));
+    return filterXYForModes(withXY, xMode, yMode);
   }, [lastData, xMode, yMode, colorMode, prodMode]);
 
   const showWeibull = yMode === "Rank" && xMode === "HF";
@@ -261,8 +289,6 @@ export const ScoresChart = ({
   );
   const maxX = useMemo(() => data.toSorted((a, b) => b.x - a.x)[0]?.x || 0, [data]);
 
-  const [precision, setPrecision] = useState(DEFAULT_PRECISION);
-  const precisionUsed = useDebounce(precision, 300)[0];
   useEffect(
     () => setNumberOfScores(SCORES_STEP * Math.ceil(totalScores / SCORES_STEP)),
     [totalScores],
@@ -271,7 +297,7 @@ export const ScoresChart = ({
     () => (full ? (data?.map(c => c.x) ?? []) : []),
     [data, full],
   );
-  const weibull = useAsyncWeibull(weibullData, precisionUsed);
+  const weibull = useAsyncWeibull(weibullData);
   const partialScoresDate = useMemo(() => {
     if (!data?.length) {
       return "";
@@ -309,7 +335,7 @@ export const ScoresChart = ({
 
   const graph = (
     <Scatter
-      style={{ position: "relative", height: "74vh" }}
+      style={{ position: "relative" }}
       options={{
         //aspectRatio: full ? 1 : undefined,
         responsive: true,
@@ -339,10 +365,10 @@ export const ScoresChart = ({
           tooltip: {
             callbacks: {
               label: ({ raw: { x, y, memberNumber, name, pointsGraphName, date } }) => {
-                if (pointsGraphName) {
+                if (pointsGraphName || !full) {
                   return null;
                 }
-                return `${memberNumber} ${name}; X ${x.toFixed(4)}; Y ${y.toFixed(4)}; ${new Date(date).toLocaleDateString()}`;
+                return `${memberNumber} ${name}; ${versusModeLabelMap[xMode]}: ${x.toFixed(4)}; ${versusModeLabelMap[yMode]}: ${y.toFixed(4)}; ${new Date(date).toLocaleDateString()}`;
               },
             },
           },
@@ -519,16 +545,6 @@ export const ScoresChart = ({
             className="absolute z-1 flex flex-column justify-content-start align-items-center gap-2 surface-card mx-4 my-0 border-round border-1 p-4"
           >
             <div className="flex flex-column justify-content-center gap-2">
-              <div className="flex flex-row justify-content-end align-items-center gap-2">
-                Precision:{" "}
-                <input
-                  type="number"
-                  name="precision"
-                  step={1}
-                  value={precision}
-                  onChange={e => setPrecision(Number(e.target.value))}
-                />
-              </div>
               <div className="flex flex-row justify-content-end align-items-center gap-2">
                 Scores:{" "}
                 <input
