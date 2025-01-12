@@ -335,34 +335,38 @@ const classifiersRoutes = async fastify => {
       { $sort: { sd: 1 } },
       { $limit: limit },
       { $sort: { hf: -1 } },
+      ...(full
+        ? []
+        : [
+            {
+              $bucketAuto: {
+                groupBy: "$hf",
+                buckets: 400,
+                output: {
+                  hf: { $avg: "$hf" },
+                  sd: { $first: "$sd" },
+                  curPercent: { $avg: "$curPercent" },
+                  curHHFPercent: { $avg: "$curHHFPercent" },
+                  recPercent: { $avg: "$recPercent" },
+                  scoreRecPercent: { $avg: "$scoreRecPercent" },
+                  recPercentUncapped: { $avg: "$recPercentUncapped" },
+                },
+              },
+            },
+          ]),
     ]);
 
-    const hhf = curHHFForDivisionClassifier({ number, division });
-    const allPoints = runs.map((run, index, allRuns) => ({
+    return runs.map((run, index, allRuns) => ({
       ...run,
       x: HF(run.hf),
       y: PositiveOrMinus1(Percent(index, allRuns.length)),
-      memberNumber: run.memberNumber,
+      memberNumber: run.memberNumber || "",
       curPercent: run.curPercent || 0,
       curHHFPercent: run.curHHFPercent || 0,
       recPercent: run.recPercent || 0,
       scoreRecPercent: run.scoreRecPercent || 0,
       date: run.sd?.getTime(),
     }));
-
-    // for zoomed in mode return all points
-    if (full === 1) {
-      return allPoints;
-    }
-    return allPoints;
-
-    // always return top 100 points, and reduce by 0.5% grouping for other to make render easier
-    // const first50 = allPoints.slice(0, 100);
-    // const other = allPoints.slice(100, allPoints.length);
-    return uniqBy(
-      allPoints,
-      ({ x }) => Math.floor((200 * x) / hhf), // 0.5% grouping for graph points reduction
-    );
   });
 };
 
