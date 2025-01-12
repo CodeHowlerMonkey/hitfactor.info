@@ -10,6 +10,19 @@
 - division.json -- as-is meta data for divisions, pretty much useless, but historical reasons
 - hhf.json -- all data used for classifier calculator, official HHFs
 
+
+## License Information for This Folder
+
+The contents of this folder are not covered by the repository's main license.
+These files are imported from [USPSA](https://uspsa.org) and are subject to their
+respective licenses:
+
+- ./imported - json files imported from USPSA API
+- ./meta - json files imported from USPSA API
+- ./classifiers - pdf and image files of classifier stages wsbs
+
+Refer to [USPSA Terms of Use](https://uspsa.org/pages/policy/termsofuse) for details.
+
 # Importing
 
 scripts/import.js overwrites data in the data/meta, data/ and data/imported folders.
