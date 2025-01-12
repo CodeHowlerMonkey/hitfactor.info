@@ -8,6 +8,15 @@ A Better Classification System for Action Shooting Sports
 2. Implement Closer-To-Major-Match-Performance Classification Algorithm
 3. Provide Better Classification System or at least Partial Improvements to All Interested Action Shooting Sport Organizations
 
+#### License
+
+This repository is licensed under the MIT License, except for the contents
+of the following directories:
+
+- `data/`
+
+See the README files in those directories for more details.
+
 #### Running
 
 > [!CAUTION]
