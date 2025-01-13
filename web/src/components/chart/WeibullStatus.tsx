@@ -4,11 +4,13 @@ import { AsyncWeibullResult } from "./useAsyncWeibull";
 
 interface WeibullStatusProps {
   weibull: AsyncWeibullResult;
+  showHHF?: boolean;
 }
 
 // TODO: Mean Absolute Error, Mean Squared Error, Max Error
 // and their quantile counterparts  MAQE, QMSE, Max Quantile Error
 export const WeibullStatus = ({
+  showHHF,
   weibull: {
     loading,
     k,
@@ -20,6 +22,7 @@ export const WeibullStatus = ({
     superMeanSquaredError,
     superMeanAbsoluteError,
     maxError,
+    hhf5,
   },
 }: WeibullStatusProps) => (
   <div className="flex flex-column justify-content-center align-items-start">
@@ -41,6 +44,7 @@ export const WeibullStatus = ({
     </div>
     <div className="flex gap-4 text-sm align-items-start">
       <div className="flex flex-column justify-content-center text-md text-500 font-bold">
+        {showHHF && <div>RHHF = {hhf5.toFixed(4)}</div>}
         <div>k = {k.toFixed(4)}</div>
         <div>𝛌 = {lambda.toFixed(4)}</div>
         <div>Skewness = {skewness.toFixed(4)}</div>
