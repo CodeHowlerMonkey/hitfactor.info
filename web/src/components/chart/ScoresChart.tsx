@@ -1,3 +1,5 @@
+import { useWindowWidth } from "@react-hook/window-size";
+import cx from "classnames";
 import { uniqBy } from "lodash";
 import { Button } from "primereact/button";
 import { Dialog } from "primereact/dialog";
@@ -32,26 +34,21 @@ import { WeibullStatus } from "./WeibullStatus";
 
 const versusModeMap = {
   HF: "hf",
-  Percent: "scoreRecPercent",
+  "%": "scoreRecPercent",
   Rank: "rank",
   ELO: "elo",
-  /*
-  HQ: "curPercent",
-  "Cur.HHF": "curHHFPercent",
-  "Rec.HHFOnly": "recHHFOnlyPercent",
-  "Rec.Soft": "recSoftPercent",
-  "Rec.Brutal": "recPercent",
-  */
-  "Rec.Brutal Uncapped": "recPercentUncapped",
+  Classification: "recPercentUncapped",
 };
 const versusModeLabelMap = {
   HF: "HF",
-  Percent: "Percent",
+  "%": "Percent",
   Rank: "Percentile",
   ELO: "ELO",
-  "Rec.Brutal Uncapped": "Rec. Classification",
+  Classification: "Rec. Classification",
 };
-const versusDefaultClassificationMode = Object.keys(versusModeMap).pop();
+const versusDefaultClassificationMode: VersusMode = Object.keys(
+  versusModeMap,
+).pop() as VersusMode;
 const versusFieldForMode = mode => versusModeMap[mode];
 const versusModes = Object.keys(versusModeMap);
 
@@ -177,6 +174,40 @@ const urlWithParams = (
   limit: number,
 ) => `/classifiers/${division}/${classifier}/chart?full=${full ? 1 : 0}&limit=${limit}`;
 
+const dataForModes = (
+  incomingData: AdvancedScorePoint[] | null,
+  xMode: VersusMode,
+  yMode: VersusMode,
+  colorMode: VersusMode,
+  prodMode: string,
+) => {
+  const prodData =
+    prodMode === "All"
+      ? incomingData
+      : prodMode === "Prod. 10"
+        ? incomingData?.filter(c => c.date < 1706770800000)
+        : incomingData?.filter(c => c.date >= 1706770800000);
+  let sorted = (prodData?.toSorted((a, b) => b.hf - a.hf) || []).map((c, i, all) => ({
+    ...c,
+    rank: PositiveOrMinus1(Percent(i, all.length)),
+  }));
+
+  if ([xMode, yMode].includes("ELO")) {
+    sorted = sorted.filter(c => c.elo > 0);
+    sorted = uniqBy(sorted, c => c.memberNumber);
+  } else if ([colorMode].includes("ELO")) {
+    sorted = sorted.filter(c => c.elo > 0);
+  }
+
+  const withXY = sorted.map(c => ({
+    ...c,
+    x: c[versusFieldForMode(xMode)],
+    y: c[versusFieldForMode(yMode)],
+    id: c.memberNumber,
+  }));
+  return filterXYForModes(withXY, xMode, yMode);
+};
+
 // TODO: different modes for class xLines (95/85/75-hhf, A-centric, 1/5/15/40/75-percentile, etc)
 // TODO: maybe different options / scale depending on viewport size and desktop/tablet/mobile
 // TODO: all vs current search mode
@@ -190,9 +221,12 @@ export const ScoresChart = ({
   recommendedHHF15,
   totalScores,
 }) => {
-  //const [mainMode, setMainMode] = useState(defaultMainMode);
-  // const isVersus = mainModeFieldForMode(mainMode) === "vs";
-  const [colorMode, setColorMode] = useState(versusDefaultClassificationMode);
+  const windowWidth = useWindowWidth({ wait: 400 });
+  const [showChartSettings, setShowChartSettings] = useState(windowWidth >= 992);
+  useEffect(() => {
+    setShowChartSettings(windowWidth >= 992);
+  }, [windowWidth]);
+  const [colorMode, setColorMode] = useState<VersusMode>(versusDefaultClassificationMode);
   const [xMode, setXMode] = useState<VersusMode>("HF");
   const [yMode, setYMode] = useState<VersusMode>("Rank");
   const [prodMode, setProdMode] = useState("All");
@@ -233,47 +267,10 @@ export const ScoresChart = ({
     [setSearch],
   );
 
-  const data = useMemo(() => {
-    const prodData =
-      prodMode === "All"
-        ? lastData
-        : prodMode === "Prod. 10"
-          ? lastData?.filter(c => c.date < 1706770800000)
-          : lastData?.filter(c => c.date >= 1706770800000);
-    let sorted = (prodData?.toSorted((a, b) => b.hf - a.hf) || []).map((c, i, all) => ({
-      ...c,
-      rank: PositiveOrMinus1(Percent(i, all.length)),
-    }));
-
-    if ([xMode, yMode].includes("ELO")) {
-      sorted = sorted.filter(c => c.elo > 0);
-      sorted = uniqBy(
-        sorted, //.toSorted((a, b) => b.date - a.date),
-        c => c.memberNumber,
-      );
-    } else if ([colorMode].includes("ELO")) {
-      sorted = sorted.filter(c => c.elo > 0);
-    }
-
-    /*
-    if (!isVersus) {
-      return sorted.map(c => ({
-        ...c,
-        x: c.hf,
-        y: c.rank,
-        id: c.memberNumber,
-      }));
-    }
-      */
-
-    const withXY = sorted.map(c => ({
-      ...c,
-      x: c[versusFieldForMode(xMode)],
-      y: c[versusFieldForMode(yMode)],
-      id: c.memberNumber,
-    }));
-    return filterXYForModes(withXY, xMode, yMode);
-  }, [lastData, xMode, yMode, colorMode, prodMode]);
+  const data = useMemo(
+    () => dataForModes(lastData, xMode, yMode, colorMode, prodMode),
+    [lastData, xMode, yMode, colorMode, prodMode],
+  );
 
   const showWeibull = yMode === "Rank" && xMode === "HF";
   const showCorrelation = !showWeibull && data?.length;
@@ -294,8 +291,12 @@ export const ScoresChart = ({
     [totalScores],
   );
   const weibullData: number[] = useMemo(
-    () => (full ? (data?.map(c => c.x) ?? []) : []),
-    [data, full],
+    () =>
+      full
+        ? (dataForModes(lastData, "HF", "Rank", "Classification", "All").map(c => c.x) ??
+          [])
+        : [],
+    [lastData, full],
   );
   const weibull = useAsyncWeibull(weibullData);
   const partialScoresDate = useMemo(() => {
@@ -386,14 +387,14 @@ export const ScoresChart = ({
                       ),
                     ),
                   )),
-              ...(yMode !== "Rank"
+              ...(!showWeibull
                 ? {}
                 : Object.assign(
                     {},
                     ...percentiles.map((perc, i) =>
                       point(
                         ["pGM", "pM", "pA", "pB", "pC"][i] + hhf5,
-                        hhf5 * [0.95, 0.85, 0.75, 0.6, 0.4][i],
+                        (hhf5 || recHHF) * [0.95, 0.85, 0.75, 0.6, 0.4][i],
                         perc,
                         colorForPrefix("r", 0.7),
                       ),
@@ -443,6 +444,7 @@ export const ScoresChart = ({
   if (full) {
     return (
       <Dialog
+        draggable={false}
         header=""
         visible
         style={{
@@ -459,32 +461,29 @@ export const ScoresChart = ({
         )}
         {sport === "uspsa" && (
           <div
-            style={{ top: 0, left: 64 }}
-            className="absolute z-1 flex flex-column justify-content-start align-items-center gap-2 surface-card mx-4 my-0"
+            style={{ top: 0, left: 0 }}
+            className="absolute z-1 flex flex-column justify-content-start align-items-center gap-2 pointer-events-none"
           >
             <div className="flex flex-column-reverse gap-2 justify-content-center align-items-center">
-              {showCorrelation && (
-                <div className="flex gap-4 text-sm">
-                  <div className="flex flex-column justify-content-center text-md text-500 font-bold">
-                    <div>Correlation = {correl.toFixed(6)}</div>
-                  </div>
-                </div>
-              )}
-              <div className="flex gap-2 mt-4 justify-content-around text-base lg:text-xl">
-                {/*
-              <div className="flex flex-column justify-content-start align-items-start">
-                <span className="text-md text-500 font-bold">Mode</span>
-                <SelectButton
-                  className="compact text-xs"
-                  allowEmpty={false}
-                  options={mainModes}
-                  value={mainMode}
-                  onChange={e => setMainMode(e.value)}
+              <div className="relative flex gap-2 mt-4 justify-content-around text-base lg:text-xl">
+                <Button
+                  className="absolute lg:hidden pointer-events-auto"
+                  style={{ position: "relative", left: 0, top: -8, width: 48 }}
+                  rounded
+                  text
+                  icon={cx("pi pi-cog", { "text-color-secondary": !showChartSettings })}
+                  onClick={() => setShowChartSettings(prev => !prev)}
                 />
-              </div>
-              */}
-                <div className="flex gap-4">
-                  <div className="flex flex-column justify-content-center align-items-start">
+                <div
+                  className={cx(
+                    "flex-wrap gap-4 border-round border-1 p-4 surface-card mt-6 lg:mt-0 mr-8 ml-4 pointer-events-auto justify-content-evenly",
+                    {
+                      hidden: !showChartSettings,
+                      flex: showChartSettings,
+                    },
+                  )}
+                >
+                  <div className="flex flex-column justify-content-center align-items-start gap-1">
                     <span style={{ fontSize: "1rem" }} className="text-500 font-bold">
                       Color
                     </span>
@@ -496,7 +495,7 @@ export const ScoresChart = ({
                       onChange={e => setColorMode(e.value)}
                     />
                   </div>
-                  <div className="flex flex-column justify-content-center align-items-start">
+                  <div className="flex flex-column justify-content-center align-items-start gap-1">
                     <span style={{ fontSize: "1rem" }} className="text-500 font-bold">
                       Position X
                     </span>
@@ -509,7 +508,7 @@ export const ScoresChart = ({
                       onChange={e => setXMode(e.value)}
                     />
                   </div>
-                  <div className="flex flex-column justify-content-center align-items-start">
+                  <div className="flex flex-column justify-content-center align-items-start gap-1">
                     <span style={{ fontSize: "1rem" }} className="text-500 font-bold">
                       Position Y
                     </span>
@@ -524,7 +523,7 @@ export const ScoresChart = ({
                     />
                   </div>
                   {division === "prod" && (
-                    <div className="flex flex-column justify-content-center align-items-start ml-8">
+                    <div className="flex flex-column justify-content-end align-items-start ml-8">
                       <SelectButton
                         className="compact text-xs"
                         allowEmpty={false}
@@ -532,6 +531,13 @@ export const ScoresChart = ({
                         value={prodMode}
                         onChange={e => setProdMode(e.value)}
                       />
+                    </div>
+                  )}
+                  {showCorrelation && (
+                    <div className="flex gap-4 text-sm">
+                      <div className="flex flex-column justify-content-center text-md text-500 font-bold">
+                        <div>Correlation = {correl.toFixed(6)}</div>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -542,7 +548,7 @@ export const ScoresChart = ({
         {sport === "uspsa" && showWeibull && (
           <div
             style={{ bottom: 96, right: 64 }}
-            className="absolute z-1 flex flex-column justify-content-start align-items-center gap-2 surface-card mx-4 my-0 border-round border-1 p-4"
+            className="absolute z-1 hidden lg:flex flex-column justify-content-start align-items-center gap-2 surface-card mx-4 my-0 border-round border-1 p-4"
           >
             <div className="flex flex-column justify-content-center gap-2">
               <div className="flex flex-row justify-content-end align-items-center gap-2">
