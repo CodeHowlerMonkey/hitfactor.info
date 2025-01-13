@@ -257,6 +257,7 @@ export const ScoresChart = ({
           prev.delete("full");
           setXMode("HF");
           setYMode("Rank");
+          setColorMode("Classification");
         } else {
           prev.set("full", "");
         }
@@ -565,7 +566,7 @@ export const ScoresChart = ({
                 <div className="text-sm text-center">{partialScoresDate[0]}</div>
                 <div className="text-sm text-center">{partialScoresDate[1]}</div>
               </div>
-              <WeibullStatus weibull={weibull} />
+              <WeibullStatus weibull={weibull} showHHF />
             </div>
             <div className="hidden">
               <div className="flex justify-content-center gap-4">
