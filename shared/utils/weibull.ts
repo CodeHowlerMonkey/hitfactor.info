@@ -116,21 +116,16 @@ const findParams = (
   if (!data.length) {
     return [1, 1];
   }
-  const mean = ss.mean(data);
-  // const variance = ss.variance(data);
+
+  // initial guesses
+  const k = 3.6;
+  const lambda = ss.median(data) / Math.log(2) ** (1 / k);
 
   if (method === "neldermead") {
-    return optimizeNelderMead(lossFnFactory(data), [3.6, mean], 1e-16, partialCb);
+    return optimizeNelderMead(lossFnFactory(data), [k, lambda], 1e-16, partialCb);
   }
 
-  return optimize(
-    lossFnFactory(data),
-    // [mean ** 2 / variance, mean],
-    // [3.6, 60],
-    [3.6, mean],
-    precision,
-    partialCb,
-  );
+  return optimize(lossFnFactory(data), [3.6, ss.mean(data)], precision, partialCb);
 };
 
 /**
