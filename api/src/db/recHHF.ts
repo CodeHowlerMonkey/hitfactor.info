@@ -527,6 +527,8 @@ export interface RecHHF {
   wbl15HHF: number;
   kurtosis: number;
   skewness: number;
+  loss: number;
+  meanLL: number;
   meanSquaredError: number;
   meanAbsoluteError: number;
   superMeanSquaredError: number;
@@ -555,6 +557,8 @@ const RecHHFSchema = new mongoose.Schema<RecHHF>({
   wbl15HHF: Number,
   kurtosis: Number,
   skewness: Number,
+  loss: Number,
+  meanLL: Number,
   meanSquaredError: Number,
   meanAbsoluteError: Number,
   superMeanSquaredError: Number,
@@ -612,6 +616,8 @@ const recHHFUpdate = (
     hhf1: wbl1HHF,
     hhf5: wbl5HHF,
     hhf15: wbl15HHF,
+    loss,
+    meanLL,
     kurtosis,
     skewness,
     meanSquaredError,
@@ -639,6 +645,8 @@ const recHHFUpdate = (
 
     k,
     lambda,
+    loss,
+    meanLL,
     wbl1HHF,
     wbl5HHF,
     wbl15HHF,

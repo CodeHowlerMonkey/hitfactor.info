@@ -11,6 +11,7 @@ export interface WeibullResult {
   k: number;
   lambda: number;
   loss: number;
+  meanLL: number; // mean log likelyhood
   /*
   cdf: (x: number) => number;
   reverseCDF: (y: number) => number;
@@ -33,6 +34,7 @@ export const emptyWeibull: WeibullResult = {
   k: 1,
   lambda: 1,
   loss: 0,
+  meanLL: 0,
   /*
   cdf: () => 0,
   reverseCDF: () => 0,
@@ -180,6 +182,7 @@ export const solveWeibull = (
     k,
     lambda,
     loss,
+    meanLL: -loss / dataPoints.length,
     /*cdf, reverseCDF,*/ hhf1,
     hhf5,
     hhf15,

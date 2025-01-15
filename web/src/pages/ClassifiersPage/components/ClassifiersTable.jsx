@@ -346,6 +346,22 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
       />
       <Column
         hidden={!nerdMode}
+        field="loss"
+        header="loss"
+        sortable
+        style={{ width: "100px", textAlign: "right" }}
+        body={(c, { field }) => c[field]?.toFixed(4)}
+      />
+      <Column
+        hidden={!nerdMode}
+        field="meanLL"
+        header="MLL"
+        sortable
+        style={{ width: "100px", textAlign: "right" }}
+        body={(c, { field }) => c[field]?.toFixed(4)}
+      />
+      <Column
+        hidden={!nerdMode}
         field="superMeanSquaredError"
         header="SMSE"
         sortable

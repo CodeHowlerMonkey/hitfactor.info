@@ -15,6 +15,8 @@ export const WeibullStatus = ({
     loading,
     k,
     lambda,
+    loss,
+    meanLL,
     skewness,
     kurtosis,
     meanSquaredError,
@@ -51,6 +53,8 @@ export const WeibullStatus = ({
         <div>Kurtosis = {kurtosis.toFixed(4)}</div>
       </div>
       <div className="flex flex-column justify-content-center text-md text-500 font-bold">
+        <div>loss= {loss}</div>
+        <div>MLL = {meanLL}</div>
         <div>SMSE = {superMeanSquaredError.toFixed(4)}</div>
         <div>SMAE = {superMeanAbsoluteError.toFixed(4)}</div>
         <div>MSE = {meanSquaredError.toFixed(4)}</div>

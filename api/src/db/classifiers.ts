@@ -54,6 +54,8 @@ interface ClassifierVirtuals {
   hqQuality: number;
 
   // new cc virtuals
+  loss: number;
+  meanLL: number;
   superMeanSquaredError: number;
   ccQuality: number;
 }
@@ -255,6 +257,8 @@ ClassifierSchema.virtual("recHHFs", {
   "wbl15HHF",
   "k",
   "lambda",
+  "loss",
+  "meanLL",
   "kurtosis",
   "skewness",
   "meanSquaredError",
