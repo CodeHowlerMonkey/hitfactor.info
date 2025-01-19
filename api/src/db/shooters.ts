@@ -42,6 +42,9 @@ export interface Shooter {
   memberNumber: string;
   memberNumberDivision: string;
   name: string;
+
+  reclassificationsCurPercentCurrent: number;
+  reclassificationsRecPercentUncappedCurrent: number;
 }
 
 type ShooterModel = Model<Shooter, object>;
