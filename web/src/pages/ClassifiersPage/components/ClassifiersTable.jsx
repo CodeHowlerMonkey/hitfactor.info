@@ -255,8 +255,33 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
         bodyStyle={{ textAlign: "center" }}
       />
       <Column
+        hidden={nerdMode}
         field="recHHF"
         header="Rec. HHF"
+        sortable
+        style={{ width: "100px", textAlign: "right" }}
+        body={c => c.recHHF.toFixed(4)}
+      />
+      <Column
+        hidden={!nerdMode}
+        field="wbl5HHF"
+        header="Wbl5. HHF"
+        sortable
+        style={{ width: "100px", textAlign: "right" }}
+        body={c => c.wbl5HHF.toFixed(4)}
+      />
+      <Column
+        hidden={!nerdMode}
+        field="log10HHFOld"
+        header="Log10. HHF Old"
+        sortable
+        style={{ width: "100px", textAlign: "right" }}
+        body={c => c.log10HHFOld.toFixed(4)}
+      />
+      <Column
+        hidden={!nerdMode}
+        field="log10HHFKirt"
+        header="Log10. HHF Kirt"
         sortable
         style={{ width: "100px", textAlign: "right" }}
         body={c => c.recHHF.toFixed(4)}

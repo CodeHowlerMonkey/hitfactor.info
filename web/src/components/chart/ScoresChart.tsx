@@ -211,16 +211,7 @@ const dataForModes = (
 // TODO: different modes for class xLines (95/85/75-hhf, A-centric, 1/5/15/40/75-percentile, etc)
 // TODO: maybe different options / scale depending on viewport size and desktop/tablet/mobile
 // TODO: all vs current search mode
-export const ScoresChart = ({
-  division,
-  classifier,
-  hhf,
-  recHHF,
-  recommendedHHF1,
-  recommendedHHF5,
-  recommendedHHF15,
-  totalScores,
-}) => {
+export const ScoresChart = ({ division, classifier, hhf, recHHF, totalScores }) => {
   const windowWidth = useWindowWidth({ wait: 400 });
   const [showChartSettings, setShowChartSettings] = useState(windowWidth >= 992);
   useEffect(() => {
@@ -300,6 +291,7 @@ export const ScoresChart = ({
     [lastData, full],
   );
   const weibull = useAsyncWeibull(weibullData);
+
   const partialScoresDate = useMemo(() => {
     if (!data?.length) {
       return "";
@@ -320,16 +312,16 @@ export const ScoresChart = ({
   const { k, lambda, hhf5 } = weibull;
   const percentiles = useMemo(
     () => [
-      closestPercentileForHF((hhf5 || recHHF) * 0.95, data),
-      closestPercentileForHF((hhf5 || recHHF) * 0.85, data),
-      closestPercentileForHF((hhf5 || recHHF) * 0.75, data),
-      closestPercentileForHF((hhf5 || recHHF) * 0.6, data),
-      closestPercentileForHF((hhf5 || recHHF) * 0.4, data),
+      closestPercentileForHF(recHHF * 0.95, data),
+      closestPercentileForHF(recHHF * 0.85, data),
+      closestPercentileForHF(recHHF * 0.75, data),
+      closestPercentileForHF(recHHF * 0.6, data),
+      closestPercentileForHF(recHHF * 0.4, data),
     ],
-    [data, recHHF, hhf5],
+    [data, recHHF],
   );
 
-  const chartLabel = sport === "hfu" && hhf5 ? `Rec. HHF: ${hhf5}` : undefined;
+  const chartLabel = sport === "hfu" && recHHF ? `Rec. HHF: ${recHHF}` : undefined;
 
   if (!lastData && loading) {
     return <ProgressSpinner />;
@@ -394,8 +386,8 @@ export const ScoresChart = ({
                     {},
                     ...percentiles.map((perc, i) =>
                       point(
-                        ["pGM", "pM", "pA", "pB", "pC"][i] + hhf5,
-                        (hhf5 || recHHF) * [0.95, 0.85, 0.75, 0.6, 0.4][i],
+                        ["pGM", "pM", "pA", "pB", "pC"][i] + recHHF,
+                        recHHF * [0.95, 0.85, 0.75, 0.6, 0.4][i],
                         perc,
                         colorForPrefix("r", 0.7),
                       ),
