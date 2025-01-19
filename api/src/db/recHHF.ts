@@ -1,5 +1,10 @@
 import mongoose from "mongoose";
 
+import {
+  log10TargetsHHF,
+  coTargetsFromKirt,
+  coTargetsHFI,
+} from "../../../shared/utils/log10Targets";
 import { solveWeibull } from "../../../shared/utils/weibull";
 import { uspsaClassifiers } from "../dataUtil/classifiersData";
 import {
@@ -519,6 +524,9 @@ export interface RecHHF {
   rec5HHF: number;
   rec15HHF: number;
 
+  log10HHFKirt: number;
+  log10HHFOld: number;
+
   // Weibull
   k: number;
   lambda: number;
@@ -546,6 +554,9 @@ const RecHHFSchema = new mongoose.Schema<RecHHF>({
   rec1HHF: Number,
   rec5HHF: Number,
   rec15HHF: Number,
+
+  log10HHFKirt: Number,
+  log10HHFOld: Number,
 
   // Weibull
   k: Number,
@@ -580,6 +591,7 @@ const extraHHFsForProd = (allScoresRecHHF: number, runs: ScoreWithPercentile[]) 
   const prod15Runs = runs
     .filter(c => new Date(c.sd).getTime() >= PROD_15_EFFECTIVE_TS)
     .map(c => c.hf);
+  // TODO: use log10 if legit
   const { hhf5: prod10HHF } = solveWeibull(prod10Runs, 0, undefined, "neldermead");
   const { hhf5: prod15HHF } = solveWeibull(prod15Runs, 0, undefined, "neldermead");
   const prod1015HHF = Math.max(allScoresRecHHF, prod10HHF, prod15HHF);
@@ -626,12 +638,17 @@ const recHHFUpdate = (
     "neldermead",
   );
 
+  const log10HHFKirt = log10TargetsHHF(runs, coTargetsFromKirt);
+  const log10HHFOld = log10TargetsHHF(runs, coTargetsHFI);
+
   return {
     division,
     classifier,
     classifierDivision: [classifier, division].join(":"),
     curHHF,
-    recHHF: wbl5HHF,
+    recHHF: log10HHFKirt, //wbl5HHF,
+    log10HHFKirt,
+    log10HHFOld,
     ...(division === "prod" ? extraHHFsForProd(wbl5HHF, runs) : {}),
     rec1HHF,
     rec5HHF,
