@@ -1,10 +1,10 @@
 export const bgColorForClass = {
   X: "#5e5e5d",
   U: "#5e5e5d",
-  D: "#cc5e0d",
-  C: "#008627",
-  B: "#1a3bbd",
-  A: "#909",
+  D: "#ff7515",
+  C: "#179d34",
+  B: "#0e4ae7",
+  A: "#ab22c1",
   M: "#994800",
   GM: "#000",
 };
