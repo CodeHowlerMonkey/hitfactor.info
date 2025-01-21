@@ -16,6 +16,7 @@ import divisionPopularity7 from "../../../../data/stats/divisions_7YTD.json";
 import divisionPopularity8 from "../../../../data/stats/divisions_8YTD.json";
 import { Row, Column } from "../../components";
 import { useApi } from "../../utils/client";
+import { bgColorForClass } from "../../utils/color";
 
 import Activity from "./Activity";
 import Distribution from "./Distribution";
@@ -49,44 +50,44 @@ export const ClassificationsChart = ({
             letter: apiData ? "U" : "",
             title: apiData ? "U" : "Loading",
             value: valueFor("U"),
-            color: "#939697",
+            color: bgColorForClass.U,
           },
         ]),
     {
       title: apiData ? "D" : "",
       letter: apiData ? "D" : "",
       value: valueFor("D"),
-      color: "#cc5e0d",
+      color: bgColorForClass.D,
     },
     {
       title: apiData ? "C" : "",
       letter: apiData ? "C" : "",
       value: valueFor("C"),
-      color: "#008627",
+      color: bgColorForClass.C,
     },
     {
       title: apiData ? "B" : "",
       letter: apiData ? "B" : "",
       value: valueFor("B"),
-      color: "#1a3bbd",
+      color: bgColorForClass.B,
     },
     {
       title: apiData ? `A (Top ${topA.toFixed(3)}%)` : "",
       letter: apiData ? "A" : "",
       value: valueFor("A"),
-      color: "#909",
+      color: bgColorForClass.A,
     },
     {
       title: apiData ? `M (Top ${topM.toFixed(3)}%)` : "",
       letter: apiData ? "M" : "",
       value: valueFor("M"),
-      color: "#994800",
+      color: bgColorForClass.M,
     },
     {
       title: apiData ? "GM" : "",
       letter: apiData ? "GM" : "",
       value: valueFor("GM"),
-      color: "#000000",
+      color: bgColorForClass.GM,
     },
   ];
 
