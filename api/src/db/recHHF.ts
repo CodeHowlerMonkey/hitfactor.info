@@ -531,6 +531,7 @@ export interface RecHHF {
   k: number;
   lambda: number;
   wbl1HHF: number;
+  wbl3HHF: number;
   wbl5HHF: number;
   wbl15HHF: number;
   kurtosis: number;
@@ -562,6 +563,7 @@ const RecHHFSchema = new mongoose.Schema<RecHHF>({
   k: Number,
   lambda: Number,
   wbl1HHF: Number,
+  wbl3HHF: Number,
   wbl5HHF: Number,
   wbl15HHF: Number,
   kurtosis: Number,
@@ -592,8 +594,8 @@ const extraHHFsForProd = (allScoresRecHHF: number, runs: ScoreWithPercentile[]) 
     .filter(c => new Date(c.sd).getTime() >= PROD_15_EFFECTIVE_TS)
     .map(c => c.hf);
   // TODO: use log10 if legit
-  const { hhf5: prod10HHF } = solveWeibull(prod10Runs, 0, undefined, "neldermead");
-  const { hhf5: prod15HHF } = solveWeibull(prod15Runs, 0, undefined, "neldermead");
+  const { hhf3: prod10HHF } = solveWeibull(prod10Runs, 0, undefined, "neldermead");
+  const { hhf3: prod15HHF } = solveWeibull(prod15Runs, 0, undefined, "neldermead");
   const prod1015HHF = Math.max(allScoresRecHHF, prod10HHF, prod15HHF);
 
   return {
@@ -622,6 +624,7 @@ const recHHFUpdate = (
     k,
     lambda,
     hhf1: wbl1HHF,
+    hhf3: wbl3HHF,
     hhf5: wbl5HHF,
     hhf15: wbl15HHF,
     kurtosis,
@@ -657,6 +660,7 @@ const recHHFUpdate = (
     k,
     lambda,
     wbl1HHF,
+    wbl3HHF,
     wbl5HHF,
     wbl15HHF,
     kurtosis,

@@ -16,6 +16,7 @@ export interface WeibullResult {
   reverseCDF: (y: number) => number;
   */
   hhf1: number;
+  hhf3: number;
   hhf5: number;
   hhf15: number;
 
@@ -38,6 +39,7 @@ export const emptyWeibull: WeibullResult = {
   reverseCDF: () => 0,
   */
   hhf1: 0,
+  hhf3: 0,
   hhf5: 0,
   hhf15: 0,
 
@@ -166,6 +168,7 @@ export const solveWeibull = (
   // const cdf = x => 100 - 100 * (1 - Math.exp(-Math.pow(x / lambda, k)));
   const reverseCDF = y => lambda * Math.pow(Math.log(100 / y), 1 / k);
   const hhf1 = reverseCDF(1) / 0.95;
+  const hhf3 = reverseCDF(3) / 0.9;
   const hhf5 = reverseCDF(5) / 0.85;
   const hhf15 = reverseCDF(15) / 0.75;
   const skew = skewness(dataPoints);
@@ -182,6 +185,7 @@ export const solveWeibull = (
     loss,
     /*cdf, reverseCDF,*/ hhf1,
     hhf5,
+    hhf3,
     hhf15,
     skewness: skew,
     kurtosis: kurt,

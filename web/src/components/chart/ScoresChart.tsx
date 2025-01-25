@@ -309,7 +309,7 @@ export const ScoresChart = ({ division, classifier, hhf, recHHF, totalScores }) 
     ];
   }, [data]);
 
-  const { k, lambda, hhf5 } = weibull;
+  const { k, lambda, hhf3 } = weibull;
   const percentiles = useMemo(
     () => [
       closestPercentileForHF(recHHF * 0.95, data),
@@ -564,7 +564,7 @@ export const ScoresChart = ({ division, classifier, hhf, recHHF, totalScores }) 
               <div className="flex justify-content-center gap-4">
                 <div>k = {k?.toFixed(5)}</div>
                 <div>λ = {lambda?.toFixed(5)}</div>
-                <div>wbl5 = {hhf5?.toFixed(4)}</div>
+                <div>wbl5 = {hhf3?.toFixed(4)}</div>
               </div>
             </div>
           </div>
