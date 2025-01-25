@@ -48,7 +48,7 @@ test("log10Targets", () => {
   );
 });
 
-test.only("log10TargetsWeibull", () => {
+test("log10TargetsWeibull", () => {
   assert.strictEqual(
     log10TargetsHHF(
       runs.prod["08-01"].map(hf => ({ hf })),
