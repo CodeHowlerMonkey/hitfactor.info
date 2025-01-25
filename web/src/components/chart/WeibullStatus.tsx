@@ -22,7 +22,7 @@ export const WeibullStatus = ({
     superMeanSquaredError,
     superMeanAbsoluteError,
     maxError,
-    hhf5,
+    hhf3,
   },
 }: WeibullStatusProps) => (
   <div className="flex flex-column justify-content-center align-items-start">
@@ -44,7 +44,7 @@ export const WeibullStatus = ({
     </div>
     <div className="flex gap-4 text-sm align-items-start">
       <div className="flex flex-column justify-content-center text-md text-500 font-bold">
-        {showHHF && <div>RHHF = {hhf5.toFixed(4)}</div>}
+        {showHHF && <div>RHHF = {hhf3.toFixed(4)}</div>}
         <div>k = {k.toFixed(4)}</div>
         <div>𝛌 = {lambda.toFixed(4)}</div>
         <div>Skewness = {skewness.toFixed(4)}</div>
