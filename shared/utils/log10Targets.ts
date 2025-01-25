@@ -18,10 +18,10 @@ export const coTargetsHFI: Target[] = [
  * Weibulls of CO classifiers to curHHF.
  */
 export const coTargetsFromKirt: Target[] = [
-  [0.0137 * 0.94, 0.95],
-  [0.03 * 0.94, 0.9],
-  [0.0589 * 0.94, 0.85],
-  [0.1697 * 0.94, 0.75],
+  [0.0137, 0.95],
+  [0.03, 0.9],
+  [0.0589, 0.85],
+  [0.1697, 0.75],
 ];
 
 const findIndexOrLength = (a: number[], cb: (c: number) => boolean) => {

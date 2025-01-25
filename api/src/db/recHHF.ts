@@ -649,7 +649,7 @@ const recHHFUpdate = (
     classifier,
     classifierDivision: [classifier, division].join(":"),
     curHHF,
-    recHHF: log10HHFKirt, //wbl5HHF,
+    recHHF: log10HHFKirt, //wbl3HHF,
     log10HHFKirt,
     log10HHFOld,
     ...(division === "prod" ? extraHHFsForProd(wbl5HHF, runs) : {}),

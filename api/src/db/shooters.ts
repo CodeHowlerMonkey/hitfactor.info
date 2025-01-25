@@ -363,6 +363,8 @@ const shooterObjectsForMemberNumber = (c, recMemberScores, curMemberScores) => {
     now,
     "uspsa",
     8,
+    4,
+    6,
   );
   const recalcByRecPercent = calculateUSPSAClassification(
     recMemberScores,
@@ -370,6 +372,8 @@ const shooterObjectsForMemberNumber = (c, recMemberScores, curMemberScores) => {
     now,
     "brutal",
     10,
+    4,
+    6,
   );
 
   return Object.values(
@@ -556,20 +560,26 @@ export const reclassifyShooters = async shooters => {
           now,
           "uspsa",
           8,
+          4,
+          6,
         );
         const recalcByRecHHFOnlyPercent = calculateUSPSAClassification(
           curMemberScores, // cur, not rec, to enable old D flag behavior
           "recPercent",
           now,
           "uspsa",
-          10,
+          12,
+          4,
+          8,
         );
         const recalcByRecPercentSoft = calculateUSPSAClassification(
           curMemberScores, // cur, not rec, to enable old D flag behavior
           "recPercent",
           now,
           "soft",
-          10,
+          12,
+          4,
+          8,
         );
         const recalcByRecPercent = calculateUSPSAClassification(
           recMemberScores,
@@ -577,6 +587,8 @@ export const reclassifyShooters = async shooters => {
           now,
           "brutal",
           10,
+          4,
+          6,
         );
         const recalcByRecPercentUncapped = calculateUSPSAClassification(
           recMemberScores,
@@ -584,7 +596,9 @@ export const reclassifyShooters = async shooters => {
           now,
           "brutal+uncapped",
           10,
-        );
+          4,
+          6,
+        ); //9,4,6 got 104 gms with Kirt targets in CO
 
         const recalcDivCur = reclassificationBreakdown(recalcByCurPercent, division);
         const recalcDivRecHHFOnly = reclassificationBreakdown(
@@ -711,6 +725,8 @@ export const reclassificationForProgressMode = async (
         now,
         classificationMode,
         8,
+        4,
+        6,
       );
     }
 
@@ -725,6 +741,8 @@ export const reclassificationForProgressMode = async (
         now,
         classificationMode,
         10,
+        4,
+        8,
       );
     }
   }

@@ -822,6 +822,8 @@ test("calculateUSPSAClassification", () => {
     new Date(),
     "uspsa",
     8,
+    4,
+    6,
   );
   assert.strictEqual(Number(result.ltd.percent.toFixed(2)), 93.54);
   assert.strictEqual(Number(result.ltd.highPercent.toFixed(2)), 93.72);
@@ -844,6 +846,8 @@ test("calculateUSPSAClassification + percentField", () => {
     new Date(),
     "uspsa",
     8,
+    4,
+    6,
   );
   assert.strictEqual(Number(result.ltd.percent.toFixed(2)), 93.16);
   assert.strictEqual(Number(result.ltd.highPercent.toFixed(2)), 93.33);

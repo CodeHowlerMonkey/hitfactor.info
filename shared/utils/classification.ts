@@ -197,14 +197,18 @@ export const numberOfDuplicates = window => {
     .reduce((acc, cur) => acc + cur, 0);
 };
 
-const windowSizeForScore = windowSize => {
-  if (windowSize < 4) {
+const windowSizeForScore = (
+  windowSize: number,
+  minWindowSize: number = 4,
+  bestWindowSize: number = 6,
+) => {
+  if (windowSize < minWindowSize) {
     return 0;
-  } else if (windowSize === 4) {
-    return 4;
+  } else if (windowSize === minWindowSize) {
+    return minWindowSize;
   }
 
-  return 6;
+  return bestWindowSize;
 };
 
 const ageForDate = (now, sd) =>
@@ -215,6 +219,8 @@ export const percentAndAgesForDivWindow = (
   percentField = "percent",
   now = new Date(),
   mode: Mode,
+  minWindowSize: number = 4,
+  bestWindowSize: number = 6,
 ) => {
   //de-dupe needs to be done in reverse, because percent are sorted asc
   let window = state[div].window;
@@ -227,7 +233,11 @@ export const percentAndAgesForDivWindow = (
   const percentCap = mode.includes("uncapped") ? 120 : 100;
 
   // remove lowest 2
-  const newLength = windowSizeForScore(dFlagsApplied.length);
+  const newLength = windowSizeForScore(
+    dFlagsApplied.length,
+    minWindowSize,
+    bestWindowSize,
+  );
   const fFlagsApplied = dFlagsApplied
     .toSorted((a, b) => numSort(a, b, percentField, -1))
     .slice(0, newLength);
@@ -306,7 +316,9 @@ export const calculateUSPSAClassification = (
   percentField: string,
   now: Date,
   mode: Mode,
-  recentWindowSize: number,
+  recentWindowSize: number = 8, // number of most recent scores to consider
+  minWindowSize: number = 4, // used for initial, less than that - no classification
+  bestWindowSize: number = 6, // used for non-initial classifications, ideal window size when there are no dupes
 ) => {
   const state = newClassificationCalculationState();
   if (!classifiers?.length) {
@@ -357,13 +369,21 @@ export const calculateUSPSAClassification = (
     }
 
     // Calculate if have enough classifiers
-    if (curWindow.length >= 4) {
+    if (curWindow.length >= minWindowSize) {
       const oldHighPercent = state[division].highPercent;
       const {
         percent: newPercent,
         age,
         age1,
-      } = percentAndAgesForDivWindow(division, state, percentField, now, mode);
+      } = percentAndAgesForDivWindow(
+        division,
+        state,
+        percentField,
+        now,
+        mode,
+        minWindowSize,
+        bestWindowSize,
+      );
 
       if (newPercent > oldHighPercent) {
         state[division].highPercent = newPercent;
