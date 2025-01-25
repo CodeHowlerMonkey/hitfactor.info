@@ -1,3 +1,5 @@
+import { solveWeibull, weibulCDFFactory } from "./weibull";
+
 interface ScoreWithHF {
   hf: number;
 }
@@ -22,6 +24,14 @@ export const coTargetsFromKirt: Target[] = [
   [0.1697 * 0.94, 0.75],
 ];
 
+const findIndexOrLength = (a: number[], cb: (c: number) => boolean) => {
+  const index = a.findIndex(cb);
+  if (index < 0) {
+    return a.length;
+  }
+  return index;
+};
+
 export const log10TargetsHHF = (
   data: ScoreWithHF[] | null,
   targets: Target[] = coTargetsHFI,
@@ -33,13 +43,6 @@ export const log10TargetsHHF = (
   const hfData = data.map(c => c.hf).sort((a, b) => b - a);
   const maxHF = hfData[0];
   const nAll = hfData.length;
-  const findIndexOrLength = (a: number[], cb: (c: number) => boolean) => {
-    const index = a.findIndex(cb);
-    if (index < 0) {
-      return a.length;
-    }
-    return index;
-  };
   const lossFn = (hhfCandidate: number) => {
     const percentiles = targets.map(c => c[0]);
     const numbersInPercentiles = targets.map(curTarget =>
@@ -64,5 +67,56 @@ export const log10TargetsHHF = (
       minLoss = newLoss;
     }
   }
+  return bestHHF;
+};
+
+export const log10TargetsHHFWeibull = (
+  data: ScoreWithHF[] | null,
+  targets: Target[] = coTargetsHFI,
+  stepSize: number = 0.0001,
+) => {
+  if (!data?.length) {
+    return 0;
+  }
+  const hfData = data.map(c => c.hf).sort((a, b) => b - a);
+  const { k, lambda, hhf3 } = solveWeibull(hfData, 0, undefined, "neldermead");
+
+  const maxHF = hfData[0];
+  const cdf = weibulCDFFactory(k, lambda);
+  const cdfNormalized = hf => cdf(hf) / 100;
+  const lossFn = (hhfCandidate: number) => {
+    const percentiles = targets.map(c => c[0]);
+    const numbersInPercentiles = targets.map(([, percent]) =>
+      cdfNormalized(percent * hhfCandidate),
+    );
+
+    const subError = (num: number, targetNum: number) =>
+      Math.abs(1 - Math.log10((10 * num) / targetNum));
+
+    return numbersInPercentiles.reduce(
+      (acc, c, i) => acc + subError(c, percentiles[i]),
+      0,
+    );
+  };
+
+  let minLoss = Number.MAX_VALUE;
+  let bestHHF = maxHF;
+  for (let maybeNewHHF = maxHF; maybeNewHHF > 0; maybeNewHHF -= stepSize) {
+    const newLoss = lossFn(maybeNewHHF);
+    if (newLoss < minLoss) {
+      bestHHF = maybeNewHHF;
+      minLoss = newLoss;
+    }
+  }
+  /*
+  console.error(`.95 = ${cdfNormalized(hhf3 * 0.95)}`);
+  console.error(`.90 = ${cdfNormalized(hhf3 * 0.9)}`);
+  console.error(`.85 = ${cdfNormalized(hhf3 * 0.85)}`);
+  console.error(`b.95 = ${cdfNormalized(bestHHF * 0.95)}`);
+  console.error(`b.90 = ${cdfNormalized(bestHHF * 0.9)}`);
+  console.error(`b.85 = ${cdfNormalized(bestHHF * 0.85)}`);
+  console.error(`wbl3 = ${hhf3}`);
+  console.error(`wbl3log10 = ${bestHHF}`);
+  */
   return bestHHF;
 };

@@ -1,7 +1,12 @@
 import assert from "assert";
 import test from "node:test";
 
-import { coTargetsFromKirt, log10TargetsHHF } from "../log10Targets";
+import {
+  coTargetsFromKirt,
+  coTargetsHFI,
+  log10TargetsHHF,
+  log10TargetsHHFWeibull,
+} from "../log10Targets";
 
 import runs from "./weibull.test.data.min.json";
 
@@ -40,5 +45,43 @@ test("log10Targets", () => {
       coTargetsFromKirt,
     ),
     74.66659999995574,
+  );
+});
+
+test.only("log10TargetsWeibull", () => {
+  assert.strictEqual(
+    log10TargetsHHF(
+      runs.prod["08-01"].map(hf => ({ hf })),
+      coTargetsHFI,
+    ),
+    4.212900000003006,
+  );
+  assert.strictEqual(
+    log10TargetsHHF(
+      runs.prod["08-01"].map(hf => ({ hf })),
+      [[0.03, 0.9]],
+    ),
+    4.147700000003158,
+  );
+  assert.strictEqual(
+    log10TargetsHHF(
+      runs.prod["08-01"].map(hf => ({ hf })),
+      coTargetsFromKirt,
+    ),
+    4.143800000003167,
+  );
+  assert.strictEqual(
+    log10TargetsHHFWeibull(
+      runs.prod["08-01"].map(hf => ({ hf })),
+      coTargetsFromKirt,
+    ),
+    4.619200000002059,
+  );
+  assert.strictEqual(
+    log10TargetsHHFWeibull(
+      runs.prod["08-01"].map(hf => ({ hf })),
+      [[0.03, 0.9]],
+    ),
+    4.619300000002059,
   );
 });
