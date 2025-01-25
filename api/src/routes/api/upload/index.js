@@ -120,10 +120,20 @@ const uploadRoutes = async fastify => {
     const recPercentClassification = calculateUSPSAClassification(
       recScores,
       "recPercent",
+      now,
+      "brutal+uncapped",
+      8,
+      4,
+      6,
     );
     const curPercentClassification = calculateUSPSAClassification(
       [...hydratedScores, ...otherDivisionsScores],
       "curPercent",
+      now,
+      "uspsa",
+      8,
+      4,
+      6,
     );
 
     return {
@@ -146,17 +156,6 @@ const uploadRoutes = async fastify => {
         .filter(s => s.division === "co")
         .map(({ hf, classifier }) => ({ hf, classifier })),
     };
-  });
-
-  fastify.get("/test/:memberNumber", async req => {
-    const { memberNumber } = req.params;
-    const scores = await scoresForRecommendedClassification([memberNumber]);
-    return calculateUSPSAClassification(scores, "recPercent");
-  });
-  fastify.get("/test2/:memberNumber", async req => {
-    const { memberNumber } = req.params;
-    const scores = await allDivisionsScores([memberNumber]);
-    return calculateUSPSAClassification(scores, "curPercent");
   });
 
   fastify.get("/searchMatches", async req => {
