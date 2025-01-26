@@ -122,18 +122,18 @@ const uploadRoutes = async fastify => {
       "recPercent",
       now,
       "brutal+uncapped",
-      8,
       4,
       6,
+      8,
     );
     const curPercentClassification = calculateUSPSAClassification(
       [...hydratedScores, ...otherDivisionsScores],
       "curPercent",
       now,
       "uspsa",
-      8,
       4,
       6,
+      8,
     );
 
     return {

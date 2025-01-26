@@ -316,9 +316,9 @@ export const calculateUSPSAClassification = (
   percentField: string,
   now: Date,
   mode: Mode,
-  recentWindowSize: number = 8, // number of most recent scores to consider
   minWindowSize: number = 4, // used for initial, less than that - no classification
   bestWindowSize: number = 6, // used for non-initial classifications, ideal window size when there are no dupes
+  recentWindowSize: number = 8, // number of most recent scores to consider
 ) => {
   const state = newClassificationCalculationState();
   if (!classifiers?.length) {
