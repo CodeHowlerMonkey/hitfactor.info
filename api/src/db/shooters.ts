@@ -362,18 +362,18 @@ const shooterObjectsForMemberNumber = (c, recMemberScores, curMemberScores) => {
     "curPercent",
     now,
     "uspsa",
-    8,
     4,
     6,
+    8,
   );
   const recalcByRecPercent = calculateUSPSAClassification(
     recMemberScores,
     "recPercent",
     now,
     "brutal",
-    10,
     4,
     6,
+    10,
   );
 
   return Object.values(
@@ -559,45 +559,45 @@ export const reclassifyShooters = async shooters => {
           "curPercent",
           now,
           "uspsa",
-          8,
           4,
           6,
+          8,
         );
         const recalcByRecHHFOnlyPercent = calculateUSPSAClassification(
           curMemberScores, // cur, not rec, to enable old D flag behavior
           "recPercent",
           now,
           "uspsa",
-          12,
           4,
-          8,
+          6,
+          10,
         );
         const recalcByRecPercentSoft = calculateUSPSAClassification(
           curMemberScores, // cur, not rec, to enable old D flag behavior
           "recPercent",
           now,
           "soft",
-          12,
           4,
-          8,
+          6,
+          10,
         );
         const recalcByRecPercent = calculateUSPSAClassification(
           recMemberScores,
           "recPercent",
           now,
           "brutal",
-          10,
           4,
           6,
+          10,
         );
         const recalcByRecPercentUncapped = calculateUSPSAClassification(
           recMemberScores,
           "recPercent",
           now,
           "brutal+uncapped",
-          10,
           4,
           6,
+          10,
         ); //9,4,6 got 104 gms with Kirt targets in CO
 
         const recalcDivCur = reclassificationBreakdown(recalcByCurPercent, division);
@@ -724,9 +724,9 @@ export const reclassificationForProgressMode = async (
         "curPercent",
         now,
         classificationMode,
-        8,
         4,
         6,
+        8,
       );
     }
 
@@ -740,9 +740,9 @@ export const reclassificationForProgressMode = async (
         "recPercent",
         now,
         classificationMode,
-        10,
         4,
-        8,
+        6,
+        10,
       );
     }
   }

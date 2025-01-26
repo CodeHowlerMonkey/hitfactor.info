@@ -821,9 +821,9 @@ test("calculateUSPSAClassification", () => {
     "percent",
     new Date(),
     "uspsa",
-    8,
     4,
     6,
+    8,
   );
   assert.strictEqual(Number(result.ltd.percent.toFixed(2)), 93.54);
   assert.strictEqual(Number(result.ltd.highPercent.toFixed(2)), 93.72);
@@ -845,9 +845,9 @@ test("calculateUSPSAClassification + percentField", () => {
     "curPercent",
     new Date(),
     "uspsa",
-    8,
     4,
     6,
+    8,
   );
   assert.strictEqual(Number(result.ltd.percent.toFixed(2)), 93.16);
   assert.strictEqual(Number(result.ltd.highPercent.toFixed(2)), 93.33);
@@ -869,6 +869,8 @@ test("calculateUSPSAClassification + percentField + ages", () => {
     "curPercent",
     new Date("4/20/2024"),
     "uspsa",
+    4,
+    6,
     8,
   );
   const longResult = calculateUSPSAClassification(
@@ -876,6 +878,8 @@ test("calculateUSPSAClassification + percentField + ages", () => {
     "curPercent",
     new Date("4/20/2028"),
     "uspsa",
+    4,
+    6,
     8,
   );
   assert.strictEqual(Number(result.ltd.age.toFixed(2)), 32.61);
@@ -895,6 +899,8 @@ test("calculateUSPSAClassification + percentField + age1 + only1classifier", () 
     "curPercent",
     new Date("4/20/2024"),
     "uspsa",
+    4,
+    6,
     8,
   );
   assert.strictEqual(Number(result.ltd.age?.toFixed(2)), NaN);
@@ -907,6 +913,8 @@ test("calculateUSPSAClassification + percentField + dates", () => {
     "curPercent",
     new Date(),
     "uspsa",
+    4,
+    6,
     8,
   );
   assert.deepEqual(result.co.percentWithDates, [
@@ -952,6 +960,8 @@ test("calculateUSPSAClassification CS should have curPercent", () => {
     "curPercent",
     new Date(),
     "uspsa",
+    4,
+    6,
     8,
   );
   assert.strictEqual(Number(result.co.percent.toFixed(2)), 97.55);
@@ -963,6 +973,8 @@ test("calculateUSPSAClassification CS should have curPercent in Open", () => {
     "curPercent",
     new Date(),
     "uspsa",
+    4,
+    6,
     8,
   );
   assert.strictEqual(Number(result.opn.percent.toFixed(2)), 100);
@@ -974,6 +986,8 @@ test("calculateUSPSAClassification CS should have higher uncapped curPercent in 
     "curPercent",
     new Date(),
     "uspsa+uncapped",
+    4,
+    6,
     8,
   );
   assert.strictEqual(Number(result.opn.percent.toFixed(2)), 100.91);
@@ -985,6 +999,8 @@ test("calculateUSPSAClassification CS should have higher different uncapped+weig
     "curPercent",
     new Date(),
     "uspsa+uncapped+weighted",
+    4,
+    6,
     8,
   );
   assert.strictEqual(Number(result.opn.percent.toFixed(2)), 100.3);
@@ -996,6 +1012,8 @@ test("calculateUSPSAClassification A111317 should have co", () => {
     "curPercent",
     new Date(),
     "uspsa",
+    4,
+    6,
     8,
   );
   assert.strictEqual(Number(result.co.percent.toFixed(2)), 72.6);
