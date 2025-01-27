@@ -597,8 +597,8 @@ export const reclassifyShooters = async shooters => {
           "brutal+uncapped",
           4,
           6,
-          12,
-        ); //9,4,6 got 104 gms with Kirt targets in CO
+          8,
+        );
 
         const recalcDivCur = reclassificationBreakdown(recalcByCurPercent, division);
         const recalcDivRecHHFOnly = reclassificationBreakdown(

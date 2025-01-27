@@ -593,7 +593,6 @@ const extraHHFsForProd = (allScoresRecHHF: number, runs: ScoreWithPercentile[]) 
   const prod15Runs = runs
     .filter(c => new Date(c.sd).getTime() >= PROD_15_EFFECTIVE_TS)
     .map(c => c.hf);
-  // TODO: use log10 if legit
   const { hhf3: prod10HHF } = solveWeibull(prod10Runs, 0, undefined, "neldermead");
   const { hhf3: prod15HHF } = solveWeibull(prod15Runs, 0, undefined, "neldermead");
   const prod1015HHF = Math.max(allScoresRecHHF, prod10HHF, prod15HHF);
@@ -649,10 +648,10 @@ const recHHFUpdate = (
     classifier,
     classifierDivision: [classifier, division].join(":"),
     curHHF,
-    recHHF: wbl3HHF, //log10HHFKirt, //wbl3HHF,
+    recHHF: wbl3HHF,
     log10HHFKirt,
     log10HHFOld,
-    ...(division === "prod" ? extraHHFsForProd(wbl5HHF, runs) : {}),
+    ...(division === "prod" ? extraHHFsForProd(wbl3HHF, runs) : {}),
     rec1HHF,
     rec5HHF,
     rec15HHF,
