@@ -570,7 +570,7 @@ export const reclassifyShooters = async shooters => {
           "uspsa",
           4,
           6,
-          10,
+          8,
         );
         const recalcByRecPercentSoft = calculateUSPSAClassification(
           curMemberScores, // cur, not rec, to enable old D flag behavior
@@ -579,7 +579,7 @@ export const reclassifyShooters = async shooters => {
           "soft",
           4,
           6,
-          10,
+          8,
         );
         const recalcByRecPercent = calculateUSPSAClassification(
           recMemberScores,
@@ -588,7 +588,7 @@ export const reclassifyShooters = async shooters => {
           "brutal",
           4,
           6,
-          10,
+          8,
         );
         const recalcByRecPercentUncapped = calculateUSPSAClassification(
           recMemberScores,
@@ -597,7 +597,7 @@ export const reclassifyShooters = async shooters => {
           "brutal+uncapped",
           4,
           6,
-          10,
+          12,
         ); //9,4,6 got 104 gms with Kirt targets in CO
 
         const recalcDivCur = reclassificationBreakdown(recalcByCurPercent, division);
