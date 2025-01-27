@@ -8,15 +8,16 @@ import { keepPreviousData, useApi } from "../../utils/client";
 import { Line } from "./common";
 
 const modesMap = {
-  Recommended: "recPercent",
   "Cur. HHF": "curPercent",
+  Recommended: "recPercent",
+  Uncapped: "brutal+uncapped",
 };
 const modeBucketForMode = mode => modesMap[mode];
 const modes = Object.keys(modesMap);
 
 export const ShooterProgressChart = ({ division, memberNumber }) => {
   const isHFU = sportForDivision(division) === "hfu";
-  const [mode, setMode] = useState(modes[0]);
+  const [mode, setMode] = useState(modes[2]);
   const { json: data, loading } = useApi(
     `/shooters/${division}/${memberNumber}/chart/progress/${modeBucketForMode(mode)}`,
     { placeholderData: keepPreviousData },
@@ -38,6 +39,10 @@ export const ShooterProgressChart = ({ division, memberNumber }) => {
           responsive: true,
           maintainAspectRatio: false,
           scales: {
+            y: {
+              max: 100,
+              min: 40,
+            },
             x: {
               type: "time",
               min: "auto",
@@ -56,6 +61,18 @@ export const ShooterProgressChart = ({ division, memberNumber }) => {
             },
           },
           plugins: {
+            zoom: {
+              pan: { enabled: true },
+              zoom: {
+                mode: "xy",
+                wheel: {
+                  enabled: true,
+                },
+                pinch: {
+                  enabled: true,
+                },
+              },
+            },
             tooltip: {
               callbacks: {
                 label: ({ raw: { y } }) => `${y}%`,

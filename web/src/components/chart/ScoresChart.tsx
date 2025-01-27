@@ -454,7 +454,7 @@ export const ScoresChart = ({ division, classifier, hhf, recHHF, totalScores }) 
         )}
         {sport === "uspsa" && (
           <div
-            style={{ top: 0, left: 0 }}
+            style={{ top: -48, left: 0 }}
             className="absolute z-1 flex flex-column justify-content-start align-items-center gap-2 pointer-events-none"
           >
             <div className="flex flex-column-reverse gap-2 justify-content-center align-items-center">
