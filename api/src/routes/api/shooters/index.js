@@ -10,9 +10,18 @@ import {
   textSearchMatch,
 } from "../../../db/utils";
 
-const DEFAULT_PLACE_BY = "reclassificationsRecPercentCurrent";
+const DEFAULT_PLACE_BY = "reclassificationsRecPercentUncappedCurrent";
 const placeByFieldForSort = sort => {
-  if (sort && ["current", "reclassificationsCurPercentCurrent"].includes(sort)) {
+  if (
+    sort &&
+    [
+      "current",
+      "reclassificationsCurPercentCurrent",
+      "reclassificationsRecHHFOnlyPercentCurrent",
+      "reclassificationsRecPercentCurrent",
+      "reclassificationsSoftPercentCurrent",
+    ].includes(sort)
+  ) {
     return sort;
   }
 

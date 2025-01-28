@@ -42,7 +42,7 @@ export const useShootersTableData = ({ division, inconsistencies, classFilter })
   const { query, resetSort, ...sortProps } = useTableSort({
     mode: "multiple",
     onSortCallback: () => resetPage(),
-    initial: [{ field: "reclassificationsRecPercentCurrent", order: -1 }],
+    initial: [{ field: "reclassificationsRecPercentUncappedCurrent", order: -1 }],
   });
   const isHFU = useIsHFU(division);
   useEffect(() => resetSort(), [isHFU]); // eslint-disable-line react-hooks/exhaustive-deps

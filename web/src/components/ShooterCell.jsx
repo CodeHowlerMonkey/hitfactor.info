@@ -43,7 +43,7 @@ export const ShooterCell = ({ data, onClick, sport }) => (
       <div className="max-w-max">
         <ClassTag
           value={data?.recClass ?? "?"}
-          tooltip={`Recommended: ${data?.reclassificationsRecPercentCurrent?.toFixed(
+          tooltip={`Recommended: ${data?.reclassificationsRecPercentUncappedCurrent?.toFixed(
             2,
           )}%`}
         />
