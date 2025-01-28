@@ -68,14 +68,17 @@ export interface GraphPoint {
   y: number;
 }
 
-export const closestYForX = (targetX: number, dataRaw: GraphPoint[]): number => {
+export const closestYForX = (
+  targetX: number,
+  dataRaw: GraphPoint[],
+): [number, number] => {
   if (!dataRaw?.length) {
-    return -1;
+    return [-1, -1];
   }
 
-  const perfect = dataRaw.find(c => fuzzyEqual(targetX, c.x, 0.001));
-  if (perfect) {
-    return perfect.y;
+  const perfectIndex = dataRaw.findIndex(c => fuzzyEqual(targetX, c.x, 0.001));
+  if (perfectIndex >= 0) {
+    return [dataRaw[perfectIndex].y, dataRaw.length - perfectIndex];
   }
 
   const data = dataRaw.toSorted((a, b) => a.x - b.x);
@@ -90,7 +93,7 @@ export const closestYForX = (targetX: number, dataRaw: GraphPoint[]): number => 
   }
 
   if (lowIndex < 0) {
-    return -1;
+    return [-1, -1];
   }
 
   const lowPoint = data[lowIndex];
@@ -98,12 +101,12 @@ export const closestYForX = (targetX: number, dataRaw: GraphPoint[]): number => 
   const startPoint = data[lowIndex + indexOffset];
 
   if (highPoint.x === lowPoint.x) {
-    return lowPoint.y;
+    return [lowPoint.y, data.length - lowIndex];
   }
 
   const k = (highPoint.y - lowPoint.y) / (highPoint.x - lowPoint.x);
   const result = startPoint.y + k * (targetX - startPoint.x);
-  return result;
+  return [result, data.length - lowIndex];
 };
 
 /** Generates a dataset of points, with X within [minX, maxX] and y

@@ -123,7 +123,7 @@ export const ShootersELODistributionChart = ({
   }, [division, data, xMode, yMode, isVersus]);
 
   const percentiles = useMemo(
-    () => eloClasses.map(c => closestYForX(c, curModeData)),
+    () => eloClasses.map(c => closestYForX(c, curModeData)[0]),
     [curModeData],
   );
 

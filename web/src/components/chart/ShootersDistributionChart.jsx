@@ -138,8 +138,8 @@ export const ShootersDistributionChart = ({ division, style }) => {
                 {},
                 ...percentiles.map((perc, i) =>
                   yLine(
-                    `Top ${perc?.toFixed(2)}% = ${["GM", "M", "A", "B", "C"][i]}`,
-                    perc,
+                    `Top ${perc[0]?.toFixed(2)}% (${perc[1]}) = ${["GM", "M", "A", "B", "C"][i]}`,
+                    perc[0],
                     annotationColor(0.75),
                   ),
                 ),

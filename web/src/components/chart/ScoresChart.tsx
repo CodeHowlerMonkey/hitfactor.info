@@ -107,7 +107,7 @@ const closestPercentileForHF = (hf: number, data: AdvancedScorePoint[]) =>
   closestYForX(
     hf,
     data.map(c => ({ ...c, x: c.hf })),
-  );
+  )[0];
 
 const xLinesForHHF = (prefix: string, hhf: number) =>
   hhf <= 0
