@@ -147,10 +147,8 @@ const shootersRoutes = async fastify => {
 
   fastify.get("/:division/chart", async req => {
     const { division } = req.params;
-    const sport = sportForDivision(division);
     const shootersTable = await Shooters.find({
       division,
-      ...(sport !== "hfu" ? { current: { $gt: 0 } } : {}),
       reclassificationsRecPercentCurrent: { $gt: 0 },
     })
       .select([
