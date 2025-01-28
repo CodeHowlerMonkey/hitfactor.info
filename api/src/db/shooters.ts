@@ -577,27 +577,27 @@ export const reclassifyShooters = async shooters => {
           "recPercent",
           now,
           "soft",
-          4,
           6,
-          8,
+          6,
+          12,
         );
         const recalcByRecPercent = calculateUSPSAClassification(
           recMemberScores,
           "recPercent",
           now,
           "brutal",
-          4,
           6,
-          8,
+          6,
+          12,
         );
         const recalcByRecPercentUncapped = calculateUSPSAClassification(
           recMemberScores,
           "recPercent",
           now,
           "brutal+uncapped",
-          4,
           6,
-          8,
+          6,
+          12,
         );
 
         const recalcDivCur = reclassificationBreakdown(recalcByCurPercent, division);
