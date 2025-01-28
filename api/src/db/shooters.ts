@@ -740,9 +740,9 @@ export const reclassificationForProgressMode = async (
         "recPercent",
         now,
         classificationMode,
-        4,
         6,
-        10,
+        6,
+        12,
       );
     }
   }
