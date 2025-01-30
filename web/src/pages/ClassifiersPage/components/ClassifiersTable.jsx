@@ -18,8 +18,6 @@ import { letterRatingForPercent, renderPercent } from "../../../components/Table
 import useTableSort from "../../../components/Table/useTableSort";
 import { useApi } from "../../../utils/client";
 
-const weibullIsBetter = true;
-
 //isSCSA ? 2 : 4
 //isSCSA ? 's' : 0
 const numFieldsDiff =
@@ -271,22 +269,6 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
         body={c => c.wbl5HHF.toFixed(4)}
       />
       <Column
-        hidden={!nerdMode}
-        field="log10HHFOld"
-        header="Log10. HHF Old"
-        sortable
-        style={{ width: "100px", textAlign: "right" }}
-        body={c => c.log10HHFOld.toFixed(4)}
-      />
-      <Column
-        hidden={!nerdMode}
-        field="log10HHFKirt"
-        header="Log10. HHF Kirt"
-        sortable
-        style={{ width: "100px", textAlign: "right" }}
-        body={c => c.recHHF.toFixed(4)}
-      />
-      <Column
         hidden={!prod1015Mode}
         field="prod10HHF"
         header="Prod10 RHHF"
@@ -301,29 +283,6 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
         sortable
         style={{ width: "100px", textAlign: "right" }}
         body={c => (c.prod15HHF ? c.prod15HHF.toFixed(4) : "N/A")}
-      />
-      <Column
-        hidden={weibullIsBetter}
-        field="oldRecHHF"
-        header="Old RHHF"
-        sortable
-        style={{ width: "100px", textAlign: "right" }}
-        body={c =>
-          c[recHHFFieldForDivisionAndClassifier(division, c.classifier)].toFixed(4)
-        }
-      />
-      <Column
-        hidden={weibullIsBetter}
-        field="recHHFChange"
-        header="𝚫RHHF"
-        sortable
-        style={{ width: "100px", textAlign: "right" }}
-        body={c =>
-          doubleFieldDiff(
-            "recHHF",
-            recHHFFieldForDivisionAndClassifier(division, c.classifier),
-          )(c)
-        }
       />
       <Column
         field="curHHF"

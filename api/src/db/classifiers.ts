@@ -246,11 +246,6 @@ ClassifierSchema.virtual("recHHFs", {
 [
   "curHHF",
   "recHHF",
-  "rec1HHF",
-  "rec5HHF",
-  "rec15HHF",
-  "log10HHFKirt",
-  "log10HHFOld",
   "wbl1HHF",
   "wbl5HHF",
   "wbl15HHF",
