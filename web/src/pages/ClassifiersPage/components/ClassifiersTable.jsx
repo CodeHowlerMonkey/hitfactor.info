@@ -81,6 +81,7 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
   const [filter, setFilter] = useState("");
   const [nerdMode, setNerdMode] = useState(false);
   const [prod1015Mode, setProd1015Mode] = useState(false);
+  const [locoMode, setLOCOMode] = useState(false);
   const sortState = sortProps;
 
   const { json: dataRaw, loading } = useApi(`/classifiers/${division ?? ""}`);
@@ -159,6 +160,13 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
                     onChange={e => setProd1015Mode(e.checked)}
                     checked={prod1015Mode}
                   />
+                </>
+              )}
+              {division === "lo" && (
+                <>
+                  <div className="ml-8" />
+                  LO vs CO
+                  <Checkbox onChange={e => setLOCOMode(e.checked)} checked={locoMode} />
                 </>
               )}
             </div>
@@ -283,6 +291,22 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
         sortable
         style={{ width: "100px", textAlign: "right" }}
         body={c => (c.prod15HHF ? c.prod15HHF.toFixed(4) : "N/A")}
+      />
+      <Column
+        hidden={!locoMode}
+        field="loHHF"
+        header="LO RHHF"
+        sortable
+        style={{ width: "100px", textAlign: "right" }}
+        body={c => (c.loHHF ? c.loHHF.toFixed(4) : "N/A")}
+      />
+      <Column
+        hidden={!locoMode}
+        field="coHHF"
+        header="CO RHHF"
+        sortable
+        style={{ width: "100px", textAlign: "right" }}
+        body={c => (c.coHHF ? c.coHHF.toFixed(4) : "N/A")}
       />
       <Column
         field="curHHF"
