@@ -51,7 +51,6 @@ export interface Classifier {
 interface ClassifierVirtuals {
   recHHFs: RecHHF;
   quality: number;
-  hqQuality: number;
 
   // new cc virtuals
   superMeanSquaredError: number;
@@ -166,10 +165,10 @@ const extendedInfoForClassifier = (
     ),
     runs: hitFactorScores.length,
     prod10Runs: hitFactorScores.filter(
-      c => new Date(c.sd).getTime() < PROD_15_EFFECTIVE_TS,
+      curScore => new Date(curScore.sd).getTime() < PROD_15_EFFECTIVE_TS,
     ).length,
     prod15Runs: hitFactorScores.filter(
-      c => new Date(c.sd).getTime() >= PROD_15_EFFECTIVE_TS,
+      curScore => new Date(curScore.sd).getTime() >= PROD_15_EFFECTIVE_TS,
     ).length,
     top10CurPercentAvg:
       hitFactorScores
@@ -279,6 +278,7 @@ ClassifierSchema.virtual("ccQuality").get(function () {
   );
 });
 
+// TODO: remove, only used by SCSA
 ClassifierSchema.virtual("quality").get(function () {
   return (
     scoresCountOffset(this.runs) +
@@ -289,20 +289,6 @@ ClassifierSchema.virtual("quality").get(function () {
           1.0 * Math.abs(15 - this.inverse75RecPercentPercentile) +
           0.5 * Math.abs(45 - this.inverse60RecPercentPercentile) +
           0.3 * Math.abs(85 - this.inverse40RecPercentPercentile)),
-      WORST_QUALITY_DISTANCE_FROM_TARGET,
-    )
-  );
-});
-ClassifierSchema.virtual("hqQuality").get(function () {
-  return (
-    scoresCountOffset(this.runs) +
-    Percent(
-      WORST_QUALITY_DISTANCE_FROM_TARGET -
-        (10.0 * Math.abs(1 - this.inverse95CurPercentPercentile) +
-          4.0 * Math.abs(5 - this.inverse85CurPercentPercentile) +
-          1.0 * Math.abs(15 - this.inverse75CurPercentPercentile) +
-          0.5 * Math.abs(45 - this.inverse60CurPercentPercentile) +
-          0.3 * Math.abs(85 - this.inverse40CurPercentPercentile)),
       WORST_QUALITY_DISTANCE_FROM_TARGET,
     )
   );
