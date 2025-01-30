@@ -1,7 +1,6 @@
 import { classForPercent } from "../../../../../shared/utils/classification";
 import { multisort, safeNumSort } from "../../../../../shared/utils/sort";
 import { basicInfoForClassifierCode } from "../../../dataUtil/classifiersData";
-import { sportForDivision } from "../../../dataUtil/divisions";
 import { scoresForDivisionForShooter, shooterScoresChartData } from "../../../db/scores";
 import { Shooters, reclassificationForProgressMode } from "../../../db/shooters";
 import {

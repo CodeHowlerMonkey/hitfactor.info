@@ -141,7 +141,7 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
       style={{ width: "fit-content", margin: "auto" }}
       loading={loading}
       showGridlines
-      rowClassName={data => cx({ "opacity-30": data.allDivQuality < 59 })}
+      rowClassName={rowData => cx({ "opacity-30": rowData.allDivQuality < 59 })}
       selectionMode="single"
       selection={null}
       onSelectionChange={({ value }) => onClassifierSelection(value.code)}
