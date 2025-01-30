@@ -10,9 +10,6 @@ export const ClassifierInfoTable = ({
   classifier,
   hhf,
   recHHF,
-  recommendedHHF1,
-  recommendedHHF5,
-  recommendedHHF15,
   curHHF,
   ...info
 }) => (
@@ -66,37 +63,6 @@ export const ClassifierInfoTable = ({
                       hhf: recHHF.toFixed(4),
                     },
                   ]),
-              ...(recHHF || recommendedHHF1 <= 0
-                ? []
-                : [
-                    {
-                      label: "r1HHF",
-                      tooltip:
-                        "Recommended HHF based on calibration around distribution of GM-shooters in the division (should be around 1% of the shooters)",
-                      hhf: recommendedHHF1,
-                    },
-                  ]),
-              ...(recHHF || recommendedHHF5 <= 0
-                ? []
-                : [
-                    {
-                      label: "r5HHF",
-                      tooltip:
-                        "Recommended HHF based on calibration around distribution of M-shooters in the division (should be around 5% of the shooters)",
-                      hhf: recommendedHHF5,
-                    },
-                  ]),
-              // TODO: #23 remove check after proper fix
-              ...(recHHF || recommendedHHF15 <= 0
-                ? []
-                : [
-                    {
-                      label: "r15HHF",
-                      tooltip:
-                        "Recommended HHF based on calibration around distribution of A-shooters in the division (should be around 15% of the shooters)",
-                      hhf: recommendedHHF15,
-                    },
-                  ]),
             ]}
           >
             <Column field="hhf" />
@@ -141,9 +107,6 @@ export const ClassifierInfoTable = ({
           classifier={classifier}
           hhf={hhf}
           recHHF={recHHF}
-          recommendedHHF1={recommendedHHF1}
-          recommendedHHF5={recommendedHHF5}
-          recommendedHHF15={recommendedHHF15}
         />
       </div>
     </div>
