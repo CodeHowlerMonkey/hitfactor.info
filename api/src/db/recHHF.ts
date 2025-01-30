@@ -102,6 +102,11 @@ export interface RecHHF {
   // Prod 10 vs 15 extras
   prod10HHF?: number;
   prod15HHF?: number;
+
+  // LO: LOCO vs LO vs CO extras
+  loHHF?: number;
+  locoHHF?: number;
+  coHHF?: number;
 }
 
 const RecHHFSchema = new mongoose.Schema<RecHHF>({
@@ -129,6 +134,11 @@ const RecHHFSchema = new mongoose.Schema<RecHHF>({
   prod10HHF: Number,
   prod15HHF: Number,
 
+  // LO: LOCO vs LO vs CO extras
+  loHHF: Number,
+  locoHHF: Number,
+  coHHF: Number,
+
   classifierDivision: String,
 });
 
@@ -152,6 +162,20 @@ const extraHHFsForProd = (allScoresRecHHF: number, runs: ScoreWithPercentile[]) 
     recHHF: prod1015HHF,
     prod10HHF,
     prod15HHF,
+  };
+};
+
+const extraHHFsForLO = (locoHHF: number, locoRuns: ScoreWithPercentile[]) => {
+  const loHFs = locoRuns.filter(c => c.division === "lo").map(c => c.hf);
+  const coHFs = locoRuns.filter(c => c.division === "co").map(c => c.hf);
+  const { hhf3: loHHF } = solveWeibull(loHFs, 0, undefined, "neldermead");
+  const { hhf3: coHHF } = solveWeibull(coHFs, 0, undefined, "neldermead");
+
+  return {
+    recHHF: Math.max(locoHHF, loHHF, coHHF),
+    locoHHF,
+    loHHF,
+    coHHF,
   };
 };
 
@@ -195,6 +219,7 @@ const recHHFUpdate = (
     curHHF,
     recHHF: wbl3HHF,
     ...(division === "prod" ? extraHHFsForProd(wbl3HHF, runs) : {}),
+    ...(division === "lo" ? extraHHFsForLO(wbl3HHF, runs) : {}),
 
     k,
     lambda,

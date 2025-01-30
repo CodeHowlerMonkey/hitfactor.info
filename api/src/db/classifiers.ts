@@ -260,6 +260,9 @@ ClassifierSchema.virtual("recHHFs", {
   "maxError",
   "prod10HHF",
   "prod15HHF",
+  "locoHHF",
+  "loHHF",
+  "coHHF",
 ].map(fieldName =>
   ClassifierSchema.virtual(fieldName).get(function () {
     return this.recHHFs?.[fieldName];
