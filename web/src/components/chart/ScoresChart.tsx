@@ -208,8 +208,6 @@ const dataForModes = (
   return filterXYForModes(withXY, xMode, yMode);
 };
 
-// TODO: different modes for class xLines (95/85/75-hhf, A-centric, 1/5/15/40/75-percentile, etc)
-// TODO: maybe different options / scale depending on viewport size and desktop/tablet/mobile
 // TODO: all vs current search mode
 export const ScoresChart = ({ division, classifier, hhf, recHHF, totalScores }) => {
   const windowWidth = useWindowWidth({ wait: 400 });
