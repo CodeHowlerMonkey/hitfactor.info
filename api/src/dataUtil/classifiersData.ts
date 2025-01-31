@@ -1,4 +1,3 @@
-import classifierInfoJSON from "../../../data/classifiers/classifier_info.json";
 import classifiersJSON from "../../../data/classifiers/classifiers.json";
 import { HHFJSON } from "../../../data/types/USPSA";
 
@@ -18,15 +17,6 @@ export interface ClassifierBasicInfo extends ClassifierJSON {
 
 export const classifiers: ClassifierJSON[] =
   classifiersJSON.classifiers as ClassifierJSON[];
-
-export const classifierRoundCount: Record<string, number> =
-  classifierInfoJSON.stage.reduce((acc, c) => {
-    if (!c.round_count) {
-      throw new Error(`classifier_info missing round count for ${c.number}`);
-    }
-    acc[c.number] = c.round_count;
-    return acc;
-  }, {});
 
 export const classifiersByNumber: Record<string, ClassifierJSON> = classifiers.reduce(
   (acc, cur) => {

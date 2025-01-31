@@ -495,7 +495,7 @@ test("percentAndAgesForDivWindow", () => {
   );
 });
 
-test("percentAndAgesForDivWindow w/ weighted by round count", () => {
+test("percentAndAgesForDivWindow again", () => {
   const state = newClassificationCalculationState();
   assert.strictEqual(
     percentAndAgesForDivWindow("ss", state, "percent", new Date(), "uspsa").percent,
@@ -516,33 +516,13 @@ test("percentAndAgesForDivWindow w/ weighted by round count", () => {
     85,
   );
   assert.strictEqual(
-    percentAndAgesForDivWindow("ss", state, "percent", new Date(), "uspsa+weighted")
-      .percent,
-    77,
-  );
-  assert.strictEqual(
     percentAndAgesForDivWindow("ss", state, "recPercent", new Date(), "brutal").percent,
     95,
-  );
-  assert.strictEqual(
-    percentAndAgesForDivWindow("ss", state, "recPercent", new Date(), "brutal+weighted")
-      .percent,
-    91,
   );
   assert.strictEqual(
     percentAndAgesForDivWindow("ss", state, "recPercent", new Date(), "brutal+uncapped")
       .percent,
     105,
-  );
-  assert.strictEqual(
-    percentAndAgesForDivWindow(
-      "ss",
-      state,
-      "recPercent",
-      new Date(),
-      "brutal+uncapped+weighted",
-    ).percent,
-    97,
   );
 });
 
@@ -991,19 +971,6 @@ test("calculateUSPSAClassification CS should have higher uncapped curPercent in 
     8,
   );
   assert.strictEqual(Number(result.opn.percent.toFixed(2)), 100.91);
-});
-
-test("calculateUSPSAClassification CS should have higher different uncapped+weighted curPercent in Open", () => {
-  const result = calculateUSPSAClassification(
-    csOpenClassifiers,
-    "curPercent",
-    new Date(),
-    "uspsa+uncapped+weighted",
-    4,
-    6,
-    8,
-  );
-  assert.strictEqual(Number(result.opn.percent.toFixed(2)), 100.3);
 });
 
 test("calculateUSPSAClassification A111317 should have co", () => {
