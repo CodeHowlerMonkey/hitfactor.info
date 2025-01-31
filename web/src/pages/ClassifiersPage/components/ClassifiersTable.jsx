@@ -5,8 +5,6 @@ import { DataTable } from "primereact/datatable";
 import { InputText } from "primereact/inputtext";
 import { useState } from "react";
 
-import { killList } from "../../../../../data/classifiers/kill";
-import { recHHFFieldForDivisionAndClassifier } from "../../../../../shared/constants/preWeibullHHFs";
 import {
   classifierCodeSort,
   dateSort,
@@ -42,7 +40,7 @@ const numFieldsDiff =
     );
   };
 
-const doubleFieldDiff =
+export const doubleFieldDiff =
   (b, a, precision = 4, suffix = "", boldFn = () => false) =>
   c => {
     const { [a]: ca, [b]: cb } = c;
@@ -110,24 +108,6 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
     .filter(cur => {
       if (!filter) {
         return true;
-      }
-      const {
-        meanAbsoluteError: mae,
-        meanSquaredError: mse,
-        superMeanSquaredError: smse,
-        runs,
-      } = cur;
-      const kill = runs >= 600 && smse >= 20;
-      const killAll = killList.map(c => c.split(" ")[0]).includes(cur.code);
-
-      if (filter === "killAll") {
-        return killAll;
-      } else if (filter === "saveAll") {
-        return !killAll;
-      } else if (filter === "kill") {
-        return kill;
-      } else if (filter === "save") {
-        return !kill;
       }
 
       return `${cur.code}###${cur.name}`.toLowerCase().includes(filter.toLowerCase());
