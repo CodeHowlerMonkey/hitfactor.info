@@ -33,6 +33,7 @@ const searchMatches = async q => {
         state: h.front_club_state,
         name: h.match_name,
         uuid: h.match_id,
+        templateName: h.templateName,
       }))
       .sort((a, b) => b.id - a.id);
   } catch (err) {
@@ -163,7 +164,9 @@ const uploadRoutes = async fastify => {
     const algoliaMatches = await searchMatches(q);
     const uuids = algoliaMatches.map(m => m.uuid);
 
-    const foundMatches = await Matches.find({ uuid: { $in: uuids } });
+    const foundMatches = await Matches.find({ uuid: { $in: uuids } }).populate(
+      "scoresCount",
+    );
     const foundMatchesByUUID = foundMatches.reduce((acc, curFoundMatch) => {
       acc[curFoundMatch.uuid] = curFoundMatch;
       return acc;
@@ -171,10 +174,12 @@ const uploadRoutes = async fastify => {
 
     return algoliaMatches.map(m => {
       const foundMatch = foundMatchesByUUID[m?.uuid] || {};
+      m.scoresCount = foundMatch.scoresCount || 0;
+      m.updated = foundMatch.updated || m.updated;
       m.uploaded = foundMatch.uploaded;
       m.type = foundMatch.type;
-      m.subType = foundMatch.subType;
-      m.templateName = foundMatch.templateName;
+      m.subType = foundMatch.subType || m.subType;
+      m.templateName = foundMatch.templateName || m.templateName;
 
       if (foundMatch.uploaded) {
         m.eta = 0;

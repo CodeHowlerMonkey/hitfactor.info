@@ -108,7 +108,7 @@ const config = [
     path: "/clubs",
   },*/
   {
-    label: "Upload",
+    label: "Uploads",
     icon: "pi pi-upload",
     path: "/upload",
   },
