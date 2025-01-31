@@ -1,10 +1,6 @@
 import uniqBy from "lodash.uniqby";
 import { v4 as randomUUID } from "uuid";
 
-import {
-  classifierRoundCount,
-  normalizeClassifierCode,
-} from "../../api/src/dataUtil/classifiersData";
 import { allDivShortNames, mapAllDivisions } from "../../api/src/dataUtil/divisions";
 
 import { dateSort, numSort } from "./sort";
@@ -38,16 +34,11 @@ type ModeBrutal = "brutal";
  */
 type ModeSoft = "soft";
 
-type WeightedByRoundCount = /*"allEqual" |*/ "weighted";
-
 // capped (default) = scores higher than 100% count as 100
 // uncapped = scores higher than 100% count up to 120%
 // default is capped
 type ScoreLimitMode = /*"capped" |*/ "uncapped";
-type ScoreMode =
-  | ScoreLimitMode
-  | WeightedByRoundCount
-  | `${ScoreLimitMode}+${WeightedByRoundCount}`;
+type ScoreMode = ScoreLimitMode;
 
 type AlgorithmMode = ModeUSPSA | ModeSoft | ModeBrutal;
 
@@ -241,25 +232,10 @@ export const percentAndAgesForDivWindow = (
   const fFlagsApplied = dFlagsApplied
     .toSorted((a, b) => numSort(a, b, percentField, -1))
     .slice(0, newLength);
-  const useWeight = mode.includes("weighted");
   const percent = fFlagsApplied.reduce((acc, curValue, curIndex, allInWindow) => {
     const total = allInWindow.length;
-    const totalRoundCount = !useWeight
-      ? 0
-      : allInWindow.reduce((a, c) => {
-          const curRoundCount =
-            classifierRoundCount[normalizeClassifierCode(c.classifier)];
-          if (!curRoundCount) {
-            console.error(`No rounds count for ${c.classifier}`);
-          }
-          return a + curRoundCount;
-        }, 0);
     const curScorePercent = Math.min(percentCap, curValue[percentField]);
-    const curContribution = !useWeight
-      ? curScorePercent / total
-      : (curScorePercent *
-          classifierRoundCount[normalizeClassifierCode(curValue.classifier)]) /
-        totalRoundCount;
+    const curContribution = curScorePercent / total;
     return acc + curContribution;
   }, 0);
 
@@ -339,18 +315,7 @@ export const calculateUSPSAClassification = (
       classifier: c.source === "Major Match" ? randomUUID() : c.classifier,
       curPercent: c.source === "Major Match" ? c.percent : c.curPercent,
     }))
-    .filter(c => {
-      // don't use majors and unknown classifier codes in weighted mode for classification
-      // (we don't have round count for that, but even if we did it would make
-      // majors dictate the whole thing)
-      if (
-        mode.includes("weighted") &&
-        !classifierRoundCount[normalizeClassifierCode(c.classifier)]
-      ) {
-        return false;
-      }
-      return c[percentField] >= 0;
-    });
+    .filter(c => c[percentField] >= 0);
 
   const scoringFunction = c => {
     if (!canBeInserted(c, state, percentField, mode)) {
