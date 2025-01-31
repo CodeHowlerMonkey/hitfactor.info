@@ -57,6 +57,12 @@ MatchesSchema.index({ fetched: 1, uploaded: 1 });
 MatchesSchema.index({ updated: 1, uploaded: 1 });
 MatchesSchema.index({ updated: 1 });
 MatchesSchema.index({ fetched: 1 });
+MatchesSchema.virtual("scoresCount", {
+  ref: "Scores",
+  localField: "uuid",
+  foreignField: "upload",
+  count: true,
+});
 export const Matches = mongoose.model("Matches", MatchesSchema);
 
 const MATCHES_PER_FETCH = 1000;
