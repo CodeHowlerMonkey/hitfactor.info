@@ -241,6 +241,15 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
         bodyStyle={{ textAlign: "center" }}
       />
       <Column
+        hidden={!nerdMode}
+        field="eloRuns"
+        header="ELO Scores"
+        headerTooltip="Scores by shooters that have ELO rating"
+        sortable
+        style={{ width: "100px" }}
+        bodyStyle={{ textAlign: "center" }}
+      />
+      <Column
         hidden={nerdMode}
         field="recHHF"
         header="Rec. HHF"

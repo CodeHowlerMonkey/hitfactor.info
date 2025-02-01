@@ -44,6 +44,7 @@ export interface Classifier {
   inverse40CurPercentPercentile: number;
 
   // new cc fields
+  eloRuns: number;
   eloCorrelation: number;
   classificationCorrelation: number;
 }
@@ -214,6 +215,7 @@ const ClassifierSchema = new mongoose.Schema<
     inverse40CurPercentPercentile: Number,
 
     // new cc fields
+    eloRuns: Number,
     eloCorrelation: Number,
     classificationCorrelation: Number,
   },
@@ -369,6 +371,7 @@ export const singleClassifierExtendedMetaDoc = async (
     division,
     ...basicInfo,
     ...extendedInfoForClassifier(c, division, hitFactorScores),
+    eloRuns: eloCorrelationScores.length,
     recHHF,
     ...inverseRecPercentileStats(100),
     ...inverseRecPercentileStats(95),
