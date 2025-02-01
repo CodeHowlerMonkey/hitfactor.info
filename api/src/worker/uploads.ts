@@ -406,7 +406,7 @@ export const uspsaOrHitFactorMatchInfo = async matchInfo => {
 
   const { match_scores } = scoresJson;
   // [stageUUID][shooterUUID]= { ...scoresInfo}
-  const stageScoresMap = match_scores.reduce((acc, cur) => {
+  const stageScoresMap = (match_scores || []).reduce((acc, cur) => {
     const curStage = acc[cur.stage_uuid] || {};
     cur.stage_stagescores.forEach(cs => {
       curStage[cs.shtr] = cs;
