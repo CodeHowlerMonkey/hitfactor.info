@@ -1,8 +1,19 @@
+import uniqBy from "lodash.uniqby";
+
+import { classificationDifficulty } from "../../../../../shared/constants/difficulty";
+import { calculateUSPSAClassification } from "../../../../../shared/utils/classification";
 import { classForPercent } from "../../../../../shared/utils/classification";
 import { multisort, safeNumSort } from "../../../../../shared/utils/sort";
 import { basicInfoForClassifierCode } from "../../../dataUtil/classifiersData";
+import { RecHHFs } from "../../../db/recHHF";
 import { scoresForDivisionForShooter, shooterScoresChartData } from "../../../db/scores";
-import { Shooters, reclassificationForProgressMode } from "../../../db/shooters";
+import {
+  Shooters,
+  allDivisionsScores,
+  dedupeGrandbagging,
+  reclassificationForProgressMode,
+  scoresForRecommendedClassification,
+} from "../../../db/shooters";
 import {
   addPlaceAndPercentileAggregation,
   multiSortAndPaginate,
@@ -211,6 +222,94 @@ const shootersRoutes = async fastify => {
         ...c,
         recPercentPercentile: (100 * i) / (all.length - 1),
       }));
+  });
+  fastify.post("/whatif", async req => {
+    const { scores, division, memberNumber } = req.body;
+    const now = new Date();
+
+    const lookupHHFs = uniqBy(
+      scores
+        .filter(s => s.hf && s.classifier && s.source !== "Major Match")
+        .map(s => {
+          if (s.classifier) {
+            s.classifierDivision = [s.classifier, division].join(":");
+          }
+          return s;
+        }),
+      s => s.classifierDivision,
+    ).map(s => s.classifierDivision);
+    const recHHFs = await RecHHFs.find({
+      classifierDivision: { $in: lookupHHFs },
+    }).lean();
+    const recHHFsMap = recHHFs.reduce((acc, cur) => {
+      acc[cur.classifierDivision] = cur;
+      return acc;
+    }, {});
+
+    // final score prep
+    const hydratedScores = scores.map((c, index, all) => {
+      c.division = division;
+      if (!c.sd) {
+        c.sd = new Date(now.getTime() + 1000 * (all.length - index)).toISOString();
+      }
+      if (c.classifier) {
+        c.classifierDivision = [c.classifier, division].join(":");
+      }
+
+      const recHHF = recHHFsMap[c.classifierDivision];
+      if (recHHF) {
+        c.recPercent = (100 * c.hf) / recHHF.recHHF;
+        c.curPercent = (100 * c.hf) / recHHF.curHHF;
+      } else {
+        console.error(`No RecHHF for ${c.classifierDivision}`);
+      }
+      return c;
+    });
+    const existingRecScores = await scoresForRecommendedClassification([memberNumber]);
+    const existingScores = await allDivisionsScores([memberNumber]);
+    const recScores = dedupeGrandbagging(hydratedScores);
+    const otherDivisionsScores = existingScores.filter(s => s.division !== division);
+    const recPercentClassification = calculateUSPSAClassification(
+      recScores,
+      "recPercent",
+      now,
+      "brutal",
+      classificationDifficulty.window.min,
+      classificationDifficulty.window.best,
+      classificationDifficulty.window.recent,
+      classificationDifficulty.percentCap,
+    );
+    const curPercentClassification = calculateUSPSAClassification(
+      [...hydratedScores, ...otherDivisionsScores],
+      "curPercent",
+      now,
+      "uspsa",
+      4,
+      6,
+      8,
+      100,
+    );
+
+    return {
+      scoresByDate: recScores.map(({ hf, classifier, recPercent, sd }) => ({
+        hf,
+        classifier,
+        recPercent,
+        sd,
+      })),
+      recHHFsMap,
+      whatIf: {
+        recPercent: recPercentClassification[division]?.percent,
+        curPercent: curPercentClassification[division]?.percent,
+      },
+      scores: hydratedScores,
+      existingRec: existingRecScores
+        .filter(s => s.division === "co")
+        .map(({ hf, classifier }) => ({ hf, classifier })),
+      existing: existingScores
+        .filter(s => s.division === "co")
+        .map(({ hf, classifier }) => ({ hf, classifier })),
+    };
   });
 };
 

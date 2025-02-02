@@ -1,6 +1,7 @@
 /* eslint-disable no-console */
 import uniqBy from "lodash.uniqby";
 import mongoose, { Model, Schema } from "mongoose";
+import { v4 as randomUUID } from "uuid";
 
 import { classificationDifficulty } from "../../../shared/constants/difficulty";
 import {
@@ -186,6 +187,38 @@ const _addHFUDivisions = () => [
     },
   },
 ];
+
+/**
+ * Replaces same day dupes with a single average run, same as
+ * scoresForRecommendedClassification(), but in memory.
+ *
+ * Used for What If Recommended Classification calculation
+ */
+export const dedupeGrandbagging = (scores: ScoreObjectWithVirtuals[]) =>
+  Object.values(
+    scores.reduce(
+      (acc, cur) => {
+        cur.classifier = cur.classifier || randomUUID();
+        const date = new Date(cur.sd).toLocaleDateString();
+        const key = [date, cur.classifier].join(":");
+        acc[key] = acc[key] || [];
+        acc[key].push(cur);
+        return acc;
+      },
+      {} as Record<string, ScoreObjectWithVirtuals[]>,
+    ),
+  ).map(oneDayScores => {
+    if (oneDayScores.length === 1) {
+      return oneDayScores[0];
+    }
+
+    const avgHf =
+      oneDayScores.reduce((acc, cur) => acc + cur.hf, 0) / oneDayScores.length;
+    const avgRecPercent =
+      oneDayScores.reduce((acc, cur) => acc + cur.recPercent, 0) / oneDayScores.length;
+
+    return { ...oneDayScores[0], hf: avgHf, recPercent: avgRecPercent };
+  });
 
 export const scoresForRecommendedClassification = memberNumbers =>
   Scores.aggregate([
