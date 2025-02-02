@@ -5,8 +5,9 @@ import { allDivShortNames, mapAllDivisions } from "../../api/src/dataUtil/divisi
 
 import { dateSort, numSort } from "./sort";
 
+const uspsaClassificationLetters = ["X", "U", "D", "C", "B", "A", "M", "GM"];
 export const classificationRank = classification =>
-  ["X", "U", "D", "C", "B", "A", "M", "GM"].indexOf(classification);
+  uspsaClassificationLetters.indexOf(classification);
 /* const hasClassification = (classification) =>
   ["D", "C", "B", "A", "M", "GM"].indexOf(classification) !== -1; */
 
@@ -38,6 +39,21 @@ export type ClassificationMode = ModeUSPSA | ModeSoft | ModeBrutal;
 
 // type Mode = ClassificationMode | `${ClassificationMode}+${ScoreMode}`;
 type Mode = ClassificationMode;
+
+export interface PercentWithDate {
+  p: number;
+  sd: Date;
+}
+
+export interface DivisionClassification {
+  class: keyof typeof uspsaClassificationLetters;
+  percent: number;
+  highPercent: number;
+  age: number;
+  age1: number;
+  percentWithDates: PercentWithDate[];
+}
+export type ClassificationsRecord = Record<string, DivisionClassification>;
 
 export const highestClassification = classificationsObj =>
   Object.values(classificationsObj).reduce((prev, curClass) => {
@@ -290,7 +306,7 @@ export const calculateUSPSAClassification = (
   bestWindowSize: number = 6, // used for non-initial classifications, ideal window size when there are no dupes
   recentWindowSize: number = 8, // number of most recent scores to consider
   percentCap: number = 100,
-) => {
+): ClassificationsRecord => {
   const state = newClassificationCalculationState();
   if (!classifiers?.length) {
     return state;

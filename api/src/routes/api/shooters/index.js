@@ -127,15 +127,15 @@ const shootersRoutes = async fastify => {
       const {
         reclassificationsCurPercentCurrent: curHHFCurrent,
         reclassificationsRecPercentCurrent: recCurrent,
+        reclassificationsCurPercentHigh: curHHFHigh,
+        reclassificationsRecPercentUncappedHigh: recHigh,
       } = cur;
 
       acc[cur.division] = {
-        hqClass: cur.hqClass,
-        current: cur.current,
-        reclassificationsCurPercentClass: classForPercent(curHHFCurrent || 0),
         reclassificationsCurPercentCurrent: curHHFCurrent || 0,
-        reclassificationsRecPercentClass: classForPercent(recCurrent || 0),
         reclassificationsRecPercentCurrent: recCurrent || 0,
+        reclassificationsCurPercentHigh: curHHFHigh || 0,
+        reclassificationsRecPercentUncappedHigh: recHigh || 0,
         age: cur.age,
         age1: cur.age1,
       };
@@ -177,6 +177,11 @@ const shootersRoutes = async fastify => {
         "reclassificationsSoftPercentCurrent",
         "reclassificationsRecPercentCurrent",
         "reclassificationsRecPercentUncappedCurrent",
+        "reclassificationsCurPercentHigh",
+        "reclassificationsRecHHFOnlyPercentHigh",
+        "reclassificationsSoftPercentHigh",
+        "reclassificationsRecPercentHigh",
+        "reclassificationsRecPercentUncappedHigh",
         "memberNumber",
       ])
       .lean()
@@ -190,6 +195,11 @@ const shootersRoutes = async fastify => {
         recSoftPercent: c.reclassificationsSoftPercentCurrent,
         recPercent: c.reclassificationsRecPercentCurrent,
         recPercentUncapped: c.reclassificationsRecPercentUncappedCurrent,
+        curHHFPercentHigh: c.reclassificationsCurPercentHigh,
+        recHHFOnlyPercentHigh: c.reclassificationsRecHHFOnlyPercentHigh,
+        recSoftPercentHigh: c.reclassificationsSoftPercentHigh,
+        recPercentHigh: c.reclassificationsRecPercentHigh,
+        recPercentUncappedHigh: c.reclassificationsRecPercentUncappedHigh,
         memberNumber: c.memberNumber,
       }))
       .sort(safeNumSort("curPercent"))
@@ -216,6 +226,11 @@ const shootersRoutes = async fastify => {
       .map((c, i, all) => ({
         ...c,
         recPercentUncappedPercentile: (100 * i) / (all.length - 1),
+      }))
+      .sort(safeNumSort("recPercentUncappedHigh"))
+      .map((c, i, all) => ({
+        ...c,
+        recPercentUncappedHighPercentile: (100 * i) / (all.length - 1),
       }))
       .sort(safeNumSort("recPercent"))
       .map((c, i, all) => ({

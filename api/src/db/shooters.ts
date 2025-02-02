@@ -8,6 +8,7 @@ import {
   calculateUSPSAClassification,
   classForPercent,
   ClassificationMode,
+  ClassificationsRecord,
   rankForClass,
 } from "../../../shared/utils/classification";
 import {
@@ -363,9 +364,13 @@ export const scoresForRecommendedClassificationByMemberNumber = async memberNumb
   }, {});
 };
 
-const reclassificationBreakdown = (reclassificationInfo, division) => ({
-  current: reclassificationInfo?.[division]?.percent,
-  currents: mapDivisions(div => reclassificationInfo?.[div]?.percent),
+const reclassificationBreakdown = (
+  reclassificationInfo: ClassificationsRecord,
+  division: string,
+) => ({
+  current: Number((reclassificationInfo?.[division]?.percent ?? 0).toFixed(4)),
+  high: Number((reclassificationInfo?.[division]?.highPercent ?? 0).toFixed(4)),
+  currents: mapDivisions(div => reclassificationInfo?.[div]?.percent), //< TODO: unused?
   class: classForPercent(reclassificationInfo?.[division]?.percent),
   classes: mapDivisions(div => classForPercent(reclassificationInfo?.[div]?.percent)),
 });
@@ -417,17 +422,10 @@ const shooterObjectsForMemberNumber = (c, recMemberScores, curMemberScores) => {
       const recalcDivCur = reclassificationBreakdown(recalcByCurPercent, division);
       const recalcDivRec = reclassificationBreakdown(recalcByRecPercent, division);
 
-      const reclassificationsCurPercentCurrent = Number(
-        (recalcDivCur?.current ?? 0).toFixed(4),
-      );
-      const reclassificationsRecPercentCurrent = Number(
-        (recalcDivRec?.current ?? 0).toFixed(4),
-      );
-
       const hqClass = hqClasses[division];
       const hqCurrent = hqCurrents[division];
-      const hqToCurHHFPercent = hqCurrent - reclassificationsCurPercentCurrent;
-      const hqToRecPercent = hqCurrent - reclassificationsRecPercentCurrent;
+      const hqToCurHHFPercent = hqCurrent - recalcDivCur.current;
+      const hqToRecPercent = hqCurrent - recalcDivRec.current;
 
       return {
         data: c.member_data,
@@ -445,8 +443,8 @@ const shooterObjectsForMemberNumber = (c, recMemberScores, curMemberScores) => {
         age: recalcByRecPercent?.[division]?.age,
         age1: recalcByRecPercent?.[division]?.age1,
 
-        reclassificationsCurPercentCurrent, // aka curHHFPercent
-        reclassificationsRecPercentCurrent, // aka recPercent
+        reclassificationsCurPercentCurrent: recalcDivCur.current, // aka curHHFPercent
+        reclassificationsRecPercentCurrent: recalcByRecPercent.current, // aka recPercent
 
         curHHFClass: recalcDivCur.class,
         curHHFClassRank: rankForClass(recalcDivCur.class),
@@ -653,22 +651,6 @@ export const reclassifyShooters = async shooters => {
           division,
         );
 
-        const reclassificationsCurPercentCurrent = Number(
-          (recalcDivCur?.current ?? 0).toFixed(4),
-        );
-        const reclassificationsRecHHFOnlyPercentCurrent = Number(
-          (recalcDivRecHHFOnly?.current ?? 0).toFixed(4),
-        );
-        const reclassificationsSoftPercentCurrent = Number(
-          (recalcDivSoft?.current ?? 0).toFixed(4),
-        );
-        const reclassificationsRecPercentCurrent = Number(
-          (recalcDivRec?.current ?? 0).toFixed(4),
-        );
-        const reclassificationsRecPercentUncappedCurrent = Number(
-          (recalcDivRecUncapped?.current ?? 0).toFixed(4),
-        );
-
         const hqClass = psClassUpdates?.[memberNumber]?.[division] || "U";
 
         return [
@@ -715,11 +697,13 @@ export const reclassifyShooters = async shooters => {
                     age1: recalcByRecPercent?.[division]?.age1,
 
                     elo: eloPointForShooter(division, memberNumber)?.rating,
-                    reclassificationsCurPercentCurrent, // aka curHHFPercent
-                    reclassificationsRecHHFOnlyPercentCurrent, //aka recHHFOnlyPercent
-                    reclassificationsSoftPercentCurrent, //aka recSoftPercent
-                    reclassificationsRecPercentCurrent, // aka recPercent
-                    reclassificationsRecPercentUncappedCurrent, //aka recPercentUncapped
+                    reclassificationsCurPercentCurrent: recalcDivCur.current, // aka curHHFPercent
+                    reclassificationsRecHHFOnlyPercentCurrent:
+                      recalcDivRecHHFOnly.current, //aka recHHFOnlyPercent
+                    reclassificationsSoftPercentCurrent: recalcDivSoft.current, //aka recSoftPercent
+                    reclassificationsRecPercentCurrent: recalcDivRec.current, // aka recPercent
+                    reclassificationsRecPercentUncappedCurrent:
+                      recalcDivRecUncapped.current, //aka recPercentUncapped
 
                     recClass: recalcDivRec.class,
                     recClassRank: rankForClass(recalcDivRec.class),
@@ -731,6 +715,29 @@ export const reclassifyShooters = async shooters => {
                     recSoftClassRank: rankForClass(recalcDivSoft.class),
                     recUncappedClass: recalcDivRecUncapped.class,
                     recUncappedClassRank: rankForClass(recalcDivRecUncapped.class),
+
+                    // same as reclassificaiton fields above, but highPercent, short form uses "High" suffix, e.g. recPercentUncappedHigh
+                    reclassificationsCurPercentHigh: {
+                      $max: ["$reclassificationsCurPercentHigh", recalcDivCur.high],
+                    },
+                    reclassificationsRecHHFOnlyPercentHigh: {
+                      $max: [
+                        "$reclassificationsRecHHFOnlyPercentHigh",
+                        recalcDivRecHHFOnly.high,
+                      ],
+                    },
+                    reclassificationsSoftPercentHigh: {
+                      $max: ["$reclassificationsSoftPercentHigh", recalcDivSoft.high],
+                    },
+                    reclassificationsRecPercentHigh: {
+                      $max: ["$reclassificationsRecPercentHigh", recalcDivRec.high],
+                    },
+                    reclassificationsRecPercentUncappedHigh: {
+                      $max: [
+                        "$reclassificationsRecPercentUncappedHigh",
+                        recalcDivRecUncapped.high,
+                      ],
+                    },
                   },
                 },
               ],

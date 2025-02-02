@@ -16,7 +16,7 @@ const modes = Object.keys(modesMap);
 
 export const ShooterProgressChart = ({ division, memberNumber }) => {
   const isHFU = sportForDivision(division) === "hfu";
-  const [mode, setMode] = useState(modes[2]);
+  const [mode, setMode] = useState(modes[1]);
   const { json: data, loading } = useApi(
     `/shooters/${division}/${memberNumber}/chart/progress/${modeBucketForMode(mode)}`,
     { placeholderData: keepPreviousData },

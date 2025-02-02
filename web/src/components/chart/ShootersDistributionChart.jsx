@@ -28,6 +28,7 @@ const fieldModeMap = {
   "Rec.Soft": "recSoftPercent",
   "Rec.Brutal": "recPercent",
   "Rec.Brutal Uncapped": "recPercentUncapped",
+  "Rec.Brutal Uncapped High": "recPercentUncappedHigh",
 };
 const fieldForMode = mode => fieldModeMap[mode];
 const modes = Object.keys(fieldModeMap);
@@ -107,14 +108,7 @@ export const ShootersDistributionChart = ({ division, style }) => {
           tooltip: {
             callbacks: {
               label: ({
-                raw: {
-                  recPercent,
-                  curHHFPercent,
-                  curPercent,
-                  memberNumber,
-                  y,
-                  pointsGraphName,
-                },
+                raw: { recPercent, curHHFPercent, memberNumber, y, pointsGraphName },
               }) => {
                 if (pointsGraphName) {
                   return null;

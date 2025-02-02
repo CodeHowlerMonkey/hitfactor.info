@@ -38,6 +38,7 @@ const versusModeMap = {
   Rank: "rank",
   ELO: "elo",
   Classification: "recPercentUncapped",
+  ClassificationHigh: "recPercentUncappedHigh",
 };
 const versusModeLabelMap = {
   HF: "HF",
@@ -46,9 +47,7 @@ const versusModeLabelMap = {
   ELO: "ELO",
   Classification: "Rec. Classification",
 };
-const versusDefaultClassificationMode: VersusMode = Object.keys(
-  versusModeMap,
-).pop() as VersusMode;
+const versusDefaultClassificationMode: VersusMode = "Classification";
 const versusFieldForMode = mode => versusModeMap[mode];
 const versusModes = Object.keys(versusModeMap);
 

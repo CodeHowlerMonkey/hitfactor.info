@@ -1,5 +1,6 @@
 import { Tag } from "primereact/tag";
 
+import { classForPercent } from "../../../shared/utils/classification";
 import { bgColorForClass, fgColorForClass } from "../utils/color";
 
 const ClassTag = ({ value, alpha, tooltip, style }) =>
@@ -42,17 +43,15 @@ export const ShooterCell = ({ data, onClick, sport }) => (
     {(!sport || sport === "uspsa") && (
       <div className="max-w-max">
         <ClassTag
-          value={data?.recClass ?? "?"}
-          tooltip={`Recommended: ${data?.reclassificationsRecPercentUncappedCurrent?.toFixed(
+          value={classForPercent(data?.reclassificationsRecPercentUncappedHigh)}
+          tooltip={`Recommended: ${data?.reclassificationsRecPercentUncappedHigh?.toFixed(
             2,
-          )}%`}
+          )}% / ${data?.reclassificationsRecPercentUncappedCurrent?.toFixed(2)}%`}
         />
         <ClassTag
-          value={data?.curHHFClass ?? "?"}
+          value={classForPercent(data?.reclassificationsCurPercentHigh)}
           alpha={0.65}
-          tooltip={`Current HHF: ${data?.reclassificationsCurPercentCurrent?.toFixed(
-            2,
-          )}%`}
+          tooltip={`Current HHF: ${data?.reclassificationsCurPercentHigh?.toFixed(2)}% / ${data?.reclassificationsCurPercentCurrent?.toFixed(2)}%`}
         />
         <ClassTag
           value={data?.hqClass}
