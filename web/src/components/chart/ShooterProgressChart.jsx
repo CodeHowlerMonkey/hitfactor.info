@@ -9,8 +9,7 @@ import { Line } from "./common";
 
 const modesMap = {
   "Cur. HHF": "curPercent",
-  Recommended: "recPercent",
-  Uncapped: "brutal+uncapped",
+  Recommended: "brutal",
 };
 const modeBucketForMode = mode => modesMap[mode];
 const modes = Object.keys(modesMap);

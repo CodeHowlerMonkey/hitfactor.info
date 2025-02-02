@@ -485,7 +485,7 @@ test("percentAndAgesForDivWindow", () => {
 
   // uncapped vs capped
   assert.strictEqual(
-    percentAndAgesForDivWindow("ss", state, "percent", new Date(), "uspsa+uncapped")
+    percentAndAgesForDivWindow("ss", state, "percent", new Date(), "uspsa", 4, 6, 120)
       .percent,
     (114 + 97 + 95 + 90 + 75 + 65) / 6,
   );
@@ -520,7 +520,7 @@ test("percentAndAgesForDivWindow again", () => {
     95,
   );
   assert.strictEqual(
-    percentAndAgesForDivWindow("ss", state, "recPercent", new Date(), "brutal+uncapped")
+    percentAndAgesForDivWindow("ss", state, "recPercent", new Date(), "brutal", 4, 6, 120)
       .percent,
     105,
   );
@@ -965,10 +965,11 @@ test("calculateUSPSAClassification CS should have higher uncapped curPercent in 
     csOpenClassifiers,
     "curPercent",
     new Date(),
-    "uspsa+uncapped",
+    "uspsa",
     4,
     6,
     8,
+    120,
   );
   assert.strictEqual(Number(result.opn.percent.toFixed(2)), 100.91);
 });

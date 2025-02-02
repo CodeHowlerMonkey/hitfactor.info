@@ -129,7 +129,7 @@ export const ShootersELODistributionChart = ({
 
   const curModeDataPoints = useMemo(() => curModeData.map(c => c.x), [curModeData]);
 
-  const weibull = useAsyncWeibull(isVersus ? EMPTY_ARRAY : curModeDataPoints, 10);
+  const weibull = useAsyncWeibull(isVersus ? EMPTY_ARRAY : curModeDataPoints);
   const { k, lambda } = weibull;
   const correl = useMemo(
     () =>

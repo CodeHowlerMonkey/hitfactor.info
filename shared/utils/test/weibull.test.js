@@ -13,12 +13,7 @@ test("new optimization algo", () => {
   for (const division of Object.keys(runs)) {
     for (const classifier of Object.keys(runs[division])) {
       const oldResult = oldResults[division][classifier];
-      const newResult = solveWeibull(
-        runs[division][classifier],
-        0,
-        undefined,
-        "neldermead",
-      );
+      const newResult = solveWeibull(runs[division][classifier]);
       const highResult = Math.max(oldResult.hhf5, newResult.hhf5);
       const lowResult = Math.min(oldResult.hhf5, newResult.hhf5);
       const diff = highResult - lowResult;

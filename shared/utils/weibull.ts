@@ -2,10 +2,7 @@ import throttle from "lodash.throttle";
 import * as ss from "simple-statistics";
 
 import { Percent } from "../../api/src/dataUtil/numbers";
-
-export const DEFAULT_PRECISION = 8;
-
-type OptimizationMethod = "bad" | "neldermead";
+import { weibullDifficulty } from "../constants/difficulty";
 
 export interface WeibullResult {
   k: number;
@@ -15,6 +12,9 @@ export interface WeibullResult {
   cdf: (x: number) => number;
   reverseCDF: (y: number) => number;
   */
+
+  /** hhf calculated with percentile/percent ratio from shared/constants/difficulty */
+  hhf: number;
   hhf1: number;
   hhf3: number;
   hhf5: number;
@@ -38,6 +38,7 @@ export const emptyWeibull: WeibullResult = {
   cdf: () => 0,
   reverseCDF: () => 0,
   */
+  hhf: 0,
   hhf1: 0,
   hhf3: 0,
   hhf5: 0,
@@ -62,42 +63,6 @@ export const emptyWeibull: WeibullResult = {
 export const weibulCDFFactory = (k: number, lambda: number) => (x: number) =>
   100 - 100 * (1 - Math.exp(-Math.pow(x / lambda, k)));
 
-type NumberTuple = [number, number];
-type NumberTruple = [number, number, number];
-const optimize = (
-  lossFn: ([k, lambda]: NumberTuple) => number,
-  start,
-  precision = DEFAULT_PRECISION,
-  partialCb?: (partial: NumberTruple) => void,
-) => {
-  const throttledCb = throttle(partialCb ?? (() => {}), 250);
-  let bestParams: NumberTuple = start;
-  let bestLoss = lossFn(start);
-  const step = 0.05 / precision;
-  for (let i = 0; i <= 8 * precision; i++) {
-    for (let j = 0; j <= 8 * precision; j++) {
-      const directionI = i % 2 !== 0 ? -1 : +1;
-      const directionJ = j % 2 !== 0 ? -1 : +1;
-      const testParams: NumberTuple = [
-        bestParams[0] + directionI * Math.floor(i / 2) * step,
-        bestParams[1] + directionJ * Math.floor(j / 2) * step,
-      ];
-      const loss = lossFn(testParams);
-      if (loss < bestLoss) {
-        throttledCb?.([...testParams, loss]);
-        bestLoss = loss;
-        bestParams = testParams;
-        i = Math.floor(i / 2);
-        j = Math.floor(j / 2);
-      }
-    }
-  }
-  throttledCb([...bestParams, bestLoss]);
-  throttledCb.flush();
-  throttledCb.cancel();
-  return [...bestParams, bestLoss];
-};
-
 const probabilityDistributionFn = (x: number, k: number, lambda: number): number =>
   (k / lambda) * Math.pow(x / lambda, k - 1) * Math.exp(-Math.pow(x / lambda, k));
 
@@ -109,12 +74,7 @@ const lossFnFactory =
       0,
     );
 
-const findParams = (
-  data: number[],
-  precision: number,
-  partialCb?: (params: number[]) => void,
-  method: OptimizationMethod = "bad",
-) => {
+const findParams = (data: number[], partialCb?: (params: number[]) => void) => {
   if (!data.length) {
     return [1, 1];
   }
@@ -123,11 +83,7 @@ const findParams = (
   const k = 3.6;
   const lambda = ss.median(data) / Math.log(2) ** (1 / k);
 
-  if (method === "neldermead") {
-    return optimizeNelderMead(lossFnFactory(data), [k, lambda], 1e-16, partialCb);
-  }
-
-  return optimize(lossFnFactory(data), [3.6, ss.mean(data)], precision, partialCb);
+  return optimizeNelderMead(lossFnFactory(data), [k, lambda], 1e-16, partialCb);
 };
 
 /**
@@ -143,16 +99,13 @@ const findParams = (
  */
 export const solveWeibull = (
   dataPoints: number[],
-  precision: number = DEFAULT_PRECISION,
   partialResultCb?: (partial: WeibullResult) => void,
-  method: OptimizationMethod = "bad",
 ): WeibullResult => {
   if (!dataPoints.length) {
     return emptyWeibull;
   }
   const [k, lambda, loss] = findParams(
     dataPoints,
-    precision,
     partialResultCb
       ? ([pK, pLambda, pLoss]) =>
           partialResultCb({
@@ -162,11 +115,12 @@ export const solveWeibull = (
             loss: pLoss,
           })
       : undefined,
-    method,
   );
 
   // const cdf = x => 100 - 100 * (1 - Math.exp(-Math.pow(x / lambda, k)));
   const reverseCDF = y => lambda * Math.pow(Math.log(100 / y), 1 / k);
+  const hhf =
+    reverseCDF(weibullDifficulty.percentile) / (weibullDifficulty.percent / 100);
   const hhf1 = reverseCDF(1) / 0.95;
   const hhf3 = reverseCDF(3) / 0.9;
   const hhf5 = reverseCDF(5) / 0.85;
@@ -183,7 +137,9 @@ export const solveWeibull = (
     k,
     lambda,
     loss,
-    /*cdf, reverseCDF,*/ hhf1,
+    /*cdf, reverseCDF,*/
+    hhf,
+    hhf1,
     hhf5,
     hhf3,
     hhf15,

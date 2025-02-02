@@ -1,10 +1,6 @@
 import { useEffect, useState } from "react";
 
-import {
-  DEFAULT_PRECISION,
-  emptyWeibull,
-  WeibullResult,
-} from "../../../../shared/utils/weibull";
+import { emptyWeibull, WeibullResult } from "../../../../shared/utils/weibull";
 
 import WeibullWorker from "./useAsyncWeibullWorker?worker";
 
@@ -17,19 +13,16 @@ const pendingResult: AsyncWeibullResult = {
   loading: true,
 };
 
-export const useAsyncWeibull = (
-  dataPoints: number[],
-  precision: number = DEFAULT_PRECISION,
-) => {
+export const useAsyncWeibull = (dataPoints: number[]) => {
   const [result, setResult] = useState<AsyncWeibullResult>(pendingResult);
 
   useEffect(() => {
     setResult(pendingResult);
     const worker = new WeibullWorker();
     worker.onmessage = e => setResult(e.data);
-    worker.postMessage({ dataPoints, precision });
+    worker.postMessage({ dataPoints });
     return () => worker.terminate();
-  }, [dataPoints, precision]);
+  }, [dataPoints]);
 
   return result;
 };
