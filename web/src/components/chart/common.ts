@@ -76,12 +76,12 @@ export const closestYForX = (
     return [-1, -1];
   }
 
-  const perfectIndex = dataRaw.findIndex(c => fuzzyEqual(targetX, c.x, 0.001));
+  const data = dataRaw.toSorted((a, b) => a.x - b.x);
+  const perfectIndex = data.findIndex(c => fuzzyEqual(targetX, c.x, 0.001));
   if (perfectIndex >= 0) {
-    return [dataRaw[perfectIndex].y, dataRaw.length - perfectIndex];
+    return [data[perfectIndex].y, data.length - perfectIndex];
   }
 
-  const data = dataRaw.toSorted((a, b) => a.x - b.x);
   let lowIndex = data.findLastIndex(c => c.x < targetX);
   let highIndex = data.findIndex(c => c.x > targetX);
   let indexOffset = 0;
