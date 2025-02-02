@@ -7,8 +7,8 @@ export const classificationDifficulty = {
   window: {
     min: 6,
     best: 6,
-    recent: 12,
+    recent: 8,
   },
 
-  percentCap: 120,
+  percentCap: 110,
 };
