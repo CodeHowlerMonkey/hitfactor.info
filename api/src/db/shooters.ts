@@ -371,8 +371,8 @@ const reclassificationBreakdown = (
   current: Number((reclassificationInfo?.[division]?.percent ?? 0).toFixed(4)),
   high: Number((reclassificationInfo?.[division]?.highPercent ?? 0).toFixed(4)),
   currents: mapDivisions(div => reclassificationInfo?.[div]?.percent), //< TODO: unused?
-  class: classForPercent(reclassificationInfo?.[division]?.percent),
-  classes: mapDivisions(div => classForPercent(reclassificationInfo?.[div]?.percent)),
+  class: classForPercent(reclassificationInfo?.[division]?.highPercent),
+  classes: mapDivisions(div => classForPercent(reclassificationInfo?.[div]?.highPercent)),
 });
 
 // upload from uspsa api
