@@ -7,8 +7,31 @@ import {
   sportForDivision,
   uspsaDivShortNames,
 } from "../../../../../api/src/dataUtil/divisions";
+import { classForPercent } from "../../../../../shared/utils/classification";
 import ShooterChart from "../../../components/chart/ShooterChart";
 import { ShooterProgressChart } from "../../../components/chart/ShooterProgressChart";
+
+const percentValueOrEmpty = value =>
+  toFixedWithSuffixValueOrPlaceholder(value, 2, "%", "");
+
+const renderClassification = (c, { field }) => {
+  const { high, cur } = c[field];
+
+  const classificationString = [
+    classForPercent(high) ?? "U",
+    percentValueOrEmpty(high),
+    percentValueOrEmpty(cur),
+  ]
+    .filter(Boolean)
+    .join(" • ");
+
+  return (
+    <>
+      <div className="md:hidden">{classificationString}</div>
+      <div className="hidden md:block white-space-nowrap">{classificationString}</div>
+    </>
+  );
+};
 
 const tableNameForDiv = {
   opn: "Open",
@@ -35,42 +58,30 @@ const toFixedWithSuffixValueOrPlaceholder = (value, length, suffix, empty = "—
   return value.toFixed(length) + suffix;
 };
 
-const percentValueOrEmpty = value =>
-  toFixedWithSuffixValueOrPlaceholder(value, 2, "%", "");
-
 const cardRow = (classificationByDivision, div) => {
   const {
-    hqClass,
-    current,
     age,
     reclassificationsCurPercentCurrent,
-    reclassificationsCurPercentClass,
-    reclassificationsRecPercentClass,
-    reclassificationsRecPercentCurrent,
+    reclassificationsCurPercentHigh,
+    reclassificationsRecPercentUncappedCurrent,
+    reclassificationsRecPercentUncappedHigh,
   } = classificationByDivision?.[div] || {
     hqClass: "U",
     current: 0,
     age: null,
     reclassificationsCurPercentCurrent: 0,
-    reclassificationsCurPercentClass: "U",
     reclassificationsRecPercentCurrent: 0,
-    reclassificationsRecPercentClass: "U",
   };
   return {
     division: tableNameForDiv[div],
-    hq: [hqClass, percentValueOrEmpty(current)].filter(Boolean).join(" / "),
-    curHHF: [
-      reclassificationsCurPercentClass,
-      percentValueOrEmpty(reclassificationsCurPercentCurrent),
-    ]
-      .filter(Boolean)
-      .join(" / "),
-    rec: [
-      reclassificationsRecPercentClass,
-      percentValueOrEmpty(reclassificationsRecPercentCurrent),
-    ]
-      .filter(Boolean)
-      .join(" / "),
+    curHHF: {
+      high: reclassificationsCurPercentHigh,
+      cur: reclassificationsCurPercentCurrent,
+    },
+    rec: {
+      high: reclassificationsRecPercentUncappedHigh,
+      cur: reclassificationsRecPercentUncappedCurrent,
+    },
     age: toFixedWithSuffixValueOrPlaceholder(age, 1, "mo"),
   };
 };
@@ -138,10 +149,20 @@ export const ShooterInfoTable = ({ info, division, memberNumber, loading }) => {
             }
           >
             <Column field="division" header={isHFU ? "Division" : "Div"} />
-            <Column field="rec" header={isHFU ? "Percent" : "Rec."} />
-            <Column field="curHHF" header="Cur.HHF" hidden={isHFU} />
-            <Column field="hq" header="HQ" hidden={isHFU} />
-            <Column field="age" header="Age" />
+            <Column
+              align="center"
+              field="rec"
+              header={isHFU ? "Percent" : "Rec."}
+              body={renderClassification}
+            />
+            <Column
+              align="center"
+              field="curHHF"
+              header="HQ"
+              hidden={isHFU}
+              body={renderClassification}
+            />
+            <Column field="age" header="Age" style={{ widths: 128 }} align="right" />
           </DataTable>
         )}
       </div>

@@ -306,6 +306,8 @@ const classifiersRoutes = async fastify => {
         $addFields: {
           scoreRecPercent: percentAggregationOp("$hf", "$recHHF", 4),
           curPercent: _getShooterField("current"),
+
+          // reclassifications current
           curHHFPercent: _getShooterField("reclassificationsCurPercentCurrent"),
           recHHFOnlyPercent: _getShooterField(
             "reclassificationsRecHHFOnlyPercentCurrent",
@@ -315,6 +317,18 @@ const classifiersRoutes = async fastify => {
           recPercentUncapped: _getShooterField(
             "reclassificationsRecPercentUncappedCurrent",
           ),
+
+          // reclassifications high
+          curHHFPercentHigh: _getShooterField("reclassificationsCurPercentHigh"),
+          recHHFOnlyPercentHigh: _getShooterField(
+            "reclassificationsRecHHFOnlyPercentHigh",
+          ),
+          recSoftPercentHigh: _getShooterField("reclassificationsSoftPercentHigh"),
+          recPercentHigh: _getShooterField("reclassificationsRecPercentHigh"),
+          recPercentUncappedHigh: _getShooterField(
+            "reclassificationsRecPercentUncappedHigh",
+          ),
+
           elo: _getShooterField("elo"),
           name: _getShooterField("name"),
         },

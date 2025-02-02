@@ -45,10 +45,12 @@ const fieldModeMap = {
   "Rec.Soft": "recSoftPercent",
   "Rec.Brutal": "recPercent",
   "Rec.Brutal Uncapped": "recPercentUncapped",
+  "Rec.Brutal Uncapped High": "recPercentUncappedHigh",
 };
 const fieldForMode = mode => fieldModeMap[mode];
 const modes = Object.keys(fieldModeMap);
 const recommendedMode = modes[4];
+const percentModes = modes.filter(c => c !== "ELO");
 
 interface RawDataPoint {
   x: number;
@@ -164,7 +166,13 @@ export const ShootersELODistributionChart = ({
     <Scatter
       options={{
         maintainAspectRatio: false,
-        scales: { y: { reverse: !isVersus } },
+        scales: {
+          y: {
+            reverse: !isVersus,
+            max: isVersus && percentModes.includes(yMode) ? 120 : undefined,
+          },
+          x: { max: isVersus && percentModes.includes(xMode) ? 120 : undefined },
+        },
         elements: {
           point: {
             radius: 3,
