@@ -2,6 +2,7 @@ import algoliasearch from "algoliasearch";
 import uniqBy from "lodash.uniqby";
 import { v4 as randomUUID } from "uuid";
 
+import { classificationDifficulty } from "../../../../../shared/constants/difficulty";
 import { calculateUSPSAClassification } from "../../../../../shared/utils/classification";
 import { Matches } from "../../../db/matches";
 import { RecHHFs } from "../../../db/recHHF";
@@ -122,10 +123,11 @@ const uploadRoutes = async fastify => {
       recScores,
       "recPercent",
       now,
-      "brutal+uncapped",
-      4,
-      6,
-      8,
+      "brutal",
+      classificationDifficulty.window.min,
+      classificationDifficulty.window.best,
+      classificationDifficulty.window.recent,
+      classificationDifficulty.percentCap,
     );
     const curPercentClassification = calculateUSPSAClassification(
       [...hydratedScores, ...otherDivisionsScores],
@@ -135,6 +137,7 @@ const uploadRoutes = async fastify => {
       4,
       6,
       8,
+      100,
     );
 
     return {

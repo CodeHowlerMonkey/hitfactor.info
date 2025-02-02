@@ -2,6 +2,7 @@
 import uniqBy from "lodash.uniqby";
 import mongoose, { Model, Schema } from "mongoose";
 
+import { classificationDifficulty } from "../../../shared/constants/difficulty";
 import {
   calculateUSPSAClassification,
   classForPercent,
@@ -365,15 +366,17 @@ const shooterObjectsForMemberNumber = (c, recMemberScores, curMemberScores) => {
     4,
     6,
     8,
+    100,
   );
   const recalcByRecPercent = calculateUSPSAClassification(
     recMemberScores,
     "recPercent",
     now,
     "brutal",
-    4,
-    6,
-    10,
+    classificationDifficulty.window.min,
+    classificationDifficulty.window.best,
+    classificationDifficulty.window.recent,
+    classificationDifficulty.percentCap,
   );
 
   return Object.values(
@@ -562,6 +565,7 @@ export const reclassifyShooters = async shooters => {
           4,
           6,
           8,
+          100,
         );
         const recalcByRecHHFOnlyPercent = calculateUSPSAClassification(
           curMemberScores, // cur, not rec, to enable old D flag behavior
@@ -571,33 +575,37 @@ export const reclassifyShooters = async shooters => {
           4,
           6,
           8,
+          100,
         );
         const recalcByRecPercentSoft = calculateUSPSAClassification(
           curMemberScores, // cur, not rec, to enable old D flag behavior
           "recPercent",
           now,
           "soft",
-          6,
-          6,
-          12,
+          classificationDifficulty.window.min,
+          classificationDifficulty.window.best,
+          classificationDifficulty.window.recent,
+          100,
         );
         const recalcByRecPercent = calculateUSPSAClassification(
           recMemberScores,
           "recPercent",
           now,
           "brutal",
-          6,
-          6,
-          12,
+          classificationDifficulty.window.min,
+          classificationDifficulty.window.best,
+          classificationDifficulty.window.recent,
+          100,
         );
         const recalcByRecPercentUncapped = calculateUSPSAClassification(
           recMemberScores,
           "recPercent",
           now,
-          "brutal+uncapped",
-          6,
-          6,
-          12,
+          "brutal",
+          classificationDifficulty.window.min,
+          classificationDifficulty.window.best,
+          classificationDifficulty.window.recent,
+          classificationDifficulty.percentCap,
         );
 
         const recalcDivCur = reclassificationBreakdown(recalcByCurPercent, division);
@@ -716,8 +724,7 @@ export const reclassificationForProgressMode = async (
 
   const now = new Date();
   switch (classificationMode) {
-    case "uspsa":
-    case "uspsa+uncapped": {
+    case "uspsa": {
       const scores = await allDivisionsScores([memberNumber]);
       return calculateUSPSAClassification(
         scores,
@@ -727,22 +734,22 @@ export const reclassificationForProgressMode = async (
         4,
         6,
         8,
+        100,
       );
     }
 
     case "soft":
-    case "soft+uncapped":
-    case "brutal":
-    case "brutal+uncapped": {
+    case "brutal": {
       const scores = await scoresForRecommendedClassification([memberNumber]);
       return calculateUSPSAClassification(
         scores,
         "recPercent",
         now,
         classificationMode,
-        6,
-        6,
-        12,
+        classificationDifficulty.window.min,
+        classificationDifficulty.window.best,
+        classificationDifficulty.window.recent,
+        classificationDifficulty.percentCap,
       );
     }
   }

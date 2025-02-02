@@ -79,7 +79,7 @@ export const log10TargetsHHFWeibull = (
     return 0;
   }
   const hfData = data.map(c => c.hf).sort((a, b) => b - a);
-  const { k, lambda, hhf3 } = solveWeibull(hfData, 0, undefined, "neldermead");
+  const { k, lambda } = solveWeibull(hfData);
 
   const maxHF = hfData[0];
   const cdf = weibulCDFFactory(k, lambda);

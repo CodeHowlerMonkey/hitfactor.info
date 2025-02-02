@@ -34,16 +34,10 @@ type ModeBrutal = "brutal";
  */
 type ModeSoft = "soft";
 
-// capped (default) = scores higher than 100% count as 100
-// uncapped = scores higher than 100% count up to 120%
-// default is capped
-type ScoreLimitMode = /*"capped" |*/ "uncapped";
-type ScoreMode = ScoreLimitMode;
+export type ClassificationMode = ModeUSPSA | ModeSoft | ModeBrutal;
 
-type AlgorithmMode = ModeUSPSA | ModeSoft | ModeBrutal;
-
-type Mode = AlgorithmMode | `${AlgorithmMode}+${ScoreMode}`;
-export type ClassificationMode = Mode;
+// type Mode = ClassificationMode | `${ClassificationMode}+${ScoreMode}`;
+type Mode = ClassificationMode;
 
 export const highestClassification = classificationsObj =>
   Object.values(classificationsObj).reduce((prev, curClass) => {
@@ -212,6 +206,7 @@ export const percentAndAgesForDivWindow = (
   mode: Mode,
   minWindowSize: number = 4,
   bestWindowSize: number = 6,
+  percentCap: number = 100,
 ) => {
   //de-dupe needs to be done in reverse, because percent are sorted asc
   let window = state[div].window;
@@ -221,7 +216,6 @@ export const percentAndAgesForDivWindow = (
     window = window.toSorted((a, b) => numSort(a, b, percentField, -1));
   }
   const dFlagsApplied = uniqBy(window, c => c.classifier);
-  const percentCap = mode.includes("uncapped") ? 120 : 100;
 
   // remove lowest 2
   const newLength = windowSizeForScore(
@@ -295,6 +289,7 @@ export const calculateUSPSAClassification = (
   minWindowSize: number = 4, // used for initial, less than that - no classification
   bestWindowSize: number = 6, // used for non-initial classifications, ideal window size when there are no dupes
   recentWindowSize: number = 8, // number of most recent scores to consider
+  percentCap: number = 100,
 ) => {
   const state = newClassificationCalculationState();
   if (!classifiers?.length) {
@@ -348,6 +343,7 @@ export const calculateUSPSAClassification = (
         mode,
         minWindowSize,
         bestWindowSize,
+        percentCap,
       );
 
       if (newPercent > oldHighPercent) {

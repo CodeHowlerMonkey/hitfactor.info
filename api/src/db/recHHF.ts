@@ -154,8 +154,8 @@ const extraHHFsForProd = (allScoresRecHHF: number, runs: ScoreWithPercentile[]) 
   const prod15Runs = runs
     .filter(c => new Date(c.sd).getTime() >= PROD_15_EFFECTIVE_TS)
     .map(c => c.hf);
-  const { hhf3: prod10HHF } = solveWeibull(prod10Runs, 0, undefined, "neldermead");
-  const { hhf3: prod15HHF } = solveWeibull(prod15Runs, 0, undefined, "neldermead");
+  const { hhf: prod10HHF } = solveWeibull(prod10Runs);
+  const { hhf: prod15HHF } = solveWeibull(prod15Runs);
   const prod1015HHF = Math.max(allScoresRecHHF, prod10HHF, prod15HHF);
 
   return {
@@ -168,8 +168,8 @@ const extraHHFsForProd = (allScoresRecHHF: number, runs: ScoreWithPercentile[]) 
 const extraHHFsForLO = (locoHHF: number, locoRuns: ScoreWithPercentile[]) => {
   const loHFs = locoRuns.filter(c => c.division === "lo").map(c => c.hf);
   const coHFs = locoRuns.filter(c => c.division === "co").map(c => c.hf);
-  const { hhf3: loHHF } = solveWeibull(loHFs, 0, undefined, "neldermead");
-  const { hhf3: coHHF } = solveWeibull(coHFs, 0, undefined, "neldermead");
+  const { hhf: loHHF } = solveWeibull(loHFs);
+  const { hhf: coHHF } = solveWeibull(coHFs);
 
   return {
     recHHF: Math.max(locoHHF, loHHF, coHHF),
@@ -194,6 +194,7 @@ const recHHFUpdate = (
   const {
     k,
     lambda,
+    hhf: wblHHF,
     hhf1: wbl1HHF,
     hhf3: wbl3HHF,
     hhf5: wbl5HHF,
@@ -205,19 +206,14 @@ const recHHFUpdate = (
     superMeanSquaredError,
     superMeanAbsoluteError,
     maxError,
-  } = solveWeibull(
-    runs.map(c => c.hf),
-    12,
-    undefined,
-    "neldermead",
-  );
+  } = solveWeibull(runs.map(c => c.hf));
 
   return {
     division,
     classifier,
     classifierDivision: [classifier, division].join(":"),
     curHHF,
-    recHHF: wbl3HHF,
+    recHHF: wblHHF,
     ...(division === "prod" ? extraHHFsForProd(wbl3HHF, runs) : {}),
     ...(division === "lo" ? extraHHFsForLO(wbl3HHF, runs) : {}),
 
