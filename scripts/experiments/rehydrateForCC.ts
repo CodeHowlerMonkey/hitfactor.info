@@ -1,10 +1,18 @@
 /* eslint-disable no-console */
 
+import path, { dirname } from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+import Piscina from "piscina";
+
 import { uspsaClassifiers } from "../../api/src/dataUtil/classifiersData";
 import { rehydrateClassifiers } from "../../api/src/db/classifiers";
 import { connect } from "../../api/src/db/index";
 import { rehydrateRecHHF } from "../../api/src/db/recHHF";
-import { reclassifyShooters, Shooters } from "../../api/src/db/shooters";
+import { Shooters } from "../../api/src/db/shooters";
 import { hydrateStats } from "../../api/src/db/stats";
 import { uspsaDivShortNames } from "../../shared/constants/divisions";
 
@@ -28,7 +36,8 @@ const rehydrateShooters = async (divisions: string[]) => {
   const shooters = await Shooters.find({
     memberNumberDivision: { $exists: true },
     division: { $in: divisions },
-    //reclassificationsRecPercentCurrent: { $gt: 0 },
+    // reclassificationsRecPercentCurrent: { $gt: 0 },
+    // elo: { $gt: 0 },
   })
     .limit(0)
     .select(["memberNumberDivision", "name", "memberNumber", "division"])
@@ -38,13 +47,21 @@ const rehydrateShooters = async (divisions: string[]) => {
     `Total ${JSON.stringify(divisions)} Shooters to Process: ${shooters.length}`,
   );
 
-  const batchSize = 128;
+  const pool = new Piscina({
+    filename: path.resolve(__dirname, "shooterWorker.ts"),
+  });
+
+  console.time("shooters");
+  const jobs = [] as Promise<void>[];
+  const batchSize = 64;
   for (let i = 0; i < shooters.length; i += batchSize) {
     const batch = shooters.slice(i, i + batchSize);
-    const actualBatchSize = batch.length;
-    await reclassifyShooters(batch);
-    process.stdout.write(`\r${i + actualBatchSize}/${shooters.length}`);
+    jobs.push(pool.run(batch));
   }
+
+  await Promise.all(jobs);
+  await pool.destroy();
+  console.timeEnd("shooters");
 };
 
 const go = async () => {
