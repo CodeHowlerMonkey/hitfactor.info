@@ -164,13 +164,13 @@ const ShooterRunsTable = ({
           hidden={isHFU}
           body={renderPercent}
           field="curPercent"
-          header="Cur. %"
+          header="HQ %"
           sortable
           headerTooltip="What classifier percentage this score would've earned if it was submitted today, with Current HHFs."
           headerTooltipOptions={headerTooltipOptions}
         />
         <Column
-          hidden={isHFU}
+          hidden
           body={c => {
             if (c.percent > 0) {
               return renderPercent(c, { field: "percent" });
@@ -185,7 +185,7 @@ const ShooterRunsTable = ({
           headerTooltipOptions={headerTooltipOptions}
         />
         <Column
-          hidden={isHFU}
+          hidden
           body={renderPercent}
           field="percentMinusCurPercent"
           header="Percent Change"
@@ -193,7 +193,7 @@ const ShooterRunsTable = ({
           headerTooltip="Difference between calculated percent when run was submitted and what it would've been with current High Hit-Factor. \n Positive values mean classifier became harder, negative - easier."
           headerTooltipOptions={headerTooltipOptions}
         />
-        <Column hidden={isHFU} field="code" header="Flag" sortable />
+        <Column hidden field="code" header="Flag" sortable />
         <Column {...clubMatchColumn} />
         <Column hidden={isHFU} field="source" header="Source" sortable />
         <Column

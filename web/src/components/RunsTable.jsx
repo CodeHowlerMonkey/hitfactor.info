@@ -205,33 +205,11 @@ const RunsTable = ({ classifier, division, clubs, onShooterSelection }) => {
           hidden={sport !== "uspsa" && sport !== "scsa"}
           body={renderPercent}
           field="curPercent"
-          header="Cur. %"
+          header="HQ %"
           sortable
           headerTooltip="What classifier percentage this score would've earned if it was submitted today, with Current HHFs."
           headerTooltipOptions={headerTooltipOptions}
         />
-        <Column
-          hidden={sport !== "uspsa"}
-          body={c => {
-            if (c.percent > 0) {
-              return renderPercent(c, { field: "percent" });
-            }
-
-            return renderPercent(c, { field: "curPercent" });
-          }}
-          field="percent"
-          header="HQ %"
-          sortable
-          headerTooltip="Classifier percentage for this score during the time that it was processed by USPSA. Maxes out at 100%."
-          headerTooltipOptions={headerTooltipOptions}
-        />
-        {/* <Column
-        field="percentMinusCurPercent"
-        header="Percent Change"
-        sortable
-        headerTooltip="Difference between calculated percent when run was submitted and what it would've been with current High Hit-Factor. \n Positive values mean classifier became harder, negative - easier."
-        headerTooltipOptions={headerTooltipOptions}
-       /> */}
         <Column
           {...clubMatchColumn}
           filter
