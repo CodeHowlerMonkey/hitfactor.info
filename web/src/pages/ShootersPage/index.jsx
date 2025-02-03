@@ -75,7 +75,7 @@ const useShooterTableData = ({ division, memberNumber }) => {
     const canRefetch =
       whatIfs.length > 0 && whatIfs.every(c => !c.whatIf || (c.classifier && c.hf));
     if (canRefetch) {
-      const result = await postApi("/upload/whatif", {
+      const result = await postApi("/shooters/whatif", {
         scores: whatIfs,
         division,
         memberNumber,
