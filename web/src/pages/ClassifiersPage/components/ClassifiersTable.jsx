@@ -3,7 +3,7 @@ import { Checkbox } from "primereact/checkbox";
 import { Column } from "primereact/column";
 import { DataTable } from "primereact/datatable";
 import { InputText } from "primereact/inputtext";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
   classifierCodeSort,
@@ -81,6 +81,11 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
   const [prod1015Mode, setProd1015Mode] = useState(false);
   const [locoMode, setLOCOMode] = useState(false);
   const sortState = sortProps;
+
+  useEffect(() => {
+    setProd1015Mode(false);
+    setLOCOMode(false);
+  }, [division]);
 
   const { json: dataRaw, loading } = useApi(`/classifiers/${division ?? ""}`);
   const data = (dataRaw ?? [])
