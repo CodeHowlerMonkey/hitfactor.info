@@ -44,11 +44,15 @@ const HomePage = () => {
                 </p>
 
                 <p>
-                  It also includes "Hit Factor Unified" mode (HFU), with Minor Scoring, 4
-                  Most Common Divisions, and Full Backward Compatibility.
+                  And thanks to your support, we are now working on bringing it to USPSA.
+                  <br />
+                  Stay tuned!
                 </p>
-
-                <p>So, if you're coming from USPSA, you are already classified in HFU!</p>
+                <p>
+                  We also have experimental <a href="https://scsa.hitfactor.info">SCSA</a>
+                  &nbsp;and <a href="https://pcsl.hitfactor.info">PCSL</a> support. Check
+                  It Out!
+                </p>
               </span>
 
               <div className="flex flex-row justify-content-center md:justify-content-start">
@@ -140,17 +144,16 @@ const HomePage = () => {
             <div className="py-3 pl-5 pr-3 lg:pr-8 lg:pl-3 lg:w-30rem flex-order-1 lg:flex-order-0">
               <div className="text-900 text-xl mb-2 font-medium">Target Distribution</div>
               <span className="block text-700 line-height-3 mb-3">
-                Using Statistical Analysis and Prior Shooter's Experience we picked a
-                Perfect Target Distribution
+                Using Statistical Analysis we found a "Perfect" Distribution
               </span>
               <div className="pt-3 border-top-1 border-300">
-                <div className="mb-2 line-height-3">
-                  Top 1% of Scores = GrandMasters (95%)
-                </div>
-                <div className="mb-2 line-height-3">Top 5% = Masters (85%)</div>
-                <div className="mb-2 line-height-3">Top 15% = A-class (75%)</div>
-                <div className="mb-2 line-height-3">Top 40% = B-class (60%)</div>
-                <div className="mb-2 line-height-3">Top 80% = C-class (40%)</div>
+                <ul className="-ml-2">
+                  <li className="mb-2 line-height-3">
+                    Top 1% of Scores = GrandMasters (95%)
+                  </li>
+                  <li className="mb-2 line-height-3">Top 5% = Masters (85%)</li>
+                  <li className="mb-2 line-height-3">Top 15% = A-class (75%)</li>
+                </ul>
               </div>
               <img
                 src="/img/home/graph.jpg"
@@ -207,13 +210,22 @@ const HomePage = () => {
                 Recommended High Hit Factors
               </div>
               <span className="block text-700 line-height-3 mb-3">
-                Using Target Distribution we've Built an Algorithm to Automatically Assign
-                Recommended HHFs to Classifiers
+                After Extensive Research, and in Collaboration with USPSA Classifier
+                Committee, we picked the Best Way to set High Hit-Factors
               </span>
               <div className="pt-3 border-top-1 border-300">
-                <div className="mb-2 line-height-3 text-1900">
-                  It Can Go Up & Down, But Is Stable After 1000 Scores
-                </div>
+                <ul className="-ml-2">
+                  <li className="mb-2 line-height-3">Fitted Weibull Distribution</li>
+                  <ul>
+                    <li className="mb-2 line-height-3">
+                      with Negative Log Likelyhood Error
+                    </li>
+                    <li className="mb-2 line-height-3">
+                      and Nelder-Mead Optimization Algorithm
+                    </li>
+                  </ul>
+                  <li className="mb-2 line-height-3">Top 3% of Scores = 90% HHF</li>
+                </ul>
               </div>
               <img
                 src="/img/home/brain.jpg"
@@ -227,17 +239,22 @@ const HomePage = () => {
           <div className="flex justify-content-center mb-5">
             <div className="py-3 pl-5 pr-3 lg:pr-8 lg:pl-3 lg:w-30rem flex-order-1 lg:flex-order-0">
               <div className="text-900 text-xl mb-2 font-medium">
-                Brutal Classification Engine
+                Brutal Uncapped Classification Engine
               </div>
               <span className="block text-700 line-height-3 mb-3">
                 Rec.HHFs made Individual Classifiers Easier
                 <br /> So we made the Algorithm Harder
               </span>
               <div className="pt-3 border-top-1 border-300">
-                <div className="mb-2 line-height-3">Best 6 out of Recent 10</div>
-                <div className="mb-2 line-height-3">No A/B/C/D Flags</div>
-                <div className="mb-2 line-height-3">No Tanking Protection</div>
-                <div className="mb-2 line-height-3">Same Day Dupes are Averaged Out</div>
+                <ul className="-ml-2">
+                  <li className="mb-2 line-height-3">Best 6 out of Recent 12</li>
+                  <li className="mb-2 line-height-3">No B/C/D Flags</li>
+                  <li className="mb-2 line-height-3">No Tanking Protection</li>
+                  <li className="mb-2 line-height-3">Same Day Dupes are Averaged Out</li>
+                  <li className="mb-2 line-height-3">
+                    Different Day Dupes use Most Recent One
+                  </li>
+                </ul>
                 {/* <div className="mb-2 line-height-3">You're welcome, Grandbaggers</div> */}
               </div>
               <img
@@ -271,7 +288,7 @@ const HomePage = () => {
           <div className="flex lg:justify-content-center mb-5">
             <div className="py-3 pr-8 pl-3 w-30rem hidden lg:block">
               <img
-                src="/img/home/champions.jpg"
+                src="/img/home/science.jpg"
                 alt="Image"
                 className="w-full mr-8"
                 style={{ borderRadius: 22 }}
@@ -290,6 +307,36 @@ const HomePage = () => {
               />
             </div>
             <div className="py-3 pl-5 lg:pl-8 pl-3 lg:w-30rem">
+              <div className="text-900 text-xl mb-2 font-medium">ELO Correlation</div>
+              <span className="block text-700 line-height-3 mb-3">
+                To Verify Our Methods, we partnered with{" "}
+                <a href="https://www.patreon.com/shootingsportsanalyst">
+                  Jay Slater's Shooting Sport Analyst
+                </a>{" "}
+                and ran Correlation Analysis against his ELO ratings, resulting in:
+              </span>
+              <div className="pt-3 border-top-1 border-300">
+                <ul className="-ml-2">
+                  <li className="mb-2 line-height-3">
+                    New Uncapped Algorithm (Scores can go Higher than 100%)
+                  </li>
+                  <li className="mb-2 line-height-3">Softer 6/12 Window</li>
+                  <li className="mb-2 line-height-3">
+                    Improved Classifier Quality Ratings
+                  </li>
+                </ul>
+              </div>
+              <img
+                src="/img/home/science.jpg"
+                alt="Image"
+                style={{ borderRadius: 22 }}
+                className="w-full mt-3 block lg:hidden"
+              />
+            </div>
+          </div>
+
+          <div className="flex justify-content-center mb-5">
+            <div className="py-3 pl-5 pr-3 lg:pr-8 lg:pl-3 lg:w-30rem flex-order-1 lg:flex-order-0">
               <div className="text-900 text-xl mb-2 font-medium">The Result?</div>
               <span className="block text-700 line-height-3 mb-3">
                 An Improved Classification System that Accurately Reflects Your Shooting
@@ -311,6 +358,26 @@ const HomePage = () => {
                 alt="Image"
                 style={{ borderRadius: 22 }}
                 className="w-full mt-3 block lg:hidden"
+              />
+            </div>
+            <div className="flex flex-column align-items-center w-2rem flex-order-0 lg:flex-order-1">
+              <span
+                className="bg-cyan-500 text-0 flex align-items-center justify-content-center border-circle"
+                style={{ minWidth: "2.5rem", minHeight: "2.5rem" }}
+              >
+                6
+              </span>
+              <div
+                className="h-full bg-cyan-500"
+                style={{ width: 2, minHeight: "4rem" }}
+              />
+            </div>
+            <div className="py-3 pl-8 pr-3 w-30rem hidden lg:block flex-order-2">
+              <img
+                src="/img/home/champions.jpg"
+                alt="Image"
+                className="w-full mr-8"
+                style={{ borderRadius: 22 }}
               />
             </div>
           </div>
