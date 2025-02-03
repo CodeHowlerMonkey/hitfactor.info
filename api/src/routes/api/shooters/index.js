@@ -126,14 +126,14 @@ const shootersRoutes = async fastify => {
     info.classificationByDivision = infos.reduce((acc, cur) => {
       const {
         reclassificationsCurPercentCurrent: curHHFCurrent,
-        reclassificationsRecPercentCurrent: recCurrent,
+        reclassificationsRecPercentUncappedCurrent: recCurrent,
         reclassificationsCurPercentHigh: curHHFHigh,
         reclassificationsRecPercentUncappedHigh: recHigh,
       } = cur;
 
       acc[cur.division] = {
         reclassificationsCurPercentCurrent: curHHFCurrent || 0,
-        reclassificationsRecPercentCurrent: recCurrent || 0,
+        reclassificationsRecPercentUncappedCurrent: recCurrent || 0,
         reclassificationsCurPercentHigh: curHHFHigh || 0,
         reclassificationsRecPercentUncappedHigh: recHigh || 0,
         age: cur.age,
