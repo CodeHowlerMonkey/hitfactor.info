@@ -41,6 +41,7 @@ const fieldModeMap = {
   ELO: "elo",
   HQ: "curPercent",
   "Cur.HHF": "curHHFPercent",
+  "Cur.HHF High": "curHHFPercentHigh",
   "Rec.HHFOnly": "recHHFOnlyPercent",
   "Rec.Soft": "recSoftPercent",
   "Rec.Brutal": "recPercent",
