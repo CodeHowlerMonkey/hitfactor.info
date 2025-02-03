@@ -39,7 +39,7 @@ export const ShooterProgressChart = ({ division, memberNumber }) => {
           maintainAspectRatio: false,
           scales: {
             y: {
-              max: 100,
+              max: 120,
               min: 40,
             },
             x: {

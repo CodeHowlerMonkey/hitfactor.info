@@ -150,24 +150,25 @@ const ShootersTable = ({
             />
           )}
         />
-        <Column field="elo" header="ELO" sortable body={renderHFOrNA} />
         <Column
           field="reclassificationsRecPercentUncappedCurrent"
-          header="Rec. Uncapped"
-          headerTooltip="Like Recommended, but Scores aren't capped at 100%"
+          header="Rec."
+          headerTooltip="Recommended classification percent of this shooter, using best 6 out of most recent 12 scores and recommended HHFs for classifiers."
           headerTooltipOptions={headerTooltipOptions}
           sortable
           body={renderPercent}
         />
         <Column
+          hidden
           field="reclassificationsRecPercentCurrent"
           header={isHFU ? "Percent" : "Rec."}
-          headerTooltip="Recommended classification percent of this shooter, using best 6 out of most recent 10 scores and recommended HHFs for classifiers."
+          headerTooltip="Recommended capped classification percent of this shooter, using best 6 out of most recent 12 scores and recommended HHFs for classifiers."
           headerTooltipOptions={headerTooltipOptions}
           sortable
           body={renderPercent}
         />
         <Column
+          hidden
           field="reclassificationsSoftPercentCurrent"
           header="Rec. Soft"
           headerTooltip="Like Recommended, but D-flags still work"
@@ -176,6 +177,7 @@ const ShootersTable = ({
           body={renderPercent}
         />
         <Column
+          hidden
           field="reclassificationsRecHHFOnlyPercentCurrent"
           header="Rec.HHFOnly"
           headerTooltip="Like HQ (BCD-flags on), but using RecHHFs"
@@ -193,13 +195,7 @@ const ShootersTable = ({
           sortable
           body={renderPercent}
         />
-        {/*<Column
-          hidden={isHFU}
-          field="current"
-          header="HQ"
-          sortable
-          body={renderPercent}
-        />*/}
+        <Column field="elo" header="ELO" sortable body={renderHFOrNA} />
         <Column
           field="age"
           header="Age"
