@@ -1,5 +1,3 @@
-import uniqBy from "lodash.uniqby";
-
 import {
   basicInfoForClassifier,
   classifiers,
@@ -9,7 +7,6 @@ import {
   divisionsForScoresAdapter,
   hfuDivisionsShortNamesThatNeedMinorHF,
 } from "../../../dataUtil/divisions";
-import { curHHFForDivisionClassifier } from "../../../dataUtil/hhf";
 import { HF, N, Percent, PositiveOrMinus1 } from "../../../dataUtil/numbers";
 import {
   allDivisionClassifiersQuality,
