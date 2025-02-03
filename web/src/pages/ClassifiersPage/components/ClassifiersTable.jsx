@@ -250,20 +250,11 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
         bodyStyle={{ textAlign: "center" }}
       />
       <Column
-        hidden={nerdMode}
         field="recHHF"
         header="Rec. HHF"
         sortable
         style={{ width: "100px", textAlign: "right" }}
         body={c => c.recHHF.toFixed(4)}
-      />
-      <Column
-        hidden={!nerdMode}
-        field="wbl5HHF"
-        header="Wbl5. HHF"
-        sortable
-        style={{ width: "100px", textAlign: "right" }}
-        body={c => c.wbl5HHF.toFixed(4)}
       />
       <Column
         hidden={!prod1015Mode}
@@ -311,32 +302,9 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
       />
       <Column
         hidden={!nerdMode}
-        field="k"
-        header="k"
-        sortable
-        style={{ width: "100px", textAlign: "right" }}
-        body={(c, { field }) => c[field].toFixed(6)}
-      />
-      <Column
-        hidden={!nerdMode}
-        field="lambda"
-        header="𝛌"
-        sortable
-        style={{ width: "100px", textAlign: "right" }}
-        body={(c, { field }) => c[field].toFixed(6)}
-      />
-      <Column
-        hidden={!nerdMode}
         field="meanSquaredError"
         header="MSE"
-        sortable
-        style={{ width: "100px", textAlign: "right" }}
-        body={(c, { field }) => c[field].toFixed(4)}
-      />
-      <Column
-        hidden
-        field="meanAbsoluteError"
-        header="MAE"
+        headerTooltip="Mean Squared Error against Fitted Weibull"
         sortable
         style={{ width: "100px", textAlign: "right" }}
         body={(c, { field }) => c[field].toFixed(4)}
@@ -345,22 +313,7 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
         hidden={!nerdMode}
         field="superMeanSquaredError"
         header="SMSE"
-        sortable
-        style={{ width: "100px", textAlign: "right" }}
-        body={(c, { field }) => c[field].toFixed(4)}
-      />
-      <Column
-        hidden
-        field="superMeanAbsoluteError"
-        header="SMAE"
-        sortable
-        style={{ width: "100px", textAlign: "right" }}
-        body={(c, { field }) => c[field].toFixed(4)}
-      />
-      <Column
-        hidden
-        field="maxError"
-        header="MaxE"
+        headerTooltip="Mean Squared Error against k=3.6 Weibull"
         sortable
         style={{ width: "100px", textAlign: "right" }}
         body={(c, { field }) => c[field].toFixed(4)}
