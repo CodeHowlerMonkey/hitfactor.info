@@ -5,6 +5,7 @@ import qs from "query-string";
 import { useEffect, useState, useRef } from "react";
 import { useDebounce } from "use-debounce";
 
+import { classificationDifficulty } from "../../../../../shared/constants/difficulty";
 import { sportForDivision } from "../../../../../shared/constants/divisions";
 import ReportDialog from "../../../components/ReportDialog";
 import ShooterCell from "../../../components/ShooterCell";
@@ -17,6 +18,8 @@ import {
 } from "../../../components/Table";
 import { useApi } from "../../../utils/client";
 import { useIsHFU } from "../../../utils/useIsHFU";
+
+const { best, recent } = classificationDifficulty.window;
 
 // TODO: extract into common components, right now this is copypasted from RunsTable
 const TableFilter = ({ placeholder, onFilterChange }) => {
@@ -153,7 +156,15 @@ const ShootersTable = ({
         <Column
           field="reclassificationsRecPercentUncappedCurrent"
           header="Rec."
-          headerTooltip="Recommended classification percent of this shooter, using best 6 out of most recent 12 scores and recommended HHFs for classifiers."
+          headerTooltip={`Recommended classification, using best ${best} out of most recent ${recent} scores and recommended HHFs for classifiers.`}
+          headerTooltipOptions={headerTooltipOptions}
+          sortable
+          body={renderPercent}
+        />
+        <Column
+          field="reclassificationsRecPercentUncappedHigh"
+          header="Rec. High"
+          headerTooltip={`High recommended classification, using best ${best} out of most recent ${recent} scores and recommended HHFs for classifiers.`}
           headerTooltipOptions={headerTooltipOptions}
           sortable
           body={renderPercent}
@@ -162,7 +173,7 @@ const ShootersTable = ({
           hidden
           field="reclassificationsRecPercentCurrent"
           header={isHFU ? "Percent" : "Rec."}
-          headerTooltip="Recommended capped classification percent of this shooter, using best 6 out of most recent 12 scores and recommended HHFs for classifiers."
+          headerTooltip={`Recommended capped classification, using best ${best} out of most recent ${recent} scores and recommended HHFs for classifiers.`}
           headerTooltipOptions={headerTooltipOptions}
           sortable
           body={renderPercent}
@@ -191,6 +202,16 @@ const ShootersTable = ({
           header="HQ"
           // header="Cur."
           headerTooltip="Current HHF classification percent of this shooter, if all their classifier scores would use the most recent HHFs. Major Matches results stay the same."
+          headerTooltipOptions={headerTooltipOptions}
+          sortable
+          body={renderPercent}
+        />
+        <Column
+          hidden={isHFU}
+          field="reclassificationsCurPercentHigh"
+          header="HQ High"
+          // header="Cur."
+          headerTooltip="High Cur HHF classification percent of this shooter, if all their classifier scores would use the most recent HHFs. Major Matches results stay the same."
           headerTooltipOptions={headerTooltipOptions}
           sortable
           body={renderPercent}
