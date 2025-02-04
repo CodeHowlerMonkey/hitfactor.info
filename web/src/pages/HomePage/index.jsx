@@ -218,10 +218,10 @@ const HomePage = () => {
                   <li className="mb-2 line-height-3">Fitted Weibull Distribution</li>
                   <ul>
                     <li className="mb-2 line-height-3">
-                      with Negative Log Likelyhood Error
+                      Negative Log Likelyhood Error Function
                     </li>
                     <li className="mb-2 line-height-3">
-                      and Nelder-Mead Optimization Algorithm
+                      Nelder-Mead Optimization Algorithm
                     </li>
                   </ul>
                   <li className="mb-2 line-height-3">Top 3% of Scores = 90% HHF</li>
@@ -247,9 +247,7 @@ const HomePage = () => {
               </span>
               <div className="pt-3 border-top-1 border-300">
                 <ul className="-ml-2">
-                  <li className="mb-2 line-height-3">Best 6 out of Recent 12</li>
                   <li className="mb-2 line-height-3">No B/C/D Flags</li>
-                  <li className="mb-2 line-height-3">No Tanking Protection</li>
                   <li className="mb-2 line-height-3">Same Day Dupes are Averaged Out</li>
                   <li className="mb-2 line-height-3">
                     Different Day Dupes use Most Recent One
@@ -313,17 +311,14 @@ const HomePage = () => {
                 <a href="https://www.patreon.com/shootingsportsanalyst">
                   Jay Slater's Shooting Sport Analyst
                 </a>{" "}
-                and ran Correlation Analysis against his ELO ratings, resulting in:
+                and ran Correlation Analysis against his ELO ratings, ensuring optimal
+                picks for:
               </span>
               <div className="pt-3 border-top-1 border-300">
                 <ul className="-ml-2">
-                  <li className="mb-2 line-height-3">
-                    New Uncapped Algorithm (Scores can go Higher than 100%)
-                  </li>
-                  <li className="mb-2 line-height-3">Softer 6/12 Window</li>
-                  <li className="mb-2 line-height-3">
-                    Improved Classifier Quality Ratings
-                  </li>
+                  <li className="mb-2 line-height-3">Classification Algorithm</li>
+                  <li className="mb-2 line-height-3">Scores Window</li>
+                  <li className="mb-2 line-height-3">Classifier Quality Ratings</li>
                 </ul>
               </div>
               <img
@@ -340,7 +335,7 @@ const HomePage = () => {
               <div className="text-900 text-xl mb-2 font-medium">The Result?</div>
               <span className="block text-700 line-height-3 mb-3">
                 An Improved Classification System that Accurately Reflects Your Shooting
-                Skills
+                Skills and is Harder to Game
               </span>
               <div className="pt-3 border-top-1 border-300">
                 <div className="mb-2 line-height-3">
