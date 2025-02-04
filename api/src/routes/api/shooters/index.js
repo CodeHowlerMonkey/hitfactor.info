@@ -212,6 +212,11 @@ const shootersRoutes = async fastify => {
         ...c,
         curHHFPercentPercentile: (100 * i) / (all.length - 1),
       }))
+      .sort(safeNumSort("curHHFPercentHigh"))
+      .map((c, i, all) => ({
+        ...c,
+        curHHFPercentHighPercentile: (100 * i) / (all.length - 1),
+      }))
       .sort(safeNumSort("recHHFOnlyPercent"))
       .map((c, i, all) => ({
         ...c,
