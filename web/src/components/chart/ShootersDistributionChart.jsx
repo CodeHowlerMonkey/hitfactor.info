@@ -22,17 +22,20 @@ import { useAsyncWeibull } from "./useAsyncWeibull";
 import { WeibullStatus } from "./WeibullStatus";
 
 const fieldModeMap = {
-  HQ: "curPercent",
-  "Cur.HHF": "curHHFPercent",
+  //HQ: "curPercent",
+  HQ: "curHHFPercent",
+  "HQ High": "curHHFPercentHigh",
+  /*
   "Rec.HHFOnly": "recHHFOnlyPercent",
   "Rec.Soft": "recSoftPercent",
   "Rec.Brutal": "recPercent",
-  "Rec.Brutal Uncapped": "recPercentUncapped",
-  "Rec.Brutal Uncapped High": "recPercentUncappedHigh",
+  */
+  Recommended: "recPercentUncapped",
+  "Recommended High": "recPercentUncappedHigh",
 };
 const fieldForMode = mode => fieldModeMap[mode];
 const modes = Object.keys(fieldModeMap);
-const recommendedMode = modes[4];
+const recommendedMode = modes[2];
 
 export const ShootersDistributionChart = ({ division, style }) => {
   const isHFU = useIsHFU(division);
