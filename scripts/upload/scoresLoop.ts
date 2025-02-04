@@ -9,7 +9,7 @@ import {
 } from "../../api/src/worker/uploads";
 
 const scoresLoop = async ({ batchSize = 12 } = {}) => {
-  const onlyUSPSAorSCSA = { templateName: { $in: ["USPSA", "Steel Challenge"] } };
+  const onlyUSPSAorSCSA = { templateName: { $in: ["USPSA" /*, "Steel Challenge"*/] } };
   const count = await Matches.countDocuments(matchesForUploadFilter(onlyUSPSAorSCSA));
   console.log(`${count} uploads in the queue (USPSA, SCSA only)`);
 
