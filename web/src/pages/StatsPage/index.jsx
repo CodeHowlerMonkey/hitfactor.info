@@ -206,13 +206,17 @@ const titleForDivMap = {
 
 // "By Cur. HHF Percent" => byCurHHFPercent
 const modeMap = {
+  /*
   HQ: "byClass",
   "HQ Cur.": "byPercent",
-  "Cur. HHF": "byCurHHFPercent",
+  */
+  "HQ High": "byCurHHFPercent",
+  /*
   "Rec. HHF Only": "byRecHHFOnlyPercent",
   "Rec. Soft": "byRecSoftPercent",
   Brutal: "byRecHHFPercent",
-  "Brutal Uncapped (Recommended)": "byRecUncappedPercent",
+  */
+  "Recommended High": "byRecUncappedPercent",
 };
 const modes = Object.keys(modeMap);
 const modeBucketForMode = mode => modeMap[mode];
