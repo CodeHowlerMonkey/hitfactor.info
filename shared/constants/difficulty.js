@@ -5,9 +5,9 @@ export const weibullDifficulty = {
 
 export const classificationDifficulty = {
   window: {
-    min: 6,
+    min: 4,
     best: 6,
-    recent: 12,
+    recent: 8,
   },
 
   percentCap: 110,
