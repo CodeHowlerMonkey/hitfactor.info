@@ -717,27 +717,11 @@ export const reclassifyShooters = async shooters => {
                     recUncappedClassRank: rankForClass(recalcDivRecUncapped.class),
 
                     // same as reclassificaiton fields above, but highPercent, short form uses "High" suffix, e.g. recPercentUncappedHigh
-                    reclassificationsCurPercentHigh: {
-                      $max: ["$reclassificationsCurPercentHigh", recalcDivCur.high],
-                    },
-                    reclassificationsRecHHFOnlyPercentHigh: {
-                      $max: [
-                        "$reclassificationsRecHHFOnlyPercentHigh",
-                        recalcDivRecHHFOnly.high,
-                      ],
-                    },
-                    reclassificationsSoftPercentHigh: {
-                      $max: ["$reclassificationsSoftPercentHigh", recalcDivSoft.high],
-                    },
-                    reclassificationsRecPercentHigh: {
-                      $max: ["$reclassificationsRecPercentHigh", recalcDivRec.high],
-                    },
-                    reclassificationsRecPercentUncappedHigh: {
-                      $max: [
-                        "$reclassificationsRecPercentUncappedHigh",
-                        recalcDivRecUncapped.high,
-                      ],
-                    },
+                    reclassificationsCurPercentHigh: recalcDivCur.high,
+                    reclassificationsRecHHFOnlyPercentHigh: recalcDivRecHHFOnly.high,
+                    reclassificationsSoftPercentHigh: recalcDivSoft.high,
+                    reclassificationsRecPercentHigh: recalcDivRec.high,
+                    reclassificationsRecPercentUncappedHigh: recalcDivRecUncapped.high,
                   },
                 },
               ],
