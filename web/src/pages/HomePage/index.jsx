@@ -49,9 +49,15 @@ const HomePage = () => {
                   Stay tuned!
                 </p>
                 <p>
-                  We also have experimental <a href="https://scsa.hitfactor.info">SCSA</a>
-                  &nbsp;and <a href="https://pcsl.hitfactor.info">PCSL</a> support. Check
-                  It Out!
+                  We also have experimental{" "}
+                  <a href="https://scsa.hitfactor.info" target="_blank" rel="noreferrer">
+                    SCSA
+                  </a>
+                  &nbsp;and{" "}
+                  <a href="https://pcsl.hitfactor.info" target="_blank" rel="noreferrer">
+                    PCSL
+                  </a>{" "}
+                  support. Check It Out!
                 </p>
               </span>
 
