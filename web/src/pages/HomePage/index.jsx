@@ -248,13 +248,15 @@ const HomePage = () => {
                 Brutal Uncapped Classification Engine
               </div>
               <span className="block text-700 line-height-3 mb-3">
-                Rec.HHFs made Individual Classifiers Easier
-                <br /> So we made the Algorithm Harder
+                Rec.HHFs made Individual Classifiers Easier,
+                <br /> so we made the Algorithm Harder
               </span>
               <div className="pt-3 border-top-1 border-300">
                 <ul className="-ml-2">
-                  <li className="mb-2 line-height-3">No B/C/D Flags</li>
-                  <li className="mb-2 line-height-3">Same Day Dupes are Averaged Out</li>
+                  <li className="mb-2 line-height-3">No B/C Flags</li>
+                  <li className="mb-2 line-height-3">
+                    Average of Same Day Dupes counts as One Score
+                  </li>
                   <li className="mb-2 line-height-3">
                     Different Day Dupes use Most Recent One
                   </li>
