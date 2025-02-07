@@ -191,11 +191,7 @@ export const ShooterRunsAndInfo = ({ division, memberNumber, onBackToShooters })
           memberNumber={memberNumber}
           loading={loading}
         />
-      ) : (
-        <h5 className="text-color-secondary text-center">
-          Steel Challenge Classification & Ratings Coming Soon
-        </h5>
-      )}
+      ) : null}
       <Divider />
       <div className="flex justify-content-between">
         <h4 className="block md:text-lg lg:text-xl">Scores</h4>

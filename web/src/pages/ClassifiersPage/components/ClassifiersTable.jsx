@@ -121,7 +121,7 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
   return (
     <DataTable
       size="small"
-      className="text-xs md:text-base"
+      className={cx("text-xs md:text-base", { "mt-4": isSCSA })}
       style={{ width: "fit-content", margin: "auto" }}
       loading={loading}
       showGridlines
@@ -131,42 +131,44 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
       onSelectionChange={({ value }) => onClassifierSelection(value.code)}
       stripedRows
       header={
-        <div className="flex align-items-end">
-          <div className="flex flex-column gap-1">
-            <div>{data.length} classifiers</div>
-            <div className="text-xs flex gap-2 align-items-center">
-              Nerd Mode
-              <Checkbox onChange={e => setNerdMode(e.checked)} checked={nerdMode} />
-              {division === "prod" && (
-                <>
-                  <div className="ml-8" />
-                  Prod 10 vs 15
-                  <Checkbox
-                    onChange={e => setProd1015Mode(e.checked)}
-                    checked={prod1015Mode}
-                  />
-                </>
-              )}
-              {division === "lo" && (
-                <>
-                  <div className="ml-8" />
-                  LO vs CO
-                  <Checkbox onChange={e => setLOCOMode(e.checked)} checked={locoMode} />
-                </>
-              )}
+        !isSCSA && (
+          <div className="flex align-items-end">
+            <div className="flex flex-column gap-1">
+              <div>{data.length} classifiers</div>
+              <div className="text-xs flex gap-2 align-items-center">
+                Nerd Mode
+                <Checkbox onChange={e => setNerdMode(e.checked)} checked={nerdMode} />
+                {division === "prod" && (
+                  <>
+                    <div className="ml-8" />
+                    Prod 10 vs 15
+                    <Checkbox
+                      onChange={e => setProd1015Mode(e.checked)}
+                      checked={prod1015Mode}
+                    />
+                  </>
+                )}
+                {division === "lo" && (
+                  <>
+                    <div className="ml-8" />
+                    LO vs CO
+                    <Checkbox onChange={e => setLOCOMode(e.checked)} checked={locoMode} />
+                  </>
+                )}
+              </div>
             </div>
+            <div className="md:flex-grow-1" />
+            <span className="w-12 md:w-16rem p-input-icon-left">
+              <i className="pi pi-search" />
+              <InputText
+                className="w-12"
+                value={filter}
+                onChange={e => setFilter(e.target.value)}
+                placeholder="Search"
+              />
+            </span>
           </div>
-          <div className="md:flex-grow-1" />
-          <span className="w-12 md:w-16rem p-input-icon-left">
-            <i className="pi pi-search" />
-            <InputText
-              className="w-12"
-              value={filter}
-              onChange={e => setFilter(e.target.value)}
-              placeholder="Search"
-            />
-          </span>
-        </div>
+        )
       }
       lazy
       value={data ?? []}
@@ -181,6 +183,7 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
         body={c => <ClassifierCell info={c} showScoring />}
       />
       <Column
+        hidden={isSCSA}
         field="ccQuality"
         header="Quality"
         headerTooltip="New Quality for Classifier Committee, using correlations and SMSE"
@@ -206,6 +209,7 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
         )}
       />
       <Column
+        hidden={isSCSA}
         field="allDivQuality"
         header="OA Qual."
         headerTooltip="New All Division Quality for Classifier Committee, using correlations and SMSE"
@@ -256,10 +260,10 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
       />
       <Column
         field="recHHF"
-        header="Rec. HHF"
+        header={isSCSA ? "Rec. Peak Time" : "Rec. HHF"}
         sortable
         style={{ width: "100px", textAlign: "right" }}
-        body={c => c.recHHF.toFixed(4)}
+        body={c => (isSCSA ? `${c.recHHF.toFixed(2)}s` : c.recHHF.toFixed(4))}
       />
       <Column
         hidden={!prod1015Mode}
@@ -298,6 +302,7 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
         header={isSCSA ? "HQ Peak Time" : "HQ HHF"}
         sortable
         style={{ width: "100px" }}
+        body={c => (isSCSA ? `${c.curHHF.toFixed(2)}s` : c.curHHF.toFixed(4))}
       />
       <Column
         field="recHHFChangePercent" /** field is Percent for sorting, still shows like PeakTime/HHF */
