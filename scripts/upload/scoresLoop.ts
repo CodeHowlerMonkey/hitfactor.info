@@ -11,7 +11,7 @@ import {
 const scoresLoop = async ({ batchSize = 12 } = {}) => {
   const onlyUSPSAorSCSA = { templateName: { $in: ["USPSA" /*, "Steel Challenge"*/] } };
   const count = await Matches.countDocuments(matchesForUploadFilter(onlyUSPSAorSCSA));
-  console.log(`${count} uploads in the queue (USPSA, SCSA only)`);
+  console.log(`${count} uploads in the queue (USPSA only)`);
 
   let numberOfUpdates = 0;
   let fewMatches = [] as Awaited<ReturnType<typeof findAFewMatches>>;

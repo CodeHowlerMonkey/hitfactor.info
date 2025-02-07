@@ -9,6 +9,7 @@ import {
   useNavigate,
   useLocation,
   Link,
+  Navigate,
 } from "react-router-dom";
 
 import features from "../../../shared/features";
@@ -73,7 +74,13 @@ const MoreMenu = () => {
   );
 };
 
-const config = [
+const scsaOnlyConfig = {
+  label: "SCSA Classifiers",
+  icon: "pi pi-chart-bar",
+  path: "/",
+};
+
+const mainConfig = [
   {
     label: "Howler Monkey Classifiers",
     template: item => (
@@ -137,6 +144,8 @@ const config = [
   },
 ];
 
+const config = features.scsaOnly ? scsaOnlyConfig : mainConfig;
+
 const activeIndexForPathname = pathname =>
   config.map(c => c.path).findLastIndex(curPath => pathname?.startsWith(curPath));
 
@@ -187,6 +196,9 @@ const Layout = () => (
   </div>
 );
 
+const RedirectToClassifiers = () => <Navigate to="/classifiers" replace />;
+const HomePage = React.lazy(() => import("../pages/HomePage"));
+
 const router = createBrowserRouter([
   {
     path: "/",
@@ -201,11 +213,7 @@ const router = createBrowserRouter([
     children: [
       {
         path: "",
-        Component: React.lazy(() => import("../pages/HomePage")),
-      },
-      {
-        path: "stats",
-        Component: React.lazy(() => import("../pages/StatsPage")),
+        Component: features.scsaOnly ? RedirectToClassifiers : HomePage,
       },
       {
         path: "classifiers/:division?/:classifier?",
@@ -215,14 +223,22 @@ const router = createBrowserRouter([
         path: "shooters/:division?/:memberNumber?",
         Component: React.lazy(() => import("../pages/ShootersPage")),
       },
-      {
-        path: "clubs",
-        Component: React.lazy(() => import("../pages/ClubsPage")),
-      },
-      {
-        path: "upload",
-        Component: React.lazy(() => import("../pages/UploadPage")),
-      },
+      ...(features.scsaOnly
+        ? []
+        : [
+            {
+              path: "stats",
+              Component: React.lazy(() => import("../pages/StatsPage")),
+            },
+            {
+              path: "clubs",
+              Component: React.lazy(() => import("../pages/ClubsPage")),
+            },
+            {
+              path: "upload",
+              Component: React.lazy(() => import("../pages/UploadPage")),
+            },
+          ]),
     ],
   },
 ]);
