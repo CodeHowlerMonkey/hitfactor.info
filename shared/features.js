@@ -1,7 +1,7 @@
 const features = {
-  hfu: true,
+  hfu: false,
   users: false,
-  scsaOnly: false,
+  scsaOnly: true,
 };
 
 export default features;
