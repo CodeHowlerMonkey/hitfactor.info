@@ -157,7 +157,7 @@ export const DivisionNavigation = ({
   // update selection if navigation changes
   useEffect(() => {
     const [sport, divisionIndex] = sportAndDivisionIndexForDivision(division);
-    if (features.hfu && !uspsaOnly) {
+    if (features.scsaOnly || (features.hfu && !uspsaOnly)) {
       setActiveIndex(divisionIndex);
       setSportCode(sport);
     } else if (sport === "hfu") {
