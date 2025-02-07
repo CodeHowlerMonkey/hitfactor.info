@@ -118,7 +118,11 @@ const sportAndDivisionIndexForDivision = division => {
     return ["uspsa", uspsaIndex + 1];
   }
 
-  return ["scsa", -1];
+  if (features.scsaOnly) {
+    return ["scsa", -1];
+  }
+
+  return ["uspsa", -1];
 };
 
 export const defaultDivisionForSport = sport => {
