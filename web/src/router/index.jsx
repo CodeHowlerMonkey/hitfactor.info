@@ -74,11 +74,13 @@ const MoreMenu = () => {
   );
 };
 
-const scsaOnlyConfig = {
-  label: "SCSA Classifiers",
-  icon: "pi pi-chart-bar",
-  path: "/",
-};
+const scsaOnlyConfig = [
+  {
+    label: "SCSA Classifiers",
+    icon: "pi pi-chart-bar",
+    path: "/",
+  },
+];
 
 const mainConfig = [
   {
