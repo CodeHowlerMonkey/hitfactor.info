@@ -1,4 +1,6 @@
 /* eslint-disable no-console */
+import fs from "fs";
+
 import mongoose from "mongoose";
 
 import { hydrateClassifiersExtendedMeta } from "./classifiers";
@@ -7,14 +9,22 @@ import { hydrateScores } from "./scores";
 import { hydrateShooters } from "./shooters";
 import { hydrateStats } from "./stats";
 
+const isDocker =
+  fs.existsSync("/.dockerenv") ||
+  (fs.existsSync("/proc/1/cgroup") &&
+    fs.readFileSync("/proc/1/cgroup", "utf8").includes("docker")) ||
+  process.env.CONTAINER === "docker" ||
+  process.env.DOCKER === "true";
+
+const defaultLocalDB = isDocker ? "host.docker.internal" : "127.0.0.1";
+
 export const connect = async () => {
-  const { LOCAL_DEV, MONGO_URL, MONGO_URL_LOCAL } = process.env;
-  if (!LOCAL_DEV && !MONGO_URL) {
-    throw new Error(
-      `Environment Variable MONGO_URL must be specified in top-level environment variables in sandbox mode.`,
-    );
+  const { MONGO_URL } = process.env;
+  const url = MONGO_URL || `mongodb://${defaultLocalDB}:27017/uspsa`;
+
+  if (!url) {
+    throw new Error("No DB Url");
   }
-  const url = !LOCAL_DEV ? MONGO_URL : MONGO_URL_LOCAL;
 
   const publicLogsDBHost = url!.split("@")[1]?.split(".")[0] || "local";
   const dbName = url!.split("?")[0]?.split("/").reverse()[0] || "root";
