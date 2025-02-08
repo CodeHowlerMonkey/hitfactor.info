@@ -6,6 +6,7 @@ import {
   divisionsForScoresAdapter,
   hfuDivisionsShortNamesThatNeedMinorHF,
   minorDivisions,
+  uspsaDivIdToShort,
   uspsaDivShortNames,
 } from "../../../shared/constants/divisions";
 import { UTCDate } from "../../../shared/utils/date";
@@ -21,12 +22,14 @@ export interface Score {
   club_name?: string;
   percent: number;
   hf: number;
+  hhf?: number;
   minorHF?: number;
   code: string;
   source: string;
   shooterFullName?: string;
   memberNumber: string;
   division: string;
+  matchName?: string;
 
   // extra fields for sport/matchType
   type: string;
@@ -46,7 +49,7 @@ export interface Score {
   rawPoints?: number;
   strings?: number[];
   targetHits?: number[];
-  device: string;
+  device?: string;
 
   // compound keys for lookups
   classifierDivision: string;
@@ -87,6 +90,7 @@ const ScoreSchema = new mongoose.Schema<Score, ScoreModel, ScoreVirtuals>(
     shooterFullName: String,
     memberNumber: String,
     division: String,
+    matchName: String,
 
     // extra fields for sport/matchType
     type: String,
@@ -402,4 +406,73 @@ export const uspsaDivisionsPopularity = async (year = 0) => {
     },
     { $sort: { scores: -1 } },
   ]);
+};
+
+export interface USPSAScore {
+  match_date: string; //	"2024-10-12 00:00:00"
+  classifier_stage_id: string; //	"111"
+  classfier_code: string; //	"21-01"
+  division_id: string; //	"41"
+  division_name: string; //	"Limited Optics"
+  member_id: string; //	"123456"
+  first_name: string; //	"First"
+  last_name: string; //	"Last"
+  member_number: string; //	"A1234567"
+  privacy: number; //	looks like always 0 for now
+  power_factor: string; //	"Minor"
+  uploaded_class: string; //	"B"
+  current_class: string; //	"B"
+  a: string; //	"11"
+  b: string; //	"0"
+  c: string; //	"6"
+  d: string; //	"0"
+  m: string; // "1"
+  ns: string; //	"0"
+  time: string; //	"12.34"
+  total_points: string; //	"58"
+  hit_factor: string; //	"4.1234"
+  classification_pct: string; //	"48.1234"
+  classifier_flag: string | null; //"B" , "Y", etc
+}
+
+export const scoreFromUSPSAScore = (uspsaScore: USPSAScore): Score => {
+  const hf = Number(uspsaScore.hit_factor);
+  const percent = Number(uspsaScore.classification_pct);
+  const hhf = (100 * hf) / percent;
+  const date = new Date(uspsaScore.match_date || "");
+
+  const division = uspsaDivIdToShort[uspsaScore.division_id];
+  const memberNumber = uspsaScore.member_number;
+  const memberNumberDivision = [memberNumber, division].join(":");
+  const classifier = uspsaScore.classfier_code;
+  const classifierDivision = [classifier, division].join(":");
+
+  return {
+    hf,
+    hhf,
+
+    points: Number(uspsaScore.total_points),
+    stageTimeSecs: uspsaScore.time,
+
+    // from algolia / matches collection
+    type: "uspsa_p",
+    subType: "uspsa",
+    templateName: "USPSA",
+
+    modified: date,
+
+    percent,
+    shooterFullName: [uspsaScore.first_name, uspsaScore.last_name]
+      .filter(Boolean)
+      .join(" "),
+    memberNumber,
+    classifier,
+    division,
+    upload: "uspsa-json",
+    sd: UTCDate(uspsaScore.match_date),
+    code: uspsaScore.classifier_flag ?? "?",
+    source: "Stage Score",
+    memberNumberDivision,
+    classifierDivision,
+  };
 };
