@@ -3,6 +3,7 @@ import transform from "lodash.transform";
 import uniqBy from "lodash.uniqby";
 import mongoose, { Model } from "mongoose";
 
+import recHHFsPSData from "../../../data/recHHFsPSData.json";
 import { stringSort } from "../../../shared/utils/sort";
 import { correlation } from "../../../shared/utils/weibull";
 import {
@@ -270,6 +271,11 @@ ClassifierSchema.virtual("recHHFs", {
     return this.recHHFs?.[fieldName];
   }),
 );
+
+ClassifierSchema.virtual("recHHFPSData").get(function () {
+  const classifierDivision = [this.classifier, this.division].join(":");
+  return recHHFsPSData[classifierDivision];
+});
 
 ClassifierSchema.virtual("ccQuality").get(function () {
   return (
