@@ -1,4 +1,5 @@
 import { loadJSON } from "../utils";
+import { fetchPSClassUpdates } from "../worker/classUpdate";
 const fallbackData = loadJSON("../../data/meta/all.json");
 
 // TODO: #77 kill this interface, just use ActiveMembers DB collection, select latest class update
@@ -19,11 +20,10 @@ export interface PSClassUpdateAllJSON {
   ss: string;
 }
 
-// TODO: #77 fix after migrating to render.com
 const _psClassUpdatesByMemberNumber = async () => {
-  const shooterObjects = fallbackData;
+  let shooterObjects = fallbackData;
   try {
-    // shooterObjects = await fetchPSClassUpdates();
+    shooterObjects = await fetchPSClassUpdates();
   } catch (e) {
     console.error("fallback crash");
   }
