@@ -179,7 +179,6 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
       {...sortProps}
     >
       <Column
-        style={{ width: "5.5em" }}
         field="code"
         header="Classifier"
         sortable
