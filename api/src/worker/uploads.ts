@@ -393,10 +393,12 @@ const scsaMatchInfo = async matchInfo => {
 const badCharsRegExp = /[\s:\t.,\-_+=!?']/gi;
 const memberNumberFromMatchDefShooter = (s, mustHaveMemberNumbers) => {
   if (mustHaveMemberNumbers) {
-    return s.sh_id;
+    return s.sh_id?.toUpperCase();
   }
 
-  return s.sh_id || [s.sh_fn, s.sh_ln].join("").replace(badCharsRegExp, "").toUpperCase();
+  return (
+    s.sh_id || [s.sh_fn, s.sh_ln].join("").replace(badCharsRegExp, "")
+  ).toUpperCase();
 };
 
 const classifierCodeFromMatchDefStage = (s, onlyActualClassifiers) => {
