@@ -117,13 +117,11 @@ export const ShootersELODistributionChart = ({
     }
 
     return (
-      dataWithElo
-        ?.map(c => ({
-          ...c,
-          x: c[fieldForMode(xMode)],
-          y: c[fieldForMode(yMode)],
-        }))
-        ?.filter(c => c.y > 0 && c.x > 0) || []
+      dataWithElo?.map(c => ({
+        ...c,
+        x: c[fieldForMode(xMode)],
+        y: c[fieldForMode(yMode)],
+      })) || /*?.filter(c => c.y > 0 && c.x > 0)*/ []
     );
   }, [division, data, xMode, yMode, isVersus]);
 

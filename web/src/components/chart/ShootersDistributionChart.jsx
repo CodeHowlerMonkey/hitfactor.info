@@ -50,13 +50,11 @@ export const ShootersDistributionChart = ({ division, style }) => {
 
   const curModeData = useMemo(
     () =>
-      data
-        ?.map(c => ({
-          ...c,
-          x: c[fieldForMode(xMode)],
-          y: c[`${fieldForMode(xMode)}Percentile`],
-        }))
-        ?.filter(c => c.y > 0 && c.x > 0) || [],
+      data?.map(c => ({
+        ...c,
+        x: c[fieldForMode(xMode)],
+        y: c[`${fieldForMode(xMode)}Percentile`],
+      })) || /*?.filter(c => c.y > 0 && c.x > 0)*/ [],
     [data, xMode],
   );
 
