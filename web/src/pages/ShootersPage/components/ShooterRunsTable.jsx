@@ -5,6 +5,7 @@ import { InputNumber } from "primereact/inputnumber";
 import { useEffect, useRef, useState } from "react";
 import { useDebouncedCallback } from "use-debounce";
 
+import features from "../../../../../shared/features";
 import ClassifierCell from "../../../components/ClassifierCell";
 import ClassifierDropdown from "../../../components/ClassifierDropdown";
 import ReportDialog from "../../../components/ReportDialog";
@@ -116,7 +117,7 @@ const ShooterRunsTable = ({
           field="classifier"
           header="Classifier"
           sortable
-          bodyStyle={{ width: "12rem" }}
+          bodyStyle={{ width: features.major ? undefined : "12rem" }}
           body={c =>
             c.whatIf ? (
               <ClassifierDropdown
@@ -161,7 +162,7 @@ const ShooterRunsTable = ({
           headerTooltipOptions={headerTooltipOptions}
         />
         <Column
-          hidden={isHFU}
+          hidden={isHFU || features.major}
           body={renderPercent}
           field="curPercent"
           header="HQ %"
@@ -195,8 +196,14 @@ const ShooterRunsTable = ({
         />
         <Column hidden field="code" header="Flag" sortable />
         <Column {...clubMatchColumn} />
-        <Column hidden={isHFU} field="source" header="Source" sortable />
         <Column
+          hidden={isHFU || features.major}
+          field="source"
+          header="Source"
+          sortable
+        />
+        <Column
+          hidden={features.major}
           body={c =>
             !c.whatIf && !whatIf ? (
               <ReportDialog.Button

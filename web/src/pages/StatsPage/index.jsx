@@ -14,6 +14,7 @@ import divisionPopularity5 from "../../../../data/stats/divisions_5YTD.json";
 import divisionPopularity6 from "../../../../data/stats/divisions_6YTD.json";
 import divisionPopularity7 from "../../../../data/stats/divisions_7YTD.json";
 import divisionPopularity8 from "../../../../data/stats/divisions_8YTD.json";
+import features from "../../../../shared/features";
 import { Row, Column } from "../../components";
 import { useApi } from "../../utils/client";
 import { bgColorForClass } from "../../utils/color";
@@ -306,7 +307,7 @@ const Divisions = () => (
 
 // main "page" of this file
 export const StatsPage = () => {
-  const [mode, setMode] = useState(modes[0]);
+  const [mode, setMode] = useState(modes[features.major ? 1 : 0]);
   const modeSwitchProps = { modes, mode, setMode };
   const modeBucket = modeBucketForMode(mode);
   const [includeU, setChecked] = useState(false);

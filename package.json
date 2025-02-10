@@ -8,6 +8,7 @@
   },
   "scripts": {
     "========================= Dev Scripts ====================": "",
+    "major": "tsx scripts/experiments/major.ts",
     "start": "concurrently -c \"auto\" --names \"API,WEB\" \"npm run start-api\" \"npm run start-web\"",
     "test": "tsx --test",
     "====================== Production / Build Scripts ================": "",

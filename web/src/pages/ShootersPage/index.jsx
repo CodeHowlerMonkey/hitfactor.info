@@ -7,6 +7,7 @@ import { useDebouncedCallback } from "use-debounce";
 import { v4 as randomUUID } from "uuid";
 
 import { nameForDivision } from "../../../../api/src/dataUtil/divisions";
+import features from "../../../../shared/features";
 import { DivisionNavigation } from "../../components";
 import { renderPercent } from "../../components/Table";
 import { postApi, useApi } from "../../utils/client";
@@ -216,7 +217,7 @@ export const ShooterRunsAndInfo = ({ division, memberNumber, onBackToShooters })
               onClick={resetWhatIfs}
             />
           )}
-          {!isSCSA && (
+          {!features.major && !isSCSA && (
             <Button
               className="px-2 my-3 text-xs md:text-sm"
               label="What If"

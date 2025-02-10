@@ -2,9 +2,9 @@ import uniqBy from "lodash.uniqby";
 
 import { classificationDifficulty } from "../../../../../shared/constants/difficulty";
 import { calculateUSPSAClassification } from "../../../../../shared/utils/classification";
-import { classForPercent } from "../../../../../shared/utils/classification";
 import { multisort, safeNumSort } from "../../../../../shared/utils/sort";
 import { basicInfoForClassifierCode } from "../../../dataUtil/classifiersData";
+import { basicInfoForStage } from "../../../db/classifiers";
 import { RecHHFs } from "../../../db/recHHF";
 import { scoresForDivisionForShooter, shooterScoresChartData } from "../../../db/scores";
 import {
@@ -117,7 +117,10 @@ const shootersRoutes = async fastify => {
     const data = multisort(scoresData, sort?.split?.(","), order?.split?.(",")).map(
       c => ({
         ...c,
-        classifierInfo: basicInfoForClassifierCode(c?.classifier) || {},
+        classifierInfo:
+          basicInfoForClassifierCode(c?.classifier) ||
+          basicInfoForStage(c?.classifier, c?.classifierName) ||
+          {},
         hf: division.startsWith("scsa") ? Number(c.stageTimeSecs) : c.hf,
       }),
     );

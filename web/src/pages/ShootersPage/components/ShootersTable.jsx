@@ -7,6 +7,7 @@ import { useDebounce } from "use-debounce";
 
 import { classificationDifficulty } from "../../../../../shared/constants/difficulty";
 import { sportForDivision } from "../../../../../shared/constants/divisions";
+import features from "../../../../../shared/features";
 import ReportDialog from "../../../components/ReportDialog";
 import ShooterCell from "../../../components/ShooterCell";
 import {
@@ -197,7 +198,7 @@ const ShootersTable = ({
           body={renderPercent}
         />
         <Column
-          hidden={isHFU}
+          hidden={isHFU || features.major}
           field="reclassificationsCurPercentCurrent"
           header="HQ"
           // header="Cur."
@@ -207,7 +208,7 @@ const ShootersTable = ({
           body={renderPercent}
         />
         <Column
-          hidden={isHFU}
+          hidden={isHFU || features.major}
           field="reclassificationsCurPercentHigh"
           header="HQ High"
           // header="Cur."
@@ -226,6 +227,7 @@ const ShootersTable = ({
           headerTooltipOptions={headerTooltipOptions}
         />
         <Column
+          hidden={features.major}
           body={c => (
             <ReportDialog.Button onClick={() => reportDialogRef.current.startReport(c)} />
           )}

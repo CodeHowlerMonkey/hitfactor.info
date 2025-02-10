@@ -129,6 +129,10 @@ export const classifiersAndShootersFromScores = (
     scores,
     s => s.memberNumberDivision,
   );
+  const stageNameMap = scores.reduce((acc, s) => {
+    acc[s.classifier] = s.classifierName;
+    return acc;
+  }, {});
 
   const classifiers = arrayWithExplodedDivisions(
     uniqueClassifierDivisionPairs,
@@ -138,6 +142,7 @@ export const classifiersAndShootersFromScores = (
       const classifier = originalClassifierDivision.split(":")[0];
       return {
         classifierDivision: [classifier, division].join(":"),
+        name: stageNameMap[classifier],
         classifier,
         division,
       };
@@ -427,8 +432,14 @@ export const hitFactorLikeMatchInfo = (
   );
   const classifiersMap = Object.fromEntries(
     match_stages
+      .filter(s => s.stage_scoretype !== "Chrono")
       .filter(s => !onlyClassifiers || !!s.stage_classifiercode)
       .map(s => [s.stage_uuid, classifierCodeFromMatchDefStage(s, onlyClassifiers)]),
+  );
+  const classifierNamesMap = Object.fromEntries(
+    match_stages
+      .filter(s => !onlyClassifiers || !!s.stage_classifiercode)
+      .map(s => [s.stage_uuid, `${s.stage_number}. ${s.stage_name}`]),
   );
   const classifierUUIDs = Object.keys(classifiersMap);
   const classifierResults = results.filter(r => classifierUUIDs.includes(r.stageUUID));
@@ -448,6 +459,7 @@ export const hitFactorLikeMatchInfo = (
     .map(r => {
       const { stageUUID, ...varNameResult } = r;
       const classifier = classifiersMap[stageUUID];
+      const classifierName = classifierNamesMap[stageUUID];
 
       // my borther in Christ, this is nested AF!
       return Object.values(varNameResult)[0]?.[0].Overall.map(a => {
@@ -495,6 +507,7 @@ export const hitFactorLikeMatchInfo = (
           shooterFullName,
           memberNumber,
           classifier,
+          classifierName,
           division,
           upload: match.match_id,
           clubid: match.match_clubcode,
@@ -532,7 +545,7 @@ export const uspsaOrHitFactorMatchInfo = async matchInfo => {
   return hitFactorLikeMatchInfo(matchInfo, s3MatchFiles);
 };
 
-export const pcslNatsMatchInfo = async matchInfo => {
+export const majorMatchInfo = async matchInfo => {
   const { uuid } = matchInfo;
   const s3MatchFiles = await fetchPS(uuid);
   const result = hitFactorLikeMatchInfo(matchInfo, s3MatchFiles, false, false);
@@ -555,8 +568,8 @@ const uploadResultsForMatches = async matches => {
         case "Steel Challenge":
           return scsaMatchInfo(match);
 
-        case "PCSLNats":
-          return pcslNatsMatchInfo(match);
+        case "Major":
+          return majorMatchInfo(match);
 
         case "USPSA":
         case "Hit Factor":
@@ -670,26 +683,24 @@ export const processUploadResults = async ({ uploadResults }) => {
       shooterNameMap,
       true,
     );
-    await Promise.all([
-      AfterUploadClassifiers.bulkWrite(
-        classifiers.map(c => ({
-          updateOne: {
-            filter: { classifierDivision: c.classifierDivision },
-            update: { $set: c },
-            upsert: true,
-          },
-        })),
-      ),
-      AfterUploadShooters.bulkWrite(
-        shooters.map(s => ({
-          updateOne: {
-            filter: { memberNumberDivision: s.memberNumberDivision },
-            update: { $set: s },
-            upsert: true,
-          },
-        })),
-      ),
-    ]);
+    await AfterUploadShooters.bulkWrite(
+      shooters.map(s => ({
+        updateOne: {
+          filter: { memberNumberDivision: s.memberNumberDivision },
+          update: { $set: s },
+          upsert: true,
+        },
+      })),
+    );
+    await AfterUploadClassifiers.bulkWrite(
+      classifiers.map(c => ({
+        updateOne: {
+          filter: { classifierDivision: c.classifierDivision },
+          update: { $set: c },
+          upsert: true,
+        },
+      })),
+    );
 
     const publicShooters = features.hfu
       ? shooters
@@ -802,6 +813,14 @@ export const dqNames = async () => {
   console.log(JSON.stringify(dqs, null, 2));
 };
 
+const metaRecHHFsLoop = async () => {
+  const totalCount = await AfterUploadClassifiers.countDocuments({});
+  console.log(`${totalCount} recHHFs to update`);
+  const classifiers = await AfterUploadClassifiers.find({}).lean();
+  await hydrateRecHHFsForClassifiers(classifiers);
+  console.log("recHHFs updated");
+};
+
 const metaClassifiersLoop = async (batchSize = 8, onlyActualClassifiers = false) => {
   const totalCount = await AfterUploadClassifiers.countDocuments({});
   console.log(`${totalCount} classifiers to update`);
@@ -858,8 +877,9 @@ export const metaLoop = async (
   maxTries = 3,
 ) => {
   try {
-    await metaClassifiersLoop();
+    await metaRecHHFsLoop();
     await metaShootersLoop();
+    await metaClassifiersLoop();
     await hydrateStats();
   } catch (err) {
     console.error(err);

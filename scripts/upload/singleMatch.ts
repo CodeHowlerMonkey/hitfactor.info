@@ -10,14 +10,14 @@ import {
 
 const go = async () => {
   const matchUUID = process.argv[2];
-  const matchTemplateName = process.argv[2];
+  const matchTemplateName = process.argv[3];
   if (!matchUUID || !matchTemplateName) {
     console.error("must provide match name and templateName");
     process.exit(1);
   }
 
   const { matchDef } = await fetchPS(matchUUID);
-  const match = matchFromMatchDef(matchDef, process.argv[3]);
+  const match = matchFromMatchDef(matchDef, matchTemplateName);
   console.log(JSON.stringify(match, null, 2));
   await connect();
   if (!match?.name) {

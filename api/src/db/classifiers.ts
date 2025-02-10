@@ -61,9 +61,10 @@ interface ClassifierVirtuals {
 
 type ClassifierModel = Model<Classifier, object, ClassifierVirtuals>;
 
-export interface ClassifierDivision {
+export interface ClassifierDivisionName {
   classifier: string;
   division: string;
+  name?: string;
 }
 export interface HistoricalHHF {
   date: number;
@@ -307,11 +308,14 @@ export interface StageInfo {
   scoring: Scoring;
 }
 
-const basicInfoForStage = (stageClassifierCode: string): ClassifierBasicInfo => ({
+export const basicInfoForStage = (
+  stageClassifierCode: string,
+  name?: string,
+): ClassifierBasicInfo => ({
   id: stageClassifierCode,
   code: stageClassifierCode,
   classifier: stageClassifierCode,
-  name: stageClassifierCode.split(".")[1],
+  name: name || stageClassifierCode.split(".")[1],
   scoring: "",
 });
 
@@ -320,10 +324,11 @@ export const singleClassifierExtendedMetaDoc = async (
   classifier: string,
   recHHFReady?: RecHHF,
   classifiersOnly?: boolean,
+  name?: string,
 ) => {
   const basicInfo = classifiersOnly
     ? basicInfoForClassifierNumber(classifier)
-    : basicInfoForStage(classifier);
+    : basicInfoForStage(classifier, name);
 
   if (!basicInfo?.code) {
     console.log(classifier);
@@ -446,7 +451,10 @@ export const allDivisionClassifiersQuality = async () => {
   _allDivQuality = co.reduce((acc, c) => {
     const id = c.classifier;
     acc[id] =
-      (c.ccQuality + opn[id].ccQuality + ltd[id].ccQuality + pcc[id].ccQuality) / 4;
+      (c.ccQuality + opn[id]?.ccQuality ||
+        0 + ltd[id]?.ccQuality ||
+        0 + pcc[id]?.ccQuality ||
+        0) / 4;
     return acc;
   }, {});
 
@@ -514,12 +522,14 @@ export const rehydrateSingleClassifier = async (
   division: string,
   recHHF?: RecHHF,
   onlyActualClassifiers: boolean = true,
+  name?: string,
 ) => {
   const doc = await singleClassifierExtendedMetaDoc(
     division,
     classifier,
     recHHF,
     onlyActualClassifiers,
+    name,
   );
   if (doc) {
     return Classifiers.updateOne(
@@ -534,7 +544,7 @@ export const rehydrateSingleClassifier = async (
 
 // linear rehydration to prevent OOMs on uploader and mongod
 export const rehydrateClassifiers = async (
-  classifiers: ClassifierDivision[],
+  classifiers: ClassifierDivisionName[],
   onlyActualClassifiers: boolean = true,
 ) => {
   const recHHFs = await RecHHFs.find({
@@ -550,12 +560,13 @@ export const rehydrateClassifiers = async (
   }, {});
 
   for (const classifierDivision of classifiers) {
-    const { classifier, division } = classifierDivision;
+    const { classifier, division, name } = classifierDivision;
     await rehydrateSingleClassifier(
       classifier,
       division,
       recHHFsByClassifierDivision[[classifier, division].join(":")],
       onlyActualClassifiers,
+      name,
     );
   }
 };

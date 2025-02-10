@@ -1,3 +1,4 @@
+import features from "../../../../../shared/features";
 import {
   basicInfoForClassifier,
   classifiers,
@@ -260,7 +261,7 @@ const classifiersRoutes = async fastify => {
   fastify.get("/:division/:number/chart", async req => {
     const { division, number } = req.params;
     const { full: fullString, limit: limitString } = req.query;
-    const full = Number(fullString);
+    const full = features.major ? 1 : Number(fullString);
     const limit = Number(limitString) || 99999;
 
     const runs = await Scores.aggregate([

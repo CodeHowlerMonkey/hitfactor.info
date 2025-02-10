@@ -7,6 +7,7 @@ import {
   sportForDivision,
   uspsaDivShortNames,
 } from "../../../../../api/src/dataUtil/divisions";
+import features from "../../../../../shared/features";
 import { classForPercent } from "../../../../../shared/utils/classification";
 import ShooterChart from "../../../components/chart/ShooterChart";
 import { ShooterProgressChart } from "../../../components/chart/ShooterProgressChart";
@@ -103,7 +104,7 @@ export const ShooterInfoTable = ({ info, division, memberNumber, loading }) => {
         <h4 className="hidden mx-3 md:block md:text-lg lg:text-xl w-max">
           {[memberNumber, name, nameForDivision(division)].filter(Boolean).join(" - ")}
         </h4>
-        {isUspsa && (
+        {!features.major && isUspsa && (
           <DataTable
             loading={loading}
             className="text-xs md:text-base"
@@ -137,7 +138,7 @@ export const ShooterInfoTable = ({ info, division, memberNumber, loading }) => {
             <Column field="v" align="right" />
           </DataTable>
         )}
-        {(isUspsa || isHFU) && (
+        {!features.major && (isUspsa || isHFU) && (
           <DataTable
             className="text-xs md:text-base"
             size="small"
@@ -166,7 +167,7 @@ export const ShooterInfoTable = ({ info, division, memberNumber, loading }) => {
           </DataTable>
         )}
       </div>
-      {!isSCSA && (
+      {!isSCSA && !features.major && (
         <>
           <div className="w-12 md:w-5 flex-grow-1 flex flex-column">
             <h4 className="md:text-center mb-0 md:text-lg lg:text-xl">

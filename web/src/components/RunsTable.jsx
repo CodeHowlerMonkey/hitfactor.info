@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import { useDebounce } from "use-debounce";
 
 import { sportForDivision } from "../../../shared/constants/divisions";
+import features from "../../../shared/features";
 import { useApi } from "../utils/client";
 import { useIsHFU } from "../utils/useIsHFU";
 
@@ -202,7 +203,7 @@ const RunsTable = ({ classifier, division, clubs, onShooterSelection }) => {
           headerTooltipOptions={headerTooltipOptions}
         />
         <Column
-          hidden={sport !== "uspsa" && sport !== "scsa"}
+          hidden={(sport !== "uspsa" && sport !== "scsa") || features.major}
           body={renderPercent}
           field="curPercent"
           header="HQ %"
@@ -228,6 +229,7 @@ const RunsTable = ({ classifier, division, clubs, onShooterSelection }) => {
         />
         <Column field="sd" header="Date" sortable />
         <Column
+          hidden={features.major}
           body={c => (
             <ReportDialog.Button onClick={() => reportDialogRef.current.startReport(c)} />
           )}

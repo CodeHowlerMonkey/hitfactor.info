@@ -3,6 +3,7 @@ import { DataTable } from "primereact/datatable";
 import { Tooltip } from "primereact/tooltip";
 
 import { sportForDivision } from "../../../../../shared/constants/divisions";
+import features from "../../../../../shared/features";
 import { ScoresChart } from "../../../components/chart/ScoresChart";
 
 export const ClassifierInfoTable = ({
@@ -14,27 +15,29 @@ export const ClassifierInfoTable = ({
   ...info
 }) => (
   <div className="flex flex-wrap gap-2 justify-content-around">
-    <div
-      className="flex-grow-1 flex flex-column sm:max-w-20rem md:max-w-30rem"
-      style={{ minWidth: "16em", height: "28em" }}
-    >
-      <h4 className="md:text-lg">WSB</h4>
+    {!features.major && (
       <div
-        onClick={() => window.open(`/wsb/${classifier}`, "_blank")}
-        style={{
-          flexGrow: 1,
-          cursor: "pointer",
-          height: "20em",
-          backgroundColor: "clear",
-          backgroundImage: `url(/wsb/${classifier}?preview=1)`,
-          backgroundSize: "cover",
-          backgroundRepeat: "no-repeat",
-          backgroundPosition: "top center",
-        }}
-      />
-    </div>
+        className="flex-grow-1 flex flex-column sm:max-w-20rem md:max-w-30rem"
+        style={{ minWidth: "16em", height: "28em" }}
+      >
+        <h4 className="md:text-lg">WSB</h4>
+        <div
+          onClick={() => window.open(`/wsb/${classifier}`, "_blank")}
+          style={{
+            flexGrow: 1,
+            cursor: "pointer",
+            height: "20em",
+            backgroundColor: "clear",
+            backgroundImage: `url(/wsb/${classifier}?preview=1)`,
+            backgroundSize: "cover",
+            backgroundRepeat: "no-repeat",
+            backgroundPosition: "top center",
+          }}
+        />
+      </div>
+    )}
 
-    {sportForDivision(division) === "uspsa" && (
+    {!features.major && sportForDivision(division) === "uspsa" && (
       <div className="md:w-min md:max-w-min" style={{ maxHeight: "28em" }}>
         <h4 className="md:text-lg">Historical HHFs</h4>
         <div style={{ overflowY: "scroll", maxHeight: "100%" }}>
@@ -97,7 +100,7 @@ export const ClassifierInfoTable = ({
 
     <div
       className="flex-grow-1 flex flex-column"
-      style={{ minWidth: "20em", height: "28em" }}
+      style={{ minWidth: "20em", height: features.major ? "44em" : "28em" }}
     >
       <h4 className="md:text-lg">Scores Distribution</h4>
       <div className="h-full w-auto flex-grow-1 bg-primary-reverse">

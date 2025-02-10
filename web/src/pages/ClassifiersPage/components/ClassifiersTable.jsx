@@ -5,6 +5,7 @@ import { DataTable } from "primereact/datatable";
 import { InputText } from "primereact/inputtext";
 import { useEffect, useState } from "react";
 
+import features from "../../../../../shared/features";
 import {
   classifierCodeSort,
   dateSort,
@@ -15,6 +16,8 @@ import ClassifierCell from "../../../components/ClassifierCell";
 import { letterRatingForPercent, renderPercent } from "../../../components/Table";
 import useTableSort from "../../../components/Table/useTableSort";
 import { useApi } from "../../../utils/client";
+
+const qualityColumn = features.major ? "ccQuality" : "allDivQuality";
 
 //isSCSA ? 2 : 4
 //isSCSA ? 's' : 0
@@ -74,7 +77,7 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { resetSort, ...sortProps } = useTableSort({
-    initial: { field: "allDivQuality", order: -1 },
+    initial: { field: qualityColumn, order: -1 },
   });
   const [filter, setFilter] = useState("");
   const [nerdMode, setNerdMode] = useState(false);
@@ -125,7 +128,7 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
       style={{ width: "fit-content", margin: "auto" }}
       loading={loading}
       showGridlines
-      rowClassName={rowData => cx({ "opacity-30": rowData.allDivQuality < 59 })}
+      rowClassName={rowData => cx({ "opacity-30": rowData[qualityColumn] < 59 })}
       selectionMode="single"
       selection={null}
       onSelectionChange={({ value }) => onClassifierSelection(value.code)}
@@ -209,7 +212,7 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
         )}
       />
       <Column
-        hidden={isSCSA}
+        hidden={isSCSA || features.major}
         field="allDivQuality"
         header="OA Qual."
         headerTooltip="New All Division Quality for Classifier Committee, using correlations and SMSE"
@@ -298,6 +301,7 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
         body={c => (c.coHHF ? c.coHHF.toFixed(4) : "N/A")}
       />
       <Column
+        hidden={features.major}
         field="curHHF"
         header={isSCSA ? "HQ Peak Time" : "HQ HHF"}
         sortable
@@ -305,6 +309,7 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
         body={c => (isSCSA ? `${c.curHHF.toFixed(2)}s` : c.curHHF.toFixed(4))}
       />
       <Column
+        hidden={features.major}
         field="recHHFChangePercent" /** field is Percent for sorting, still shows like PeakTime/HHF */
         header="Rec. minus HQ"
         sortable
