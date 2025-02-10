@@ -222,11 +222,13 @@ export const ShootersELODistributionChart = ({
                   ...Object.assign(
                     {},
                     ...percentiles.map((perc, i) =>
-                      yLine(
-                        `Top ${perc?.toFixed(2)}% = ${["GM", "M", "A", "B", "C"][i]}`,
-                        perc,
-                        annotationColor(0.75),
-                      ),
+                      perc < 0
+                        ? {}
+                        : yLine(
+                            `Top ${perc?.toFixed(2)}% = ${["GM", "M", "A", "B", "C"][i]}`,
+                            perc,
+                            annotationColor(0.75),
+                          ),
                     ),
                   ),
                   ...Object.assign(

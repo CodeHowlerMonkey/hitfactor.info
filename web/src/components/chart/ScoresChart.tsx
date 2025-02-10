@@ -370,11 +370,13 @@ export const ScoresChart = ({ division, classifier, hhf, recHHF, totalScores }) 
                 : Object.assign(
                     {},
                     ...percentiles.map((perc, i) =>
-                      yLine(
-                        `Top ${perc?.toFixed(2)}% = ${["GM", "M", "A", "B", "C"][i]}`,
-                        perc,
-                        colorForPrefix("r", 0.7 - 0.1 * i),
-                      ),
+                      perc < 0
+                        ? {}
+                        : yLine(
+                            `Top ${perc?.toFixed(2)}% = ${["GM", "M", "A", "B", "C"][i]}`,
+                            perc,
+                            colorForPrefix("r", 0.7 - 0.1 * i),
+                          ),
                     ),
                   )),
               ...(!showWeibull
@@ -382,12 +384,14 @@ export const ScoresChart = ({ division, classifier, hhf, recHHF, totalScores }) 
                 : Object.assign(
                     {},
                     ...percentiles.map((perc, i) =>
-                      point(
-                        ["pGM", "pM", "pA", "pB", "pC"][i] + recHHF,
-                        recHHF * [0.95, 0.85, 0.75, 0.6, 0.4][i],
-                        perc,
-                        colorForPrefix("r", 0.7),
-                      ),
+                      perc < 0
+                        ? {}
+                        : point(
+                            ["pGM", "pM", "pA", "pB", "pC"][i] + recHHF,
+                            recHHF * [0.95, 0.85, 0.75, 0.6, 0.4][i],
+                            perc,
+                            colorForPrefix("r", 0.7),
+                          ),
                     ),
                   )),
 

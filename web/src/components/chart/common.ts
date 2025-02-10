@@ -100,6 +100,10 @@ export const closestYForX = (
   const highPoint = data[highIndex];
   const startPoint = data[lowIndex + indexOffset];
 
+  if (highPoint.x < targetX) {
+    return [-1, -1];
+  }
+
   if (highPoint.x === lowPoint.x) {
     return [lowPoint.y, data.length - lowIndex];
   }
