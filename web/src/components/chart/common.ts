@@ -3,8 +3,6 @@ import { Chart, registerables } from "chart.js";
 import annotationPlugin from "chartjs-plugin-annotation";
 import zoomPlugin from "chartjs-plugin-zoom";
 
-import { fuzzyEqual } from "../../../../shared/utils/hitfactor";
-
 import "chartjs-adapter-date-fns";
 Chart.register(...registerables);
 Chart.register(annotationPlugin);
@@ -71,46 +69,20 @@ export interface GraphPoint {
 export const closestYForX = (
   targetX: number,
   dataRaw: GraphPoint[],
+  countOffset: number = 0,
 ): [number, number] => {
   if (!dataRaw?.length) {
-    return [-1, -1];
+    return [-1, 0];
   }
 
   const data = dataRaw.toSorted((a, b) => a.x - b.x);
-  const perfectIndex = data.findIndex(c => fuzzyEqual(targetX, c.x, 0.001));
-  if (perfectIndex >= 0) {
-    return [data[perfectIndex].y, data.length - perfectIndex];
+  const index = data.findIndex(c => c.x >= targetX);
+  if (index < 0) {
+    return [-1, 0];
   }
 
-  let lowIndex = data.findLastIndex(c => c.x < targetX);
-  let highIndex = data.findIndex(c => c.x > targetX);
-  let indexOffset = 0;
-
-  if (highIndex < 0) {
-    highIndex = lowIndex;
-    lowIndex = lowIndex - 1;
-    indexOffset = 1;
-  }
-
-  if (lowIndex < 0) {
-    return [-1, -1];
-  }
-
-  const lowPoint = data[lowIndex];
-  const highPoint = data[highIndex];
-  const startPoint = data[lowIndex + indexOffset];
-
-  if (highPoint.x < targetX) {
-    return [-1, -1];
-  }
-
-  if (highPoint.x === lowPoint.x) {
-    return [lowPoint.y, data.length - lowIndex];
-  }
-
-  const k = (highPoint.y - lowPoint.y) / (highPoint.x - lowPoint.x);
-  const result = startPoint.y + k * (targetX - startPoint.x);
-  return [result, data.length - lowIndex];
+  const dataPoint = data[index];
+  return [dataPoint.y, data.length - index + countOffset];
 };
 
 /** Generates a dataset of points, with X within [minX, maxX] and y
