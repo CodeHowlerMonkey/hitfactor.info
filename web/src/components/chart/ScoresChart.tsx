@@ -11,6 +11,7 @@ import { useDebounce } from "use-debounce";
 
 import { Percent, PositiveOrMinus1 } from "../../../../api/src/dataUtil/numbers";
 import { sportForDivision } from "../../../../shared/constants/divisions";
+import features from "../../../../shared/features";
 import { classForELO, classForPercent } from "../../../../shared/utils/classification";
 import { correlation, weibulCDFFactory } from "../../../../shared/utils/weibull";
 import { useApi } from "../../utils/client";
@@ -75,7 +76,9 @@ const colorForELOOrPercent = (colorMode: string, dataPoint: AdvancedScorePoint) 
   if (field === "elo") {
     return bgColorForClass[classForELO(dataPoint.elo as number)];
   }
-  return bgColorForClass[classForPercent(dataPoint[versusFieldForMode(colorMode)])];
+  return bgColorForClass[
+    classForPercent(dataPoint[versusFieldForMode(colorMode)], features.major)
+  ];
 };
 
 const colorForPrefix = (prefix, alpha) =>

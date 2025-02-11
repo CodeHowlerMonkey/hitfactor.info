@@ -4,6 +4,7 @@ import mongoose, { Model, Schema } from "mongoose";
 import { v4 as randomUUID } from "uuid";
 
 import { classificationDifficulty } from "../../../shared/constants/difficulty";
+import features from "../../../shared/features";
 import {
   calculateUSPSAClassification,
   classForPercent,
@@ -370,8 +371,10 @@ const reclassificationBreakdown = (
   current: Number((reclassificationInfo?.[division]?.percent ?? 0).toFixed(4)),
   high: Number((reclassificationInfo?.[division]?.highPercent ?? 0).toFixed(4)),
   currents: mapDivisions(div => reclassificationInfo?.[div]?.percent), //< TODO: unused?
-  class: classForPercent(reclassificationInfo?.[division]?.highPercent),
-  classes: mapDivisions(div => classForPercent(reclassificationInfo?.[div]?.highPercent)),
+  class: classForPercent(reclassificationInfo?.[division]?.highPercent, features.major),
+  classes: mapDivisions(div =>
+    classForPercent(reclassificationInfo?.[div]?.highPercent, features.major),
+  ),
 });
 
 // upload from uspsa api

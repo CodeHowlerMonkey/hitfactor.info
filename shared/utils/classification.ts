@@ -2,6 +2,7 @@ import uniqBy from "lodash.uniqby";
 import { v4 as randomUUID } from "uuid";
 
 import { allDivShortNames, mapAllDivisions } from "../../api/src/dataUtil/divisions";
+import features from "../features";
 
 import { dateSort, numSort } from "./sort";
 
@@ -63,7 +64,19 @@ export const highestClassification = classificationsObj =>
     return curClass;
   }, undefined);
 
-export const classForPercent = curPercent => {
+export const classForPercent = (curPercent, major = false) => {
+  if (major) {
+    if (curPercent >= 95) {
+      return "SPR";
+    } else if (curPercent >= 90) {
+      return "GM";
+    } else if (curPercent >= 80) {
+      return "M";
+    } else if (curPercent >= 70) {
+      return "A";
+    }
+  }
+
   if (curPercent <= 0) {
     return "U";
   } else if (curPercent < 40) {
@@ -375,11 +388,13 @@ export const calculateUSPSAClassification = (
   classifiersReadyToScore.forEach(scoringFunction);
 
   return mapAllDivisions(div => {
-    state[div].class = classForPercent(state[div].percent);
+    state[div].class = classForPercent(state[div].percent, features.major);
     delete state[div].window;
     return state[div];
   });
 };
 
 export const getDivToClass = state =>
-  mapAllDivisions(div => classForPercent(getDivisionState(state, div).highPercent));
+  mapAllDivisions(div =>
+    classForPercent(getDivisionState(state, div).highPercent, features.major),
+  );

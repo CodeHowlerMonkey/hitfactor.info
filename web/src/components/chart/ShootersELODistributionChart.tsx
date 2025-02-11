@@ -3,6 +3,7 @@ import { SelectButton } from "primereact/selectbutton";
 import { useMemo, useState } from "react";
 
 import { eloPointForShooter } from "../../../../api/src/dataUtil/elo";
+import features from "../../../../shared/features";
 import {
   classForELO,
   classForPercent,
@@ -70,7 +71,9 @@ const colorForELOOrPercent = (colorMode: string, dataPoint: RawDataPoint) => {
   if (field === "elo") {
     return bgColorForClass[classForELO(dataPoint.rating as number)];
   }
-  return bgColorForClass[classForPercent(dataPoint[fieldForMode(colorMode)])];
+  return bgColorForClass[
+    classForPercent(dataPoint[fieldForMode(colorMode)], features.major)
+  ];
 };
 
 interface ShootersELODistributionChartProps {

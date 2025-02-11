@@ -2,6 +2,7 @@ import { ProgressSpinner } from "primereact/progressspinner";
 import { SelectButton } from "primereact/selectbutton";
 import { useMemo, useState } from "react";
 
+import features from "../../../../shared/features";
 import { classForPercent } from "../../../../shared/utils/classification";
 import { weibulCDFFactory } from "../../../../shared/utils/weibull";
 import { useApi } from "../../utils/client";
@@ -20,6 +21,18 @@ import {
 } from "./common";
 import { useAsyncWeibull } from "./useAsyncWeibull";
 import { WeibullStatus } from "./WeibullStatus";
+
+const forcedWeibulls = {
+  opn: { k: 3.8955, lambda: 59.9168 },
+  ltd: { k: 3.4832, lambda: 55.7686 },
+  l10: { k: 3.4424, lambda: 57.4401 },
+  prod: { k: 3.4573, lambda: 55.1384 },
+  rev: { k: 3.4498, lambda: 57.631 },
+  ss: { k: 3.4634, lambda: 56.8793 },
+  co: { k: 3.9447, lambda: 60.7257 },
+  pcc: { k: 4.2067, lambda: 61.8335 },
+  lo: { k: 4.381, lambda: 63.4105 },
+};
 
 const fieldModeMap = {
   //HQ: "curPercent",
@@ -48,31 +61,78 @@ export const ShootersDistributionChart = ({ division, style }) => {
 
   const { json: data, loading } = useApi(`/shooters/${division}/chart`);
 
+  const forcedWeibull = features.major ? forcedWeibulls[division] : null;
   const curModeData = useMemo(
     () =>
       data?.map(c => ({
         ...c,
         x: c[fieldForMode(xMode)],
-        y: c[`${fieldForMode(xMode)}Percentile`],
-      })) || /*?.filter(c => c.y > 0 && c.x > 0)*/ [],
-    [data, xMode],
+        y: forcedWeibull
+          ? weibulCDFFactory(
+              forcedWeibull.k,
+              forcedWeibull.lambda,
+            )(c[fieldForMode(xMode)])
+          : c[`${fieldForMode(xMode)}Percentile`],
+      })) || [],
+    [data, xMode, forcedWeibull],
   );
 
-  const percentiles = useMemo(
-    () => [
-      closestYForX(95, curModeData),
-      closestYForX(85, curModeData),
-      closestYForX(75, curModeData),
-      closestYForX(60, curModeData),
-      closestYForX(40, curModeData),
-    ],
-    [curModeData],
-  );
+  const percentiles = useMemo(() => {
+    const sprPercentile = closestYForX(95, curModeData);
+    const gmPercentile = closestYForX(90, curModeData, -sprPercentile[1]);
+    const mPercentile = closestYForX(
+      80,
+      curModeData,
+      -gmPercentile[1] - sprPercentile[1],
+    );
+    const aPercentile = closestYForX(
+      70,
+      curModeData,
+      -mPercentile[1] - gmPercentile[1] - sprPercentile[1],
+    );
+    const bPercentile = closestYForX(
+      60,
+      curModeData,
+      -aPercentile[1] - mPercentile[1] - gmPercentile[1] - sprPercentile[1],
+    );
+    const cPercentile = closestYForX(
+      40,
+      curModeData,
+      -bPercentile[1] -
+        aPercentile[1] -
+        mPercentile[1] -
+        gmPercentile[1] -
+        sprPercentile[1],
+    );
+
+    const dPercentile = [
+      100,
+      curModeData.length -
+        cPercentile[1] -
+        bPercentile[1] -
+        aPercentile[1] -
+        mPercentile[1] -
+        gmPercentile[1] -
+        sprPercentile[1],
+    ];
+
+    return [
+      sprPercentile,
+      gmPercentile,
+      mPercentile,
+      aPercentile,
+      bPercentile,
+      cPercentile,
+      dPercentile,
+    ];
+  }, [curModeData]);
 
   const curModeDataPoints = useMemo(() => curModeData.map(c => c.x), [curModeData]);
 
   const weibull = useAsyncWeibull(curModeDataPoints);
-  const { k, lambda } = weibull;
+  const { k: realK, lambda: realLambda } = weibull;
+  const k = forcedWeibull?.k ?? realK;
+  const lambda = forcedWeibull?.lambda ?? realLambda;
 
   if (loading) {
     return <ProgressSpinner />;
@@ -135,15 +195,16 @@ export const ShootersDistributionChart = ({ division, style }) => {
                   perc[0] < 0
                     ? {}
                     : yLine(
-                        `Top ${perc[0]?.toFixed(2)}% (${perc[1]}) = ${["GM", "M", "A", "B", "C"][i]}`,
+                        `Top ${perc[0]?.toFixed(2)}% (${perc[1]}) = ${["SPR", "GM", "M", "A", "B", "C", "D"][i]}`,
                         perc[0],
                         annotationColor(0.75),
                       ),
                 ),
               ),
               ...xLine("95%", 95, r5annotationColor(0.5), 2.5),
-              ...xLine("85%", 85, r5annotationColor(0.5), 2.5),
-              ...xLine("75%", 75, r5annotationColor(0.5), 2.5),
+              ...xLine("90%", 90, r5annotationColor(0.5), 2.5),
+              ...xLine("80%", 80, r5annotationColor(0.5), 2.5),
+              ...xLine("70%", 70, r5annotationColor(0.5), 2.5),
               ...xLine("60%", 60, r5annotationColor(0.5), 2.5),
               ...xLine("40%", 40, r5annotationColor(0.5), 2.5),
             },
@@ -173,7 +234,10 @@ export const ShootersDistributionChart = ({ division, style }) => {
             pointBorderWidth: 0,
             backgroundColor: "#ae9ef1",
             pointBackgroundColor: curModeData?.map(
-              c => bgColorForClass[classForPercent(c[fieldForMode(colorMode)])],
+              c =>
+                bgColorForClass[
+                  classForPercent(c[fieldForMode(colorMode)], features.major)
+                ],
             ),
           },
         ],

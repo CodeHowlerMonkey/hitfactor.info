@@ -44,7 +44,10 @@ export const ShooterCell = ({ data, onClick, sport }) => (
     {(!sport || sport === "uspsa") && (
       <div className="max-w-max">
         <ClassTag
-          value={classForPercent(data?.reclassificationsRecPercentUncappedHigh)}
+          value={classForPercent(
+            data?.reclassificationsRecPercentUncappedHigh,
+            features.major,
+          )}
           tooltip={`Recommended: ${data?.reclassificationsRecPercentUncappedHigh?.toFixed(
             2,
           )}% / ${data?.reclassificationsRecPercentUncappedCurrent?.toFixed(2)}%`}
