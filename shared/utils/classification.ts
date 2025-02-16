@@ -67,7 +67,7 @@ export const highestClassification = classificationsObj =>
 export const classForPercent = (curPercent, major = false) => {
   if (major) {
     if (curPercent >= 95) {
-      return "SPR";
+      return "Super GM";
     } else if (curPercent >= 90) {
       return "GM";
     } else if (curPercent >= 80) {

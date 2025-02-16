@@ -7,7 +7,7 @@ export const bgColorForClass = {
   A: "#ab22c1",
   M: "#994800",
   GM: "#000",
-  SPR: "#ff0000",
+  "Super GM": "#B40404",
 };
 
 export const fgColorForClass = {
@@ -19,5 +19,5 @@ export const fgColorForClass = {
   A: "#000",
   M: "#000",
   GM: "#ff0000",
-  SPR: "#000",
+  "Super GM": "#efca00",
 };

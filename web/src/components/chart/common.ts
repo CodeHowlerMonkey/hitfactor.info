@@ -19,7 +19,7 @@ export const yLine = (name, y, color) => ({
   [`${name}Label`]: {
     type: "label",
     xValue: 0,
-    yValue: name.endsWith("SPR") ? y - 3 : y - 0.5,
+    yValue: name.endsWith("Super GM") ? y - 3 : y - 0.5,
     color,
     position: "start",
     content: [name],

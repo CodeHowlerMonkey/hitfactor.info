@@ -195,7 +195,7 @@ export const ShootersDistributionChart = ({ division, style }) => {
                   perc[0] < 0
                     ? {}
                     : yLine(
-                        `Top ${perc[0]?.toFixed(2)}% (${perc[1]}) = ${["SPR", "GM", "M", "A", "B", "C", "D"][i]}`,
+                        `Top ${perc[0]?.toFixed(2)}% (${perc[1]}) = ${["Super GM", "GM", "M", "A", "B", "C", "D"][i]}`,
                         perc[0],
                         annotationColor(0.75),
                       ),
