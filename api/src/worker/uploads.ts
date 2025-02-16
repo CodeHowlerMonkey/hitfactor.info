@@ -444,7 +444,9 @@ export const hitFactorLikeMatchInfo = (
       .map(s => [s.stage_uuid, `${s.stage_number}. ${s.stage_name}`]),
   );
   const classifierUUIDs = Object.keys(classifiersMap);
-  const classifierResults = results.filter(r => classifierUUIDs.includes(r.stageUUID));
+  const classifierResults = results.filter(
+    r => classifierUUIDs.includes(r.stageUUID) || (features.major && r.Match?.length),
+  );
 
   const { match_scores } = scoresJson;
   // [stageUUID][shooterUUID]= { ...scoresInfo}
@@ -459,12 +461,68 @@ export const hitFactorLikeMatchInfo = (
 
   const scores = classifierResults
     .map(r => {
-      const { stageUUID, ...varNameResult } = r;
-      const classifier = classifiersMap[stageUUID];
-      const classifierName = classifierNamesMap[stageUUID];
+      const { stageUUID, Match: matchOverall, ...varNameResult } = r;
+
+      if (matchOverall?.length) {
+        return matchOverall
+          .map(divisionBucket => {
+            const classifier = "matchOverall";
+            const divisionKey = Object.keys(divisionBucket)[0];
+            const division = normalizeDivision(divisionKey);
+
+            return divisionBucket[divisionKey].map(a => {
+              const memberNumber = shootersMap[a.shooter]?.toUpperCase();
+              const shooterFullName = match.memberNumberToNamesMap[memberNumber];
+              const date = new Date(match.match_date);
+
+              const matchPoints = Number(a.matchPoints);
+              const matchPercent = Number(a.matchPercent);
+              const winnerMatchPoints = (100 * matchPoints) / matchPercent;
+
+              return {
+                matchPercent,
+                matchPoints,
+                percentOfPossible: Number(a.percentOfPossible),
+                hf: matchPoints,
+                hhf: winnerMatchPoints,
+
+                points: Number(a.matchPoints),
+                penalties: 0,
+                stageTimeSecs: -1,
+
+                // from algolia / matches collection
+                type: matchInfo?.type,
+                subType: matchInfo?.subType,
+                templateName: matchInfo?.templateName,
+
+                // from /match_scores.json
+                modified: date,
+
+                percent: Number(a.matchPercent),
+                shooterFullName,
+                memberNumber,
+                classifier,
+                classifierName: classifier,
+                division,
+                upload: match.match_id,
+                clubid: match.match_clubcode,
+                club_name: match.match_clubname || match.match_name,
+                matchName: match.match_name,
+                sd: UTCDate(match.match_date),
+                code: "N",
+                source: "Match Score",
+                memberNumberDivision: [memberNumber, division].join(":"),
+                classifierDivision: [classifier, division].join(":"),
+              };
+            });
+          })
+          .flat();
+      }
 
       // my borther in Christ, this is nested AF!
       return Object.values(varNameResult)[0]?.[0].Overall.map(a => {
+        const classifier = classifiersMap[stageUUID];
+        const classifierName = classifierNamesMap[stageUUID];
         const memberNumber = shootersMap[a.shooter]?.toUpperCase();
         const division = normalizeDivision(a.division);
         const hhf = curHHFForDivisionClassifier({

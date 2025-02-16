@@ -41,7 +41,7 @@ export const curHHFForDivisionClassifier = ({
   number,
 }: {
   division: string;
-  number: string;
+  number?: string;
 }) => {
   if (!number) {
     return NaN;
