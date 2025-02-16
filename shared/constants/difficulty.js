@@ -6,9 +6,9 @@ export const weibullDifficulty = {
 export const classificationDifficulty = {
   // TODO: pick difficulty windows for majors depending on number of stages and hardcoded ratio?
   window: {
-    min: 6,
+    min: 4,
     best: 6,
-    recent: 20,
+    recent: 8,
   },
 
   percentCap: 110,
