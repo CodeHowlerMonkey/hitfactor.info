@@ -88,13 +88,13 @@ export const closestYForX = (
 /** Generates a dataset of points, with X within [minX, maxX] and y
  * determined by the yFn(x).
  */
-export const pointsGraph = ({ yFn, minX, maxX, name, step: stepParam }) => {
+export const pointsGraph = ({ yFn, minX, maxX, name }) => {
   if (!yFn || minX === maxX) {
     return [];
   }
 
-  const step = stepParam || 0.005;
-  const totalPoints = Math.ceil((maxX - minX) / step);
+  const totalPoints = 1000;
+  const step = (maxX - minX) / totalPoints;
 
   const result = Array.from({ length: totalPoints }, (v, i) => {
     const x = minX + (i + 1) * step;
