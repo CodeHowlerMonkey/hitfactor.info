@@ -147,7 +147,38 @@ RecHHFSchema.index({ classifierDivision: 1 }, { unique: true });
 
 export const RecHHFs = mongoose.model("RecHHFs", RecHHFSchema);
 
-const extraHHFsForProd = (allScoresRecHHF: number, runs: ScoreWithPercentile[]) => {
+const classifiersThatUseMoreThan10RoundsBetweenReloads = [
+  "99-10",
+  "99-56",
+  "03-03",
+  "03-12",
+  "06-01",
+  "06-02",
+  "09-08",
+  "09-10",
+  "19-01",
+  "19-02",
+  "19-03",
+  "19-04",
+  "20-01",
+  "20-02",
+  "20-03",
+  "21-01",
+  "22-01",
+  "22-02",
+  "23-01",
+  "23-02",
+  "24-02",
+  "24-06",
+  "24-08",
+  "24-09",
+];
+
+const extraHHFsForProd = (
+  allScoresRecHHF: number,
+  runs: ScoreWithPercentile[],
+  classifier: string,
+) => {
   const prod10Runs = runs
     .filter(c => new Date(c.sd).getTime() < PROD_15_EFFECTIVE_TS)
     .map(c => c.hf);
@@ -156,10 +187,13 @@ const extraHHFsForProd = (allScoresRecHHF: number, runs: ScoreWithPercentile[]) 
     .map(c => c.hf);
   const { hhf: prod10HHF } = solveWeibull(prod10Runs);
   const { hhf: prod15HHF } = solveWeibull(prod15Runs);
-  const prod1015HHF = Math.max(allScoresRecHHF, prod10HHF, prod15HHF);
+  const prodAll1015HHF = Math.max(allScoresRecHHF, prod10HHF, prod15HHF);
+
+  const needsMoreThan10 =
+    classifiersThatUseMoreThan10RoundsBetweenReloads.includes(classifier);
 
   return {
-    recHHF: prod1015HHF,
+    recHHF: needsMoreThan10 ? prodAll1015HHF : allScoresRecHHF,
     prod10HHF,
     prod15HHF,
   };
@@ -214,7 +248,7 @@ const recHHFUpdate = (
     classifierDivision: [classifier, division].join(":"),
     curHHF,
     recHHF: wblHHF,
-    ...(division === "prod" ? extraHHFsForProd(wbl3HHF, runs) : {}),
+    ...(division === "prod" ? extraHHFsForProd(wbl3HHF, runs, classifier) : {}),
     ...(division === "lo" ? extraHHFsForLO(wbl3HHF, runs) : {}),
 
     k,
