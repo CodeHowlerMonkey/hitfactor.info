@@ -164,6 +164,9 @@ export const uspsaClassifiers = [
   "24-09",
 ];
 
+// TODO: update list once decided
+export const deprecatedUSPSAClassifiers = [];
+
 // See: https://scsa.org/classification
 // Peak Times in SCSA typically change every 2 to 3 years, and new classifiers have not been added
 // since the late 2000s.

@@ -28,6 +28,7 @@ export interface Classifier {
   classifier: string;
   division: string;
   classifierDivision: string;
+  name: string;
 
   runs: number;
 
@@ -199,6 +200,7 @@ const ClassifierSchema = new mongoose.Schema<
     classifier: String,
     division: String,
     classifierDivision: String,
+    name: String,
 
     runs: Number,
 
