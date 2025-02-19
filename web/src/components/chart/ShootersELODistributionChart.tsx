@@ -75,11 +75,13 @@ const colorForELOOrPercent = (colorMode: string, dataPoint: RawDataPoint) => {
 
 interface ShootersELODistributionChartProps {
   division: string;
+  selectedMemberNumber?: string;
 }
 
 const EMPTY_ARRAY = [];
 export const ShootersELODistributionChart = ({
   division,
+  selectedMemberNumber,
 }: ShootersELODistributionChartProps) => {
   const [mainMode, setMainMode] = useState(defaultMainMode);
   const isVersus = mainModeFieldForMode(mainMode) === "vs";
@@ -165,6 +167,10 @@ export const ShootersELODistributionChart = ({
     return null;
   }
 
+  const selectedShooterDataPoint = !selectedMemberNumber
+    ? undefined
+    : curModeData.find(c => c.ogMemberNumber === selectedMemberNumber);
+
   const graph = (
     <Scatter
       options={{
@@ -248,6 +254,20 @@ export const ShootersELODistributionChart = ({
       }}
       data={{
         datasets: [
+          ...(!selectedShooterDataPoint
+            ? []
+            : [
+                {
+                  label: selectedShooterDataPoint.ogMemberNumber,
+                  data: [selectedShooterDataPoint] as RawDataPoint[],
+                  pointRadius: 4,
+                  pointBorderColor: "white",
+                  pointBorderWidth: 2,
+                  pointBackgroundColor: [
+                    colorForELOOrPercent(colorMode, selectedShooterDataPoint),
+                  ],
+                },
+              ]),
           ...(isVersus
             ? []
             : [

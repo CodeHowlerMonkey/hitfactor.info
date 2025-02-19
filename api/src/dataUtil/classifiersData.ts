@@ -164,6 +164,79 @@ export const uspsaClassifiers = [
   "24-09",
 ];
 
+const uspsaClassifiers2025 = [
+  "99-08",
+  "99-10",
+  "99-11",
+  "99-12",
+  "99-13",
+  "99-19",
+  "99-28",
+  "99-42",
+  "99-46",
+  "99-53",
+  "99-57",
+  "99-62",
+
+  "03-03",
+  "03-05",
+  "03-07",
+  "03-08",
+  "03-09",
+  "03-18",
+
+  "06-03",
+  "06-04",
+  "06-05",
+  "06-10",
+
+  "08-02",
+  "08-03",
+
+  "09-10",
+
+  "13-02",
+  "13-04",
+  "13-05",
+  "13-06",
+
+  "18-03",
+  "18-05",
+  "18-07",
+  "18-08",
+  "18-09",
+
+  "19-01",
+  "19-02",
+  "19-04",
+
+  "20-01",
+  "20-02",
+  "20-03",
+
+  "21-01",
+
+  "22-01",
+  "22-02",
+  "22-04",
+  "22-06",
+  "22-07",
+
+  "23-01",
+  "23-02",
+
+  "24-01",
+  "24-02",
+  "24-04",
+  "24-06",
+  "24-08",
+  "24-09",
+];
+
+export const deprecatedUSPSAClassifiers = uspsaClassifiers.filter(
+  c => !uspsaClassifiers2025.includes(c),
+);
+
 // See: https://scsa.org/classification
 // Peak Times in SCSA typically change every 2 to 3 years, and new classifiers have not been added
 // since the late 2000s.

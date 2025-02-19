@@ -3,6 +3,7 @@ import transform from "lodash.transform";
 import uniqBy from "lodash.uniqby";
 import mongoose, { Model } from "mongoose";
 
+import recHHFsPSData from "../../../data/recHHFsPSData.json";
 import { stringSort } from "../../../shared/utils/sort";
 import { correlation } from "../../../shared/utils/weibull";
 import {
@@ -27,6 +28,7 @@ export interface Classifier {
   classifier: string;
   division: string;
   classifierDivision: string;
+  name: string;
 
   runs: number;
 
@@ -198,6 +200,7 @@ const ClassifierSchema = new mongoose.Schema<
     classifier: String,
     division: String,
     classifierDivision: String,
+    name: String,
 
     runs: Number,
 
@@ -270,6 +273,11 @@ ClassifierSchema.virtual("recHHFs", {
     return this.recHHFs?.[fieldName];
   }),
 );
+
+ClassifierSchema.virtual("recHHFPSData").get(function () {
+  const classifierDivision = [this.classifier, this.division].join(":");
+  return recHHFsPSData[classifierDivision];
+});
 
 ClassifierSchema.virtual("ccQuality").get(function () {
   return (

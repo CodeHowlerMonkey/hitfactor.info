@@ -19,6 +19,7 @@
     "uploadMeta": "NODE_OPTIONS='--max-old-space-size=2048' node --import=tsx scripts/upload/statsMetaLoop.ts",
     "members": "node --import=tsx scripts/activeMembers.ts",
     "========================= DB Admin Scripts ============================": "",
+    "uspsa": "NODE_OPTIONS='--max-old-space-size=16384' node --import=tsx scripts/experiments/hydrateFromUSPSAJSON.ts",
     "dump": "mongodump $MONGO_URL",
     "===================== Internal (Don't Run Directly) ======================": "",
     "start-api": "cd api && npm start",

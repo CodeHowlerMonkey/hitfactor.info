@@ -5,6 +5,7 @@ import { DataTable } from "primereact/datatable";
 import { InputText } from "primereact/inputtext";
 import { useEffect, useState } from "react";
 
+import { deprecatedUSPSAClassifiers } from "../../../../../api/src/dataUtil/classifiersData";
 import {
   classifierCodeSort,
   dateSort,
@@ -125,7 +126,9 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
       style={{ width: "fit-content", margin: "auto" }}
       loading={loading}
       showGridlines
-      rowClassName={rowData => cx({ "opacity-30": rowData.allDivQuality < 59 })}
+      rowClassName={rowData =>
+        cx({ "opacity-30": deprecatedUSPSAClassifiers.includes(rowData.code) })
+      }
       selectionMode="single"
       selection={null}
       onSelectionChange={({ value }) => onClassifierSelection(value.code)}

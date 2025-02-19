@@ -1,5 +1,8 @@
+.git/
+/data/uspsa
 ##########  mongodump & data
 dump/
+dump.bak/
 data/imported/
 data/imported/*
 
