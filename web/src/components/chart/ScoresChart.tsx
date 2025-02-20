@@ -71,6 +71,7 @@ const filterXYForModes = (
 };
 
 const colorForELOOrPercent = (colorMode: string, dataPoint: AdvancedScorePoint) => {
+  return "#444";
   const field = versusFieldForMode(colorMode);
   if (field === "elo") {
     return bgColorForClass[classForELO(dataPoint.elo as number)];
@@ -78,18 +79,7 @@ const colorForELOOrPercent = (colorMode: string, dataPoint: AdvancedScorePoint) 
   return bgColorForClass[classForPercent(dataPoint[versusFieldForMode(colorMode)])];
 };
 
-const colorForPrefix = (prefix, alpha) =>
-  ({
-    hq: annotationColor,
-    "": annotationColor,
-    r: r5annotationColor,
-    r1: r5annotationColor,
-    r5: r5annotationColor,
-    r15: r5annotationColor,
-    wbl1: wbl15AnnotationColor,
-    wbl5: wbl15AnnotationColor,
-    wbl15: wbl15AnnotationColor,
-  })[prefix](alpha);
+const colorForPrefix = (prefix, alpha) => "black";
 export const extraLabelOffsets = {
   hq: 0,
   "": 0,
@@ -326,14 +316,22 @@ export const ScoresChart = ({ division, classifier, hhf, recHHF, totalScores }) 
 
   const graph = (
     <Scatter
-      style={{ position: "relative" }}
+      style={{ position: "relative", background: "white" }}
       options={{
         //aspectRatio: full ? 1 : undefined,
         responsive: true,
         // wanted false for rezize but annotations are bugged and draw HHF/GM lines wrong
         maintainAspectRatio: false,
         scales: {
-          y: { reverse: yMode === "Rank" },
+          y: {
+            reverse: yMode === "Rank",
+            grid: {
+              color: "black",
+              tickColor: "black",
+              lineWidth: 2,
+              tickWidth: 2,
+            },
+          },
         },
         elements: {
           point: {
@@ -392,7 +390,6 @@ export const ScoresChart = ({ division, classifier, hhf, recHHF, totalScores }) 
                   )),
 
               // ...(sport === "uspsa" || sport === "scsa" ? xLinesForHHF("", hhf) : []),
-              ...(xMode !== "HF" ? {} : xLinesForHHF("hq", hhf)),
               ...(xMode !== "HF" ? {} : xLinesForHHF("r", recHHF)),
             },
           },
@@ -414,16 +411,18 @@ export const ScoresChart = ({ division, classifier, hhf, recHHF, totalScores }) 
                   pointRadius: 1,
                   pointBorderColor: "black",
                   pointBorderWidth: 0,
-                  pointBackgroundColor: wbl1AnnotationColor(0.66),
+                  pointBackgroundColor: wbl1AnnotationColor(0.33),
                 },
               ]),
           {
             label: chartLabel || "HF / Percentile",
             data: data,
-            pointRadius: 3,
+            pointRadius: 2,
             pointBorderColor: "white",
             pointBorderWidth: 0,
-            backgroundColor: "#ae9ef1",
+            backgroundColor: "white",
+            borderColor: "black",
+            borderWidth: 2,
             pointBackgroundColor: data?.map(c => colorForELOOrPercent(colorMode!, c)),
           },
         ],

@@ -86,9 +86,15 @@ export const ShootersDistributionChart = ({ division, style }) => {
 
   const graph = (
     <Scatter
+      style={{ background: "white" }}
       options={{
         maintainAspectRatio: false,
-        scales: { y: { reverse: true } },
+        scales: {
+          y: {
+            reverse: true,
+            grid: { color: "black", tickColor: "black", lineWidth: 2, tickColor: 2 },
+          },
+        },
         elements: {
           point: {
             radius: 3,
@@ -164,13 +170,14 @@ export const ShootersDistributionChart = ({ division, style }) => {
             pointRadius: 1,
             pointBorderColor: "black",
             pointBorderWidth: 0,
-            pointBackgroundColor: wbl1AnnotationColor(0.66),
+            pointBackgroundColor: wbl1AnnotationColor(0.33),
           },
           {
             label: "Classification / Percentile",
             data: curModeData,
             pointBorderColor: "white",
             pointBorderWidth: 0,
+            pointRadius: 2,
             backgroundColor: "#ae9ef1",
             pointBackgroundColor: curModeData?.map(
               c => bgColorForClass[classForPercent(c[fieldForMode(colorMode)])],

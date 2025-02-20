@@ -39,17 +39,18 @@ export const xLine = (name, x, color, extraLabelOffset = 0, lowY = false) => ({
     borderColor: color,
     borderWidth: 1,
   },
+  /*
   [`${name}Label`]: {
     type: "label",
     xValue: x,
-    yValue: lowY ? 15 + 2 * extraLabelOffset : 95 - 2 * extraLabelOffset,
+    yValue: (lowY ? 15 + 2 * extraLabelOffset : 95 - 2 * extraLabelOffset) - 2,
     color,
     position: "start",
     content: [name],
     font: {
       size: 12,
     },
-  },
+  },*/
 });
 
 export const point = (name, x, y, color) => ({
@@ -132,9 +133,9 @@ export const pointsGraph = ({ yFn, minX, maxX, name, step: stepParam }) => {
   return result;
 };
 
-export const annotationColor = alpha => `rgba(255, 99, 132, ${alpha * 0.5})`;
+export const annotationColor = alpha => "black"; //`rgba(255, 99, 132, ${alpha * 0.5})`;
 export const r1annotationColor = alpha => `rgba(132, 99, 255, ${alpha * 0.75})`;
-export const r5annotationColor = alpha => `rgba(99, 255, 132, ${alpha})`;
+export const r5annotationColor = alpha => "black"; //`rgba(99, 255, 132, ${alpha})`;
 export const r15annotationColor = alpha => `rgba(255, 255, 132, ${alpha})`;
 export const wbl1AnnotationColor = alpha =>
   `#5d4bdd${Math.round(alpha * 255).toString(16)}`;
