@@ -173,14 +173,20 @@ export const ShootersELODistributionChart = ({
 
   const graph = (
     <Scatter
+      style={{ background: "white" }}
       options={{
         maintainAspectRatio: false,
         scales: {
           y: {
             reverse: !isVersus,
             max: isVersus && percentModes.includes(yMode) ? 120 : undefined,
+            grid: { color: "black", tickColor: "black", lineWidth: 2, tickWidth: 2 },
           },
-          x: { max: isVersus && percentModes.includes(xMode) ? 120 : undefined },
+          x: {
+            max: isVersus && percentModes.includes(xMode) ? 120 : undefined,
+
+            grid: { color: "#333", tickColor: "#333", lineWidth: 1, tickWidth: 1 },
+          },
         },
         elements: {
           point: {
@@ -287,10 +293,11 @@ export const ShootersELODistributionChart = ({
                 },
               ]),
           {
-            label: isVersus ? "Comparison" : "ELO / Percentile",
+            label: isVersus ? `Correlation ${correl.toFixed(4)}` : "ELO / Percentile",
             data: curModeData as RawDataPoint[],
-            pointBorderColor: "white",
-            pointBorderWidth: 0,
+            pointRadius: 3,
+            pointBorderColor: "black",
+            pointBorderWidth: 1,
             backgroundColor: "#ae9ef1",
             pointBackgroundColor: curModeData?.map(c =>
               colorForELOOrPercent(colorMode, c),

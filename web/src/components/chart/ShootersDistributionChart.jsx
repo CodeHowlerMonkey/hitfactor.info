@@ -92,7 +92,7 @@ export const ShootersDistributionChart = ({ division, style }) => {
         scales: {
           y: {
             reverse: true,
-            grid: { color: "black", tickColor: "black", lineWidth: 2, tickColor: 2 },
+            grid: { color: "black", tickColor: "black", lineWidth: 2, tickWidth: 2 },
           },
         },
         elements: {
