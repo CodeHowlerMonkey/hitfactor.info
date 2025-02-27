@@ -263,7 +263,10 @@ export const ScoresChart = ({ division, classifier, hhf, recHHF, totalScores }) 
           ),
     [data, showCorrelation],
   );
-  const maxX = useMemo(() => data.toSorted((a, b) => b.x - a.x)[0]?.x || 0, [data]);
+  const maxX = useMemo(
+    () => data.toSorted((a, b) => b.x - a.x)[0]?.x * 1.05 || 0,
+    [data],
+  );
 
   useEffect(
     () => setNumberOfScores(SCORES_STEP * Math.ceil(totalScores / SCORES_STEP)),
@@ -390,7 +393,7 @@ export const ScoresChart = ({ division, classifier, hhf, recHHF, totalScores }) 
                   )),
 
               // ...(sport === "uspsa" || sport === "scsa" ? xLinesForHHF("", hhf) : []),
-              ...(xMode !== "HF" ? {} : xLinesForHHF("r", recHHF)),
+              ...(xMode !== "HF" ? {} : xLinesForHHF("r", weibull.hhf3)),
             },
           },
         },

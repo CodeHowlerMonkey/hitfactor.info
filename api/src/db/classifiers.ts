@@ -51,7 +51,7 @@ export interface Classifier {
   classificationCorrelation: number;
 }
 
-interface ClassifierVirtuals {
+export interface ClassifierVirtuals {
   recHHFs: RecHHF;
   quality: number;
 
@@ -60,7 +60,7 @@ interface ClassifierVirtuals {
   ccQuality: number;
 }
 
-type ClassifierModel = Model<Classifier, object, ClassifierVirtuals>;
+export type ClassifierModel = Model<Classifier, object, ClassifierVirtuals>;
 
 export interface ClassifierDivision {
   classifier: string;

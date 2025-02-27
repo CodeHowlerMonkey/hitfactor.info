@@ -39,7 +39,6 @@ export const xLine = (name, x, color, extraLabelOffset = 0, lowY = false) => ({
     borderColor: color,
     borderWidth: 1,
   },
-  /*
   [`${name}Label`]: {
     type: "label",
     xValue: x,
@@ -50,7 +49,7 @@ export const xLine = (name, x, color, extraLabelOffset = 0, lowY = false) => ({
     font: {
       size: 12,
     },
-  },*/
+  },
 });
 
 export const point = (name, x, y, color) => ({

@@ -45,8 +45,8 @@ const fieldModeMap = {
   /*
   "Rec.HHFOnly": "recHHFOnlyPercent",
   "Rec.Soft": "recSoftPercent",
-  "Rec.Brutal": "recPercent",
   */
+  "Rec.Brutal High": "recPercentHigh",
   Recommended: "recPercentUncapped",
   "Recommended High": "recPercentUncappedHigh",
 };
