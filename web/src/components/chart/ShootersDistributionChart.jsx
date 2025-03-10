@@ -32,10 +32,14 @@ const fieldModeMap = {
   */
   Recommended: "recPercentUncapped",
   "Recommended High": "recPercentUncappedHigh",
+  Benefit: "benefit",
+  "Benefit High": "benefitHigh",
 };
 const fieldForMode = mode => fieldModeMap[mode];
 const modes = Object.keys(fieldModeMap);
+const colorModes = modes.filter(m => !m.toLowerCase().includes("benefit"));
 const recommendedMode = modes[2];
+const empty = [];
 
 export const ShootersDistributionChart = ({ division, style }) => {
   const isHFU = useIsHFU(division);
@@ -45,6 +49,7 @@ export const ShootersDistributionChart = ({ division, style }) => {
   // only use recommended in HFU
   const colorMode = isHFU ? recommendedMode : colorModeState;
   const xMode = isHFU ? recommendedMode : xModeState;
+  const xModeIsBenefit = xMode.toLowerCase().includes("benefit");
 
   const { json: data, loading } = useApi(`/shooters/${division}/chart`);
 
@@ -56,7 +61,7 @@ export const ShootersDistributionChart = ({ division, style }) => {
           x: c[fieldForMode(xMode)],
           y: c[`${fieldForMode(xMode)}Percentile`],
         }))
-        ?.filter(c => c.y > 0 && c.x > 0) || [],
+        .filter(c => c.x !== 0) || [],
     [data, xMode],
   );
 
@@ -73,7 +78,7 @@ export const ShootersDistributionChart = ({ division, style }) => {
 
   const curModeDataPoints = useMemo(() => curModeData.map(c => c.x), [curModeData]);
 
-  const weibull = useAsyncWeibull(curModeDataPoints);
+  const weibull = useAsyncWeibull(xModeIsBenefit ? empty : curModeDataPoints);
   const { k, lambda } = weibull;
 
   if (loading) {
@@ -131,41 +136,61 @@ export const ShootersDistributionChart = ({ division, style }) => {
               // and GM is harder than 99th, possibly due to "compression" of GM classifier
               // scores on the upper end. By removing the hundo-cap we should increase classification of
               // people, who have >100% runs, which should be relatively small, but increases number of GMs
-              ...Object.assign(
-                {},
-                ...percentiles.map((perc, i) =>
-                  yLine(
-                    `Top ${perc[0]?.toFixed(2)}% (${perc[1]}) = ${["GM", "M", "A", "B", "C"][i]}`,
-                    perc[0],
-                    annotationColor(0.75),
-                  ),
-                ),
-              ),
-              ...xLine("95%", 95, r5annotationColor(0.5), 2.5),
-              ...xLine("85%", 85, r5annotationColor(0.5), 2.5),
-              ...xLine("75%", 75, r5annotationColor(0.5), 2.5),
-              ...xLine("60%", 60, r5annotationColor(0.5), 2.5),
-              ...xLine("40%", 40, r5annotationColor(0.5), 2.5),
+              ...(xModeIsBenefit
+                ? {}
+                : Object.assign(
+                    {},
+                    ...percentiles.map((perc, i) =>
+                      yLine(
+                        `Top ${perc[0]?.toFixed(2)}% (${perc[1]}) = ${["GM", "M", "A", "B", "C"][i]}`,
+                        perc[0],
+                        annotationColor(0.75),
+                      ),
+                    ),
+                  )),
+              ...(xModeIsBenefit
+                ? {
+                    ...xLine("-20%", -20, r5annotationColor(0.5), 2.5),
+                    ...xLine("-15%", -15, r5annotationColor(0.5), 2.5),
+                    ...xLine("-10%", -10, r5annotationColor(0.5), 2.5),
+                    ...xLine("-5%", -5, r5annotationColor(0.5), 2.5),
+                    ...xLine("0%", 0, r5annotationColor(0.5), 2.5),
+                    ...xLine("5%", 5, r5annotationColor(0.5), 2.5),
+                    ...xLine("10%", 10, r5annotationColor(0.5), 2.5),
+                    ...xLine("15%", 15, r5annotationColor(0.5), 2.5),
+                    ...xLine("20%", 20, r5annotationColor(0.5), 2.5),
+                  }
+                : {
+                    ...xLine("95%", 95, r5annotationColor(0.5), 2.5),
+                    ...xLine("85%", 85, r5annotationColor(0.5), 2.5),
+                    ...xLine("75%", 75, r5annotationColor(0.5), 2.5),
+                    ...xLine("60%", 60, r5annotationColor(0.5), 2.5),
+                    ...xLine("40%", 40, r5annotationColor(0.5), 2.5),
+                  }),
             },
           },
         },
       }}
       data={{
         datasets: [
-          {
-            label: "Weibull",
-            data: pointsGraph({
-              yFn: weibulCDFFactory(k, lambda),
-              minX: 0,
-              maxX: 100,
-              step: 0.1,
-              name: "Weibull",
-            }),
-            pointRadius: 1,
-            pointBorderColor: "black",
-            pointBorderWidth: 0,
-            pointBackgroundColor: wbl1AnnotationColor(0.66),
-          },
+          ...(xModeIsBenefit
+            ? []
+            : [
+                {
+                  label: "Weibull",
+                  data: pointsGraph({
+                    yFn: weibulCDFFactory(k, lambda),
+                    minX: 0,
+                    maxX: 100,
+                    step: 0.1,
+                    name: "Weibull",
+                  }),
+                  pointRadius: 1,
+                  pointBorderColor: "black",
+                  pointBorderWidth: 0,
+                  pointBackgroundColor: wbl1AnnotationColor(0.66),
+                },
+              ]),
           {
             label: "Classification / Percentile",
             data: curModeData,
@@ -191,7 +216,7 @@ export const ShootersDistributionChart = ({ division, style }) => {
               <SelectButton
                 className="compact text-xs"
                 allowEmpty={false}
-                options={modes}
+                options={colorModes}
                 value={colorMode}
                 onChange={e => setColorMode(e.value)}
               />
@@ -208,7 +233,7 @@ export const ShootersDistributionChart = ({ division, style }) => {
             </div>
           </div>
         )}
-        <WeibullStatus weibull={weibull} />
+        {xModeIsBenefit ? null : <WeibullStatus weibull={weibull} />}
       </div>
       <div
         style={{
