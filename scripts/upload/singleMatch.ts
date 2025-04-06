@@ -1,7 +1,8 @@
 /* eslint-disable no-console */
 import { connect } from "../../api/src/db/index";
 import { Matches, matchFromMatchDef } from "../../api/src/db/matches";
-import { fetchPS, metaLoop, uploadMatches } from "../../api/src/worker/uploads";
+import { metaLoop, uploadMatches } from "../../api/src/worker/uploads";
+import { fetchPS } from "../../api/src/worker/uploadsCommon";
 
 const go = async () => {
   const matchUUID = process.argv[2];
@@ -33,8 +34,7 @@ const go = async () => {
   ]);
 
   console.error("Uploading scores...");
-  const upload = await uploadMatches({ matches: [match] });
-  console.log(JSON.stringify(upload, null, 2));
+  await uploadMatches({ matches: [match] });
   await Matches.bulkWrite(
     [match].map(m => ({
       updateOne: {
