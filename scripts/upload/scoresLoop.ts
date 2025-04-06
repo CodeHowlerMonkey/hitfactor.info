@@ -39,7 +39,7 @@ const scoresLoop = async ({ batchSize = 12 } = {}) => {
     console.log(
       `${uploadResults?.classifiers?.length || 0} classifiers; ${
         uploadResults?.shooters?.length || 0
-      } shooters`,
+      } shooters; ${uploadResults?.matchResults?.length || 0} match results`,
     );
 
     await Matches.bulkWrite(

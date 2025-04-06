@@ -1,10 +1,5 @@
 /* eslint-disable no-console */
 
-import { text } from "node:stream/consumers";
-import { createGunzip } from "node:zlib";
-import { Readable } from "stream";
-
-import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 import uniqBy from "lodash.uniqby";
 import { ObjectId } from "mongoose";
 
@@ -12,12 +7,7 @@ import features from "../../../shared/features";
 import { UTCDate } from "../../../shared/utils/date";
 import { minorHF } from "../../../shared/utils/hitfactor";
 import { uuidsFromUrlString } from "../../../shared/utils/uuid";
-import {
-  normalizeClassifierCode,
-  scsaDivisionWithPrefix,
-  scsaPeakTime,
-  ScsaPeakTimesMap,
-} from "../dataUtil/classifiersData";
+import { normalizeClassifierCode } from "../dataUtil/classifiersData";
 import {
   arrayWithExplodedDivisions,
   hfuDivisionCompatabilityMap,
@@ -25,7 +15,7 @@ import {
   pairToDivision,
 } from "../dataUtil/divisions";
 import { curHHFForDivisionClassifier } from "../dataUtil/hhf";
-import { HF, N, Percent } from "../dataUtil/numbers";
+import { Percent } from "../dataUtil/numbers";
 import {
   AfterUploadClassifiers,
   type AfterUploadClassifier,
@@ -34,73 +24,19 @@ import { AfterUploadShooters, type AfterUploadShooter } from "../db/afterUploadS
 import { rehydrateClassifiers } from "../db/classifiers";
 import { DQs } from "../db/dq";
 import { connect } from "../db/index";
-import { Matches } from "../db/matches";
+import { Match, MatchDef, Matches } from "../db/matches";
+import { MatchScore, saveMatchScores } from "../db/matchScores";
 import { hydrateRecHHFsForClassifiers } from "../db/recHHF";
-import { Scores } from "../db/scores";
+import { Score, Scores } from "../db/scores";
 import { reclassifyShooters } from "../db/shooters";
 import { hydrateStats } from "../db/stats";
 
-export const _fetchPSS3ObjectJSON = async (objectKey: string, noGZip = false) => {
-  try {
-    const s3Client = new S3Client({
-      region: "us-east-1",
-      credentials: {
-        accessKeyId: process.env.PS_S3_ACCESS_KEY_ID!,
-        secretAccessKey: process.env.PS_S3_SECRET_ACCESS_KEY!,
-      },
-    });
-
-    const s3Response = await s3Client.send(
-      new GetObjectCommand({
-        Bucket: "ps-scores",
-        Key: objectKey,
-      }),
-    );
-
-    const bodyStream = s3Response.Body;
-    if (!bodyStream) {
-      return null;
-    }
-
-    // try gzip first, if that crashes - refetch and don't decompress
-    // TODO: rewrite to re-use once fetched data for both (gz and not) pathways
-    // (refetching for now, because node closes streams and makes re-use challenging)
-    if (!noGZip) {
-      try {
-        const gz = createGunzip();
-        const body = (bodyStream as Readable).pipe(gz);
-        const bodyString = await text(body);
-        return JSON.parse(bodyString);
-      } catch (e) {
-        return _fetchPSS3ObjectJSON(objectKey, true);
-      }
-    } else {
-      const bodyString = await bodyStream.transformToString();
-      return JSON.parse(bodyString);
-    }
-  } catch (e) {
-    console.error(
-      `fetchPSS3ObjectJSON failed: ${objectKey}; ${(e as Error)?.message || ""}`,
-    );
-    return null;
-  }
-};
-
-export const fetchPS = async (uuid, { skipResults = false } = {}) => {
-  try {
-    const [matchDef, scores, results] = await Promise.all([
-      _fetchPSS3ObjectJSON(`production/${uuid}/match_def.json`),
-      _fetchPSS3ObjectJSON(`production/${uuid}/match_scores.json`),
-      skipResults
-        ? Promise.resolve(null)
-        : _fetchPSS3ObjectJSON(`production/${uuid}/results.json`),
-    ]);
-
-    return { matchDef, scores, results };
-  } catch (e) {}
-
-  return {};
-};
+import { scsaMatchInfo } from "./scsaUploads";
+import {
+  EmptyMatchResultsFactory,
+  EmptySingleMatchResultFactory,
+  fetchPS,
+} from "./uploadsCommon";
 
 const uniqByTruthyMap = (arr, cb) => uniqBy(arr, cb).filter(cb).map(cb);
 export const arrayCombination = (arr1, arr2, cb) => {
@@ -129,6 +65,10 @@ export const classifiersAndShootersFromScores = (
     scores,
     s => s.memberNumberDivision,
   );
+  const stageNameMap = scores.reduce((acc, s) => {
+    acc[s.classifier] = s.classifierName;
+    return acc;
+  }, {});
 
   const classifiers = arrayWithExplodedDivisions(
     uniqueClassifierDivisionPairs,
@@ -138,6 +78,7 @@ export const classifiersAndShootersFromScores = (
       const classifier = originalClassifierDivision.split(":")[0];
       return {
         classifierDivision: [classifier, division].join(":"),
+        name: stageNameMap[classifier],
         classifier,
         division,
       };
@@ -204,205 +145,72 @@ const normalizeDivision = divisionNameRaw => {
   return normalizationMap[lowercaseNoSpace] || lowercaseNoSpace;
 };
 
-const scsaMatchInfo = async matchInfo => {
-  const { uuid } = matchInfo;
-
-  // Unlike USPSA, SCSA does not have results.json.
-  const { matchDef: match, scores: scoresJson } = await fetchPS(matchInfo.uuid, {
-    skipResults: true,
-  });
-  if (!match || !scoresJson) {
-    return EmptyMatchResultsFactory();
+const badCharsRegExp = /[\s:\t.,\-_+=!?']/gi;
+const memberNumberFromMatchDefShooter = (s, mustHaveMemberNumbers) => {
+  if (mustHaveMemberNumbers) {
+    return s.sh_id?.toUpperCase();
   }
-  /*
-    match_penalties Structure:
-    [{
-      "pen_warn": false,
-      "pen_bin": false,
-      "pen_name": "Procedural",
-      "pen_val": 3
-    }]
-   */
-  try {
-    const { match_shooters, match_stages, match_penalties } = match;
-    const shootersMap = Object.fromEntries(match_shooters.map(s => [s.sh_uuid, s.sh_id]));
-    const shootersDivisionMap = Object.fromEntries(
-      match_shooters.map(s => [s.sh_uuid, s.sh_dvp]),
-    );
-    match.memberNumberToNamesMap = Object.fromEntries(
-      match_shooters.map(s => [s.sh_id, [s.sh_fn, s.sh_ln].filter(Boolean).join(" ")]),
-    );
-    const classifiersMap = Object.fromEntries(
-      match_stages
-        .filter(s => !!s.stage_classifiercode)
-        .map(s => [s.stage_uuid, s.stage_classifiercode]),
-    );
 
-    const { match_scores } = scoresJson;
-    const stageScoresMap = match_scores.reduce((acc, cur) => {
-      const curStage = acc[cur.stage_uuid] || {};
-      cur.stage_stagescores.forEach(cs => {
-        curStage[cs.shtr] = cs;
-      });
-      acc[cur.stage_uuid] = curStage;
-      return acc;
-    }, {});
-
-    const scores = match_scores
-      .filter(ms => {
-        const { stage_uuid } = ms;
-        const classifierCode = classifiersMap[stage_uuid];
-        return (
-          classifiersMap[stage_uuid] !== undefined && classifierCode.match(/SC-10[0-8]/g)
-        );
-      })
-      .map(ms => {
-        const { stage_uuid, stage_stagescores } = ms;
-        const classifier = classifiersMap[stage_uuid];
-
-        return stage_stagescores
-          .filter(ss => {
-            const divisionCode = shootersDivisionMap[ss.shtr]?.toUpperCase();
-            return (
-              divisionCode !== undefined &&
-              Object.keys(ScsaPeakTimesMap).find(div => div === divisionCode) !==
-                undefined
-            );
-          })
-          .filter(ss => {
-            const expectedNumStrings = classifier === "SC-104" ? 4 : 5;
-            const strings = ss.str;
-            // Exclude any score where the string count does not match
-            // the official string count for the stated classifier.
-            return strings.length === expectedNumStrings;
-          })
-          .map(ss => {
-            // str is the array of all strings for the stage
-            // e.g. [7, 5.46, 6.17, 23.13]
-            const strings = ss.str;
-
-            // penss is a two-dimensional array of the COUNT of all penalties, by index, on the stage.
-            // e.g.
-            //[
-            //  [
-            //    1,
-            //    0,
-            //    0,
-            //    0
-            //  ]
-            const pens = ss.penss || [];
-            const penaltyCount = pens.flat().reduce((p, c) => p + c, 0);
-            const detailedScores = stageScoresMap[stage_uuid]?.[ss.shtr] || {};
-
-            const adjustedStrings = strings
-              .map((s, idx) => {
-                try {
-                  const penCountsForString = pens[idx];
-                  // Multiply the count of each penalties by their value, and sum the result.
-                  const totalStringPenalties = (penCountsForString || []).reduce(
-                    (p, c, penIdx) => p + c * (match_penalties[penIdx]?.pen_val || 0),
-                    0,
-                  );
-                  const adjustedStringTotal = s + totalStringPenalties;
-                  // Strings max out at 30 seconds in SCSA.
-                  return Math.min(30, adjustedStringTotal);
-                } catch (e) {
-                  console.log(`bad SCSA match: ${uuid}`);
-                  throw e;
-                }
-              })
-              .sort((a, b) => b - a);
-
-            const memberNumber = shootersMap[ss.shtr]?.toUpperCase();
-            const divisionCode = shootersDivisionMap[ss.shtr]?.toUpperCase();
-            const division = scsaDivisionWithPrefix(divisionCode);
-
-            const modifiedDate = new Date(detailedScores.mod);
-            const modified = Number.isNaN(modifiedDate.getTime())
-              ? undefined
-              : modifiedDate;
-
-            // Worst string (front of the array) dropped.
-            const bestNStrings = adjustedStrings.slice(1);
-
-            const stageTotal = N(bestNStrings.reduce((p, c) => p + c, 0));
-
-            const pseudoHf = HF((25 * bestNStrings.length) / stageTotal);
-
-            const classifierPeakTime = scsaPeakTime(divisionCode, classifier);
-            const shooterFullName = match.memberNumberToNamesMap[memberNumber];
-            const classificationPercent = Percent(classifierPeakTime, stageTotal);
-
-            return {
-              stageTimeSecs: stageTotal,
-              stagePeakTimeSecs: classifierPeakTime,
-
-              penalties: penaltyCount,
-
-              // from algolia / matches collection
-              type: matchInfo?.type,
-              subType: matchInfo?.subType,
-              templateName: matchInfo?.templateName,
-
-              // from /match_scores.json
-              modified,
-              strings: adjustedStrings,
-              targetHits: detailedScores.ts,
-              device: detailedScores.dname,
-              bad: classificationPercent >= 175.0,
-              hf: pseudoHf,
-              percent: classificationPercent,
-              shooterFullName,
-              memberNumber,
-              classifier,
-              division,
-              upload: uuid,
-              clubid: match.match_clubcode,
-              club_name: match.match_clubname || match.match_name,
-              matchName: match.match_name,
-              sd: UTCDate(match.match_date),
-              code: "N",
-              source: "Stage Score",
-              memberNumberDivision: [memberNumber, division].join(":"),
-              classifierDivision: [classifier, division].join(":"),
-            };
-          });
-      })
-      .flat()
-      .filter(
-        r =>
-          r.strings.every(x => x > 0) &&
-          r.stageTimeSecs > 0 &&
-          !!r.memberNumber &&
-          !!r.classifier &&
-          !!r.division &&
-          !!r.memberNumberDivision,
-      );
-
-    return { scores, match, results: [] };
-  } catch (e) {}
-
-  return EmptyMatchResultsFactory();
+  return (
+    s.sh_id || [s.sh_fn, s.sh_ln].join("").replace(badCharsRegExp, "")
+  ).toUpperCase();
 };
 
-export const uspsaOrHitFactorMatchInfo = async matchInfo => {
-  const { uuid } = matchInfo;
-  const { matchDef: match, results, scores: scoresJson } = await fetchPS(uuid);
+const classifierCodeFromMatchDefStage = (s, onlyActualClassifiers) => {
+  if (onlyActualClassifiers) {
+    return normalizeClassifierCode(s.stage_classifiercode);
+  }
+
+  return `${s.stage_number || ""}.${s.stage_name.replace(badCharsRegExp, "").toUpperCase()}`;
+};
+
+interface IntermediateScore extends Score {
+  // Major Match Scores Fields
+  matchPercent?: number;
+  matchPoints?: number;
+  percentOfPossible?: number;
+}
+
+export const hitFactorLikeMatchInfo = (
+  matchInfo: Match,
+  s3MatchFiles,
+  onlyClassifiers: boolean = true,
+  mustHaveMemberNumbers: boolean = true,
+  includeMajorResults: boolean = false,
+): { match: MatchDef; results: unknown; scores: IntermediateScore[] } => {
+  const { matchDef: match, results, scores: scoresJson } = s3MatchFiles;
   if (!match || !results || !scoresJson) {
-    return EmptyMatchResultsFactory();
+    return EmptySingleMatchResultFactory(match);
   }
   const { match_shooters, match_stages } = match;
-  const shootersMap = Object.fromEntries(match_shooters.map(s => [s.sh_uuid, s.sh_id]));
+  const shootersMap = Object.fromEntries(
+    match_shooters.map(s => [
+      s.sh_uuid,
+      memberNumberFromMatchDefShooter(s, mustHaveMemberNumbers),
+    ]),
+  );
   match.memberNumberToNamesMap = Object.fromEntries(
-    match_shooters.map(s => [s.sh_id, [s.sh_fn, s.sh_ln].filter(Boolean).join(" ")]),
+    match_shooters.map(s => [
+      memberNumberFromMatchDefShooter(s, mustHaveMemberNumbers),
+      [s.sh_fn, s.sh_ln].filter(Boolean).join(" "),
+    ]),
   );
   const classifiersMap = Object.fromEntries(
     match_stages
-      .filter(s => !!s.stage_classifiercode)
-      .map(s => [s.stage_uuid, normalizeClassifierCode(s.stage_classifiercode)]),
+      .filter(s => s.stage_scoretype !== "Chrono")
+      .filter(s => !onlyClassifiers || !!s.stage_classifiercode)
+      .map(s => [s.stage_uuid, classifierCodeFromMatchDefStage(s, onlyClassifiers)]),
+  );
+  const classifierNamesMap = Object.fromEntries(
+    match_stages
+      .filter(s => !onlyClassifiers || !!s.stage_classifiercode)
+      .map(s => [s.stage_uuid, `${s.stage_number}. ${s.stage_name}`]),
   );
   const classifierUUIDs = Object.keys(classifiersMap);
-  const classifierResults = results.filter(r => classifierUUIDs.includes(r.stageUUID));
+  const classifierResults = results.filter(
+    r =>
+      classifierUUIDs.includes(r.stageUUID) || (includeMajorResults && r.Match?.length),
+  );
 
   const { match_scores } = scoresJson;
   // [stageUUID][shooterUUID]= { ...scoresInfo}
@@ -417,11 +225,69 @@ export const uspsaOrHitFactorMatchInfo = async matchInfo => {
 
   const scores = classifierResults
     .map(r => {
-      const { stageUUID, ...varNameResult } = r;
-      const classifier = classifiersMap[stageUUID];
+      const { stageUUID, Match: matchOverall, ...varNameResult } = r;
+
+      if (matchOverall?.length) {
+        return matchOverall
+          .map(divisionBucket => {
+            const classifier = "matchOverall";
+            const divisionKey = Object.keys(divisionBucket)[0];
+            const division = normalizeDivision(divisionKey);
+
+            return divisionBucket[divisionKey].map(a => {
+              const memberNumber = shootersMap[a.shooter]?.toUpperCase();
+              const shooterFullName = match.memberNumberToNamesMap[memberNumber];
+              const date = new Date(match.match_date);
+
+              const matchPercent = Number(a.matchPercent || "0");
+              const matchPoints =
+                Number((a.matchPoints || "0").replace(",", "")) || matchPercent;
+              const winnerMatchPoints = (100 * matchPoints) / matchPercent;
+
+              return {
+                matchPercent,
+                matchPoints,
+                percentOfPossible: Number(a.percentOfPossible),
+                hf: matchPoints,
+                hhf: winnerMatchPoints,
+
+                points: Number(a.matchPoints),
+                penalties: 0,
+                stageTimeSecs: -1,
+
+                // from algolia / matches collection
+                type: matchInfo?.type,
+                subType: matchInfo?.subType,
+                templateName: matchInfo?.templateName,
+
+                // from /match_scores.json
+                modified: date,
+
+                percent: Number(a.matchPercent),
+                shooterFullName,
+                memberNumber,
+                classifier,
+                classifierName: classifier,
+                division,
+                upload: match.match_id,
+                clubid: match.match_clubcode,
+                club_name: match.match_clubname || match.match_name,
+                matchName: match.match_name,
+                sd: UTCDate(match.match_date),
+                code: "N",
+                source: "Match Score",
+                memberNumberDivision: [memberNumber, division].join(":"),
+                classifierDivision: [classifier, division].join(":"),
+              };
+            });
+          })
+          .flat();
+      }
 
       // my borther in Christ, this is nested AF!
       return Object.values(varNameResult)[0]?.[0].Overall.map(a => {
+        const classifier = classifiersMap[stageUUID];
+        const classifierName = classifierNamesMap[stageUUID];
         const memberNumber = shootersMap[a.shooter]?.toUpperCase();
         const division = normalizeDivision(a.division);
         const hhf = curHHFForDivisionClassifier({
@@ -466,8 +332,9 @@ export const uspsaOrHitFactorMatchInfo = async matchInfo => {
           shooterFullName,
           memberNumber,
           classifier,
+          classifierName,
           division,
-          upload: uuid,
+          upload: match.match_id,
           clubid: match.match_clubcode,
           club_name: match.match_clubname || match.match_name,
           matchName: match.match_name,
@@ -497,19 +364,66 @@ export const uspsaOrHitFactorMatchInfo = async matchInfo => {
   return { scores, match, results };
 };
 
-const EmptyMatchResultsFactory = () => ({ scores: [], matches: [], results: [] });
+export const uspsaOrHitFactorMatchInfo = async matchInfo => {
+  const { uuid } = matchInfo;
+  const s3MatchFiles = await fetchPS(uuid);
+  return hitFactorLikeMatchInfo(matchInfo, s3MatchFiles);
+};
 
-const uploadResultsForMatches = async matches => {
+export const majorMatchInfo = async matchInfo => {
+  const { uuid } = matchInfo;
+  const s3MatchFiles = await fetchPS(uuid);
+  const result = hitFactorLikeMatchInfo(matchInfo, s3MatchFiles, false, false);
+  return {
+    ...result,
+    match: {
+      ...result.match,
+      templateName: matchInfo.templateName,
+    },
+  };
+};
+
+export const matchFinishResults = (match, s3MatchFiles): MatchScore[] => {
+  try {
+    return hitFactorLikeMatchInfo(match, s3MatchFiles, false, true, true)
+      .scores.filter(s => s.classifier === "matchOverall" && s.division !== "overall")
+      .map(({ memberNumber, division, matchPercent, percentOfPossible }) => ({
+        upload: match.uuid,
+        memberNumber,
+        division,
+        memberNumberDivision: [memberNumber, division].join(":"),
+        matchPercent: matchPercent || 0,
+        percentOfPossible: percentOfPossible || 0,
+      }))
+      .filter(s => s.matchPercent && s.percentOfPossible);
+  } catch (e) {
+    console.error(e);
+  }
+
+  return [] as MatchScore[];
+};
+
+export const uploadResultsForMatches = async matches => {
   const matchResults = await Promise.all(
-    matches.map(match => {
+    matches.map(async match => {
       switch (match.templateName) {
         case "Steel Challenge":
           return scsaMatchInfo(match);
 
+        case "Major":
+          return majorMatchInfo(match);
+
         case "USPSA":
         case "Hit Factor":
         default: {
-          return uspsaOrHitFactorMatchInfo(match);
+          const { uuid } = match;
+          const s3MatchFiles = await fetchPS(uuid);
+          const uploadResults = hitFactorLikeMatchInfo(match, s3MatchFiles);
+
+          return {
+            ...uploadResults,
+            matchResults: matchFinishResults(match, s3MatchFiles),
+          };
         }
       }
     }),
@@ -519,6 +433,7 @@ const uploadResultsForMatches = async matches => {
     acc.scores = acc.scores.concat(cur.scores);
     acc.matches = acc.matches.concat(cur.match);
     acc.results = acc.results.concat(cur.results);
+    acc.matchResults = acc.matchResults.concat(cur.matchResults);
     return acc;
   }, EmptyMatchResultsFactory());
 };
@@ -536,9 +451,55 @@ export const uploadResultsForMatchUUIDs = async uuidsRaw => {
   return uploadResultsForMatches(matches);
 };
 
+export const processDQs = async matches => {
+  try {
+    const dqDocs = matches.reduce((acc, match) => {
+      match.match_shooters.forEach(shooter => {
+        if (!shooter.sh_dq) {
+          return;
+        }
+
+        acc.push({
+          memberNumber: memberNumberFromMatchDefShooter(
+            shooter,
+            match.templateName !== "PCSLNats",
+          ),
+          lastName: shooter.sh_ln,
+          firstName: shooter.sh_fn,
+          division: shooter.sh_dvp,
+          upload: match.match_id,
+          clubId: match.match_clubcode,
+          clubName: match.match_clubname || match.match_name,
+          matchName: match.match_name,
+          sd: UTCDate(match.match_date),
+          dq: shooter.sh_dqrule,
+        });
+      });
+      return acc;
+    }, []);
+
+    await DQs.bulkWrite(
+      dqDocs.map(dq => ({
+        updateOne: {
+          filter: {
+            memberNumber: dq.memberNumber,
+            division: dq.division,
+            upload: dq.upload,
+          },
+          update: { $set: dq },
+          upsert: true,
+        },
+      })),
+    );
+  } catch (e) {
+    console.error("failed to save dqs");
+    console.error(e);
+  }
+};
+
 export const processUploadResults = async ({ uploadResults }) => {
   try {
-    const { scores: scoresRaw, matches: matchesRaw } = uploadResults;
+    const { scores: scoresRaw, matches: matchesRaw, matchResults } = uploadResults;
     const scores = scoresRaw.filter(Boolean);
     const matches = matchesRaw.filter(Boolean);
     const shooterNameMap = matches.reduce(
@@ -549,48 +510,11 @@ export const processUploadResults = async ({ uploadResults }) => {
       {},
     );
 
-    try {
-      const dqDocs = matches.reduce((acc, match) => {
-        match.match_shooters.forEach(shooter => {
-          if (!shooter.sh_dq) {
-            return;
-          }
-
-          acc.push({
-            memberNumber: shooter.sh_id,
-            lastName: shooter.sh_ln,
-            firstName: shooter.sh_fn,
-            division: shooter.sh_dvp,
-            upload: match.match_id,
-            clubId: match.match_clubcode,
-            clubName: match.match_clubname || match.match_name,
-            matchName: match.match_name,
-            sd: UTCDate(match.match_date),
-            dq: shooter.sh_dqrule,
-          });
-        });
-        return acc;
-      }, []);
-      await DQs.bulkWrite(
-        dqDocs.map(dq => ({
-          updateOne: {
-            filter: {
-              memberNumber: dq.memberNumber,
-              division: dq.division,
-              upload: dq.upload,
-            },
-            update: { $set: dq },
-            upsert: true,
-          },
-        })),
-      );
-    } catch (e) {
-      console.error("failed to save dqs");
-      console.error(e);
-    }
+    await processDQs(matches);
+    await saveMatchScores(matchResults);
 
     if (!scores.length) {
-      return { classifiers: [], shooters: [], matches: [] };
+      return { classifiers: [], shooters: [], matches: [], matchResults };
     }
     console.time("scoreWrite");
     await Scores.bulkWrite(
@@ -614,26 +538,24 @@ export const processUploadResults = async ({ uploadResults }) => {
       shooterNameMap,
       true,
     );
-    await Promise.all([
-      AfterUploadClassifiers.bulkWrite(
-        classifiers.map(c => ({
-          updateOne: {
-            filter: { classifierDivision: c.classifierDivision },
-            update: { $set: c },
-            upsert: true,
-          },
-        })),
-      ),
-      AfterUploadShooters.bulkWrite(
-        shooters.map(s => ({
-          updateOne: {
-            filter: { memberNumberDivision: s.memberNumberDivision },
-            update: { $set: s },
-            upsert: true,
-          },
-        })),
-      ),
-    ]);
+    await AfterUploadShooters.bulkWrite(
+      shooters.map(s => ({
+        updateOne: {
+          filter: { memberNumberDivision: s.memberNumberDivision },
+          update: { $set: s },
+          upsert: true,
+        },
+      })),
+    );
+    await AfterUploadClassifiers.bulkWrite(
+      classifiers.map(c => ({
+        updateOne: {
+          filter: { classifierDivision: c.classifierDivision },
+          update: { $set: c },
+          upsert: true,
+        },
+      })),
+    );
 
     const publicShooters = features.hfu
       ? shooters
@@ -646,6 +568,7 @@ export const processUploadResults = async ({ uploadResults }) => {
       shooters: publicShooters,
       classifiers: publicClassifiers,
       matches: uniqBy(scores, s => s.upload).map(s => s.upload),
+      matchResults,
     };
   } catch (err) {
     const e = err as Error;
@@ -746,6 +669,14 @@ export const dqNames = async () => {
   console.log(JSON.stringify(dqs, null, 2));
 };
 
+const metaRecHHFsLoop = async () => {
+  const totalCount = await AfterUploadClassifiers.countDocuments({});
+  console.log(`${totalCount} recHHFs to update`);
+  const classifiers = await AfterUploadClassifiers.find({}).lean();
+  await hydrateRecHHFsForClassifiers(classifiers);
+  console.log("recHHFs updated");
+};
+
 const metaClassifiersLoop = async (batchSize = 8) => {
   const totalCount = await AfterUploadClassifiers.countDocuments({});
   console.log(`${totalCount} classifiers to update`);
@@ -796,15 +727,20 @@ const metaShootersLoop = async (batchSize = 8) => {
   }
 };
 
-export const metaLoop = async (curTry = 1, maxTries = 3) => {
+export const metaLoop = async (
+  onlyActualClassifiers = true,
+  curTry = 1,
+  maxTries = 3,
+) => {
   try {
-    await metaClassifiersLoop();
+    await metaRecHHFsLoop();
     await metaShootersLoop();
+    await metaClassifiersLoop();
     await hydrateStats();
   } catch (err) {
     console.error(err);
     if (curTry < maxTries) {
-      return metaLoop(curTry + 1, maxTries);
+      return metaLoop(onlyActualClassifiers, curTry + 1, maxTries);
     }
   }
 };

@@ -11,21 +11,13 @@ import { uploadResultsForMatches } from "../../api/src/worker/uploads";
 import { fetchPS } from "../../api/src/worker/uploadsCommon";
 import { correlation, linearRegression } from "../../shared/utils/weibull";
 
-// TODO: criteria
-//    * correlation >= 85%
-//    * shooters > 50 (old)
-//    * avg of 97th of shooters >= 90% ???
-
-// drop shooters with classification age too old (1year?)
-// consider STD of linear regression
-
 const matchBump = async () => {
   await connect();
   const ms = await MatchScores.find({
-    upload: "12d1cd35-3556-44db-af09-5153f975c447", //conats
+    //upload: "12d1cd35-3556-44db-af09-5153f975c447", conats
     // upload: "27c0c577-315b-4695-a595-26e5d51cee6c", // random match, 91% correlation
-    //upload: "7eb1154b-ccb7-4589-95a2-99120b234d32", // utah state 2024
-    // upload: "fc8c7dee-900c-4e3c-b7f9-0fc8cde9e7d5", //slpsa
+    // upload: "7eb1154b-ccb7-4589-95a2-99120b234d32", // utah state 2024
+    upload: "fc8c7dee-900c-4e3c-b7f9-0fc8cde9e7d5", //slpsa
     division: "co",
   })
     .populate("shooter")

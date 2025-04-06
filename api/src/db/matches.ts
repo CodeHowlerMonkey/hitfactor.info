@@ -55,6 +55,7 @@ export interface AlgoliaMatch {
   version: string; // "2.0"
 }
 
+// PS Algolia MatchDef structure
 export interface MatchDef {
   match_id: string;
   match_name: string;
