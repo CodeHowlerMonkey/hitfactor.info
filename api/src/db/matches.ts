@@ -1,5 +1,7 @@
 /* eslint-disable no-console */
-import mongoose from "mongoose";
+import mongoose, { Model } from "mongoose";
+
+import { MatchScore } from "./matchScores";
 
 export interface Match {
   updated: Date;
@@ -67,7 +69,16 @@ export interface MatchDef {
   templateName: string;
 }
 
-const MatchesSchema = new mongoose.Schema<Match>(
+interface MatchVirtuals {
+  scoresCount: number;
+  matchScores: MatchScore[];
+  matchScoresCount: number;
+  hasMatchScores: boolean;
+}
+
+type MatchesModel = Model<Match, object, MatchVirtuals>;
+
+const MatchesSchema = new mongoose.Schema<Match, MatchesModel, MatchVirtuals>(
   {
     updated: Date,
     created: Date,
@@ -96,6 +107,20 @@ MatchesSchema.virtual("scoresCount", {
   localField: "uuid",
   foreignField: "upload",
   count: true,
+});
+MatchesSchema.virtual("matchScores", {
+  ref: "MatchScores",
+  localField: "uuid",
+  foreignField: "upload",
+});
+MatchesSchema.virtual("matchScoresCount", {
+  ref: "MatchScores",
+  localField: "uuid",
+  foreignField: "upload",
+  count: true,
+});
+MatchesSchema.virtual("hasMatchScores").get(function () {
+  return this.matchScoresCount > 0;
 });
 export const Matches = mongoose.model("Matches", MatchesSchema);
 

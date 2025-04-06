@@ -7,9 +7,10 @@ const searchMatches = async q => {
     const client = algoliasearch(process.env.ALGOLIA_APP_ID, process.env.ALGOLIA_API_KEY);
     const index = client.initIndex("postmatches");
     const { hits } = await index.search(q, {
-      hitsPerPage: 25,
+      hitsPerPage: 10,
       filters:
-        "templateName:USPSA OR templateName:'Hit Factor' OR templateName:'Steel Challenge'",
+        //"templateName:USPSA OR templateName:'Hit Factor' OR templateName:'Steel Challenge'",
+        "templateName:USPSA",
     });
 
     return hits
@@ -31,14 +32,29 @@ const searchMatches = async q => {
 };
 
 const uploadRoutes = async fastify => {
+  fastify.get("/:uuid", async (req, res) => {
+    const { uuid } = req.params;
+    const m = await Matches.findOne({ uuid }).populate([
+      { path: "matchScores", populate: { path: "shooter" } },
+    ]);
+    if (!m) {
+      res.code(404);
+      return { error: "Match Not Found" };
+    }
+    return {
+      ...m.toObject({ virtuals: true }),
+      uuid,
+    };
+  });
   fastify.get("/searchMatches", async req => {
     const { q } = req.query;
     const algoliaMatches = await searchMatches(q);
     const uuids = algoliaMatches.map(m => m.uuid);
 
-    const foundMatches = await Matches.find({ uuid: { $in: uuids } }).populate(
+    const foundMatches = await Matches.find({ uuid: { $in: uuids } }).populate([
       "scoresCount",
-    );
+      "matchScoresCount",
+    ]);
     const foundMatchesByUUID = foundMatches.reduce((acc, curFoundMatch) => {
       acc[curFoundMatch.uuid] = curFoundMatch;
       return acc;
@@ -46,6 +62,7 @@ const uploadRoutes = async fastify => {
 
     return algoliaMatches.map(m => {
       const foundMatch = foundMatchesByUUID[m?.uuid] || {};
+      m.hasMatchScores = foundMatch.hasMatchScores;
       m.scoresCount = foundMatch.scoresCount || 0;
       m.updated = foundMatch.updated || m.updated;
       m.uploaded = foundMatch.uploaded;

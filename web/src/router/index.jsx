@@ -237,7 +237,7 @@ const router = createBrowserRouter([
               Component: React.lazy(() => import("../pages/ClubsPage")),
             },
             {
-              path: "upload",
+              path: "upload/:uuid?/:division?",
               Component: React.lazy(() => import("../pages/UploadPage")),
             },
           ]),

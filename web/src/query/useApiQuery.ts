@@ -27,7 +27,14 @@ export const useApiQuery = (endpoint: string, options: UseQueryOptions) => {
     queryFn: async () => {
       const response = await window.fetch(url);
       if (!response.ok) {
-        throw new Error("bad response");
+        if (response.status >= 500) {
+          throw new Error("bad response");
+        } else {
+          return {
+            status: response.status,
+            ...(await response.json()),
+          };
+        }
       }
       return response.json();
     },
