@@ -221,13 +221,19 @@ export const dedupeGrandbagging = (scores: ScoreObjectWithVirtuals[]) =>
     return { ...oneDayScores[0], hf: avgHf, recPercent: avgRecPercent };
   });
 
-export const scoresForRecommendedClassification = memberNumbers =>
+export const scoresForRecommendedClassification = (
+  memberNumbers: string[],
+  until?: Date,
+) =>
   Scores.aggregate([
     {
       $match: {
         bad: { $ne: true },
         memberNumber: { $in: memberNumbers },
         $or: [{ hf: { $gt: 0 } }, { percent: { $gt: 0 } }],
+
+        // optional date filtering for matchBump historical scores
+        ...(!until ? {} : { sd: { $lte: until } }),
       },
     },
     {

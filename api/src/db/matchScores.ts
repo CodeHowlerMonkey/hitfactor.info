@@ -8,6 +8,7 @@ export interface MatchScore {
   memberNumber: string;
   division: string;
   memberNumberDivision: string;
+  shooterFullName?: string;
 
   matchPercent: number;
   percentOfPossible: number;
@@ -31,6 +32,7 @@ const MatchScoreSchema = new mongoose.Schema<
     memberNumber: String,
     division: String,
     memberNumberDivision: String,
+    shooterFullName: String,
 
     matchPercent: Number,
     percentOfPossible: Number,

@@ -8,7 +8,6 @@ import {
   linearFactory,
   LinearRegressionResult,
   EmptyLinearRegression,
-  solveWeibull,
 } from "../../../../shared/utils/weibull";
 import { bgColorForClass } from "../../utils/color";
 
@@ -19,7 +18,10 @@ interface DataPoint {
   y: number;
   memberNumber: string;
   name: string;
+  shooterFullName: string;
   shooterRecPercent: number;
+  shooterRecPercentHistorical: number;
+  shooterRecPercentHistoricalAge: number;
   matchPercent: number;
   pointsGraphName: string;
 }
@@ -42,22 +44,38 @@ const bumpForDataPoint = (c: DataPoint, lrr: LinearRegressionResult) =>
   (c.y - lrr.intercept) / lrr.slope;
 
 const eligibilityFilter = (c: DataPoint) =>
-  c.x >= 10 && c.y >= 10 && Math.abs(c.y - c.x) <= 25;
+  c.x >= 10 &&
+  c.y >= 10 &&
+  Math.abs(c.y - c.x) <= 15 &&
+  c.shooterRecPercentHistoricalAge <= 18 &&
+  c.shooterRecPercent;
 
 export const MatchBumpChart = ({ match, division, loading }) => {
   const data = useMemo(
     () =>
       match?.matchScores
         .filter(c => c.division === division)
-        .map(({ matchPercent, memberNumber, shooter, shooterRecPercent }) => ({
-          name: shooter?.name,
-          memberNumber,
-          x: shooterRecPercent,
-          y: matchPercent,
-          shooterRecPercent,
-          matchPercent,
-          pointsGraphName: "Match/Classification",
-        }))
+        .map(
+          ({
+            matchPercent,
+            memberNumber,
+            shooter,
+            shooterFullName,
+            shooterRecPercent,
+            shooterRecPercentHistorical,
+            shooterRecPercentHistoricalAge,
+          }) => ({
+            name: shooterFullName ?? shooter?.name,
+            memberNumber,
+            x: shooterRecPercentHistorical,
+            y: matchPercent,
+            shooterRecPercentHistorical,
+            shooterRecPercentHistoricalAge,
+            shooterRecPercent,
+            matchPercent,
+            pointsGraphName: "Match/Classification",
+          }),
+        )
         .filter(c => c.x > 0 && c.y > 0),
     [match, division],
   );
@@ -88,8 +106,8 @@ export const MatchBumpChart = ({ match, division, loading }) => {
     [eligibleData],
   );
   const dataWithBumps = useMemo(
-    () => data?.map(c => ({ ...c, matchBump: bumpForDataPoint(c, lrr) })),
-    [data, lrr],
+    () => eligibleData?.map(c => ({ ...c, matchBump: bumpForDataPoint(c, lrr) })),
+    [eligibleData, lrr],
   );
 
   const targetPercentile = 94;
@@ -167,7 +185,7 @@ export const MatchBumpChart = ({ match, division, loading }) => {
                 if (pointsGraphName === "Linear Regression") {
                   return null as unknown as string;
                 }
-                return `${memberNumber} - ${name} - ${matchPercent.toFixed(2)}% Match - ${shooterRecPercent.toFixed(2)}% Classification - ${matchBump.toFixed(2)}% Match Bump`;
+                return `${memberNumber} - ${name} - ${matchPercent.toFixed(2)}% Match - ${shooterRecPercent?.toFixed(2)}% Classification - ${matchBump?.toFixed(2)}% Match Bump`;
               },
             },
           },

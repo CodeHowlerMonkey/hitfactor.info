@@ -387,14 +387,23 @@ export const matchFinishResults = (match, s3MatchFiles): MatchScore[] => {
   try {
     return hitFactorLikeMatchInfo(match, s3MatchFiles, false, true, true)
       .scores.filter(s => s.classifier === "matchOverall" && s.division !== "overall")
-      .map(({ memberNumber, division, matchPercent, percentOfPossible }) => ({
-        upload: match.uuid,
-        memberNumber,
-        division,
-        memberNumberDivision: [memberNumber, division].join(":"),
-        matchPercent: matchPercent || 0,
-        percentOfPossible: percentOfPossible || 0,
-      }))
+      .map(
+        ({
+          shooterFullName,
+          memberNumber,
+          division,
+          matchPercent,
+          percentOfPossible,
+        }) => ({
+          upload: match.uuid,
+          memberNumber,
+          division,
+          memberNumberDivision: [memberNumber, division].join(":"),
+          matchPercent: matchPercent || 0,
+          percentOfPossible: percentOfPossible || 0,
+          shooterFullName,
+        }),
+      )
       .filter(s => s.matchPercent && s.percentOfPossible);
   } catch (e) {
     console.error(e);
