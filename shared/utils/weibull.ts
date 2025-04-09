@@ -330,17 +330,26 @@ const optimizeNelderMead = (
   return [...simplex[0], lossFn(simplex[0])];
 };
 
-interface LinearRegressionResult {
+export interface LinearRegressionDefinition {
   slope: number;
   intercept: number;
 }
+export interface LinearRegressionResult extends LinearRegressionDefinition {
+  mae: number;
+}
+
+export const EmptyLinearRegression: LinearRegressionResult = {
+  slope: 0,
+  intercept: 0,
+  mae: 0,
+};
 
 interface Point {
   x: number;
   y: number;
 }
 
-export const linearFactory = (lrr: LinearRegressionResult) => (x: number) =>
+export const linearFactory = (lrr: LinearRegressionDefinition) => (x: number) =>
   lrr.slope * x + lrr.intercept;
 
 const linearRegressionSAE = (points: Point[]) => (lrrArray: number[]) =>
@@ -355,5 +364,9 @@ const linearRegressionSAE = (points: Point[]) => (lrrArray: number[]) =>
 
 export const linearRegression = (points: Point[]): LinearRegressionResult => {
   const [m, b] = optimizeNelderMead(linearRegressionSAE(points), [0, 0], 1e-16);
-  return { slope: m, intercept: b };
+  return {
+    slope: m,
+    intercept: b,
+    mae: linearRegressionSAE(points)([m, b]) / points.length,
+  };
 };

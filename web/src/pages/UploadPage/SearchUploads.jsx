@@ -6,7 +6,8 @@ import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "re
 import { Link } from "react-router-dom";
 import { useDebounce } from "use-debounce";
 
-import { getApi } from "../../utils/client";
+import useApiQuery from "../../query/useApiQuery";
+import useQueryState from "../../utils/useSearchParamState";
 
 const DateText = ({ dateString, className }) => {
   const date = new Date(dateString);
@@ -30,68 +31,69 @@ const DateText = ({ dateString, className }) => {
   );
 };
 
-const MatchSearchInput = forwardRef(({ placeholder, onChange }, ref) => {
-  const inputRef = useRef();
-  const [value, setValue] = useState("");
-  const [debouncedValue] = useDebounce(value, 350);
-  useEffect(() => {
-    onChange?.(debouncedValue);
-  }, [debouncedValue]); // eslint-disable-line react-hooks/exhaustive-deps
+const MatchSearchInput = forwardRef(
+  ({ placeholder, value: valueProp, onChange }, ref) => {
+    const inputRef = useRef();
+    const [value, setValue] = useState(valueProp);
+    const [debouncedValue] = useDebounce(value, 350);
+    useEffect(() => {
+      onChange?.(debouncedValue);
+    }, [debouncedValue]); // eslint-disable-line react-hooks/exhaustive-deps
+    useEffect(() => {
+      setValue(valueProp);
+    }, [valueProp]);
 
-  useImperativeHandle(
-    ref,
-    () => ({
-      setValue,
-    }),
-    [setValue],
-  );
+    useImperativeHandle(
+      ref,
+      () => ({
+        setValue,
+      }),
+      [setValue],
+    );
 
-  return (
-    <span className="flex relative p-input-icon-left w-12">
-      <i className="pi pi-search" />
-      <InputText
-        className="flex-grow-1"
-        ref={inputRef}
-        value={value}
-        onChange={e => setValue(e.target.value)}
-        placeholder={placeholder}
-      />
-      <span
-        onClick={() => {
-          setValue("");
-          inputRef.current?.focus();
-        }}
-        className="absolute right-0 top-50"
-        style={{
-          top: "50%",
-          marginTop: "-0.5rem",
-          width: "1rem",
-          height: "1rem",
-          textAlign: "center",
-          lineHeight: "1rem",
-          cursor: "pointer",
-          fontSize: "1.25rem",
-          marginRight: "14px",
-          color: "rgba(255, 255, 255, 0.6)",
-        }}
-      >
-        &#10005;
+    return (
+      <span className="flex relative p-input-icon-left w-12">
+        <i className="pi pi-search" />
+        <InputText
+          className="flex-grow-1"
+          ref={inputRef}
+          value={value}
+          onChange={e => setValue(e.target.value)}
+          placeholder={placeholder}
+        />
+        <span
+          onClick={() => {
+            setValue("");
+            inputRef.current?.focus();
+          }}
+          className="absolute right-0 top-50"
+          style={{
+            top: "50%",
+            marginTop: "-0.5rem",
+            width: "1rem",
+            height: "1rem",
+            textAlign: "center",
+            lineHeight: "1rem",
+            cursor: "pointer",
+            fontSize: "1.25rem",
+            marginRight: "14px",
+            color: "rgba(255, 255, 255, 0.6)",
+          }}
+        >
+          &#10005;
+        </span>
       </span>
-    </span>
-  );
-});
+    );
+  },
+);
 
 const SearchUploads = () => {
   const searchRef = useRef();
-  const [searchResults, setSearchResults] = useState([]);
-
-  const updateSearchResults = async q => {
-    if (!q) {
-      return;
-    }
-    const hits = await getApi(`/upload/searchMatches?q=${encodeURIComponent(q)}`);
-    setSearchResults(hits);
-  };
+  const [searchQuery, setSearchQuery] = useQueryState("q", "");
+  const { json: searchResults } = useApiQuery(
+    `/upload/searchMatches?q=${encodeURIComponent(searchQuery)}`,
+    { enabled: !!searchQuery },
+  );
 
   const tableData = uniqBy(searchResults, c => c.uuid).map(c => ({
     ...c,
@@ -108,7 +110,8 @@ const SearchUploads = () => {
         <div className="flex flex-column" style={{ width: "min(64rem, 90vw)" }}>
           <MatchSearchInput
             placeholder="Search Matches"
-            onChange={updateSearchResults}
+            value={searchQuery}
+            onChange={setSearchQuery}
             ref={searchRef}
           />
           {!tableData.length ? (
@@ -167,7 +170,7 @@ const SearchUploads = () => {
                 align="center"
                 style={{ verticalAlign: "baseline" }}
                 body={match => (
-                  <Link to={`/upload/${match.uuid}`}>
+                  <Link to={`/upload/${match.uuid}?q=${searchQuery}`}>
                     <i className="pi pi-external-link" />
                   </Link>
                 )}
