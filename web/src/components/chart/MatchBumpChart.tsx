@@ -1,6 +1,11 @@
 import { ProgressSpinner } from "primereact/progressspinner";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
+import {
+  eligibilityFilter,
+  grandmasterPercent,
+  masterPercent,
+} from "../../../../shared/types/MatchScore";
 import { classForPercent } from "../../../../shared/utils/classification";
 import {
   correlation,
@@ -8,10 +13,24 @@ import {
   linearFactory,
   LinearRegressionResult,
   EmptyLinearRegression,
+  reverseLinear,
 } from "../../../../shared/utils/weibull";
 import { bgColorForClass } from "../../utils/color";
 
-import { Scatter, pointsGraph, linearAnnotationColor } from "./common";
+// Match Criteria:
+//     - Eligible Correlation >= 90%
+//     - Eligible MAE         <=  6%
+//     - Eligible Datapoints  >= 50
+//     - Eligible Masters     >= 10 (>= 80% match, >= 80% classification, using best8 / 12 current)
+
+import {
+  Scatter,
+  pointsGraph,
+  linearAnnotationColor,
+  xLine,
+  r1annotationColor,
+  yLine,
+} from "./common";
 
 interface DataPoint {
   x: number;
@@ -21,6 +40,7 @@ interface DataPoint {
   shooterFullName: string;
   shooterRecPercent: number;
   shooterRecPercentHistorical: number;
+  shooterRecPercentHistoricalHigh: number;
   shooterRecPercentHistoricalAge: number;
   matchPercent: number;
   pointsGraphName: string;
@@ -31,7 +51,7 @@ interface DataPointWithBump extends DataPoint {
 }
 
 const fieldModeMap = {
-  Classification: "shooterRecPercent",
+  Classification: "shooterRecPercentHistoricalHigh",
   Bump: "matchBump",
 };
 const fieldForMode = mode => fieldModeMap[mode];
@@ -40,45 +60,47 @@ const colorForELOOrPercent = (colorMode: string, dataPoint: DataPoint) => {
   return bgColorForClass[classForPercent(dataPoint[field])];
 };
 
-const bumpForDataPoint = (c: DataPoint, lrr: LinearRegressionResult) =>
-  (c.y - lrr.intercept) / lrr.slope;
-
-const eligibilityFilter = (c: DataPoint) =>
-  c.x >= 10 &&
-  c.y >= 10 &&
-  Math.abs(c.y - c.x) <= 15 &&
-  c.shooterRecPercentHistoricalAge <= 18 &&
-  c.shooterRecPercent;
-
 export const MatchBumpChart = ({ match, division, loading }) => {
-  const data = useMemo(
-    () =>
-      match?.matchScores
-        .filter(c => c.division === division)
-        .map(
-          ({
-            matchPercent,
-            memberNumber,
-            shooter,
-            shooterFullName,
-            shooterRecPercent,
-            shooterRecPercentHistorical,
-            shooterRecPercentHistoricalAge,
-          }) => ({
-            name: shooterFullName ?? shooter?.name,
-            memberNumber,
-            x: shooterRecPercentHistorical,
-            y: matchPercent,
-            shooterRecPercentHistorical,
-            shooterRecPercentHistoricalAge,
-            shooterRecPercent,
-            matchPercent,
-            pointsGraphName: "Match/Classification",
-          }),
-        )
-        .filter(c => c.x > 0 && c.y > 0),
-    [match, division],
-  );
+  const [numberOfSkippedTopScores, setNumberOfSkippedTopScores] = useState(0);
+  const [numberOfSkippedTopClassifications, setNumberOfSkippedTopClassifications] =
+    useState(0);
+  const data = useMemo(() => {
+    const test = (match?.matchScores || [])
+      .filter(c => c.division === division)
+      .map(
+        ({
+          matchPercent,
+          shooter,
+          shooterFullName,
+          shooterRecPercentHistorical,
+          ...etc
+        }) => ({
+          ...etc,
+          matchPercent,
+          name: shooterFullName ?? shooter?.name,
+          shooterRecPercentHistorical,
+          x: shooterRecPercentHistorical,
+          y: matchPercent,
+          pointsGraphName: "Match/Classification",
+        }),
+      )
+      .filter(c => c.x > 0 && c.y > 0);
+    const lessClassifications = test
+      .toSorted((a, b) => b.x - a.x)
+      .slice(numberOfSkippedTopClassifications, test.length);
+    const less = lessClassifications
+      .toSorted((a, b) => b.y - a.y)
+      .slice(numberOfSkippedTopScores, lessClassifications.length);
+    const multiplier = 100 / (less[0]?.y || 1);
+    return less
+      .map(c => ({ ...c, y: c.y * multiplier, matchPercent: c.y * multiplier }))
+      .toSorted((a, b) => {
+        if (a.y !== b.y) {
+          return a.y - b.y;
+        }
+        return a.x - b.x;
+      });
+  }, [match, division, numberOfSkippedTopScores, numberOfSkippedTopClassifications]);
   const eligibleData = useMemo(() => data?.filter(eligibilityFilter), [data]);
   const lrr = useMemo(
     () =>
@@ -106,34 +128,9 @@ export const MatchBumpChart = ({ match, division, loading }) => {
     [eligibleData],
   );
   const dataWithBumps = useMemo(
-    () => eligibleData?.map(c => ({ ...c, matchBump: bumpForDataPoint(c, lrr) })),
-    [eligibleData, lrr],
+    () => data?.map(c => ({ ...c, matchBump: reverseLinear(c, lrr) })),
+    [data, lrr],
   );
-
-  const targetPercentile = 94;
-  const [
-    targetFinishPercent,
-    targetClassificationPercent,
-    targetBumpPercent,
-    targetShootersCount,
-  ] = useMemo(() => {
-    if (!dataWithBumps?.length) {
-      return [0, 0, 0];
-    }
-
-    const top3Index = Math.floor((dataWithBumps.length * (100 - targetPercentile)) / 100);
-
-    const finishData = dataWithBumps.map(c => c.matchPercent);
-    const classificationData = dataWithBumps.map(c => c.shooterRecPercent);
-    const bumpData = dataWithBumps.map(c => c.matchBump);
-
-    return [
-      finishData.toSorted((a, b) => b - a)[top3Index],
-      classificationData.toSorted((a, b) => b - a)[top3Index],
-      bumpData.toSorted((a, b) => b - a)[top3Index],
-      top3Index + 1,
-    ];
-  }, [dataWithBumps]);
 
   if (loading) {
     return <ProgressSpinner />;
@@ -149,9 +146,10 @@ export const MatchBumpChart = ({ match, division, loading }) => {
         maintainAspectRatio: false,
         scales: {
           y: {
+            min: 0,
             max: 120,
           },
-          x: { max: 120 },
+          x: { min: 0, max: 120 },
         },
         elements: {
           point: {
@@ -177,7 +175,9 @@ export const MatchBumpChart = ({ match, division, loading }) => {
                 const {
                   memberNumber,
                   matchPercent,
-                  shooterRecPercent,
+                  shooterRecPercentHistorical,
+                  shooterRecPercentHistoricalHigh,
+                  shooterRecPercentHistoricalAge,
                   matchBump,
                   name,
                   pointsGraphName,
@@ -185,8 +185,34 @@ export const MatchBumpChart = ({ match, division, loading }) => {
                 if (pointsGraphName === "Linear Regression") {
                   return null as unknown as string;
                 }
-                return `${memberNumber} - ${name} - ${matchPercent.toFixed(2)}% Match - ${shooterRecPercent?.toFixed(2)}% Classification - ${matchBump?.toFixed(2)}% Match Bump`;
+                return `${memberNumber} - ${name} - ${matchPercent.toFixed(2)}% Match - ${shooterRecPercentHistorical?.toFixed(2)}% Current - ${shooterRecPercentHistoricalHigh?.toFixed(2)}% High - ${matchBump?.toFixed(2)}% Match Bump - ${shooterRecPercentHistoricalAge.toFixed(0)}mo`;
               },
+            },
+          },
+          annotation: {
+            // @ts-expect-error chart library types are shit
+            annotations: {
+              ...xLine(
+                `x${masterPercent}%`,
+                masterPercent,
+                r1annotationColor(1.0),
+                10,
+                true,
+              ),
+              ...yLine(`y${masterPercent}%`, masterPercent, r1annotationColor(1.0)),
+
+              ...xLine(
+                `x${grandmasterPercent}%`,
+                grandmasterPercent,
+                r1annotationColor(0.5),
+                10,
+                true,
+              ),
+              ...yLine(
+                `y${grandmasterPercent}%`,
+                grandmasterPercent,
+                r1annotationColor(0.5),
+              ),
             },
           },
         },
@@ -215,7 +241,9 @@ export const MatchBumpChart = ({ match, division, loading }) => {
             backgroundColor: "#ae9ef1",
             pointBorderColor: dataWithBumps?.map(c =>
               colorForELOOrPercent(
-                c.matchBump > c.shooterRecPercent ? "Bump" : "Classification",
+                c.matchBump > c.shooterRecPercentHistoricalHigh
+                  ? "Bump"
+                  : "Classification",
                 c,
               ),
             ),
@@ -228,24 +256,59 @@ export const MatchBumpChart = ({ match, division, loading }) => {
     />
   );
 
+  const eligibleMs = eligibleData.filter(c => c.x >= 80 && c.y >= 80).length;
+  const hasEnoughMs = eligibleMs >= 10;
+  const hasEnoughData = eligibleData.length >= 50;
+  const goodCorrelation = eligibleCorrel >= 0.9;
+
   return (
     <div>
       <div className="flex mt-4 justify-content-around text-base lg:text-xl">
-        <div className="flex gap-4 text-sm">
-          <div className="flex flex-column justify-content-center text-md text-500 font-bold gap-2">
-            <div className="flex gap-4">
-              {targetPercentile}th finish: {targetFinishPercent.toFixed(2)}%,{" "}
-              {targetPercentile}th classification:{" "}
-              {targetClassificationPercent.toFixed(2)}%, {targetPercentile}th bump:{" "}
-              {targetBumpPercent.toFixed(2)}%, {targetPercentile}th shooters:{" "}
-              {targetShootersCount}
+        <div className="flex gap-2 text-sm">
+          <div className="flex flex-column justify-content-center text-md text-500 font-bold gap-1">
+            <div className="flex flex-row justify-content-end align-items-center gap-2">
+              Skip Top Classifications:{" "}
+              <input
+                className="w-2"
+                type="number"
+                name="points"
+                step={1}
+                value={numberOfSkippedTopClassifications}
+                onChange={e =>
+                  setNumberOfSkippedTopClassifications(Number(e.target.value))
+                }
+              />
             </div>
-            <div className="flex justify-content-center gap-4">
-              <div>Correlation: {(correl * 100).toFixed(2)}%</div>
-              <div>Eligible Correlation: {(eligibleCorrel * 100).toFixed(2)}%</div>
+            <div className="flex flex-row justify-content-end align-items-center gap-2">
+              Skip Top Scores:{" "}
+              <input
+                className="w-2"
+                type="number"
+                name="points"
+                step={1}
+                value={numberOfSkippedTopScores}
+                onChange={e => setNumberOfSkippedTopScores(Number(e.target.value))}
+              />
+            </div>
+            <div className="flex justify-content-center gap-2">
+              <div>Eligibility: </div>
+              <div className={goodCorrelation ? "text-green-600" : "text-red-600"}>
+                Correlation = {(eligibleCorrel * 100).toFixed(2)}%
+              </div>
+              <div className={hasEnoughData ? "text-green-600" : "text-red-600"}>
+                Datapoints = {eligibleData.length}
+              </div>
+              <div className={hasEnoughMs ? "text-green-600" : "text-red-600"}>
+                Ms= {eligibleMs}
+              </div>
+              <div className="hidden">
+                GMs= {eligibleData.filter(c => c.x >= 90 && c.y >= 90).length}
+              </div>
             </div>
             <div className="flex gap-4">
-              Linear Regression: y = {lrr.slope.toFixed(4)}x + {lrr.intercept.toFixed(4)}
+              Linear Regression: y = {lrr.slope.toFixed(4)}x + {lrr.intercept.toFixed(4)};
+              Bump = Match x {(1 / lrr.slope).toFixed(2)} +{" "}
+              {-(lrr.intercept / lrr.slope).toFixed(2)}
               <div />
               <div>MAE: {lrr.mae.toFixed(2)}%</div>
             </div>

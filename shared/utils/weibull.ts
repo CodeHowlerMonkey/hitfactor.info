@@ -349,6 +349,14 @@ interface Point {
   y: number;
 }
 
+export const reverseLinear = (c: Point, lrr: LinearRegressionResult): number => {
+  if (!lrr.slope) {
+    return 0;
+  }
+
+  return (c.y - lrr.intercept) / lrr.slope;
+};
+
 export const linearFactory = (lrr: LinearRegressionDefinition) => (x: number) =>
   lrr.slope * x + lrr.intercept;
 

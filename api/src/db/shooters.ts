@@ -48,6 +48,7 @@ export interface Shooter {
 
   reclassificationsCurPercentCurrent: number;
   reclassificationsRecPercentUncappedCurrent: number;
+  reclassificationsRecPercentUncappedHigh: number;
 }
 
 type ShooterModel = Model<Shooter, object>;

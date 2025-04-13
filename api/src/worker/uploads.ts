@@ -4,6 +4,7 @@ import uniqBy from "lodash.uniqby";
 import { ObjectId } from "mongoose";
 
 import features from "../../../shared/features";
+import { MatchScore } from "../../../shared/types/MatchScore";
 import { UTCDate } from "../../../shared/utils/date";
 import { minorHF } from "../../../shared/utils/hitfactor";
 import { uuidsFromUrlString } from "../../../shared/utils/uuid";
@@ -24,8 +25,9 @@ import { AfterUploadShooters, type AfterUploadShooter } from "../db/afterUploadS
 import { rehydrateClassifiers } from "../db/classifiers";
 import { DQs } from "../db/dq";
 import { connect } from "../db/index";
+import { matchBumpsForMatchResults, saveMatchBumps } from "../db/matchBumps";
 import { Match, MatchDef, Matches } from "../db/matches";
-import { MatchScore, saveMatchScores } from "../db/matchScores";
+import { backfillClassifications, MatchScores, saveMatchScores } from "../db/matchScores";
 import { hydrateRecHHFsForClassifiers } from "../db/recHHF";
 import { Score, Scores } from "../db/scores";
 import { reclassifyShooters } from "../db/shooters";
@@ -164,6 +166,24 @@ const classifierCodeFromMatchDefStage = (s, onlyActualClassifiers) => {
   return `${s.stage_number || ""}.${s.stage_name.replace(badCharsRegExp, "").toUpperCase()}`;
 };
 
+const fixMatchPoints = (matchPoints: unknown): number => {
+  switch (typeof matchPoints) {
+    case "number": {
+      if (!Number.isFinite(matchPoints)) {
+        return 0;
+      }
+      return matchPoints;
+    }
+
+    case "string": {
+      return Number((matchPoints || "0").replace(",", ""));
+    }
+
+    default:
+      return 0;
+  }
+};
+
 interface IntermediateScore extends Score {
   // Major Match Scores Fields
   matchPercent?: number;
@@ -240,8 +260,7 @@ export const hitFactorLikeMatchInfo = (
               const date = new Date(match.match_date);
 
               const matchPercent = Number(a.matchPercent || "0");
-              const matchPoints =
-                Number((a.matchPoints || "0").replace(",", "")) || matchPercent;
+              const matchPoints = fixMatchPoints(a.matchPoints) || matchPercent;
               const winnerMatchPoints = (100 * matchPoints) / matchPercent;
 
               return {
@@ -394,6 +413,7 @@ export const matchFinishResults = (match, s3MatchFiles): MatchScore[] => {
           division,
           matchPercent,
           percentOfPossible,
+          sd,
         }) => ({
           upload: match.uuid,
           memberNumber,
@@ -402,6 +422,7 @@ export const matchFinishResults = (match, s3MatchFiles): MatchScore[] => {
           matchPercent: matchPercent || 0,
           percentOfPossible: percentOfPossible || 0,
           shooterFullName,
+          date: sd || new Date(),
         }),
       )
       .filter(s => s.matchPercent && s.percentOfPossible);
@@ -520,7 +541,15 @@ export const processUploadResults = async ({ uploadResults }) => {
     );
 
     await processDQs(matches);
+
+    console.time("matchScores");
     await saveMatchScores(matchResults);
+    console.timeEnd("matchScores");
+
+    console.time("matchBumps");
+    const backfilledMatchScores = await backfillMatchScoresClassifications(matchResults);
+    await saveMatchBumps(matchBumpsForMatchResults(backfilledMatchScores));
+    console.timeEnd("matchBumps");
 
     if (!scores.length) {
       return { classifiers: [], shooters: [], matches: [], matchResults };
@@ -734,6 +763,72 @@ const metaShootersLoop = async (batchSize = 8) => {
   if (updated) {
     process.stdout.write(`\n`);
   }
+};
+
+// TODO: delete if not needed
+export const metaMatchScoresLoop = async (batchSize = 8) => {
+  try {
+    const notBackfilledFilter = {
+      shooterRecPercentHistorical: { $exists: false },
+    };
+    const totalCount = await MatchScores.countDocuments(notBackfilledFilter);
+    console.log(`${totalCount} match scores to update`);
+
+    let updated = 0;
+    let matchScores = [] as MatchScore[];
+    do {
+      matchScores = await MatchScores.find(notBackfilledFilter).limit(batchSize).lean();
+      if (!matchScores.length) {
+        break;
+      }
+      matchScores = await backfillClassifications(matchScores);
+      await saveMatchScores(matchScores);
+      updated += matchScores.length;
+      process.stdout.write(`\r${updated}/${totalCount}`);
+    } while (matchScores.length);
+    if (updated) {
+      process.stdout.write(`\n`);
+    }
+  } catch (err) {
+    console.error("Error backfilling match scores");
+    console.error(err);
+  }
+};
+
+// this one stays
+const backfillMatchScoresClassifications = async (
+  allMatchScores: MatchScore[],
+  batchSize: number = 8,
+): Promise<MatchScore[]> => {
+  try {
+    const totalCount = allMatchScores.length;
+    console.log(`${totalCount} match scores to update classifications`);
+
+    const backfilled = [] as MatchScore[];
+    let updated = 0;
+    let matchScores = [] as MatchScore[];
+    const remaining = [...allMatchScores];
+    do {
+      matchScores = remaining.splice(0, batchSize);
+      if (!matchScores.length) {
+        break;
+      }
+      matchScores = await backfillClassifications(matchScores);
+      backfilled.push(...matchScores);
+      await saveMatchScores(matchScores);
+      updated += matchScores.length;
+      process.stdout.write(`\r${updated}/${totalCount}`);
+    } while (matchScores.length);
+    if (updated) {
+      process.stdout.write(`\n`);
+    }
+    return backfilled;
+  } catch (err) {
+    console.error("Error backfilling match scores");
+    console.error(err);
+  }
+
+  return [];
 };
 
 export const metaLoop = async (

@@ -1,18 +1,11 @@
 /* eslint-disable no-console */
+import uniqBy from "lodash.uniqby";
 import mongoose, { Model } from "mongoose";
 
-import { Shooter } from "./shooters";
+import { MatchScore } from "../../../shared/types/MatchScore";
+import { calculateUSPSAClassification } from "../../../shared/utils/classification";
 
-export interface MatchScore {
-  upload: string;
-  memberNumber: string;
-  division: string;
-  memberNumberDivision: string;
-  shooterFullName?: string;
-
-  matchPercent: number;
-  percentOfPossible: number;
-}
+import { scoresForRecommendedClassification, Shooter } from "./shooters";
 
 export interface MatchScoreVirtuals {
   shooter: Shooter;
@@ -20,7 +13,8 @@ export interface MatchScoreVirtuals {
 }
 
 type MatchScoreModel = Model<MatchScore, object, MatchScoreVirtuals>;
-export type ScoreObjectWithVirtuals = MatchScore & MatchScoreVirtuals & { _id: string };
+export type MatchScoreObjectWithVirtuals = MatchScore &
+  MatchScoreVirtuals & { _id: string };
 
 const MatchScoreSchema = new mongoose.Schema<
   MatchScore,
@@ -33,9 +27,14 @@ const MatchScoreSchema = new mongoose.Schema<
     division: String,
     memberNumberDivision: String,
     shooterFullName: String,
+    date: Date,
 
     matchPercent: Number,
     percentOfPossible: Number,
+
+    shooterRecPercentHistorical: Number,
+    shooterRecPercentHistoricalHigh: Number,
+    shooterRecPercentHistoricalAge: Number,
   },
   { strict: false },
 );
@@ -49,6 +48,9 @@ MatchScoreSchema.virtual("shooter", {
 
 MatchScoreSchema.virtual("shooterRecPercent").get(function () {
   return this.shooter?.reclassificationsRecPercentUncappedCurrent;
+});
+MatchScoreSchema.virtual("shooterRecPercentHigh").get(function () {
+  return this.shooter?.reclassificationsRecPercentUncappedHigh;
 });
 
 MatchScoreSchema.index({ memberNumber: 1 });
@@ -79,4 +81,42 @@ export const saveMatchScores = async (matchResults: MatchScore[]) => {
     console.error("failed to save match scores");
     console.error(e);
   }
+};
+
+export const backfillClassifications = async (
+  matchScores: MatchScore[],
+): Promise<MatchScore[]> => {
+  // add historical reclassification
+  const memberNumbers = uniqBy(
+    matchScores.map(c => c.memberNumber),
+    c => c,
+  );
+  const scores = await scoresForRecommendedClassification(memberNumbers);
+  const scoresByMemberNumber = scores.reduce((acc, s) => {
+    acc[s.memberNumber] ??= [];
+    acc[s.memberNumber].push(s);
+    return acc;
+  }, {});
+
+  return matchScores.map(c => {
+    const date = c.date || scoresByMemberNumber[c.memberNumber]?.[0]?.date || new Date();
+    const reclass = calculateUSPSAClassification(
+      scoresByMemberNumber[c.memberNumber],
+      "recPercent",
+      date,
+      "brutal",
+      8,
+      8,
+      12,
+      110,
+    )[c.division];
+
+    return {
+      ...c,
+      date,
+      shooterRecPercentHistorical: reclass?.percent || 0,
+      shooterRecPercentHistoricalHigh: reclass?.highPercent || 0,
+      shooterRecPercentHistoricalAge: reclass?.age || 999,
+    };
+  });
 };

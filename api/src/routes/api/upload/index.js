@@ -1,9 +1,6 @@
 import algoliasearch from "algoliasearch";
-import uniqBy from "lodash.uniqby";
 
-import { calculateUSPSAClassification } from "../../../../../shared/utils/classification";
 import { Matches } from "../../../db/matches";
-import { scoresForRecommendedClassification } from "../../../db/shooters";
 
 const searchMatches = async q => {
   try {
@@ -45,37 +42,6 @@ const uploadRoutes = async fastify => {
       return { error: "Match Not Found" };
     }
     const result = m.toObject({ virtuals: true });
-
-    // add historical reclassification
-    const memberNumbers = uniqBy(
-      result.matchScores.map(c => c.memberNumber),
-      c => c,
-    );
-    const scores = await scoresForRecommendedClassification(memberNumbers);
-    const scoresByMemberNumber = scores.reduce((acc, s) => {
-      acc[s.memberNumber] ??= [];
-      acc[s.memberNumber].push(s);
-      return acc;
-    }, {});
-
-    result.matchScores = result.matchScores.map(c => {
-      const reclass = calculateUSPSAClassification(
-        scoresByMemberNumber[c.memberNumber],
-        "recPercent",
-        new Date(),
-        "brutal",
-        8,
-        8,
-        12,
-        110,
-      )[c.division];
-
-      return {
-        ...c,
-        shooterRecPercentHistorical: reclass.percent,
-        shooterRecPercentHistoricalAge: reclass.age,
-      };
-    });
 
     return {
       ...result,
