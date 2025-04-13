@@ -3,12 +3,18 @@ import { multisortObj } from "../../../shared/utils/sort";
 import { escapeRegExp } from "../utils";
 
 export const percentAggregationOp = (value, total, round = 2) => ({
-  $round: [
-    {
-      $multiply: [{ $divide: [value, total] }, 100],
+  $cond: {
+    if: { $gt: [total, 0] },
+    then: {
+      $round: [
+        {
+          $multiply: [{ $divide: [value, total] }, 100],
+        },
+        round,
+      ],
     },
-    round,
-  ],
+    else: 0,
+  },
 });
 
 /**
