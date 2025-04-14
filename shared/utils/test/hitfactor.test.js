@@ -21,6 +21,10 @@ test("targetHitsToLetters", () => {
   assert.deepEqual(targetHitsToLetters(4352), ["C", "D"]);
 });
 
+test("targetHitsToLetters -- out of memory", () => {
+  assert.deepEqual(targetHitsToLetters(4503603922338561), []);
+});
+
 test("minorHF", () => {
   const s = {
     hf: "7.3383",

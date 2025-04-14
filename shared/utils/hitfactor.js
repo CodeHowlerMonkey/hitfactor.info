@@ -59,6 +59,15 @@ export const targetHitsToLetters = n => {
 
   const As = remainder;
 
+  // OOM protection lol
+  if (
+    [NPMs, Ms, NSs, Ds, Cs, Bs, As].some(
+      hitsOfType => hitsOfType >= 1024 || hitsOfType < 0,
+    )
+  ) {
+    return [];
+  }
+
   return [
     ...new Array(As).fill("A"),
     ...new Array(Bs).fill("B"),
