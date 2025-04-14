@@ -36,6 +36,7 @@ export type ClassificationLetter = keyof typeof ClassificationLetterEnum;
 export interface ActiveMember {
   generated: Date;
   memberId: number;
+  memberNumber: string;
 
   expires: Date;
 

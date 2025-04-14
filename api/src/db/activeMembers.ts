@@ -6,6 +6,7 @@ const ActiveMemberShema = new mongoose.Schema<ActiveMember>({
   // Primary Key
   generated: Date,
   memberId: Number,
+  memberNumber: String,
 
   expires: Date,
 
