@@ -20,8 +20,9 @@ export const EmptyMatchResultsFactory = () => ({
 });
 
 export const _fetchPSS3ObjectJSON = async (objectKey: string, noGZip = false) => {
+  let s3Client = null as S3Client | null;
   try {
-    const s3Client = new S3Client({
+    s3Client = new S3Client({
       region: "us-east-1",
       credentials: {
         accessKeyId: process.env.PS_S3_ACCESS_KEY_ID!,
@@ -29,7 +30,7 @@ export const _fetchPSS3ObjectJSON = async (objectKey: string, noGZip = false) =>
       },
     });
 
-    const s3Response = await s3Client.send(
+    const s3Response = await s3Client!.send(
       new GetObjectCommand({
         Bucket: "ps-scores",
         Key: objectKey,
@@ -62,6 +63,8 @@ export const _fetchPSS3ObjectJSON = async (objectKey: string, noGZip = false) =>
       `fetchPSS3ObjectJSON failed: ${objectKey}; ${(e as Error)?.message || ""}`,
     );
     return null;
+  } finally {
+    s3Client?.destroy();
   }
 };
 
