@@ -99,9 +99,11 @@ export const backfillClassifications = async (
   }, {});
 
   return matchScores.map(c => {
-    const date = c.date || scoresByMemberNumber[c.memberNumber]?.[0]?.date || new Date();
+    const date = c.date || new Date();
     const reclass = calculateUSPSAClassification(
-      scoresByMemberNumber[c.memberNumber],
+      scoresByMemberNumber[c.memberNumber]?.filter(
+        score => score.sd.getTime() < date.getTime(),
+      ),
       "recPercent",
       date,
       "brutal",
