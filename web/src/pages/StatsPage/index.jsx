@@ -323,17 +323,9 @@ export const StatsPage = () => {
 
   const [selectedDivision, setSelectedDivision] = useState("all");
 
-  const [activeIndex, setActiveIndex] = useState(4);
-
   return (
     <div className="p-0 md:px-4">
-      <TabView
-        panelContainerClassName="p-0 md:px-4"
-        activeIndex={activeIndex}
-        onTabChange={({ index }) => {
-          setActiveIndex(index);
-        }}
-      >
+      <TabView panelContainerClassName="p-0 md:px-4">
         <TabPanel header="Pie Charts" className="p-0 text-sm md:text-base">
           <ModeSwitch {...modeSwitchProps} />
           <div className="card flex justify-content-center m-0">
