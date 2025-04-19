@@ -3,8 +3,8 @@
 import uniqBy from "lodash.uniqby";
 import { ObjectId } from "mongoose";
 
+import { MatchScore } from "../../../data/types/MatchScore";
 import features from "../../../shared/features";
-import { MatchScore } from "../../../shared/types/MatchScore";
 import { UTCDate } from "../../../shared/utils/date";
 import { minorHF } from "../../../shared/utils/hitfactor";
 import { uuidsFromUrlString } from "../../../shared/utils/uuid";

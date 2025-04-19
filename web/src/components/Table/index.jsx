@@ -49,7 +49,7 @@ export const letterRatingForPercent = p => {
   return "F";
 };
 
-export const renderPercent = (c, { field }) => {
+export const renderPercent = (c, { field }, transform = asIs => asIs) => {
   let value = c[field];
   if (value < 0 || value === undefined) {
     return "—";
@@ -58,6 +58,7 @@ export const renderPercent = (c, { field }) => {
   if (typeof value !== "number") {
     value = Number(value);
   }
+  value = transform(value);
 
   return `${value.toFixed(2)}%`;
 };

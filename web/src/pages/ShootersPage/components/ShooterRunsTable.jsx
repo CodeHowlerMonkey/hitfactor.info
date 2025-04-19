@@ -53,10 +53,14 @@ const ShooterRunsTable = ({
   loading,
   updateWhatIfs,
   whatIf,
+  hidden,
 }) => {
   const isHFU = useIsHFU();
   const isSCSA = useIsSCSA();
   const reportDialogRef = useRef(null);
+  if (hidden) {
+    return null;
+  }
   return (
     <>
       <ReportDialog type="Score" ref={reportDialogRef} />

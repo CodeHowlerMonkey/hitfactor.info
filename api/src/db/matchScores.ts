@@ -2,7 +2,7 @@
 import uniqBy from "lodash.uniqby";
 import mongoose, { Model } from "mongoose";
 
-import { MatchScore } from "../../../shared/types/MatchScore";
+import { MatchScore } from "../../../data/types/MatchScore";
 import { calculateUSPSAClassification } from "../../../shared/utils/classification";
 
 import { scoresForRecommendedClassification, Shooter } from "./shooters";
@@ -23,8 +23,10 @@ const MatchScoreSchema = new mongoose.Schema<
 >(
   {
     upload: String,
-    memberNumber: String,
     division: String,
+    uploadDivision: String,
+
+    memberNumber: String,
     memberNumberDivision: String,
     shooterFullName: String,
     date: Date,
@@ -43,6 +45,20 @@ MatchScoreSchema.virtual("shooter", {
   ref: "Shooters",
   foreignField: "memberNumberDivision",
   localField: "memberNumberDivision",
+  justOne: true,
+});
+
+MatchScoreSchema.virtual("match", {
+  ref: "Matches",
+  foreignField: "uuid",
+  localField: "upload",
+  justOne: true,
+});
+
+MatchScoreSchema.virtual("matchBump", {
+  ref: "MatchBumps",
+  foreignField: "uploadDivision",
+  localField: "uploadDivision",
   justOne: true,
 });
 

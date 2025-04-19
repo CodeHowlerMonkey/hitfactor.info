@@ -1,6 +1,7 @@
 import algoliasearch from "algoliasearch";
 
 import { Matches } from "../../../db/matches";
+import { MatchScores } from "../../../db/matchScores";
 
 const searchMatches = async q => {
   try {
@@ -48,6 +49,37 @@ const uploadRoutes = async fastify => {
       uuid,
     };
   });
+
+  fastify.get("/matchScores", async (req, res) => {
+    const { division, memberNumber, match } = req.query;
+
+    if (!division || (!memberNumber && !match)) {
+      res.code(400);
+      return { error: "Must provide Division and Member Number or Match UUID" };
+    }
+
+    const filter = {
+      division,
+      ...(memberNumber ? { memberNumber } : {}),
+      ...(match ? { upload: match } : {}),
+    };
+
+    const matches = await MatchScores.find(filter).populate(["match", "matchBump"]);
+    const matchObjects = matches.map(c => c.toObject({ virtuals: true }));
+
+    return matchObjects.map(c => {
+      if (!c.matchBump) {
+        return;
+      }
+      const { intercept, slope } = c.matchBump;
+      c.bump = (c.matchPercent - intercept) / slope;
+      return {
+        ...c.matchBump,
+        ...c,
+      };
+    });
+  });
+
   fastify.get("/searchMatches", async req => {
     const { q } = req.query;
     const algoliaMatches = await searchMatches(q);

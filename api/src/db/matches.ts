@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import mongoose, { Model } from "mongoose";
 
-import { MatchScore } from "./matchScores";
+import { MatchScore } from "../../../data/types/MatchScore";
 
 export interface Match {
   updated: Date;

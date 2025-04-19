@@ -1,6 +1,8 @@
 import cx from "classnames";
 import { Button } from "primereact/button";
+import { Checkbox } from "primereact/checkbox";
 import { Divider } from "primereact/divider";
+import { SelectButton } from "primereact/selectbutton";
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useDebouncedCallback } from "use-debounce";
@@ -13,6 +15,7 @@ import { postApi, useApi } from "../../utils/client";
 import { useIsSCSA } from "../../utils/useIsSCSA";
 
 import ShooterInfoTable from "./components/ShooterInfoTable";
+import ShooterMatchScoresTable from "./components/ShooterMatchesTable";
 import ShooterRunsTable from "./components/ShooterRunsTable";
 import ShootersTable from "./components/ShootersTable";
 
@@ -165,6 +168,9 @@ export const ShooterRunsAndInfo = ({ division, memberNumber, onBackToShooters })
   const { loading, whatIf } = tableData;
   const { name } = info;
 
+  const [scoresMode, setScoresMode] = useState("Classifiers");
+  const [nerdMode, setNerdMode] = useState(false);
+
   return (
     <>
       <div className="flex justify-content-between flex-wrap">
@@ -193,8 +199,18 @@ export const ShooterRunsAndInfo = ({ division, memberNumber, onBackToShooters })
         />
       ) : null}
       <Divider />
-      <div className="flex justify-content-between">
+      <div className="flex justify-content-between align-items-center">
         <h4 className="block md:text-lg lg:text-xl">Scores</h4>
+        <div className="m-auto">
+          <SelectButton
+            size="small"
+            className="compact text-xs"
+            allowEmpty={false}
+            options={["Classifiers", "Matches"]}
+            value={scoresMode}
+            onChange={e => setScoresMode(e.value)}
+          />
+        </div>
         {whatIf && (
           <div className="m-auto">
             <h5 className="block md:inline mr-4">
@@ -216,7 +232,7 @@ export const ShooterRunsAndInfo = ({ division, memberNumber, onBackToShooters })
               onClick={resetWhatIfs}
             />
           )}
-          {!isSCSA && (
+          {!isSCSA && scoresMode === "Classifiers" && (
             <Button
               className="px-2 my-3 text-xs md:text-sm"
               label="What If"
@@ -226,13 +242,26 @@ export const ShooterRunsAndInfo = ({ division, memberNumber, onBackToShooters })
               onClick={addWhatIf}
             />
           )}
+          {!isSCSA && scoresMode === "Matches" && (
+            <div className="flex gap-2 align-items-center">
+              Nerd Mode
+              <Checkbox onChange={e => setNerdMode(e.checked)} checked={nerdMode} />
+            </div>
+          )}
         </div>
       </div>
 
       <ShooterRunsTable
         {...tableData}
+        hidden={scoresMode !== "Classifiers"}
         onClassifierSelection={number => navigate(`/classifiers/${division}/${number}`)}
         onClubSelection={club => navigate(`/clubs/${club}`)}
+      />
+      <ShooterMatchScoresTable
+        hidden={scoresMode !== "Matches"}
+        nerdMode={nerdMode}
+        memberNumber={memberNumber}
+        division={division}
       />
     </>
   );

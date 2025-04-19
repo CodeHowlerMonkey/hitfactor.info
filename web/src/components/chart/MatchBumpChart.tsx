@@ -5,7 +5,7 @@ import {
   eligibilityFilter,
   grandmasterPercent,
   masterPercent,
-} from "../../../../shared/types/MatchScore";
+} from "../../../../data/types/MatchScore";
 import { classForPercent } from "../../../../shared/utils/classification";
 import {
   correlation,

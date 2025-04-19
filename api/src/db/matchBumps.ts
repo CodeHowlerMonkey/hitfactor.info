@@ -6,7 +6,7 @@ import {
   grandmasterPercent,
   masterPercent,
   MatchScore,
-} from "../../../shared/types/MatchScore";
+} from "../../../data/types/MatchScore";
 import {
   correlation,
   EmptyLinearRegression,
@@ -73,6 +73,14 @@ const MatchBumpSchema = new mongoose.Schema<MatchBump>(
   },
   { strict: false },
 );
+
+MatchBumpSchema.virtual("eligible").get(function () {
+  return (
+    this.filteredDataPoints >= 30 &&
+    this.filteredCorrelation >= 0.9 &&
+    (this.filteredGrandmasters >= 3 || this.filteredMasters >= 10)
+  );
+});
 
 MatchBumpSchema.index({ upload: 1 });
 MatchBumpSchema.index({ date: 1 });
