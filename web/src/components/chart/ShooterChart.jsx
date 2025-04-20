@@ -30,7 +30,7 @@ const yLine = (name, y, alpha) => ({
   },
 });
 
-export const ScoresChart = ({ division, memberNumber }) => {
+export const ShooterChart = ({ division, memberNumber }) => {
   const isHFU = sportForDivision(division) === "hfu";
   const [full, setFull] = useState(false);
   const { json: data, loading } = useApi(
@@ -155,4 +155,4 @@ export const ScoresChart = ({ division, memberNumber }) => {
   );
 };
 
-export default ScoresChart;
+export default ShooterChart;
