@@ -11,7 +11,6 @@ import {
   correlation,
   linearRegression,
   linearFactory,
-  LinearRegressionResult,
   EmptyLinearRegression,
   reverseLinear,
 } from "../../../../shared/utils/weibull";
@@ -106,16 +105,6 @@ export const MatchBumpChart = ({ match, division, loading }) => {
     () =>
       !eligibleData?.length ? EmptyLinearRegression : linearRegression(eligibleData),
     [eligibleData],
-  );
-  const correl = useMemo(
-    () =>
-      data?.length >= 2
-        ? correlation(
-            data.map(c => c.x),
-            data.map(c => c.y),
-          )
-        : 0,
-    [data],
   );
   const eligibleCorrel = useMemo(
     () =>
@@ -256,9 +245,15 @@ export const MatchBumpChart = ({ match, division, loading }) => {
     />
   );
 
-  const eligibleMs = eligibleData.filter(c => c.x >= 80 && c.y >= 80).length;
+  const eligibleMs = eligibleData.filter(
+    c => c.x >= masterPercent && c.y >= masterPercent,
+  ).length;
+  const eligibleGMs = eligibleData.filter(
+    c => c.x >= grandmasterPercent && c.y >= grandmasterPercent,
+  ).length;
   const hasEnoughMs = eligibleMs >= 10;
-  const hasEnoughData = eligibleData.length >= 50;
+  const hasEnoughGMs = eligibleMs >= 3;
+  const hasEnoughData = eligibleData.length >= 30;
   const goodCorrelation = eligibleCorrel >= 0.9;
 
   return (
@@ -300,6 +295,9 @@ export const MatchBumpChart = ({ match, division, loading }) => {
               </div>
               <div className={hasEnoughMs ? "text-green-600" : "text-red-600"}>
                 Ms= {eligibleMs}
+              </div>
+              <div className={hasEnoughGMs ? "text-green-600" : "text-red-600"}>
+                GMs= {eligibleGMs}
               </div>
               <div className="hidden">
                 GMs= {eligibleData.filter(c => c.x >= 90 && c.y >= 90).length}

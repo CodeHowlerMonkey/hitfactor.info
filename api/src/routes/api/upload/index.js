@@ -64,7 +64,12 @@ const uploadRoutes = async fastify => {
       ...(match ? { upload: match } : {}),
     };
 
-    const matches = await MatchScores.find(filter).populate(["match", "matchBump"]);
+    const shooterMaybe = !memberNumber && !!division && !!match ? ["shooter"] : [];
+    const matches = await MatchScores.find(filter).populate([
+      "match",
+      "matchBump",
+      ...shooterMaybe,
+    ]);
     const matchObjects = matches.map(c => c.toObject({ virtuals: true }));
 
     return matchObjects.map(c => {

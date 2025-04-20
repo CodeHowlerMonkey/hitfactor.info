@@ -6,6 +6,7 @@ import { DivisionNavigation } from "../../components";
 import MatchBumpChart from "../../components/chart/MatchBumpChart";
 import { useApi } from "../../utils/client";
 import useSearchParamState from "../../utils/useSearchParamState";
+import ShooterMatchScoresTable from "../ShootersPage/components/ShooterMatchesTable";
 
 import SearchUploads from "./SearchUploads";
 
@@ -41,6 +42,15 @@ const MatchPage = ({ uuid }) => {
             </div>
             <DivisionNavigation onSelect={onDivisionSelect} />
             <MatchBumpChart match={match} division={division} loading={loading} />
+            {division && (
+              <ShooterMatchScoresTable
+                match={uuid}
+                division={division}
+                hideAnalysisButton
+                hideMatchName
+                hideDate
+              />
+            )}
           </div>
         </div>
       </div>

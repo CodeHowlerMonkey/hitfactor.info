@@ -1,15 +1,43 @@
 import { Column } from "primereact/column";
 import { DataTable } from "primereact/datatable";
 import qs from "qs";
-import { Link } from "react-router-dom";
+import { useMemo } from "react";
+import { Link, useNavigate } from "react-router-dom";
 
+import ShooterCell from "../../../components/ShooterCell";
 import { headerTooltipOptions, renderPercent } from "../../../components/Table";
 import useApiQuery from "../../../query/useApiQuery";
 
-const ShooterMatchScoresTable = ({ memberNumber, division, match, hidden, nerdMode }) => {
+const ShooterMatchScoresTable = ({
+  memberNumber,
+  division,
+  match,
+  hidden,
+  nerdMode,
+  hideShooterName,
+  hideMatchName,
+  hideAnalysisButton,
+  hideDate,
+}) => {
   const { json: matches, loading } = useApiQuery(
     `/upload/matchScores?${qs.stringify({ memberNumber, division, match })}`,
   );
+  const navigate = useNavigate();
+
+  const matchScores = useMemo(() => {
+    if (loading) {
+      return [];
+    }
+
+    return (matches || [])
+      .toSorted((a, b) => b.matchPercent - a.matchPercent)
+      .map((c, index, all) => ({
+        ...c,
+        place: index + 1,
+        percentile: (100 * index) / all.length,
+        dateUnix: new Date(c.date).getTime(),
+      }));
+  }, [matches, loading]);
 
   if (hidden) {
     return null;
@@ -21,17 +49,29 @@ const ShooterMatchScoresTable = ({ memberNumber, division, match, hidden, nerdMo
       scrollable
       className="text-xs md:text-base"
       sortOrder={-1}
-      sortField="dateUnix"
+      sortField={hideDate ? "matchPercent" : "dateUnix"}
       loading={loading}
       stripedRows
-      /* lazy */
-      value={(matches ?? []).map(c => ({
-        ...c,
-        dateUnix: new Date(c.date).getTime(),
-      }))}
+      value={matchScores}
       tableStyle={{ minWidth: "50rem" }}
     >
       <Column
+        hidden={!hideDate}
+        field="place"
+        header="#"
+        align="center"
+        style={{ maxWidth: "4em" }}
+      />
+      <Column
+        hidden={!hideDate}
+        field="percentile"
+        header="Perc."
+        headerTooltip="Percentile for this score. Shows how many percent of scores are higher than this one."
+        headerTooltipOptions={headerTooltipOptions}
+        body={c => `${c.percentile.toFixed(2)}%`}
+      />
+      <Column
+        hidden={hideDate}
         field="dateUnix"
         header="Date"
         sortable
@@ -39,6 +79,23 @@ const ShooterMatchScoresTable = ({ memberNumber, division, match, hidden, nerdMo
         body={run => new Date(run.date).toLocaleDateString("en-us", { timeZone: "UTC" })}
       />
       <Column
+        hidden={hideShooterName}
+        field="shooterFullName"
+        header="Shooter"
+        style={{ minWidth: "18em" }}
+        body={c => (
+          <ShooterCell
+            data={{ ...c.shooter, shooterFullName: c.shooterFullName }}
+            sport="uspsa"
+            onClick={() => navigate(`/shooters/${division}/${c.memberNumber}`)}
+          />
+        )}
+        body2={c => (
+          <Link to={`/shooters/${division}/${c.memberNumber}`}>{c.shooterFullName}</Link>
+        )}
+      />
+      <Column
+        hidden={hideMatchName}
         field="match.name"
         header="Match Name"
         style={{ minWidth: "18em" }}
@@ -200,6 +257,7 @@ const ShooterMatchScoresTable = ({ memberNumber, division, match, hidden, nerdMo
         body={renderPercent}
       />
       <Column
+        hidden={hideAnalysisButton}
         field="analysis"
         header="Analysis"
         align="center"
