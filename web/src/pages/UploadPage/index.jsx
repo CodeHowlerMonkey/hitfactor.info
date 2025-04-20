@@ -1,14 +1,31 @@
 import { Button } from "primereact/button";
-import { useCallback } from "react";
+import { SelectButton } from "primereact/selectbutton";
+import { useCallback, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
-import { DivisionNavigation } from "../../components";
+import { DivisionNavigation, ScoresChart } from "../../components";
 import MatchBumpChart from "../../components/chart/MatchBumpChart";
 import { useApi } from "../../utils/client";
 import useSearchParamState from "../../utils/useSearchParamState";
 import ShooterMatchScoresTable from "../ShootersPage/components/ShooterMatchesTable";
 
 import SearchUploads from "./SearchUploads";
+
+const getOrdinalSuffix = n => {
+  const rem10 = n % 10;
+  const rem100 = n % 100;
+  return rem100 >= 11 && rem100 <= 13
+    ? "th"
+    : rem10 === 1
+      ? "st"
+      : rem10 === 2
+        ? "nd"
+        : rem10 === 3
+          ? "rd"
+          : "th";
+};
+
+const formatOrdinal = n => `${n}${getOrdinalSuffix(n)}`;
 
 const MatchPage = ({ uuid }) => {
   const { json: match, loading } = useApi(`/upload/${uuid}`);
@@ -21,6 +38,8 @@ const MatchPage = ({ uuid }) => {
     },
     [navigate, uuid, q],
   );
+
+  const [scoresMode, setScoresMode] = useState("Linear Regression");
 
   return (
     <div>
@@ -41,15 +60,85 @@ const MatchPage = ({ uuid }) => {
               <h2 className="mx-auto md:text-xl lg:text-xxl w-max">{match?.name}</h2>
             </div>
             <DivisionNavigation onSelect={onDivisionSelect} />
-            <MatchBumpChart match={match} division={division} loading={loading} />
             {division && (
-              <ShooterMatchScoresTable
-                match={uuid}
-                division={division}
-                hideAnalysisButton
-                hideMatchName
-                hideDate
-              />
+              <>
+                <div className="flex justify-content-between align-items-center my-3">
+                  <div className="m-auto">
+                    <SelectButton
+                      size="small"
+                      className="compact text-xs"
+                      allowEmpty={false}
+                      options={["Linear Regression", "Weibull"]}
+                      value={scoresMode}
+                      onChange={e => setScoresMode(e.value)}
+                    />
+                  </div>
+                </div>
+                {scoresMode !== "Linear Regression" ? null : (
+                  <div style={{ background: "#1c1d2652" }}>
+                    <MatchBumpChart match={match} division={division} loading={loading} />
+                  </div>
+                )}
+                {scoresMode !== "Weibull" ? null : (
+                  <div className="w-full bg-primary-reverse" style={{ height: "80vw" }}>
+                    <ScoresChart
+                      showWeibull
+                      hideExpandButton
+                      label="CDF"
+                      division={division}
+                      classifier="Match"
+                      hhf={100}
+                      recHHF={0}
+                      totalScores={0}
+                      pointLabelCallback={({
+                        raw: {
+                          place,
+                          memberNumber,
+                          shooterFullName,
+                          matchPercent,
+                          shooterRecPercentHistorical,
+                          pointsGraphName,
+                        },
+                      }) =>
+                        pointsGraphName
+                          ? null
+                          : `${formatOrdinal(place)} — ${matchPercent}% — ${memberNumber} — ${shooterFullName} (${shooterRecPercentHistorical?.toFixed(2) || "0"}%) `
+                      }
+                      urlFactory={() =>
+                        `/upload/matchScores?division=${division}&match=${uuid}`
+                      }
+                      dataTransform={matches =>
+                        (matches || [])
+                          .toSorted((a, b) => b.matchPercent - a.matchPercent)
+                          .map((c, index, all) => {
+                            const dateUnix = new Date(c.date).getTime();
+                            const percentile = (100 * index) / all.length;
+
+                            return {
+                              ...c,
+                              x: c.matchPercent,
+                              y: index + 1,
+                              elo: 0,
+                              recPercentUncapped: c.shooterRecPercentHistorical,
+                              hf: c.matchPercent,
+                              place: index + 1,
+                              percentile,
+                              dateUnix,
+                              date: dateUnix,
+                            };
+                          })
+                      }
+                    />
+                  </div>
+                )}
+                <ShooterMatchScoresTable
+                  match={uuid}
+                  division={division}
+                  hideAnalysisButton
+                  hideMatchName
+                  hideDate
+                />
+              </>
             )}
           </div>
         </div>

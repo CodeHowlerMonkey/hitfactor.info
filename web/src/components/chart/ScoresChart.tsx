@@ -160,18 +160,24 @@ const SCORES_STEP = 50;
 
 // point for graph coming from API
 interface AdvancedScorePoint extends GraphPoint {
+  // x
+  // y
   memberNumber: string;
 
   date: number;
   elo: number;
   hf: number;
 }
-const urlWithParams = (
-  division: string,
-  classifier: string,
-  full: boolean,
-  limit: number,
-) => `/classifiers/${division}/${classifier}/chart?full=${full ? 1 : 0}&limit=${limit}`;
+
+interface URLFactoryParams {
+  memberNumber?: string;
+  division: string;
+  classifier?: string;
+  full?: boolean;
+  limit?: number;
+}
+const urlWithParams = ({ division, classifier, full, limit }: URLFactoryParams) =>
+  `/classifiers/${division}/${classifier}/chart?full=${full ? 1 : 0}&limit=${limit || 0}`;
 
 const dataForModes = (
   incomingData: AdvancedScorePoint[] | null,
@@ -208,7 +214,19 @@ const dataForModes = (
 };
 
 // TODO: all vs current search mode
-export const ScoresChart = ({ division, classifier, hhf, recHHF, totalScores }) => {
+export const ScoresChart = ({
+  division,
+  classifier,
+  hhf,
+  recHHF: recHHFProp,
+  totalScores,
+  urlFactory = urlWithParams,
+  dataTransform = asIs => asIs,
+  label,
+  hideExpandButton,
+  pointLabelCallback,
+  showWeibull: showWeibullProp,
+}) => {
   const windowWidth = useWindowWidth({ wait: 400 });
   const [showChartSettings, setShowChartSettings] = useState(windowWidth >= 992);
   useEffect(() => {
@@ -231,13 +249,13 @@ export const ScoresChart = ({ division, classifier, hhf, recHHF, totalScores }) 
     json: curData,
     loading,
     isFetching,
-  } = useApi(urlWithParams(division, classifier, full, numberOfScoresUsed));
+  } = useApi(urlFactory({ division, classifier, full, limit: numberOfScoresUsed }));
   const [lastData, setLastData] = useState<AdvancedScorePoint[] | null>(null);
   useEffect(() => {
     if (curData) {
-      setLastData(curData);
+      setLastData(dataTransform(curData));
     }
-  }, [curData]);
+  }, [curData]); // eslint-disable-line react-hooks/exhaustive-deps
   const setFull = useCallback(
     (v: boolean) => {
       setSearch(prev => {
@@ -281,11 +299,11 @@ export const ScoresChart = ({ division, classifier, hhf, recHHF, totalScores }) 
   );
   const weibullData: number[] = useMemo(
     () =>
-      full
+      full || showWeibullProp
         ? (dataForModes(lastData, "HF", "Rank", "Classification", "All").map(c => c.x) ??
           [])
         : [],
-    [lastData, full],
+    [lastData, full, showWeibullProp],
   );
   const weibull = useAsyncWeibull(weibullData);
 
@@ -307,6 +325,7 @@ export const ScoresChart = ({ division, classifier, hhf, recHHF, totalScores }) 
   }, [data]);
 
   const { k, lambda, hhf3 } = weibull;
+  const recHHF = recHHFProp || hhf3;
   const percentiles = useMemo(
     () => [
       closestPercentileForHF(recHHF * 0.95, data),
@@ -323,6 +342,16 @@ export const ScoresChart = ({ division, classifier, hhf, recHHF, totalScores }) 
   if (!lastData && loading) {
     return <ProgressSpinner />;
   }
+
+  const defaultLabelCallback = ({
+    raw: { x, y, memberNumber, name, pointsGraphName, date },
+  }) => {
+    if (pointsGraphName || !full) {
+      return null;
+    }
+    return `${memberNumber} ${name}; ${versusModeLabelMap[xMode]}: ${x.toFixed(4)}; ${versusModeLabelMap[yMode]}: ${y.toFixed(4)}; ${new Date(date).toLocaleDateString()}`;
+  };
+  const labelCallback = pointLabelCallback ?? defaultLabelCallback;
 
   const graph = (
     <Scatter
@@ -356,12 +385,7 @@ export const ScoresChart = ({ division, classifier, hhf, recHHF, totalScores }) 
           },
           tooltip: {
             callbacks: {
-              label: ({ raw: { x, y, memberNumber, name, pointsGraphName, date } }) => {
-                if (pointsGraphName || !full) {
-                  return null;
-                }
-                return `${memberNumber} ${name}; ${versusModeLabelMap[xMode]}: ${x.toFixed(4)}; ${versusModeLabelMap[yMode]}: ${y.toFixed(4)}; ${new Date(date).toLocaleDateString()}`;
-              },
+              label: labelCallback,
             },
           },
           annotation: {
@@ -401,7 +425,7 @@ export const ScoresChart = ({ division, classifier, hhf, recHHF, totalScores }) 
       }}
       data={{
         datasets: [
-          ...(!full || !showWeibull
+          ...((!full && !showWeibullProp) || !showWeibull
             ? []
             : [
                 {
@@ -419,7 +443,7 @@ export const ScoresChart = ({ division, classifier, hhf, recHHF, totalScores }) 
                 },
               ]),
           {
-            label: chartLabel || "HF / Percentile",
+            label: label ?? (chartLabel || "HF / Percentile"),
             data: data,
             pointRadius: 3,
             pointBorderColor: "white",
@@ -542,20 +566,24 @@ export const ScoresChart = ({ division, classifier, hhf, recHHF, totalScores }) 
             className="absolute z-1 hidden lg:flex flex-column justify-content-start align-items-center gap-2 surface-card mx-4 my-0 border-round border-1 p-4"
           >
             <div className="flex flex-column justify-content-center gap-2">
-              <div className="flex flex-row justify-content-end align-items-center gap-2">
-                Scores:{" "}
-                <input
-                  type="number"
-                  name="points"
-                  step={SCORES_STEP}
-                  value={numberOfScores}
-                  onChange={e => setNumberOfScores(Number(e.target.value))}
-                />
-              </div>
-              <div className="flex flex-column">
-                <div className="text-sm text-center">{partialScoresDate[0]}</div>
-                <div className="text-sm text-center">{partialScoresDate[1]}</div>
-              </div>
+              {!!totalScores && (
+                <>
+                  <div className="flex flex-row justify-content-end align-items-center gap-2">
+                    Scores:{" "}
+                    <input
+                      type="number"
+                      name="points"
+                      step={SCORES_STEP}
+                      value={numberOfScores}
+                      onChange={e => setNumberOfScores(Number(e.target.value))}
+                    />
+                  </div>
+                  <div className="flex flex-column">
+                    <div className="text-sm text-center">{partialScoresDate[0]}</div>
+                    <div className="text-sm text-center">{partialScoresDate[1]}</div>
+                  </div>
+                </>
+              )}
               <WeibullStatus weibull={weibull} showHHF />
             </div>
             <div className="hidden">
@@ -586,6 +614,7 @@ export const ScoresChart = ({ division, classifier, hhf, recHHF, totalScores }) 
         text
         icon="pi pi-arrows-alt"
         style={{
+          display: hideExpandButton ? "none" : undefined,
           position: "absolute",
           top: 0,
           right: 0,
