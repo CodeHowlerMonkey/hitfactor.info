@@ -211,6 +211,15 @@ const RunsTable = ({ classifier, division, clubs, onShooterSelection }) => {
           headerTooltipOptions={headerTooltipOptions}
         />
         <Column
+          hidden={sport !== "uspsa" && sport !== "scsa"}
+          body={renderPercent}
+          field="oldPercent"
+          header="Old %"
+          sortable
+          headerTooltip="What classifier percentage this score would've earned with old HHFs (pre-March 2025)."
+          headerTooltipOptions={headerTooltipOptions}
+        />
+        <Column
           {...clubMatchColumn}
           filter
           filterElement={options => (

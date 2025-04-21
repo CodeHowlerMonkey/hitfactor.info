@@ -14,6 +14,8 @@ import { curHHFForDivisionClassifier } from "../dataUtil/hhf";
 import { N, Percent, PositiveOrMinus1 } from "../dataUtil/numbers";
 import { processImportAsyncSeq } from "../utils";
 
+import { RecHHF } from "./recHHF";
+
 export interface Score {
   upload?: string;
   classifier: string;
@@ -60,21 +62,17 @@ export interface Score {
   currentClass?: string;
 }
 
-// TODO: move to RecHHF
-export interface RecHHF {
-  curHHF: number;
-  recHHF: number;
-}
-
 export interface ScoreVirtuals {
   Shooters: Record<string, any>[];
   HHFs: RecHHF[];
   curHHF: number;
   recHHF: number;
+  oldHHF: number;
   hfuHF: number;
   isMajor: boolean;
   curPercent: number;
   recPercent: number;
+  oldPercent: number;
 }
 
 type ScoreModel = Model<Score, object, ScoreVirtuals>;
@@ -156,6 +154,12 @@ ScoreSchema.virtual("recHHF").get(function () {
 });
 ScoreSchema.virtual("curHHF").get(function () {
   return this.HHFs?.[0]?.curHHF || -1;
+});
+ScoreSchema.virtual("oldHHF").get(function () {
+  return this.HHFs?.[0]?.oldHHF || -1;
+});
+ScoreSchema.virtual("oldPercent").get(function () {
+  return this.isMajor ? this.percent : PositiveOrMinus1(Percent(this.hf, this.oldHHF, 4));
 });
 ScoreSchema.virtual("curPercent").get(function () {
   return this.isMajor ? this.percent : PositiveOrMinus1(Percent(this.hf, this.curHHF, 4));

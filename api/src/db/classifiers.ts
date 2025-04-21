@@ -249,6 +249,7 @@ ClassifierSchema.virtual("recHHFs", {
 });
 
 [
+  "oldHHF",
   "curHHF",
   "recHHF",
   "wbl1HHF",

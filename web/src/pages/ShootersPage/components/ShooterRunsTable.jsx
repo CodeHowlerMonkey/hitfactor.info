@@ -174,6 +174,15 @@ const ShooterRunsTable = ({
           headerTooltipOptions={headerTooltipOptions}
         />
         <Column
+          hidden={isHFU}
+          body={renderPercent}
+          field="oldPercent"
+          header="Old %"
+          sortable
+          headerTooltip="What classifier percentage this score would've earned with old HHFs (pre-March 2025)."
+          headerTooltipOptions={headerTooltipOptions}
+        />
+        <Column
           hidden
           body={c => {
             if (c.percent > 0) {

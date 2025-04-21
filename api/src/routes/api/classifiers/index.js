@@ -105,6 +105,7 @@ const _runsAggregation = async ({
         // score data for RunsTable
         recHHF: _getRecHHFField("recHHF"),
         curHHF: _getRecHHFField("curHHF"),
+        oldHHF: _getRecHHFField("oldHHF"),
 
         // shooter data for ShooterCell
         hqClass: _getShooterField("class"),
@@ -142,6 +143,7 @@ const _runsAggregation = async ({
       $addFields: {
         recPercent: percentAggregationOp("$hf", "$recHHF", 4),
         curPercent: percentAggregationOp("$hf", "$curHHF", 4),
+        oldPercent: percentAggregationOp("$hf", "$oldHHF", 4),
       },
     },
 
@@ -202,7 +204,7 @@ const classifiersRoutes = async fastify => {
     const [extended, recHHFInfo, totalScores] = await Promise.all([
       Classifiers.findOne({ division, classifier: number }).lean(),
       RecHHFs.findOne({ classifier: number, division })
-        .select(["recHHF", "curHHF"])
+        .select(["recHHF", "curHHF", "oldHHF"])
         .lean(),
       Scores.aggregate([
         _matchScoresForClassifierDivision(number, division),
@@ -214,6 +216,7 @@ const classifiersRoutes = async fastify => {
       info: {
         ...basic,
         ...extended,
+        oldHHF: recHHFInfo?.oldHHF || 0,
         curHHF: recHHFInfo?.curHHF || 0,
         recHHF: recHHFInfo?.recHHF || 0,
         totalScores: totalScores?.[0]?.totalScores || -1,

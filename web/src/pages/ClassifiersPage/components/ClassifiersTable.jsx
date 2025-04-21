@@ -95,6 +95,8 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
       updated: new Date(d.updated).toLocaleDateString("en-us", { timeZone: "UTC" }),
       recHHFChange: d.hhf - d.recHHF,
       recHHFChangePercent: 100 * (d.hhf / d.recHHF - 1),
+      oldHHFChange: d.oldHHF - d.recHHF,
+      oldHHFChangePercent: 100 * (d.oldHHF / d.recHHF - 1),
     }))
     .sort((a, b) => {
       switch (sortState.sortField) {
@@ -308,10 +310,26 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
         body={c => (isSCSA ? `${c.curHHF.toFixed(2)}s` : c.curHHF.toFixed(4))}
       />
       <Column
+        hidden={!nerdMode}
         field="recHHFChangePercent" /** field is Percent for sorting, still shows like PeakTime/HHF */
         header="Rec. minus HQ"
         sortable
         body={numFieldsDiff("recHHF", "curHHF", isSCSA ? 2 : 4, isSCSA ? "s" : " HF")}
+      />
+      <Column
+        field="oldHHF"
+        header="Old HHF"
+        headerTooltip="HQ HHF before March 2025 Update"
+        sortable
+        style={{ width: "100px" }}
+        body={c => c.oldHHF.toFixed(4)}
+      />
+      <Column
+        hidden
+        field="oldHHFChangePercent" /** field is Percent for sorting, still shows like PeakTime/HHF */
+        header="Rec. minus Old HQ"
+        sortable
+        body={numFieldsDiff("recHHF", "oldHHF", isSCSA ? 2 : 4, isSCSA ? "s" : " HF")}
       />
       <Column
         hidden={!nerdMode}

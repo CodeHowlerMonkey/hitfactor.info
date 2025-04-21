@@ -11,6 +11,7 @@ export const ClassifierInfoTable = ({
   hhf,
   recHHF,
   curHHF,
+  oldHHF,
   ...info
 }) => (
   <div className="flex flex-wrap md:flex-nowrap gap-2 justify-content-around">
@@ -45,7 +46,16 @@ export const ClassifierInfoTable = ({
             stripedRows
             value={[
               ...(info?.hhfs || []),
-              ...(!curHHF
+              ...(!oldHHF || oldHHF < 0
+                ? []
+                : [
+                    {
+                      label: "Old. HHF",
+                      tooltip: "Old HHF",
+                      hhf: oldHHF.toFixed(4),
+                    },
+                  ]),
+              ...(!curHHF || curHHF < 0
                 ? []
                 : [
                     {
@@ -54,7 +64,7 @@ export const ClassifierInfoTable = ({
                       hhf: curHHF.toFixed(4),
                     },
                   ]),
-              ...(!recHHF
+              ...(!recHHF || recHHF < 0
                 ? []
                 : [
                     {

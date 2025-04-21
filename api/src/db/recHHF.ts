@@ -9,7 +9,10 @@ import {
   hfuDivisionCompatabilityMap,
   PROD_15_EFFECTIVE_TS,
 } from "../dataUtil/divisions";
-import { curHHFForDivisionClassifier } from "../dataUtil/hhf";
+import {
+  curHHFForDivisionClassifier,
+  oldHHFForDivisionClassifier,
+} from "../dataUtil/hhf";
 import { Percent, PositiveOrMinus1 } from "../dataUtil/numbers";
 
 import { minorHFScoresAdapter, Score, Scores } from "./scores";
@@ -81,6 +84,7 @@ export interface RecHHF {
   division: string;
   classifierDivision: string;
 
+  oldHHF: number; //< before CC HHF
   curHHF: number;
   recHHF: number;
 
@@ -112,6 +116,9 @@ export interface RecHHF {
 const RecHHFSchema = new mongoose.Schema<RecHHF>({
   classifier: String,
   division: String,
+  classifierDivision: String,
+
+  oldHHF: Number,
   curHHF: Number,
   recHHF: Number,
 
@@ -138,8 +145,6 @@ const RecHHFSchema = new mongoose.Schema<RecHHF>({
   loHHF: Number,
   locoHHF: Number,
   coHHF: Number,
-
-  classifierDivision: String,
 });
 
 RecHHFSchema.index({ classifier: 1, division: 1 }, { unique: true });
@@ -224,6 +229,7 @@ const recHHFUpdate = (
 
   const runs = minorHFScoresAdapter(runsRaw, division);
   const curHHF = curHHFForDivisionClassifier({ division, number: classifier }) || -1;
+  const oldHHF = oldHHFForDivisionClassifier({ division, number: classifier }) || -1;
 
   const {
     k,
@@ -246,6 +252,7 @@ const recHHFUpdate = (
     division,
     classifier,
     classifierDivision: [classifier, division].join(":"),
+    oldHHF,
     curHHF,
     recHHF: wblHHF,
     ...(division === "prod" ? extraHHFsForProd(wbl3HHF, runs, classifier) : {}),

@@ -24,6 +24,10 @@ export const divShortToHHFs: Record<USPSAHHFJSONDivision, USPSAHHFJSON[]> = load
   {} as Record<USPSAHHFJSONDivision, USPSAHHFJSON[]>,
 );
 
+export const divShortToNewHHFs: Record<string, Record<string, number>> = loadJSON(
+  "../../data/uspsa-hhfs-march-25.json",
+);
+
 export const hhfsForDivision = (division: string): HHFJSON[] => {
   if (division.startsWith("scsa")) {
     return scsaHhfEquivalentForDivision(division as SCSADivision);
@@ -36,7 +40,7 @@ export const hhfsForDivision = (division: string): HHFJSON[] => {
   return divShortToHHFs[division];
 };
 
-export const curHHFForDivisionClassifier = ({
+export const oldHHFForDivisionClassifier = ({
   division,
   number,
 }: {
@@ -59,8 +63,34 @@ export const curHHFForDivisionClassifier = ({
     const curHHFInfo = divisionHHFs.find(dHHF => dHHF.classifier === c.id);
     return HF(curHHFInfo!.hhf);
   } catch (all) {
-    console.error("cant find HHF for division:");
+    console.error(`cant find Old HHF for ${number}:${division}`);
     console.error(division);
+    return -1;
+  }
+};
+
+export const curHHFForDivisionClassifier = ({
+  division,
+  number,
+}: {
+  division: string;
+  number: string;
+}) => {
+  if (!number) {
+    return NaN;
+  }
+
+  const c = classifiers.find(cur => cur.classifier === number);
+
+  // major match or classifier not found for some reason
+  if (!c) {
+    return NaN;
+  }
+
+  try {
+    return HF(divShortToNewHHFs[division]?.[number] || -1);
+  } catch (all) {
+    console.error(`cant find New HHF for ${number}:${division}`);
     return -1;
   }
 };
