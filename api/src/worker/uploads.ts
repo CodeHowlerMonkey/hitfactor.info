@@ -415,9 +415,10 @@ export const matchFinishResults = (match, s3MatchFiles): MatchScore[] => {
           percentOfPossible,
           sd,
         }) => ({
-          upload: match.uuid,
           memberNumber,
+          upload: match.uuid,
           division,
+          uploadDivision: [match.uuid, division].join(":"),
           memberNumberDivision: [memberNumber, division].join(":"),
           matchPercent: matchPercent || 0,
           percentOfPossible: percentOfPossible || 0,
