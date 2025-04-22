@@ -2,7 +2,12 @@ import { PAGE_SIZE } from "../../../shared/constants/pagination";
 import { multisortObj } from "../../../shared/utils/sort";
 import { escapeRegExp } from "../utils";
 
-export const percentAggregationOp = (value, total, round = 2) => ({
+export const percentAggregationOp = (
+  value,
+  total,
+  round = 2,
+  negativeTotalValue = 0,
+) => ({
   $cond: {
     if: { $gt: [total, 0] },
     then: {
@@ -13,7 +18,7 @@ export const percentAggregationOp = (value, total, round = 2) => ({
         round,
       ],
     },
-    else: 0,
+    else: negativeTotalValue,
   },
 });
 

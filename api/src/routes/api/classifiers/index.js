@@ -142,7 +142,7 @@ const _runsAggregation = async ({
     {
       $addFields: {
         recPercent: percentAggregationOp("$hf", "$recHHF", 4),
-        curPercent: percentAggregationOp("$hf", "$curHHF", 4),
+        curPercent: percentAggregationOp("$hf", "$curHHF", 4, -1),
         oldPercent: percentAggregationOp("$hf", "$oldHHF", 4),
       },
     },
