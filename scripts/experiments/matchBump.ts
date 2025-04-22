@@ -1,32 +1,33 @@
 /* eslint-disable no-console */
 
+import uniqBy from "lodash.uniqby";
+
 import { connect } from "../../api/src/db";
-import { matchFromMatchDef } from "../../api/src/db/matches";
 import {
-  MatchScore,
-  MatchScores,
-  MatchScoreVirtuals,
-} from "../../api/src/db/matchScores";
-import { uploadResultsForMatches } from "../../api/src/worker/uploads";
-import { fetchPS } from "../../api/src/worker/uploadsCommon";
+  MatchBumps,
+  matchBumpsForMatchResults,
+  saveMatchBumps,
+} from "../../api/src/db/matchBumps";
+import { MatchScores, MatchScoreVirtuals } from "../../api/src/db/matchScores";
+import { MatchScore } from "../../data/types/MatchScore";
 import { correlation, linearRegression } from "../../shared/utils/weibull";
 
 const matchBump = async () => {
   await connect();
-  const ms = await MatchScores.find({
-    //upload: "12d1cd35-3556-44db-af09-5153f975c447", conats
-    // upload: "27c0c577-315b-4695-a595-26e5d51cee6c", // random match, 91% correlation
-    // upload: "7eb1154b-ccb7-4589-95a2-99120b234d32", // utah state 2024
-    upload: "fc8c7dee-900c-4e3c-b7f9-0fc8cde9e7d5", //slpsa
-    division: "co",
-  })
-    .populate("shooter")
-    .sort({ matchPercent: -1 });
+  const ms = await MatchScores.find({}).sort({ matchPercent: -1 }).limit(0);
+  console.log(`results cursor: ${ms.length}`);
 
   const matchResultObjects = ms
-    .filter(s => s.shooterRecPercent > 0)
-    .filter(s => s.matchPercent > 10)
-    .map(s => s.toObject({ virtuals: true })) as (MatchScore & MatchScoreVirtuals)[];
+    .filter(
+      s =>
+        s.shooterRecPercentHistorical! > 0 &&
+        s.matchPercent > 0 &&
+        !!s.shooterRecPercentHistoricalAge &&
+        s.shooterRecPercentHistoricalAge <= 36,
+    )
+    .map(s => s.toObject({ virtuals: false })) as (MatchScore & MatchScoreVirtuals)[];
+  console.log(`results objects filtered: ${matchResultObjects.length}`);
+  process.exit(0);
 
   const points = matchResultObjects.map(({ matchPercent: y, shooterRecPercent: x }) => ({
     x,
@@ -70,28 +71,57 @@ const matchBump = async () => {
   process.exit(0);
 };
 
-const go = async () => {
-  const matchUUID = process.argv[2];
-  const matchTemplateName = process.argv[3];
-  if (!matchUUID || !matchTemplateName) {
-    console.error("must provide match name and templateName");
-    process.exit(1);
-  }
+const eligibleMatchesGo = async () => {
+  await connect();
 
-  const s3Files = await fetchPS(matchUUID);
-  const { matchDef, results } = s3Files;
-  console.log(JSON.stringify({ results }, null, 2));
-  const match = matchFromMatchDef(matchDef, matchTemplateName);
+  const matches = (
+    await MatchBumps.find({
+      filteredDataPoints: { $gte: 30 },
+      filteredCorrelation: { $gte: 0.9 },
+      $or: [{ filteredMasters: { $gte: 10 } }, { filteredGrandmasters: { $gte: 3 } }],
+    })
+  ).map(m => m.toObject());
+  const matchesUUIDs = uniqBy(matches, c => c.uploadDivision);
+  const matchesUploadDivisionMap = Object.fromEntries(
+    matchesUUIDs.map(c => [c.uploadDivision, 1]),
+  );
 
-  if (!match?.name) {
-    console.error("bad match");
-    process.exit(1);
-  }
+  const scores = (
+    await MatchScores.find({
+      matchPercent: { $gt: 0 },
+      upload: { $in: matches.map(m => m.upload) },
+    })
+  ).filter(s => matchesUploadDivisionMap[[s.upload, s.division].join(":")] === 1);
 
-  const uploadResults = await uploadResultsForMatches([match]);
-  const { scores, matchResults } = uploadResults;
-  console.log(JSON.stringify({ scores, matchResults }, null, 2));
+  console.log(`eligible matches: ${Object.keys(matchesUploadDivisionMap).length}`);
+  console.log(`eligible scores: ${scores.length}`);
+  console.log(JSON.stringify(Object.keys(matchesUploadDivisionMap), null, 2));
   process.exit(0);
 };
 
-matchBump();
+const fixUp = async () => {
+  await connect();
+
+  const eligibleMatches = await MatchBumps.find({
+    filteredDataPoints: { $gte: 30 },
+    filteredCorrelation: { $gte: 0.9 },
+    $or: [{ filteredMasters: { $gte: 10 } }, { filteredGrandmasters: { $gte: 3 } }],
+  }).limit(0);
+
+  const uuids = uniqBy(
+    eligibleMatches.map(c => c.upload),
+    c => c,
+  );
+  console.log(uuids.length);
+
+  for (const uuid of uuids) {
+    const all = await MatchScores.find({ upload: uuid }).limit(0);
+    const allObjs = all.map(c => c.toObject({ virtuals: true }));
+    const bumps = matchBumpsForMatchResults(allObjs);
+    await saveMatchBumps(bumps);
+    console.log(`${all.length} => ${bumps.length}`);
+  }
+  process.exit(0);
+};
+
+fixUp();
