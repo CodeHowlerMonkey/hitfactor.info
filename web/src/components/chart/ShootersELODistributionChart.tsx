@@ -224,12 +224,12 @@ export const ShootersELODistributionChart = ({
                   pointsGraphName,
                 } = raw as RawDataPoint;
                 if (isVersus) {
-                  return `${ogMemberNumber} ${name}; X ${x.toFixed(2)}; Y ${y.toFixed(2)}; ELO: ${rating.toFixed(2)}`;
+                  return `${ogMemberNumber} ${name}; X ${x.toFixed(2)}; Y ${y.toFixed(2)}; ELO: ${rating?.toFixed(2) || "—"}`;
                 }
                 if (pointsGraphName) {
                   return null;
                 }
-                return `${memberNumber} ${name}; Top ${y.toFixed(2)}%, ELO: ${rating.toFixed(2)} (${((100 * rating) / 1700).toFixed(2)}%)`;
+                return `${memberNumber} ${name}; Top ${y.toFixed(2)}%, ELO: ${rating?.toFixed(2) || "—"} (${((100 * (rating || 0)) / 1700).toFixed(2)}%)`;
               },
             },
           },
