@@ -198,7 +198,7 @@ const ShootersTable = ({
           body={renderPercent}
         />
         <Column
-          hidden={isHFU}
+          hidden
           field="reclassificationsCurPercentCurrent"
           header="HQ"
           // header="Cur."
@@ -208,7 +208,7 @@ const ShootersTable = ({
           body={renderPercent}
         />
         <Column
-          hidden={isHFU}
+          hidden
           field="reclassificationsCurPercentHigh"
           header="HQ High"
           // header="Cur."

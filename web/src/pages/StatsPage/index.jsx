@@ -179,6 +179,7 @@ export const ClassificationsChart = ({
   );
 };
 
+/*
 const ModeSwitch = ({ mode, setMode, modes }) => (
   <div className="card flex justify-content-center mt-4 mb-2 text-xs md:text-sm">
     <SelectButton
@@ -189,7 +190,7 @@ const ModeSwitch = ({ mode, setMode, modes }) => (
       onChange={e => setMode(e.value)}
     />
   </div>
-);
+);*/
 const titleForDivMap = {
   opn: "Open",
   co: "Carry Optics",
@@ -306,8 +307,8 @@ const Divisions = () => (
 
 // main "page" of this file
 export const StatsPage = () => {
-  const [mode, setMode] = useState(modes[0]);
-  const modeSwitchProps = { modes, mode, setMode };
+  const [mode /*, setMode*/] = useState(modes[1]);
+  // const modeSwitchProps = { modes, mode, setMode };
   const modeBucket = modeBucketForMode(mode);
   const [includeU, setChecked] = useState(false);
   const { json: apiData } = useApi("/classifications");
@@ -327,8 +328,8 @@ export const StatsPage = () => {
     <div className="p-0 md:px-4">
       <TabView panelContainerClassName="p-0 md:px-4">
         <TabPanel header="Pie Charts" className="p-0 text-sm md:text-base">
-          <ModeSwitch {...modeSwitchProps} />
-          <div className="card flex justify-content-center m-0">
+          {/*<ModeSwitch {...modeSwitchProps} />*/}
+          <div className="card flex justify-content-center m-0 mt-4">
             Include Unclassified
             <Checkbox onChange={e => setChecked(e.checked)} checked={includeU} />
           </div>
@@ -437,7 +438,7 @@ export const StatsPage = () => {
         </TabPanel>
 
         <TabPanel header="Alignment" className="p-0 text-sm md:text-base">
-          <ModeSwitch {...modeSwitchProps} />
+          {/*<ModeSwitch {...modeSwitchProps} />*/}
           <div style={{ width: "100%", overflowX: "auto" }}>
             <div
               style={{

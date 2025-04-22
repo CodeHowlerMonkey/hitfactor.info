@@ -43,8 +43,8 @@ const defaultMainMode = mainModes[0];
 const fieldModeMap = {
   ELO: "elo",
   //HQ: "curPercent",
-  HQ: "curHHFPercent",
-  "HQ High": "curHHFPercentHigh",
+  // HQ: "curHHFPercent",
+  // "HQ High": "curHHFPercentHigh",
   /*
   "Rec.HHFOnly": "recHHFOnlyPercent",
   "Rec.Soft": "recSoftPercent",
@@ -55,7 +55,7 @@ const fieldModeMap = {
 };
 const fieldForMode = mode => fieldModeMap[mode];
 const modes = Object.keys(fieldModeMap);
-const recommendedMode = modes[3];
+const recommendedMode = modes[0];
 const percentModes = modes.filter(c => c !== "ELO");
 
 interface RawDataPoint {

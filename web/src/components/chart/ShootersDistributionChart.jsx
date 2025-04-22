@@ -23,8 +23,8 @@ import { WeibullStatus } from "./WeibullStatus";
 
 const fieldModeMap = {
   //HQ: "curPercent",
-  HQ: "curHHFPercent",
-  "HQ High": "curHHFPercentHigh",
+  //HQ: "curHHFPercent",
+  //"HQ High": "curHHFPercentHigh",
   /*
   "Rec.HHFOnly": "recHHFOnlyPercent",
   "Rec.Soft": "recSoftPercent",
@@ -35,7 +35,7 @@ const fieldModeMap = {
 };
 const fieldForMode = mode => fieldModeMap[mode];
 const modes = Object.keys(fieldModeMap);
-const recommendedMode = modes[2];
+const recommendedMode = modes[0];
 
 export const ShootersDistributionChart = ({ division, style }) => {
   const isHFU = useIsHFU(division);

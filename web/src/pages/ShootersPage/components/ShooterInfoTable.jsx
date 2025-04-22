@@ -152,14 +152,14 @@ export const ShooterInfoTable = ({ info, division, memberNumber, loading }) => {
             <Column
               align="center"
               field="rec"
-              header={isHFU ? "Percent" : "Rec."}
+              header={isHFU ? "Percent" : "Recommended"}
               body={renderClassification}
             />
             <Column
+              hidden
               align="center"
               field="curHHF"
-              header="HQ"
-              hidden={isHFU}
+              header="Old HQ"
               body={renderClassification}
             />
             <Column field="age" header="Age" style={{ widths: 128 }} align="right" />
