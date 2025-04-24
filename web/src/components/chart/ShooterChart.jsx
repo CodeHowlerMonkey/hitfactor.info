@@ -99,6 +99,7 @@ export const ShooterChart = ({ division, memberNumber }) => {
       }}
       data={{
         datasets: [
+          /*
           !isHFU && {
             label: "Current Percent",
             data: data.map(c => ({
@@ -108,6 +109,7 @@ export const ShooterChart = ({ division, memberNumber }) => {
             })),
             backgroundColor: "#b5ca25",
           },
+          */
           {
             label: isHFU ? "Percent" : "Rec. Percent",
             data: data.map(c => ({

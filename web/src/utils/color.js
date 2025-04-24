@@ -1,4 +1,5 @@
 export const bgColorForClass = {
+  Z: "#555555", // memberNumber background
   X: "#5e5e5d",
   U: "#5e5e5d",
   D: "#ff7515",

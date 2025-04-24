@@ -3,26 +3,25 @@ import { Tag } from "primereact/tag";
 import { classForPercent } from "../../../shared/utils/classification";
 import { bgColorForClass, fgColorForClass } from "../utils/color";
 
-const ClassTag = ({ value, alpha, tooltip, style }) =>
+const tagStyle = (value, color) => ({
+  backgroundColor: bgColorForClass[value],
+  color: color ?? fgColorForClass[value],
+  padding: "0.075em 0.35em",
+  fontSize: "0.85em",
+  fontWeight: "normal",
+  margin: "0 0.35em 0 0",
+  minWidth: "1.285em",
+});
+
+const ClassTag = ({ value, tooltip }) =>
   !value ? null : (
-    <span title={!value ? "Unknown Class" : tooltip || ""}>
-      <Tag
-        className=".shooter-class-tag"
-        rounded
-        severity="info"
-        value={value}
-        style={{
-          backgroundColor: bgColorForClass[value],
-          color: fgColorForClass[value],
-          padding: "0.0715em 0.285em",
-          fontSize: "0.785em",
-          margin: "0 0.0715em",
-          minWidth: "1.285em",
-          opacity: alpha,
-          ...style,
-        }}
-      />
-    </span>
+    <Tag
+      title={tooltip || ""}
+      rounded
+      severity="info"
+      value={value}
+      style={tagStyle(value)}
+    />
   );
 
 const DivisionNameIfNeeded = ({ division, sport }) =>
@@ -40,26 +39,6 @@ const DivisionNameIfNeeded = ({ division, sport }) =>
 
 export const ShooterCell = ({ data, onClick, sport }) => (
   <div style={{ cursor: "pointer" }} className="max-w-max" onClick={onClick}>
-    {(!sport || sport === "uspsa") && (
-      <div className="max-w-max">
-        <ClassTag
-          value={classForPercent(data?.reclassificationsRecPercentUncappedHigh)}
-          tooltip={`Recommended: ${data?.reclassificationsRecPercentUncappedHigh?.toFixed(
-            2,
-          )}% / ${data?.reclassificationsRecPercentUncappedCurrent?.toFixed(2)}%`}
-        />
-        <ClassTag
-          value={classForPercent(data?.reclassificationsCurPercentHigh)}
-          alpha={0.65}
-          tooltip={`Current HHF: ${data?.reclassificationsCurPercentHigh?.toFixed(2)}% / ${data?.reclassificationsCurPercentCurrent?.toFixed(2)}%`}
-        />
-        <ClassTag
-          value={data?.hqClass}
-          alpha={0.45}
-          tooltip={`HQ: ${data?.current?.toFixed(2) ?? 0}%`}
-        />
-      </div>
-    )}
     <div className="max-w-max">
       {sport === "hfu" && (
         <ClassTag
@@ -67,14 +46,17 @@ export const ShooterCell = ({ data, onClick, sport }) => (
           tooltip={`Recommended: ${data?.reclassificationsRecPercentCurrent?.toFixed(
             2,
           )}%`}
-          style={{
-            fontSize: "1em",
-            padding: "0 0.25em",
-            marginRight: "0.25em",
-          }}
         />
       )}
-      {data.memberNumber}
+      {(!sport || sport === "uspsa") && (
+        <ClassTag
+          value={classForPercent(data?.reclassificationsRecPercentUncappedHigh)}
+          tooltip={`Recommended High: ${data?.reclassificationsRecPercentUncappedHigh?.toFixed(
+            2,
+          )}%`}
+        />
+      )}
+      <span style={{ fontSize: "0.85em" }}>{data.memberNumber}</span>
       <DivisionNameIfNeeded sport={sport} division={data?.originalDivision} />
     </div>
     <div style={{ fontSize: "1.125em" }}>{data.name || data.shooterFullName}</div>

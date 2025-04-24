@@ -40,7 +40,7 @@ export const ShooterProgressChart = ({ division, memberNumber }) => {
           scales: {
             y: {
               max: 120,
-              min: 40,
+              min: 0,
             },
             x: {
               type: "time",
@@ -61,14 +61,14 @@ export const ShooterProgressChart = ({ division, memberNumber }) => {
           },
           plugins: {
             zoom: {
-              pan: { enabled: true },
+              pan: { enabled: false },
               zoom: {
                 mode: "xy",
                 wheel: {
-                  enabled: true,
+                  enabled: false,
                 },
                 pinch: {
-                  enabled: true,
+                  enabled: false,
                 },
               },
             },
@@ -87,7 +87,7 @@ export const ShooterProgressChart = ({ division, memberNumber }) => {
         data={{
           datasets: [
             {
-              label: "Percent",
+              label: "Recommended %",
               data: data.map(c => ({
                 x: new Date(
                   new Date(c.sd).toLocaleDateString("en-us", { timeZone: "UTC" }),
@@ -112,7 +112,7 @@ export const ShooterProgressChart = ({ division, memberNumber }) => {
           }}
         />
       )}
-      {!isHFU && (
+      {false && !isHFU && (
         <div className="flex justify-space-around absolute right-0 left-0 top-0">
           <SelectButton
             className="compact"
