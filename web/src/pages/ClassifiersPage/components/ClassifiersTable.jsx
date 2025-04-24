@@ -307,7 +307,20 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
         header={isSCSA ? "HQ Peak Time" : "HQ HHF"}
         sortable
         style={{ width: "100px" }}
-        body={c => (isSCSA ? `${c.curHHF.toFixed(2)}s` : c.curHHF.toFixed(4))}
+        align="right"
+        body={c => {
+          if (c.curHHF <= 0) {
+            return (
+              <span
+                style={{ display: "inline-block", width: "100%", textAlign: "center" }}
+              >
+                —
+              </span>
+            );
+          }
+
+          return c.curHHF.toFixed(4);
+        }}
       />
       <Column
         hidden={!nerdMode}
@@ -321,7 +334,7 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
         header="Old HHF"
         headerTooltip="HQ HHF before March 2025 Update"
         sortable
-        style={{ width: "100px" }}
+        style={{ width: "100px", textAlign: "right" }}
         body={c => c.oldHHF.toFixed(4)}
       />
       <Column

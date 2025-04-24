@@ -7,6 +7,7 @@ import {
 import {
   divisionsForScoresAdapter,
   hfuDivisionsShortNamesThatNeedMinorHF,
+  L10_OPTICS_EFFECTIVE_TS,
 } from "../../../dataUtil/divisions";
 import { HF, N, Percent, PositiveOrMinus1 } from "../../../dataUtil/numbers";
 import {
@@ -54,6 +55,8 @@ const _matchScoresForClassifierDivision = (number, division) => ({
     division: { $in: divisionsForScoresAdapter(division) },
     hf: { $gt: 0 },
     bad: { $ne: true },
+
+    ...(division === "l10" ? { sd: { $gte: new Date(L10_OPTICS_EFFECTIVE_TS) } } : {}),
   },
 });
 

@@ -15,6 +15,7 @@ import {
 import {
   divisionsForScoresAdapter,
   divShortNames,
+  L10_OPTICS_EFFECTIVE_TS,
   PROD_15_EFFECTIVE_TS,
 } from "../dataUtil/divisions";
 import { hhfsForDivision } from "../dataUtil/hhf";
@@ -101,7 +102,7 @@ const calcLegitRunStats = (runs, hhf) =>
 const extendedInfoForClassifier = (
   c: ClassifierJSON,
   division: string,
-  hitFactorScores: Score[],
+  hitFactorScoresRaw: Score[],
 ) => {
   if (!division || !c?.id) {
     return {};
@@ -112,6 +113,13 @@ const extendedInfoForClassifier = (
   }
   const curHHFInfo = divisionHHFs.find(dHHF => dHHF.classifier === c.id);
   const hhf = Number(curHHFInfo?.hhf);
+
+  const hitFactorScores =
+    division === "l10"
+      ? hitFactorScoresRaw.filter(
+          curScore => curScore.sd.getTime() >= L10_OPTICS_EFFECTIVE_TS,
+        )
+      : hitFactorScoresRaw;
 
   const topXPercentileStats = x => ({
     [`top${x}PercentilePercent`]:

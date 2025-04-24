@@ -362,3 +362,6 @@ export const scsaDivisionsShortNames = scsaDivisions.map(div => div.short);
 
 // February 1st 2024
 export const PROD_15_EFFECTIVE_TS = 1706770800000;
+
+// January 31st 2025
+export const L10_OPTICS_EFFECTIVE_TS = 1738281600000;

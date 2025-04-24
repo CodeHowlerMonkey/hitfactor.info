@@ -5,6 +5,7 @@ import {
   divIdToShort,
   divisionsForScoresAdapter,
   hfuDivisionsShortNamesThatNeedMinorHF,
+  L10_OPTICS_EFFECTIVE_TS,
   minorDivisions,
   uspsaDivIdToShort,
   uspsaDivShortNames,
@@ -202,6 +203,9 @@ const isMajor = source => source === "Major Match";
  */
 export const minorHFScoresAdapter = (runs, division) => {
   if (!hfuDivisionsShortNamesThatNeedMinorHF.includes(division)) {
+    if (division === "l10") {
+      return runs.filter(c => c.sd.getTime() >= L10_OPTICS_EFFECTIVE_TS);
+    }
     return runs;
   }
 
