@@ -87,7 +87,7 @@ export const ShooterProgressChart = ({ division, memberNumber }) => {
         data={{
           datasets: [
             {
-              label: "Recommended %",
+              label: "Rec. Percent",
               data: data.map(c => ({
                 x: new Date(
                   new Date(c.sd).toLocaleDateString("en-us", { timeZone: "UTC" }),
