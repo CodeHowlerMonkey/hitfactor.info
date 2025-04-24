@@ -95,7 +95,16 @@ const fixUp = async () => {
         filter: {
           memberNumber: oldMemberNumber,
         },
-        update: { $set: { memberNumber: shooterRenameMap[oldMemberNumber] } },
+        update: [
+          {
+            $set: {
+              memberNumber: shooterRenameMap[oldMemberNumber],
+              memberNumberDivision: {
+                $concat: [shooterRenameMap[oldMemberNumber], ":", "$division"],
+              },
+            },
+          },
+        ],
       },
     }));
     await Scores.bulkWrite(scoreUpdateMany);
