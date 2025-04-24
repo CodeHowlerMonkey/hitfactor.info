@@ -48,6 +48,7 @@ const dedupe = async () => {
     _id: { $in: scoresToRemove.map(s => s._id) },
   });
   console.log(JSON.stringify(result, null, 2));
+  process.exit(0);
 };
 
 dedupe();
