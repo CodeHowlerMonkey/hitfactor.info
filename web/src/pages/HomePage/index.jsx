@@ -43,11 +43,7 @@ const HomePage = () => {
                   automatically using Statistical Analysis and Score Distribution.
                 </p>
 
-                <p>
-                  And thanks to your support, we are now working on bringing it to USPSA.
-                  <br />
-                  Stay tuned!
-                </p>
+                <p>And thanks to your support, we are now bringing it to USPSA!</p>
                 <p>
                   We also have experimental{" "}
                   <a href="https://scsa.hitfactor.info" target="_blank" rel="noreferrer">
