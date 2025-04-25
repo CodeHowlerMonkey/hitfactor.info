@@ -204,7 +204,14 @@ const isMajor = source => source === "Major Match";
 export const minorHFScoresAdapter = (runs, division) => {
   if (!hfuDivisionsShortNamesThatNeedMinorHF.includes(division)) {
     if (division === "l10") {
-      return runs.filter(c => c.sd.getTime() >= L10_OPTICS_EFFECTIVE_TS);
+      return runs.filter(c => {
+        if (!c.sd) {
+          console.error("no sd for score:");
+          console.error(JSON.stringify(c, null, 2));
+          return false;
+        }
+        return c.sd.getTime() >= L10_OPTICS_EFFECTIVE_TS;
+      });
     }
     return runs;
   }

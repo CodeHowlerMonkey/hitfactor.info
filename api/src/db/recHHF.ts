@@ -45,7 +45,7 @@ const runsForRecsMultiByClassifierDivision = async classifiers => {
     },
     hf: { $gt: 0 },
   })
-    .select({ hf: true, minorHF: true, _id: false, classifierDivision: true })
+    .select({ hf: 1, minorHF: 1, _id: 0, classifierDivision: 1, sd: 1 })
     .sort({ hf: -1 })
     .limit(0)
     .lean();
