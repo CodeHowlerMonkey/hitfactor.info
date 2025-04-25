@@ -1,10 +1,11 @@
 import { ProgressSpinner } from "primereact/progressspinner";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 
 import {
   eligibilityFilter,
   grandmasterPercent,
   masterPercent,
+  maxPercentDifference,
 } from "../../../../data/types/MatchScore";
 import { classForPercent } from "../../../../shared/utils/classification";
 import {
@@ -53,47 +54,39 @@ const colorForELOOrPercent = (colorMode: string, dataPoint: DataPoint) => {
   return bgColorForClass[classForPercent(dataPoint[field])];
 };
 
+// TODO: f3445105-8968-4079-81e4-aa40c4b5e522:lo is not eligible in DB,
+// but eligible on the chart
 export const MatchBumpChart = ({ match, division, loading }) => {
-  const [numberOfSkippedTopScores, setNumberOfSkippedTopScores] = useState(0);
-  const [numberOfSkippedTopClassifications, setNumberOfSkippedTopClassifications] =
-    useState(0);
-  const data = useMemo(() => {
-    const test = (match?.matchScores || [])
-      .filter(c => c.division === division)
-      .map(
-        ({
-          matchPercent,
-          shooter,
-          shooterFullName,
-          shooterRecPercentHistorical,
-          ...etc
-        }) => ({
-          ...etc,
-          matchPercent,
-          name: shooterFullName ?? shooter?.name,
-          shooterRecPercentHistorical,
-          x: shooterRecPercentHistorical,
-          y: matchPercent,
-          pointsGraphName: "Match/Classification",
+  const data = useMemo(
+    () =>
+      (match?.matchScores || [])
+        .filter(c => c.division === division)
+        .map(
+          ({
+            matchPercent,
+            shooter,
+            shooterFullName,
+            shooterRecPercentHistorical,
+            ...etc
+          }) => ({
+            ...etc,
+            matchPercent,
+            name: shooterFullName ?? shooter?.name,
+            shooterRecPercentHistorical,
+            x: shooterRecPercentHistorical,
+            y: matchPercent,
+            pointsGraphName: "Match/Classification",
+          }),
+        )
+        .filter(c => c.x > 0 && c.y > 0)
+        .sort((a, b) => {
+          if (a.y !== b.y) {
+            return a.y - b.y;
+          }
+          return a.x - b.x;
         }),
-      )
-      .filter(c => c.x > 0 && c.y > 0);
-    const lessClassifications = test
-      .toSorted((a, b) => b.x - a.x)
-      .slice(numberOfSkippedTopClassifications, test.length);
-    const less = lessClassifications
-      .toSorted((a, b) => b.y - a.y)
-      .slice(numberOfSkippedTopScores, lessClassifications.length);
-    const multiplier = 100 / (less[0]?.y || 1);
-    return less
-      .map(c => ({ ...c, y: c.y * multiplier, matchPercent: c.y * multiplier }))
-      .toSorted((a, b) => {
-        if (a.y !== b.y) {
-          return a.y - b.y;
-        }
-        return a.x - b.x;
-      });
-  }, [match, division, numberOfSkippedTopScores, numberOfSkippedTopClassifications]);
+    [match, division],
+  );
   const eligibleData = useMemo(() => data?.filter(eligibilityFilter), [data]);
   const lrr = useMemo(
     () =>
@@ -203,6 +196,34 @@ export const MatchBumpChart = ({ match, division, loading }) => {
       data={{
         datasets: [
           {
+            label: "LR-High",
+            data: pointsGraph({
+              yFn: linearFactory(lrr, +maxPercentDifference),
+              minX: 0,
+              maxX: 1.05 * dataWithBumps.toSorted((a, b) => b.x - a.x)[0].x,
+              step: 0.2,
+              name: "Linear Regression",
+            }),
+            pointRadius: 1,
+            pointBorderColor: "black",
+            pointBorderWidth: 0,
+            pointBackgroundColor: linearAnnotationColor(0.15),
+          },
+          {
+            label: "LR-Low",
+            data: pointsGraph({
+              yFn: linearFactory(lrr, -maxPercentDifference),
+              minX: 0,
+              maxX: 1.05 * dataWithBumps.toSorted((a, b) => b.x - a.x)[0].x,
+              step: 0.2,
+              name: "Linear Regression",
+            }),
+            pointRadius: 1,
+            pointBorderColor: "black",
+            pointBorderWidth: 0,
+            pointBackgroundColor: linearAnnotationColor(0.15),
+          },
+          {
             label: "LinearRegression",
             data: pointsGraph({
               yFn: linearFactory(lrr),
@@ -255,30 +276,6 @@ export const MatchBumpChart = ({ match, division, loading }) => {
       <div className="flex mt-4 justify-content-around text-base lg:text-xl">
         <div className="flex gap-2 text-sm">
           <div className="flex flex-column justify-content-center text-md text-500 font-bold gap-1">
-            <div className="flex flex-row justify-content-end align-items-center gap-2">
-              Skip Top Classifications:{" "}
-              <input
-                className="w-2"
-                type="number"
-                name="points"
-                step={1}
-                value={numberOfSkippedTopClassifications}
-                onChange={e =>
-                  setNumberOfSkippedTopClassifications(Number(e.target.value))
-                }
-              />
-            </div>
-            <div className="flex flex-row justify-content-end align-items-center gap-2">
-              Skip Top Scores:{" "}
-              <input
-                className="w-2"
-                type="number"
-                name="points"
-                step={1}
-                value={numberOfSkippedTopScores}
-                onChange={e => setNumberOfSkippedTopScores(Number(e.target.value))}
-              />
-            </div>
             <div className="flex justify-content-center gap-2">
               <div>Eligibility: </div>
               <div className={goodCorrelation ? "text-green-600" : "text-red-600"}>

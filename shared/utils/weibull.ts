@@ -357,8 +357,10 @@ export const reverseLinear = (c: Point, lrr: LinearRegressionResult): number => 
   return (c.y - lrr.intercept) / lrr.slope;
 };
 
-export const linearFactory = (lrr: LinearRegressionDefinition) => (x: number) =>
-  lrr.slope * x + lrr.intercept;
+export const linearFactory =
+  (lrr: LinearRegressionDefinition, interceptOffset: number = 0) =>
+  (x: number) =>
+    lrr.slope * x + lrr.intercept + interceptOffset;
 
 const linearRegressionSAE = (points: Point[]) => (lrrArray: number[]) =>
   points.reduce(
