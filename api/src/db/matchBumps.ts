@@ -74,6 +74,14 @@ const MatchBumpSchema = new mongoose.Schema<MatchBump>(
   { strict: false },
 );
 
+// Match Criteria:
+//     - Eligible Correlation  >= 90%
+//     - Eligible Datapoints   >= 30
+//     ? Eligible Masters      >= 10 (>= 80% match, >= 80% classification, using best8 / 12 current)
+//               - OR -
+//     ? Eligible Grandmasters >=  3  (>= 90%/90% match/classification using best8/12current)
+//
+// For current classification see db/matchScores#backfillClassifications()
 MatchBumpSchema.virtual("eligible").get(function () {
   return (
     this.filteredDataPoints >= 30 &&

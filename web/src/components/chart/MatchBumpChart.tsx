@@ -16,12 +16,6 @@ import {
 } from "../../../../shared/utils/weibull";
 import { bgColorForClass } from "../../utils/color";
 
-// Match Criteria:
-//     - Eligible Correlation >= 90%
-//     - Eligible MAE         <=  6%
-//     - Eligible Datapoints  >= 50
-//     - Eligible Masters     >= 10 (>= 80% match, >= 80% classification, using best8 / 12 current)
-
 import {
   Scatter,
   pointsGraph,
