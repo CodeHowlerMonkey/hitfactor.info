@@ -111,14 +111,20 @@ export const ShootersDistributionChart = ({ division, style }) => {
           tooltip: {
             callbacks: {
               label: ({
-                raw: { recPercent, curHHFPercent, memberNumber, y, pointsGraphName },
+                raw: {
+                  recPercentUncapped,
+                  memberNumber,
+                  y,
+                  pointsGraphName,
+                  recPercentUncappedHigh,
+                },
               }) => {
                 if (pointsGraphName) {
                   return null;
                 }
                 return `${memberNumber}; Top ${y.toFixed(
                   2,
-                )}%, Rec: ${recPercent}%, HQ/curHHF: ${curHHFPercent}%`;
+                )}%, Rec.: ${recPercentUncapped}%, Rec. High: ${recPercentUncappedHigh}%`;
               },
             },
           },
@@ -183,7 +189,7 @@ export const ShootersDistributionChart = ({ division, style }) => {
 
   return (
     <div style={style}>
-      <div className="flex mt-4 justify-content-start gap-4 mb-2 text-base lg:text-xl">
+      <div className="flex mt-4 justify-content-center gap-4 mb-2 text-base lg:text-xl">
         {!isHFU && (
           <div className="flex flex-column gap-2">
             <div className="flex flex-column justify-content-center align-items-start">
@@ -213,8 +219,7 @@ export const ShootersDistributionChart = ({ division, style }) => {
       <div
         style={{
           maxWidth: "100%",
-          height: "calc(100vh - 420px)",
-          minHeight: "calc(max(60vh, 60vw))",
+          height: "calc(min(80vh, max(60vh, 60vw)))",
         }}
       >
         {graph}
