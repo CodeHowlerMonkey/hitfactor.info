@@ -7,7 +7,9 @@ import { Shooters } from "../../api/src/db/shooters";
 
 /**
  * Migrates shooters & scores with A/TY/FY memberNumbers to last memberNumber they had historically.
- * TODO: use historical based on last scores
+ *
+ * Updates Scores collection (modifying memberNumber & memberNumberDivision)
+ * Deletes from Shooters collection.
  */
 const fixUp = async () => {
   await connect();
