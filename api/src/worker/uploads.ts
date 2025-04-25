@@ -27,7 +27,7 @@ import { DQs } from "../db/dq";
 import { connect } from "../db/index";
 import { matchBumpsForMatchResults, saveMatchBumps } from "../db/matchBumps";
 import { Match, MatchDef, Matches } from "../db/matches";
-import { backfillClassifications, MatchScores, saveMatchScores } from "../db/matchScores";
+import { backfillClassifications, saveMatchScores } from "../db/matchScores";
 import { hydrateRecHHFsForClassifiers } from "../db/recHHF";
 import { Score, Scores } from "../db/scores";
 import { reclassifyShooters } from "../db/shooters";
@@ -766,37 +766,6 @@ const metaShootersLoop = async (batchSize = 8) => {
   }
 };
 
-// TODO: delete if not needed
-export const metaMatchScoresLoop = async (batchSize = 8) => {
-  try {
-    const notBackfilledFilter = {
-      shooterRecPercentHistorical: { $exists: false },
-    };
-    const totalCount = await MatchScores.countDocuments(notBackfilledFilter);
-    console.log(`${totalCount} match scores to update`);
-
-    let updated = 0;
-    let matchScores = [] as MatchScore[];
-    do {
-      matchScores = await MatchScores.find(notBackfilledFilter).limit(batchSize).lean();
-      if (!matchScores.length) {
-        break;
-      }
-      matchScores = await backfillClassifications(matchScores);
-      await saveMatchScores(matchScores);
-      updated += matchScores.length;
-      process.stdout.write(`\r${updated}/${totalCount}`);
-    } while (matchScores.length);
-    if (updated) {
-      process.stdout.write(`\n`);
-    }
-  } catch (err) {
-    console.error("Error backfilling match scores");
-    console.error(err);
-  }
-};
-
-// this one stays
 const backfillMatchScoresClassifications = async (
   allMatchScores: MatchScore[],
   batchSize: number = 8,
