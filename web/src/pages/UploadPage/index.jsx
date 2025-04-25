@@ -80,7 +80,13 @@ const MatchPage = ({ uuid }) => {
                   </div>
                 )}
                 {scoresMode !== "Weibull" ? null : (
-                  <div className="w-full bg-primary-reverse" style={{ height: "80vw" }}>
+                  <div
+                    className="w-full bg-primary-reverse"
+                    style={{
+                      maxWidth: "100%",
+                      height: "calc(min(80vh, max(60vh, 60vw)))",
+                    }}
+                  >
                     <ScoresChart
                       showWeibull
                       hideExpandButton

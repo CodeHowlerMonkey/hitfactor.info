@@ -316,7 +316,7 @@ export const MatchBumpChart = ({ match, division, loading }) => {
       <div
         style={{
           maxWidth: "100%",
-          height: "calc(min(100vh, max(60vh, 60vw)))",
+          height: "calc(min(80vh, max(60vh, 60vw)))",
         }}
       >
         {graph}
