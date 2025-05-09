@@ -3,7 +3,8 @@ import uniqBy from "lodash.uniqby";
 import mongoose, { Model } from "mongoose";
 
 import { scoresForRecommendedClassification, Shooter } from "@api/db/shooters";
-import { Match } from "@data/types/Match";
+import { MatchWithNoRefVirtuals } from "@data/types/Match";
+import { MatchBumpWithVirtuals } from "@data/types/MatchBump";
 import { MatchScore } from "@data/types/MatchScore";
 import { classificationDifficulty } from "@shared/constants/difficulty";
 import { calculateUSPSAClassification } from "@shared/utils/classification";
@@ -11,7 +12,8 @@ import { calculateUSPSAClassification } from "@shared/utils/classification";
 export interface MatchScoreVirtuals {
   shooter: Shooter;
   shooterRecPercent: number;
-  match: Match;
+  match: MatchWithNoRefVirtuals;
+  matchBump: MatchBumpWithVirtuals;
 }
 
 type MatchScoreModel = Model<MatchScore, object, MatchScoreVirtuals>;
@@ -139,4 +141,87 @@ export const backfillClassifications = async (
       shooterRecPercentHistoricalAge: reclass?.age || 999,
     };
   });
+};
+
+interface MatchScoresFilter {
+  division: string;
+  memberNumber?: string;
+  match?: string;
+}
+
+type MatchScoresExtra = MatchScoreObjectWithVirtuals &
+  MatchBumpWithVirtuals & {
+    level: number;
+    name: string;
+    eligible: boolean;
+    bump: number;
+  };
+export const matchScoresFor = async ({
+  division,
+  memberNumber,
+  match,
+}: MatchScoresFilter): Promise<MatchScoresExtra[]> => {
+  const filter = {
+    division,
+    ...(memberNumber ? { memberNumber } : {}),
+    ...(match ? { upload: match } : {}),
+  };
+
+  const shooterMaybe = !memberNumber && !!division && !!match ? ["shooter"] : [];
+  const matches = await MatchScores.find(filter)
+    .limit(0)
+    .populate(["match", "matchBump", ...shooterMaybe]);
+
+  return matches
+    .map(m => {
+      const c = m.toObject<MatchScoreObjectWithVirtuals>({ virtuals: true });
+      if (!c.matchBump) {
+        return;
+      }
+      const { intercept, slope } = c.matchBump;
+      const bump = (c.matchPercent - intercept) / slope;
+      return {
+        ...c.matchBump,
+        ...c,
+        level: c.match?.level,
+        name: c.match?.name,
+        eligible: c.matchBump.eligible,
+        bump,
+      };
+    })
+    .filter(Boolean) as MatchScoresExtra[];
+};
+
+const matchWeightForLevel = (level: number) => {
+  switch (level) {
+    case 4:
+      return 6;
+    case 3:
+      return 3;
+    case 2:
+      return 2;
+    default:
+      return 0;
+  }
+};
+
+export const matchScoresForClassification = async ({
+  division,
+  memberNumber,
+}: MatchScoresFilter) => {
+  const matchScores = await matchScoresFor({ division, memberNumber });
+  const explodedMatchScores = matchScores
+    .filter(ms => ms.eligible)
+    .map(ms => new Array(matchWeightForLevel(ms?.level || 0)).fill(ms))
+    .flat();
+
+  return explodedMatchScores.map(ms => ({
+    source: "Major Match",
+    classifier: "",
+    division,
+    sd: ms.date,
+    percent: ms.bump || 0,
+    curPercent: ms.bump || 0,
+    recPercent: ms.bump || 0,
+  }));
 };

@@ -63,6 +63,20 @@ export const renderPercent = (c, { field }, transform = asIs => asIs) => {
   return `${value.toFixed(2)}%`;
 };
 
+export const renderMatchLevel = (c, { field }) => {
+  switch (c[field]) {
+    case 4:
+      return "IV";
+    case 3:
+    case 2:
+    case 1:
+      return new Array(c.level).fill("I").join("");
+
+    default:
+      return "—";
+  }
+};
+
 export const renderPercentAllowNegative = (c, { field }) => {
   let value = c[field];
   if (value === undefined) {

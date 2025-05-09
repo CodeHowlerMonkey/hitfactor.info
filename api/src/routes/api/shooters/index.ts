@@ -1,16 +1,17 @@
+import sortedUniqBy from "lodash.sorteduniqby";
 import uniqBy from "lodash.uniqby";
 
 import { classificationDifficulty } from "../../../../../shared/constants/difficulty";
 import { calculateUSPSAClassification } from "../../../../../shared/utils/classification";
 import { multisort, safeNumSort } from "../../../../../shared/utils/sort";
 import { basicInfoForClassifierCode } from "../../../dataUtil/classifiersData";
+import { matchScoresForClassification } from "../../../db/matchScores";
 import { RecHHFs } from "../../../db/recHHF";
 import { scoresForDivisionForShooter, shooterScoresChartData } from "../../../db/scores";
 import {
   Shooters,
   allDivisionsScores,
   dedupeGrandbagging,
-  reclassificationForProgressMode,
   scoresForRecommendedClassification,
 } from "../../../db/shooters";
 import {
@@ -89,6 +90,45 @@ const shootersQueryAggregation = (params, query) => {
   ]);
 };
 
+const scoresForMode = async (
+  mode: "combo" | "classifiers" | "majors",
+  memberNumber: string,
+  division: string,
+) => {
+  const getClassifiers = async () =>
+    scoresForRecommendedClassification([memberNumber], division);
+  const getMatchScores = async () =>
+    matchScoresForClassification({ memberNumber, division });
+
+  switch (mode) {
+    case "combo":
+      return (await getClassifiers()).concat(await getMatchScores());
+    case "classifiers":
+      return getClassifiers();
+    case "majors":
+      return getMatchScores();
+  }
+};
+
+const reclassificationForProgressMode = async (
+  mode: "combo" | "classifiers" | "majors",
+  memberNumber: string,
+  division: string,
+) => {
+  const now = new Date();
+  const scores = await scoresForMode(mode, memberNumber, division);
+  return calculateUSPSAClassification(
+    scores,
+    "recPercent",
+    now,
+    "brutal",
+    classificationDifficulty.window.min,
+    classificationDifficulty.window.best,
+    classificationDifficulty.window.recent,
+    classificationDifficulty.percentCap,
+  );
+};
+
 const shootersRoutes = async fastify => {
   fastify.get("/:division", async req => {
     const shooters = await shootersQueryAggregation(req.params, req.query);
@@ -144,6 +184,7 @@ const shootersRoutes = async fastify => {
     delete info.classes;
     delete info.currents;
     delete info.ages;
+
     delete info.age1s;
 
     return {
@@ -159,8 +200,19 @@ const shootersRoutes = async fastify => {
 
   fastify.get("/:division/:memberNumber/chart/progress/:mode", async req => {
     const { division, memberNumber, mode } = req.params;
-    const reclass = await reclassificationForProgressMode(mode, memberNumber);
-    return reclass?.[division]?.percentWithDates || [];
+    const reclass = await reclassificationForProgressMode(mode, memberNumber, division);
+    return sortedUniqBy(
+      (reclass?.[division]?.percentWithDates || []).sort((a, b) => {
+        const aTime = a.sd.getTime();
+        const bTime = b.sd.getTime();
+        if (aTime && aTime === bTime) {
+          return b.p - a.p;
+        }
+
+        return aTime - bTime;
+      }),
+      c => c.sd.getTime(),
+    );
   });
 
   fastify.get("/:division/chart", async req => {

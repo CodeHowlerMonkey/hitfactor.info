@@ -1,12 +1,12 @@
 import { Button } from "primereact/button";
 import { Dialog } from "primereact/dialog";
 import { ProgressSpinner } from "primereact/progressspinner";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+
+import { Line } from "./common";
 
 import { sportForDivision } from "../../../../shared/constants/divisions";
 import { useApi } from "../../utils/client";
-
-import { Line } from "./common";
 
 const annotationColor = alpha => `rgba(255, 99, 132, ${alpha})`;
 const yLine = (name, y, alpha) => ({
@@ -34,6 +34,30 @@ export const ShooterChart = ({ division, memberNumber }) => {
   const isHFU = sportForDivision(division) === "hfu";
   const [full, setFull] = useState(false);
   const { json: data, loading } = useApi(`/shooters/${division}/${memberNumber}/chart`);
+  const mappedData = useMemo(
+    () =>
+      data?.map(c => ({
+        ...c,
+        x: new Date(new Date(c.x).toLocaleDateString("en-us", { timeZone: "UTC" })),
+        y: c.recPercent,
+      })),
+    [data],
+  );
+  const classifiersData = useMemo(
+    () => mappedData?.filter(c => c.source === "Stage Score"),
+    [mappedData],
+  );
+  const majorsData = useMemo(
+    () =>
+      mappedData
+        ?.filter(c => c.source === "Major Match")
+        .map(c => ({ ...c, y: c.percent })),
+    [mappedData],
+  );
+  const bumpsData = useMemo(
+    () => mappedData?.filter(c => c.source === "Major Match" && c.eligible),
+    [mappedData],
+  );
   if (loading) {
     return <ProgressSpinner />;
   }
@@ -97,26 +121,22 @@ export const ShooterChart = ({ division, memberNumber }) => {
       }}
       data={{
         datasets: [
-          /*
-          !isHFU && {
-            label: "Current Percent",
-            data: data.map(c => ({
-              ...c,
-              x: new Date(new Date(c.x).toLocaleDateString("en-us", { timeZone: "UTC" })),
-              y: c.curPercent,
-            })),
-            backgroundColor: "#b5ca25",
-          },
-          */
           {
-            label: isHFU ? "Percent" : "Rec. Percent",
-            data: data.map(c => ({
-              ...c,
-              x: new Date(new Date(c.x).toLocaleDateString("en-us", { timeZone: "UTC" })),
-              y: c.recPercent,
-            })),
+            label: "Classifiers",
+            data: classifiersData,
             borderColor: isHFU ? "#ca258a" : "#40cf40",
             backgroundColor: isHFU ? "#ae9ef1" : "#05ca25",
+          },
+          {
+            label: "Majors",
+            data: majorsData,
+            backgroundColor: "#b5ca25",
+          },
+          {
+            label: "Bumps",
+            data: bumpsData,
+            borderColor: "#ca258a",
+            backgroundColor: "#c69393",
           },
         ].filter(Boolean),
       }}

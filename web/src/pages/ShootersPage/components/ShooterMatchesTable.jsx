@@ -5,7 +5,11 @@ import { useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 import ShooterCell from "../../../components/ShooterCell";
-import { headerTooltipOptions, renderPercent } from "../../../components/Table";
+import {
+  headerTooltipOptions,
+  renderMatchLevel,
+  renderPercent,
+} from "../../../components/Table";
 import useApiQuery from "../../../query/useApiQuery";
 
 const ShooterMatchScoresTable = ({
@@ -36,7 +40,8 @@ const ShooterMatchScoresTable = ({
         place: index + 1,
         percentile: (100 * index) / all.length,
         dateUnix: new Date(c.date).getTime(),
-      }));
+      }))
+      .filter(c => c.level >= 2);
   }, [matches, loading]);
 
   if (hidden) {
@@ -77,6 +82,14 @@ const ShooterMatchScoresTable = ({
         sortable
         style={{ width: "7em" }}
         body={run => new Date(run.date).toLocaleDateString("en-us", { timeZone: "UTC" })}
+      />
+      <Column
+        hidden={hideDate}
+        sortable
+        field="level"
+        header="Level"
+        align="center"
+        body={renderMatchLevel}
       />
       <Column
         hidden={hideShooterName}

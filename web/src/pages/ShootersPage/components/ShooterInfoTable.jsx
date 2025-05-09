@@ -7,31 +7,9 @@ import {
   sportForDivision,
   uspsaDivShortNames,
 } from "../../../../../api/src/dataUtil/divisions";
-import { classForPercent } from "../../../../../shared/utils/classification";
 import ShooterChart from "../../../components/chart/ShooterChart";
 import { ShooterProgressChart } from "../../../components/chart/ShooterProgressChart";
-
-const percentValueOrEmpty = value =>
-  toFixedWithSuffixValueOrPlaceholder(value, 2, "%", "");
-
-const renderClassification = (c, { field }) => {
-  const { high, cur } = c[field];
-
-  const classificationString = [
-    classForPercent(high) ?? "U",
-    percentValueOrEmpty(high),
-    percentValueOrEmpty(cur),
-  ]
-    .filter(Boolean)
-    .join(" • ");
-
-  return (
-    <>
-      <div className="md:hidden">{classificationString}</div>
-      <div className="hidden md:block white-space-nowrap">{classificationString}</div>
-    </>
-  );
-};
+import { renderPercent } from "../../../components/Table";
 
 const tableNameForDiv = {
   opn: "Open",
@@ -61,8 +39,6 @@ const toFixedWithSuffixValueOrPlaceholder = (value, length, suffix, empty = "—
 const cardRow = (classificationByDivision, div) => {
   const {
     age,
-    reclassificationsCurPercentCurrent,
-    reclassificationsCurPercentHigh,
     reclassificationsRecPercentUncappedCurrent,
     reclassificationsRecPercentUncappedHigh,
   } = classificationByDivision?.[div] || {
@@ -74,14 +50,8 @@ const cardRow = (classificationByDivision, div) => {
   };
   return {
     division: tableNameForDiv[div],
-    curHHF: {
-      high: reclassificationsCurPercentHigh,
-      cur: reclassificationsCurPercentCurrent,
-    },
-    rec: {
-      high: reclassificationsRecPercentUncappedHigh,
-      cur: reclassificationsRecPercentUncappedCurrent,
-    },
+    recHigh: reclassificationsRecPercentUncappedHigh,
+    recCur: reclassificationsRecPercentUncappedCurrent,
     age: toFixedWithSuffixValueOrPlaceholder(age, 1, "mo"),
   };
 };
@@ -151,17 +121,11 @@ export const ShooterInfoTable = ({ info, division, memberNumber, loading }) => {
             <Column field="division" header={isHFU ? "Division" : "Div"} />
             <Column
               align="center"
-              field="rec"
-              header={isHFU ? "Percent" : "Recommended"}
-              body={renderClassification}
+              field="rec.cur"
+              header="Current"
+              body={renderPercent}
             />
-            <Column
-              hidden
-              align="center"
-              field="curHHF"
-              header="Old HQ"
-              body={renderClassification}
-            />
+            <Column align="center" field="rec.high" header="high" />
             <Column field="age" header="Age" style={{ widths: 128 }} align="right" />
           </DataTable>
         )}

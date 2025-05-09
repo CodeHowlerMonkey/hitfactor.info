@@ -6,15 +6,15 @@ import qs from "query-string";
 import { useEffect, useRef, useState } from "react";
 import { useDebounce } from "use-debounce";
 
-import { sportForDivision } from "../../../shared/constants/divisions";
-import { useApi } from "../utils/client";
-import { useIsHFU } from "../utils/useIsHFU";
-
 import ReportDialog from "./ReportDialog";
 import ShooterCell from "./ShooterCell";
 import { clubMatchColumn, renderPercent, headerTooltipOptions } from "./Table";
 import useTablePagination from "./Table/useTablePagination";
 import useTableSort from "./Table/useTableSort";
+
+import { sportForDivision } from "../../../shared/constants/divisions";
+import { useApi } from "../utils/client";
+import { useIsHFU } from "../utils/useIsHFU";
 
 const TableFilter = ({ placeholder, onFilterChange }) => {
   const [filter, setFilter] = useState("");

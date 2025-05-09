@@ -1,6 +1,7 @@
 /* eslint-disable no-console */
 import mongoose from "mongoose";
 
+import { MatchBump } from "@data/types/MatchBump";
 import {
   eligibilityFilter,
   grandmasterPercent,
@@ -14,35 +15,6 @@ import {
   linearRegression,
   reverseLinear,
 } from "@shared/utils/weibull";
-
-export interface MatchBump {
-  upload: string;
-  division: string;
-  uploadDivision: string;
-
-  date: Date;
-
-  // Linear Regression
-  slope: number;
-  intercept: number;
-  mae: number;
-
-  maxClassification: number;
-  minClassification: number;
-  maxBump: number;
-  minBump: number;
-
-  correlation: number;
-  filteredCorrelation: number;
-
-  dataPoints: number;
-  masters: number;
-  grandmasters: number;
-
-  filteredDataPoints: number;
-  filteredMasters: number;
-  filteredGrandmasters: number;
-}
 
 const MatchBumpSchema = new mongoose.Schema<MatchBump>(
   {
@@ -91,6 +63,9 @@ MatchBumpSchema.virtual("maybeEligible").get(function () {
     this.filteredCorrelation >= matchBumpThresholds.filteredCorrelation
   );
 });
+
+MatchBumpSchema.set("toObject", { virtuals: true });
+MatchBumpSchema.set("toJSON", { virtuals: true });
 
 MatchBumpSchema.index({ upload: 1 });
 MatchBumpSchema.index({ date: 1 });

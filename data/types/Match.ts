@@ -14,3 +14,9 @@ export interface Match {
   fetched?: Date;
   uploaded?: Date;
 }
+
+export interface MatchVirtualsNoRefs {
+  level: number;
+}
+
+export type MatchWithNoRefVirtuals = Match & MatchVirtualsNoRefs;

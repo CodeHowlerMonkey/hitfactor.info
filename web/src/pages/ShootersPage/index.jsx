@@ -8,16 +8,16 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useDebouncedCallback } from "use-debounce";
 import { v4 as randomUUID } from "uuid";
 
+import ShooterInfoTable from "./components/ShooterInfoTable";
+import ShooterMatchScoresTable from "./components/ShooterMatchesTable";
+import ShooterRunsTable from "./components/ShooterRunsTable";
+import ShootersTable from "./components/ShootersTable";
+
 import { nameForDivision } from "../../../../api/src/dataUtil/divisions";
 import { DivisionNavigation } from "../../components";
 import { renderPercent } from "../../components/Table";
 import { postApi, useApi } from "../../utils/client";
 import { useIsSCSA } from "../../utils/useIsSCSA";
-
-import ShooterInfoTable from "./components/ShooterInfoTable";
-import ShooterMatchScoresTable from "./components/ShooterMatchesTable";
-import ShooterRunsTable from "./components/ShooterRunsTable";
-import ShootersTable from "./components/ShootersTable";
 
 // TODO: shooters table for single classifier? # attempts, low HF, high HF, same for percent, same for curPercent
 // TODO: all classifiers total number of reshoots (non-uniqueness)
@@ -206,7 +206,7 @@ export const ShooterRunsAndInfo = ({ division, memberNumber, onBackToShooters })
             size="small"
             className="compact text-xs"
             allowEmpty={false}
-            options={["Classifiers", "Matches"]}
+            options={["Classifiers", "Majors"]}
             value={scoresMode}
             onChange={e => setScoresMode(e.value)}
           />
@@ -242,7 +242,7 @@ export const ShooterRunsAndInfo = ({ division, memberNumber, onBackToShooters })
               onClick={addWhatIf}
             />
           )}
-          {!isSCSA && scoresMode === "Matches" && (
+          {!isSCSA && scoresMode === "Majors" && (
             <div className="flex gap-2 align-items-center">
               Nerd Mode
               <Checkbox onChange={e => setNerdMode(e.checked)} checked={nerdMode} />
@@ -259,7 +259,7 @@ export const ShooterRunsAndInfo = ({ division, memberNumber, onBackToShooters })
       />
       <ShooterMatchScoresTable
         hideShooterName
-        hidden={scoresMode !== "Matches"}
+        hidden={scoresMode !== "Majors"}
         nerdMode={nerdMode}
         memberNumber={memberNumber}
         division={division}

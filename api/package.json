@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "local": "MONGO_URL_LOCAL=mongodb://localhost:27017 LOCAL_DEV=1 npm start",
-    "start": "ALLOW_MARK_BAD=1 NODE_OPTIONS='--inspect --max-old-space-size=512' NODE_ENV=development node --watch --import=tsx ./server.ts",
-    "prod": "NODE_OPTIONS='--max-old-space-size=512' NODE_ENV=production node --import=tsx ./server.ts"
+    "start": "ALLOW_MARK_BAD=1 NODE_OPTIONS='--inspect --max-old-space-size=512' NODE_ENV=development FASTIFY_AUTOLOAD_TYPESCRIPT=1 node --watch --import=tsx ./server.ts",
+    "prod": "NODE_OPTIONS='--max-old-space-size=512' NODE_ENV=production FASTIFY_AUTOLOAD_TYPESCRIPT=1 node --import=tsx ./server.ts"
   },
   "exports": {
     "./data": "./../data"

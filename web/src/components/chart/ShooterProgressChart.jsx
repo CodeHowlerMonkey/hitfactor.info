@@ -2,21 +2,22 @@ import { ProgressSpinner } from "primereact/progressspinner";
 import { SelectButton } from "primereact/selectbutton";
 import { useState } from "react";
 
+import { Line } from "./common";
+
 import { sportForDivision } from "../../../../shared/constants/divisions";
 import { keepPreviousData, useApi } from "../../utils/client";
 
-import { Line } from "./common";
-
 const modesMap = {
-  "Cur. HHF": "curPercent",
-  Recommended: "brutal",
+  Combined: "combo",
+  Classifiers: "classifiers",
+  Majors: "majors",
 };
 const modeBucketForMode = mode => modesMap[mode];
 const modes = Object.keys(modesMap);
 
 export const ShooterProgressChart = ({ division, memberNumber }) => {
   const isHFU = sportForDivision(division) === "hfu";
-  const [mode, setMode] = useState(modes[1]);
+  const [mode, setMode] = useState(modes[0]);
   const { json: data, loading } = useApi(
     `/shooters/${division}/${memberNumber}/chart/progress/${modeBucketForMode(mode)}`,
     { placeholderData: keepPreviousData },
@@ -92,7 +93,7 @@ export const ShooterProgressChart = ({ division, memberNumber }) => {
                 x: new Date(
                   new Date(c.sd).toLocaleDateString("en-us", { timeZone: "UTC" }),
                 ),
-                y: c.p,
+                y: c.p.toFixed(2),
               })),
               backgroundColor: "#ae9ef1",
               borderColor: "#ca258a",
@@ -112,10 +113,10 @@ export const ShooterProgressChart = ({ division, memberNumber }) => {
           }}
         />
       )}
-      {false && !isHFU && (
-        <div className="flex justify-space-around absolute right-0 left-0 top-0">
+      {!isHFU && (
+        <div className="flex justify-content-around absolute right-0 left-0 top-0">
           <SelectButton
-            className="compact"
+            className="compact bg-primary-reverse"
             allowEmpty={false}
             options={modes}
             value={mode}

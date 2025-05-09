@@ -4,7 +4,7 @@ import { matchBumpThresholds } from "../../../../../shared/constants/difficulty"
 import { mapDivisions } from "../../../dataUtil/divisions";
 import { MatchBumps } from "../../../db/matchBumps";
 import { Matches } from "../../../db/matches";
-import { MatchScores } from "../../../db/matchScores";
+import { matchScoresFor } from "../../../db/matchScores";
 
 const searchMatches = async q => {
   try {
@@ -70,13 +70,15 @@ const uploadRoutes = async fastify => {
     const matches = await Matches.find({ uuid: { $in: uuids } })
       .limit(0)
       .select(["uuid", "name", "created", "updated", "date"])
-      .sort({ created: 1 })
-      .lean();
+      .sort({ created: 1 });
 
-    return matches.map(m => ({
-      ...m,
-      ...mapDivisions(div => uuidsToDivisionMap[m.uuid]?.includes(div)),
-    }));
+    return matches.map(c => {
+      const m = c.toObject({ virtuals: true });
+      return {
+        ...m,
+        ...mapDivisions(div => uuidsToDivisionMap[m.uuid]?.includes(div)),
+      };
+    });
   });
 
   fastify.get("/matchScores", async (req, res) => {
@@ -87,31 +89,7 @@ const uploadRoutes = async fastify => {
       return { error: "Must provide Division and Member Number or Match UUID" };
     }
 
-    const filter = {
-      division,
-      ...(memberNumber ? { memberNumber } : {}),
-      ...(match ? { upload: match } : {}),
-    };
-
-    const shooterMaybe = !memberNumber && !!division && !!match ? ["shooter"] : [];
-    const matches = await MatchScores.find(filter).populate([
-      "match",
-      "matchBump",
-      ...shooterMaybe,
-    ]);
-    const matchObjects = matches.map(c => c.toObject({ virtuals: true }));
-
-    return matchObjects.map(c => {
-      if (!c.matchBump) {
-        return;
-      }
-      const { intercept, slope } = c.matchBump;
-      c.bump = (c.matchPercent - intercept) / slope;
-      return {
-        ...c.matchBump,
-        ...c,
-      };
-    });
+    return matchScoresFor({ division, memberNumber, match });
   });
 
   fastify.get("/searchMatches", async req => {

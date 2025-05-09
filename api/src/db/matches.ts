@@ -1,7 +1,8 @@
 /* eslint-disable no-console */
 import mongoose, { Model } from "mongoose";
 
-import { Match } from "@data/types/Match";
+import stateNames from "@data/states";
+import { Match, MatchVirtualsNoRefs } from "@data/types/Match";
 import { MatchScore } from "@data/types/MatchScore";
 
 interface AlgoliaMatchNumericFilters {
@@ -53,7 +54,7 @@ export interface MatchDef {
   templateName: string;
 }
 
-interface MatchVirtuals {
+interface MatchVirtuals extends MatchVirtualsNoRefs {
   scoresCount: number;
   matchScores: MatchScore[];
   matchScoresCount: number;
@@ -105,6 +106,54 @@ MatchesSchema.virtual("matchScoresCount", {
 });
 MatchesSchema.virtual("hasMatchScores").get(function () {
   return this.matchScoresCount > 0;
+});
+const specialNats = ["Single Stack Classic", "BITB VIII", "Western States Single Stack"];
+const specialAreas = [
+  "2019 Magnus Sports Cup",
+  "Midwest PCC Championship",
+  "Southwestern PCC Championship",
+  "Go Fast Don’t Suck",
+  "Final GFDS 2021",
+  "GFDS USPSA POSTAL MATCH - FINAL",
+];
+const specialMajors = [
+  "Red Rock Rumble",
+  "Golden Bullet",
+  "Double Tap",
+  "Dragons Cup",
+  "Dragon's Cup",
+  "Roadrunner Shootout",
+  "Bluegrass",
+  "Space City",
+  "GridIron",
+  "Staten Island",
+  "North Coast",
+  "Gulf Coast",
+  "Cornhusker Classic",
+  "Henrys Cup",
+  "Henry's Cup",
+  "SNS Casting 400 USPSA Championship",
+];
+const matchesAny = (name: string, names: string[]) =>
+  names.some(n => name.match(new RegExp(n, "i")));
+MatchesSchema.virtual("level").get(function () {
+  const name = this.name;
+  if (name.match(/national|world/i) || matchesAny(name, specialNats)) {
+    return 4;
+  } else if (name.match(/area [1-8]/i) || matchesAny(name, specialAreas)) {
+    return 3;
+  } else if (
+    name.match(/\bstate\b|\bsection/i) ||
+    (name.match(/classic|open/i) &&
+      matchesAny(
+        name,
+        stateNames.map(s => s.split(" ").pop()!), // only match last part of the state (Virginias, Carolinas, etc)
+      )) ||
+    matchesAny(name, specialMajors)
+  ) {
+    return 2;
+  }
+  return 1;
 });
 export const Matches = mongoose.model<typeof MatchesSchema>("Matches", MatchesSchema);
 

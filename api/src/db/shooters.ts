@@ -10,7 +10,6 @@ import { classificationDifficulty } from "../../../shared/constants/difficulty";
 import {
   calculateUSPSAClassification,
   classForPercent,
-  ClassificationMode,
   ClassificationsRecord,
   rankForClass,
 } from "../../../shared/utils/classification";
@@ -130,7 +129,9 @@ export const allDivisionsScores = async memberNumbers => {
   const data = await query;
 
   return data.map(doc => {
-    const obj: ScoreObjectWithVirtuals = doc.toObject({ virtuals: true });
+    const obj: ScoreObjectWithVirtuals = doc.toObject<ScoreObjectWithVirtuals>({
+      virtuals: true,
+    });
     const classifier = obj.isMajor ? obj._id : obj.classifier;
     const classifierDivision = `${classifier}:${obj.division}`;
     return { ...obj, classifier, classifierDivision };
@@ -224,6 +225,7 @@ export const dedupeGrandbagging = (scores: ScoreObjectWithVirtuals[]) =>
 
 export const scoresForRecommendedClassification = (
   memberNumbers: string[],
+  division?: string,
   until?: Date,
 ) =>
   Scores.aggregate([
@@ -233,7 +235,8 @@ export const scoresForRecommendedClassification = (
         memberNumber: { $in: memberNumbers },
         $or: [{ hf: { $gt: 0 } }, { percent: { $gt: 0 } }],
 
-        // optional date filtering for matchBump historical scores
+        // optional filtering
+        ...(!division ? {} : { division }),
         ...(!until ? {} : { sd: { $lte: until } }),
       },
     },
@@ -746,47 +749,4 @@ export const reclassifyShooters = async shooters => {
     console.log("reclassifyShooters error:");
     console.log(error);
   }
-};
-
-/** used for shooter's page chart / progression */
-export const reclassificationForProgressMode = async (
-  mode: ClassificationMode | "curPercent" | "recPercent",
-  memberNumber: string,
-) => {
-  const classificationMode: ClassificationMode =
-    mode === "curPercent" ? "uspsa" : mode === "recPercent" ? "brutal" : mode;
-
-  const now = new Date();
-  switch (classificationMode) {
-    case "uspsa": {
-      const scores = await allDivisionsScores([memberNumber]);
-      return calculateUSPSAClassification(
-        scores,
-        "curPercent",
-        now,
-        classificationMode,
-        4,
-        6,
-        8,
-        100,
-      );
-    }
-
-    case "soft":
-    case "brutal": {
-      const scores = await scoresForRecommendedClassification([memberNumber]);
-      return calculateUSPSAClassification(
-        scores,
-        "recPercent",
-        now,
-        classificationMode,
-        classificationDifficulty.window.min,
-        classificationDifficulty.window.best,
-        classificationDifficulty.window.recent,
-        classificationDifficulty.percentCap,
-      );
-    }
-  }
-
-  return null;
 };

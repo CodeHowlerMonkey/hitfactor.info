@@ -3,6 +3,13 @@
 import uniqBy from "lodash.uniqby";
 import { ObjectId } from "mongoose";
 
+import { scsaMatchInfo } from "./scsaUploads";
+import {
+  EmptyMatchResultsFactory,
+  EmptySingleMatchResultFactory,
+  fetchPS,
+} from "./uploadsCommon";
+
 import { MatchScore } from "../../../data/types/MatchScore";
 import features from "../../../shared/features";
 import { UTCDate } from "../../../shared/utils/date";
@@ -26,19 +33,12 @@ import { rehydrateClassifiers } from "../db/classifiers";
 import { DQs } from "../db/dq";
 import { connect } from "../db/index";
 import { matchBumpsForMatchResults, saveMatchBumps } from "../db/matchBumps";
-import { Match, MatchDef, Matches } from "../db/matches";
+import { MatchDef, Matches } from "../db/matches";
 import { backfillClassifications, saveMatchScores } from "../db/matchScores";
 import { hydrateRecHHFsForClassifiers } from "../db/recHHF";
 import { Score, Scores } from "../db/scores";
 import { reclassifyShooters } from "../db/shooters";
 import { hydrateStats } from "../db/stats";
-
-import { scsaMatchInfo } from "./scsaUploads";
-import {
-  EmptyMatchResultsFactory,
-  EmptySingleMatchResultFactory,
-  fetchPS,
-} from "./uploadsCommon";
 
 const uniqByTruthyMap = (arr, cb) => uniqBy(arr, cb).filter(cb).map(cb);
 export const arrayCombination = (arr1, arr2, cb) => {

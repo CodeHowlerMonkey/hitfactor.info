@@ -125,3 +125,7 @@ a:link:not(.p-menuitem-link), a:visited:not(.p-menuitem-link) {
 .p-menu .p-menu-list .focused-menu-item {
   background-color: var(--surface-border);
 }
+
+.less-padding-table thead > tr > th {
+  padding: 0.25rem 0.5rem !important;
+}

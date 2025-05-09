@@ -16,6 +16,8 @@ import {
 } from "@shared/constants/divisions";
 import { UTCDate } from "@shared/utils/date";
 
+import { matchScoresFor } from "./matchScores";
+
 export interface Score {
   upload?: string;
   classifier: string;
@@ -338,7 +340,7 @@ export const shooterScoresChartData = async ({ memberNumber, division }) => {
     .limit(0)
     .sort({ sd: -1 });
 
-  return minorHFScoresAdapter(
+  const classifiers = minorHFScoresAdapter(
     scores.map(s => s.toObject({ virtuals: true })),
     division,
   )
@@ -348,8 +350,26 @@ export const shooterScoresChartData = async ({ memberNumber, division }) => {
       curPercent: run.curPercent,
       percent: run.percent,
       classifier: run.classifier,
+      source: "Stage Score",
     }))
-    .filter(run => !!run.classifier); // no majors for now in the graph
+    .filter(run => !!run.classifier); // no legacy majors in the graph
+
+  const matchScores = await matchScoresFor({ division, memberNumber });
+  const convertedMatchScores = matchScores
+    .filter(c => c!.level >= 2)
+    .map(ms => ({
+      x: ms.date,
+      classifier: ms.name,
+      source: "Major Match",
+      sd: ms.date,
+      percent: ms.matchPercent,
+      curPercent: ms.bump,
+      recPercent: ms.bump,
+      eligible: ms.eligible,
+    }));
+  return classifiers
+    .concat(convertedMatchScores)
+    .sort((a, b) => a.x.getTime() - b.x.getTime());
 };
 
 export const scoresForDivisionForShooter = async ({ division, memberNumber }) => {
