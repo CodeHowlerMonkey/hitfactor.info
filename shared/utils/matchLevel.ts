@@ -5,6 +5,9 @@ const specialAreas = [
   "2019 Magnus Sports Cup",
   "Midwest PCC Championship",
   "Southwestern PCC Championship",
+  "2016 WSSSC", //< Western States Single-Stack Championship
+
+  // GFDS final matches
   "Go Fast Don’t Suck",
   "Final GFDS 2021",
   "GFDS USPSA POSTAL MATCH - FINAL",
@@ -26,6 +29,14 @@ const specialMajors = [
   "Henrys Cup",
   "Henry's Cup",
   "SNS Casting 400 USPSA Championship",
+  "SnS 400",
+  "Harris Aim For The Coast",
+  'Gary "Doc" Welt Memorial Match',
+  "Ozarks Classic",
+  "2016 Swamp Challenge",
+
+  // Anything with "Championship" in it is at least level 2, if eligible
+  "championship",
 ];
 
 const matchesAny = (name: string, names: string[]) =>
@@ -38,7 +49,7 @@ export const matchLevel = (name: string) => {
     return 3;
   } else if (
     name.match(/\bstate\b|\bsection/i) ||
-    (name.match(/classic|open/i) &&
+    (name.match(/classic|open|challenge/i) &&
       matchesAny(
         name,
         stateNames.map(s => s.split(" ").pop()!), // only match last part of the state (Virginias, Carolinas, etc)

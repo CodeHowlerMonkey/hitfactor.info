@@ -8,6 +8,7 @@ import { MatchBumpWithVirtuals } from "@data/types/MatchBump";
 import { MatchScore } from "@data/types/MatchScore";
 import { classificationDifficulty } from "@shared/constants/difficulty";
 import { calculateUSPSAClassification } from "@shared/utils/classification";
+import { UTCDate } from "@shared/utils/date";
 
 export interface MatchScoreVirtuals {
   shooter: Shooter;
@@ -83,10 +84,12 @@ export const MatchScores = mongoose.model<typeof MatchScoreSchema>(
   MatchScoreSchema,
 );
 
-export const saveMatchScores = async (matchResults: MatchScore[]) => {
+export const saveMatchScores = async (
+  matchResults: (MatchScore & { _id?: string })[],
+) => {
   try {
     await MatchScores.bulkWrite(
-      matchResults.map(matchScore => ({
+      matchResults.map(({ _id, ...matchScore }) => ({
         updateOne: {
           filter: {
             memberNumberDivision: matchScore.memberNumberDivision,
@@ -103,15 +106,44 @@ export const saveMatchScores = async (matchResults: MatchScore[]) => {
   }
 };
 
-export const backfillClassifications = async (
+interface ScoresForModeArgs {
+  mode: "combo" | "classifiers" | "majors";
+  memberNumbers: string[];
+  division?: string;
+  until?: Date;
+}
+
+export const scoresForMode = async ({
+  mode,
+  memberNumbers,
+  division,
+  until,
+}: ScoresForModeArgs) => {
+  const getClassifiers = async () =>
+    scoresForRecommendedClassification(memberNumbers, division, until);
+  const getMatchScores = async () =>
+    matchScoresForClassification({ memberNumber: memberNumbers, division, until });
+
+  switch (mode) {
+    case "combo":
+      return (await getClassifiers()).concat(await getMatchScores());
+    case "classifiers":
+      return getClassifiers();
+    case "majors":
+      return getMatchScores();
+  }
+};
+
+export const backfillComboClassifications = async (
   matchScores: MatchScore[],
+  matchDate?: Date,
 ): Promise<MatchScore[]> => {
   // add historical reclassification
   const memberNumbers = uniqBy(
     matchScores.map(c => c.memberNumber),
     c => c,
   );
-  const scores = await scoresForRecommendedClassification(memberNumbers);
+  const scores = await scoresForMode({ mode: "combo", memberNumbers, until: matchDate });
   const scoresByMemberNumber = scores.reduce((acc, s) => {
     acc[s.memberNumber] ??= [];
     acc[s.memberNumber].push(s);
@@ -119,7 +151,7 @@ export const backfillClassifications = async (
   }, {});
 
   return matchScores.map(c => {
-    const date = c.date || new Date();
+    const date = matchDate ?? (c.date || new Date());
     const reclass = calculateUSPSAClassification(
       scoresByMemberNumber[c.memberNumber]?.filter(
         score => score.sd.getTime() < date.getTime(),
@@ -144,9 +176,10 @@ export const backfillClassifications = async (
 };
 
 interface MatchScoresFilter {
-  division: string;
-  memberNumber?: string;
+  division?: string;
+  memberNumber?: string | string[];
   match?: string;
+  until?: Date;
 }
 
 type MatchScoresExtra = MatchScoreObjectWithVirtuals &
@@ -161,11 +194,15 @@ export const matchScoresFor = async ({
   division,
   memberNumber,
   match,
+  until,
 }: MatchScoresFilter): Promise<MatchScoresExtra[]> => {
   const filter = {
-    division,
-    ...(memberNumber ? { memberNumber } : {}),
+    ...(division ? { division } : {}),
+    ...(memberNumber
+      ? { memberNumber: { $in: ([] as string[]).concat(memberNumber) } }
+      : {}),
     ...(match ? { upload: match } : {}),
+    ...(until ? { date: { $lt: UTCDate(until) } } : {}),
   };
 
   const shooterMaybe = !memberNumber && !!division && !!match ? ["shooter"] : [];
@@ -210,8 +247,9 @@ const matchWeightForLevel = (level: number) => {
 export const matchScoresForClassification = async ({
   division,
   memberNumber,
+  until,
 }: MatchScoresFilter) => {
-  const matchScores = await matchScoresFor({ division, memberNumber });
+  const matchScores = await matchScoresFor({ division, memberNumber, until });
   const explodedMatchScores = matchScores
     .filter(ms => ms.maybeEligible)
     .map(ms => new Array(matchWeightForLevel(ms?.level || 0)).fill(ms))
@@ -220,7 +258,8 @@ export const matchScoresForClassification = async ({
   return explodedMatchScores.map(ms => ({
     source: "Major Match",
     classifier: "",
-    division,
+    memberNumber: ms.memberNumber,
+    division: ms.division,
     sd: ms.date,
     percent: ms.bump || 0,
     curPercent: ms.bump || 0,

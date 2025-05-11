@@ -28,7 +28,7 @@ module.exports = {
     "arrow-parens": ["error", "as-needed"],
     "no-console": ["error", { allow: ["error"] }],
     "no-empty": ["error", {allowEmptyCatch: true}],
-    "@typescript-eslint/no-unused-vars": ["error",{ caughtErrors: "none"}],
+    "@typescript-eslint/no-unused-vars": ["error",{ caughtErrors: "none", ignoreRestSiblings: true }],
     "@typescript-eslint/no-explicit-any": "error",
     "no-use-before-define": "off",
 

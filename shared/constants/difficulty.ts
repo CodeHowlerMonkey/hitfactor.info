@@ -14,7 +14,7 @@ export const classificationDifficulty = {
 };
 
 export const matchBumpThresholds = {
-  filteredDataPoints: 50,
+  filteredDataPoints: 40,
   filteredDataPointsMaybe: 30,
   filteredCorrelation: 0.85,
   // filteredGrandmasters: 3,

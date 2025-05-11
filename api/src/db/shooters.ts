@@ -6,6 +6,8 @@ import { v4 as randomUUID } from "uuid";
 import { ScoreObjectWithVirtuals, Scores } from "@api/db/scores";
 import { getField, percentAggregationOp } from "@api/db/utils";
 
+import { scoresForMode } from "./matchScores";
+
 import { classificationDifficulty } from "../../../shared/constants/difficulty";
 import {
   calculateUSPSAClassification,
@@ -232,12 +234,13 @@ export const scoresForRecommendedClassification = (
     {
       $match: {
         bad: { $ne: true },
+        source: { $ne: "Major Match" }, // majors only come from MatchScores now
         memberNumber: { $in: memberNumbers },
         $or: [{ hf: { $gt: 0 } }, { percent: { $gt: 0 } }],
 
         // optional filtering
         ...(!division ? {} : { division }),
-        ...(!until ? {} : { sd: { $lte: until } }),
+        ...(!until ? {} : { sd: { $lt: until } }),
       },
     },
     {
@@ -365,7 +368,7 @@ export const scoresForRecommendedClassification = (
   ]);
 
 export const scoresForRecommendedClassificationByMemberNumber = async memberNumbers => {
-  const scores = await scoresForRecommendedClassification(memberNumbers);
+  const scores = await scoresForMode({ mode: "combo", memberNumbers });
   return scores.reduce((acc, cur) => {
     const curMemberScores = acc[cur.memberNumber] ?? [];
     curMemberScores.push(cur);
@@ -577,12 +580,10 @@ export const hydrateShooters = async () => {
 export const reclassifyShooters = async shooters => {
   try {
     const memberNumbers = uniqBy(shooters, s => s.memberNumber).map(s => s.memberNumber);
-    const [recScoresByMemberNumber, curScoresByMemberNumber, psClassUpdates] =
-      await Promise.all([
-        scoresForRecommendedClassificationByMemberNumber(memberNumbers),
-        allDivisionsScoresByMemberNumber(memberNumbers),
-        psClassUpdatesByMemberNumber(),
-      ]);
+    const [recScoresByMemberNumber, psClassUpdates] = await Promise.all([
+      scoresForRecommendedClassificationByMemberNumber(memberNumbers),
+      psClassUpdatesByMemberNumber(),
+    ]);
 
     const updates = shooters
       .filter(
@@ -596,48 +597,7 @@ export const reclassifyShooters = async shooters => {
           return [];
         }
         const recMemberScores = recScoresByMemberNumber[memberNumber];
-        const curMemberScores = curScoresByMemberNumber[memberNumber];
         const now = new Date();
-        const recalcByCurPercent = calculateUSPSAClassification(
-          curMemberScores,
-          "curPercent",
-          now,
-          "uspsa",
-          4,
-          6,
-          8,
-          100,
-        );
-        const recalcByRecHHFOnlyPercent = calculateUSPSAClassification(
-          curMemberScores, // cur, not rec, to enable old D flag behavior
-          "recPercent",
-          now,
-          "uspsa",
-          4,
-          6,
-          8,
-          100,
-        );
-        const recalcByRecPercentSoft = calculateUSPSAClassification(
-          curMemberScores, // cur, not rec, to enable old D flag behavior
-          "recPercent",
-          now,
-          "soft",
-          classificationDifficulty.window.min,
-          classificationDifficulty.window.best,
-          classificationDifficulty.window.recent,
-          100,
-        );
-        const recalcByRecPercent = calculateUSPSAClassification(
-          recMemberScores,
-          "recPercent",
-          now,
-          "brutal",
-          classificationDifficulty.window.min,
-          classificationDifficulty.window.best,
-          classificationDifficulty.window.recent,
-          100,
-        );
         const recalcByRecPercentUncapped = calculateUSPSAClassification(
           recMemberScores,
           "recPercent",
@@ -649,13 +609,6 @@ export const reclassifyShooters = async shooters => {
           classificationDifficulty.percentCap,
         );
 
-        const recalcDivCur = reclassificationBreakdown(recalcByCurPercent, division);
-        const recalcDivRecHHFOnly = reclassificationBreakdown(
-          recalcByRecHHFOnlyPercent,
-          division,
-        );
-        const recalcDivSoft = reclassificationBreakdown(recalcByRecPercentSoft, division);
-        const recalcDivRec = reclassificationBreakdown(recalcByRecPercent, division);
         const recalcDivRecUncapped = reclassificationBreakdown(
           recalcByRecPercentUncapped,
           division,
@@ -703,38 +656,16 @@ export const reclassifyShooters = async shooters => {
                     class: hqClass,
                     memberId: psClassUpdates?.[memberNumber]?.memberId,
 
-                    age: recalcByRecPercent?.[division]?.age,
-                    age1: recalcByRecPercent?.[division]?.age1,
+                    age: recalcByRecPercentUncapped?.[division]?.age,
+                    age1: recalcByRecPercentUncapped?.[division]?.age1,
 
                     elo: eloPointForShooter(division, memberNumber)?.rating,
-                    reclassificationsCurPercentCurrent: recalcDivCur.current, // aka curHHFPercent
-                    reclassificationsRecHHFOnlyPercentCurrent:
-                      recalcDivRecHHFOnly.current, //aka recHHFOnlyPercent
-                    reclassificationsSoftPercentCurrent: recalcDivSoft.current, //aka recSoftPercent
-                    reclassificationsRecPercentCurrent: recalcDivRec.current, // aka recPercent
                     reclassificationsRecPercentUncappedCurrent:
                       recalcDivRecUncapped.current, //aka recPercentUncapped
+                    reclassificationsRecPercentUncappedHigh: recalcDivRecUncapped.high, // aka recPercentUncappedHigh
 
-                    benefit: -(recalcDivCur.current - recalcDivRecUncapped.current),
-                    benefitHigh: -(recalcDivCur.high - recalcDivRecUncapped.high),
-
-                    recClass: recalcDivRec.class,
-                    recClassRank: rankForClass(recalcDivRec.class),
-                    curHHFClass: recalcDivCur.class,
-                    curHHFClassRank: rankForClass(recalcDivCur.class),
-                    recHHFOnlyClass: recalcDivRecHHFOnly.class,
-                    recHHFOnlyClassRank: rankForClass(recalcDivRecHHFOnly.class),
-                    recSoftClass: recalcDivSoft.class,
-                    recSoftClassRank: rankForClass(recalcDivSoft.class),
                     recUncappedClass: recalcDivRecUncapped.class,
                     recUncappedClassRank: rankForClass(recalcDivRecUncapped.class),
-
-                    // same as reclassificaiton fields above, but highPercent, short form uses "High" suffix, e.g. recPercentUncappedHigh
-                    reclassificationsCurPercentHigh: recalcDivCur.high,
-                    reclassificationsRecHHFOnlyPercentHigh: recalcDivRecHHFOnly.high,
-                    reclassificationsSoftPercentHigh: recalcDivSoft.high,
-                    reclassificationsRecPercentHigh: recalcDivRec.high,
-                    reclassificationsRecPercentUncappedHigh: recalcDivRecUncapped.high,
                   },
                 },
               ],

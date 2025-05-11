@@ -1,7 +1,9 @@
 /* eslint-disable no-console */
 
 import uniqBy from "lodash.uniqby";
-import { ObjectId } from "mongoose";
+import { Types } from "mongoose";
+
+import { Match } from "@data/types/Match";
 
 import { scsaMatchInfo } from "./scsaUploads";
 import {
@@ -34,7 +36,7 @@ import { DQs } from "../db/dq";
 import { connect } from "../db/index";
 import { matchBumpsForMatchResults, saveMatchBumps } from "../db/matchBumps";
 import { MatchDef, Matches } from "../db/matches";
-import { backfillClassifications, saveMatchScores } from "../db/matchScores";
+import { backfillComboClassifications, saveMatchScores } from "../db/matchScores";
 import { hydrateRecHHFsForClassifiers } from "../db/recHHF";
 import { Score, Scores } from "../db/scores";
 import { reclassifyShooters } from "../db/shooters";
@@ -721,7 +723,7 @@ const metaClassifiersLoop = async (batchSize = 8) => {
   console.log(`${totalCount} classifiers to update`);
 
   let updated = 0;
-  let classifiers = [] as (AfterUploadClassifier & { _id: ObjectId })[];
+  let classifiers = [] as (AfterUploadClassifier & { _id: Types.ObjectId })[];
   do {
     classifiers = await AfterUploadClassifiers.find({}).limit(batchSize).lean();
     if (!classifiers.length) {
@@ -746,7 +748,7 @@ const metaShootersLoop = async (batchSize = 8) => {
   console.log(`${totalCount} shooters to update`);
 
   let updated = 0;
-  let shooters = [] as (AfterUploadShooter & { _id: ObjectId })[];
+  let shooters = [] as (AfterUploadShooter & { _id: Types.ObjectId })[];
   do {
     shooters = await AfterUploadShooters.find({}).limit(batchSize).lean();
     if (!shooters.length) {
@@ -782,7 +784,7 @@ const backfillMatchScoresClassifications = async (
       if (!matchScores.length) {
         break;
       }
-      matchScores = await backfillClassifications(matchScores);
+      matchScores = await backfillComboClassifications(matchScores);
       backfilled.push(...matchScores);
       await saveMatchScores(matchScores);
       updated += matchScores.length;

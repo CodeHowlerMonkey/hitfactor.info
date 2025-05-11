@@ -74,13 +74,13 @@ const go = async () => {
     .flat();
 
   console.error("rechhf go");
-  await rehydrateRecHHF(divisions, classifiers);
+  //await rehydrateRecHHF(divisions, classifiers);
 
   console.error("shooters go");
   await rehydrateShooters(divisions);
 
   console.error("classifiers go");
-  await rehydrateClassifiers(classifierDivisions);
+  //await rehydrateClassifiers(classifierDivisions);
 
   console.error("stats go");
   await hydrateStats();

@@ -5,7 +5,7 @@ import { classificationDifficulty } from "../../../../../shared/constants/diffic
 import { calculateUSPSAClassification } from "../../../../../shared/utils/classification";
 import { multisort, safeNumSort } from "../../../../../shared/utils/sort";
 import { basicInfoForClassifierCode } from "../../../dataUtil/classifiersData";
-import { matchScoresForClassification } from "../../../db/matchScores";
+import { matchScoresForClassification, scoresForMode } from "../../../db/matchScores";
 import { RecHHFs } from "../../../db/recHHF";
 import { scoresForDivisionForShooter, shooterScoresChartData } from "../../../db/scores";
 import {
@@ -90,33 +90,13 @@ const shootersQueryAggregation = (params, query) => {
   ]);
 };
 
-const scoresForMode = async (
-  mode: "combo" | "classifiers" | "majors",
-  memberNumber: string,
-  division: string,
-) => {
-  const getClassifiers = async () =>
-    scoresForRecommendedClassification([memberNumber], division);
-  const getMatchScores = async () =>
-    matchScoresForClassification({ memberNumber, division });
-
-  switch (mode) {
-    case "combo":
-      return (await getClassifiers()).concat(await getMatchScores());
-    case "classifiers":
-      return getClassifiers();
-    case "majors":
-      return getMatchScores();
-  }
-};
-
 const reclassificationForProgressMode = async (
   mode: "combo" | "classifiers" | "majors",
   memberNumber: string,
   division: string,
 ) => {
   const now = new Date();
-  const scores = await scoresForMode(mode, memberNumber, division);
+  const scores = await scoresForMode({ mode, memberNumbers: [memberNumber], division });
   return calculateUSPSAClassification(
     scores,
     "recPercent",
@@ -350,6 +330,7 @@ const shootersRoutes = async fastify => {
       }
       return c;
     });
+    // TODO: use combo here
     const existingRecScores = await scoresForRecommendedClassification([memberNumber]);
     const existingScores = await allDivisionsScores([memberNumber]);
     const recScores = dedupeGrandbagging(hydratedScores);

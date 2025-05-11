@@ -256,7 +256,7 @@ export const ShooterRunsAndInfo = ({ division, memberNumber, onBackToShooters })
         onClubSelection={club => navigate(`/clubs/${club}`)}
       />
       <ShooterMatchScoresTable
-        hideShooterName
+        mode="shooter"
         hidden={scoresMode !== "Majors"}
         nerdMode={nerdMode}
         memberNumber={memberNumber}

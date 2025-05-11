@@ -137,13 +137,7 @@ const MatchPage = ({ uuid }) => {
                     />
                   </div>
                 )}
-                <ShooterMatchScoresTable
-                  match={uuid}
-                  division={division}
-                  hideAnalysisButton
-                  hideMatchName
-                  hideDate
-                />
+                <ShooterMatchScoresTable match={uuid} division={division} mode="match" />
               </>
             )}
           </div>

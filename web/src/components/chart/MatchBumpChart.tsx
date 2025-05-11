@@ -2,6 +2,15 @@ import { ProgressSpinner } from "primereact/progressspinner";
 import { useMemo } from "react";
 
 import {
+  Scatter,
+  pointsGraph,
+  linearAnnotationColor,
+  xLine,
+  r1annotationColor,
+  yLine,
+} from "./common";
+
+import {
   eligibilityFilter,
   grandmasterPercent,
   masterPercent,
@@ -17,15 +26,6 @@ import {
   reverseLinear,
 } from "../../../../shared/utils/weibull";
 import { bgColorForClass } from "../../utils/color";
-
-import {
-  Scatter,
-  pointsGraph,
-  linearAnnotationColor,
-  xLine,
-  r1annotationColor,
-  yLine,
-} from "./common";
 
 interface DataPoint {
   x: number;

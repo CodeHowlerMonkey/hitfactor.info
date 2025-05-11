@@ -3,15 +3,16 @@ import fs from "fs";
 
 import mongoose from "mongoose";
 
-export { Matches } from "./matches";
-export { Scores } from "./scores";
-export { MatchScores } from "./matchScores";
-export { RecHHFs } from "./recHHF";
-export { Shooters } from "./shooters";
-export { Reports } from "./reports";
-export { Stats } from "./stats";
-export { AfterUploadClassifiers } from "./afterUploadClassifiers";
-export { AfterUploadShooters } from "./afterUploadShooters";
+export * from "./matches";
+export * from "./scores";
+export * from "./matchScores";
+export * from "./matchBumps";
+export * from "./recHHF";
+export * from "./shooters";
+export * from "./reports";
+export * from "./stats";
+export * from "./afterUploadClassifiers";
+export * from "./afterUploadShooters";
 
 const isDocker =
   fs.existsSync("/.dockerenv") ||

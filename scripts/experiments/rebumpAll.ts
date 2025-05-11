@@ -2,23 +2,21 @@
 
 import uniqBy from "lodash.uniqby";
 
-import { connect } from "../../api/src/db";
 import {
+  connect,
   MatchBumps,
   matchBumpsForMatchResults,
   saveMatchBumps,
-} from "../../api/src/db/matchBumps";
-import { Matches } from "../../api/src/db/matches";
-import {
-  backfillClassifications,
+  backfillComboClassifications,
   MatchScores,
   saveMatchScores,
-} from "../../api/src/db/matchScores";
-import { matchBumpThresholds } from "../../shared/constants/difficulty";
+  Matches,
+} from "@api/db";
+import { matchBumpThresholds } from "@shared/constants/difficulty";
 
 const recalculateBumpForMatch = async (uuid: string) => {
   const scores = await MatchScores.find({ upload: uuid }).limit(0).lean();
-  const backfilled = await backfillClassifications(scores);
+  const backfilled = await backfillComboClassifications(scores);
   await saveMatchScores(backfilled);
   const bumps = matchBumpsForMatchResults(backfilled);
   await saveMatchBumps(bumps);
@@ -28,12 +26,8 @@ const rebump = async () => {
   await connect();
 
   const maybeEligibleMatches = await MatchBumps.find({
-    filteredDataPoints: { $gte: matchBumpThresholds.filteredDataPoints },
+    filteredDataPoints: { $gte: matchBumpThresholds.filteredDataPointsMaybe },
     filteredCorrelation: { $gte: matchBumpThresholds.filteredCorrelation },
-    $or: [
-      { filteredMasters: { $gte: matchBumpThresholds.filteredMasters } },
-      { filteredGrandmasters: { $gte: matchBumpThresholds.filteredGrandmasters } },
-    ],
   })
     .limit(0)
     .select(["upload", "division"])
@@ -44,6 +38,7 @@ const rebump = async () => {
     c => c,
   );
   console.log(`${uuids.length} possibly eligible matches`);
+  process.exit(0);
 
   const matches = await Matches.find({ uuid: { $in: uuids } })
     .limit(0)
