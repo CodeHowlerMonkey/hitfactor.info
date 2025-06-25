@@ -7,6 +7,7 @@ import {
   addToCurWindow,
   ClassificationState,
   ClassifierScore,
+  classifierScoreKey,
   getDivisionState,
 } from "./state";
 
@@ -30,17 +31,25 @@ const windowSizeForScore = (
 const ageForDate = (now: Date, sd: Date | string): number =>
   (now.getTime() - new Date(sd).getTime()) / (28 * 24 * 60 * 60 * 1000);
 
-export const percentAndAgesForDivWindow = (
-  div: string,
-  state: ClassificationState,
-  now = new Date(),
-  minWindowSize: number = 4,
-  bestWindowSize: number = 6,
-  percentCap: number = 100,
+interface CalculateWindowOptions {
+  now?: Date; // default new Date()
+  minWindowSize?: number; // default 4
+  bestWindowSize?: number; // default 6
+  percentCap?: number; // default 110
+}
+
+export const calculateWindow = (
+  window: ClassifierScore[],
+  opts?: CalculateWindowOptions,
 ) => {
+  const now = opts?.now ?? new Date();
+  const minWindowSize = opts?.minWindowSize ?? 4;
+  const bestWindowSize = opts?.bestWindowSize ?? 6;
+  const percentCap = opts?.percentCap ?? 110;
+
   // remove "older" different days duplicates
   const dFlagsApplied = orderedUniqBy(
-    state[div].window.toSorted((a, b) => dateSort(a, b, "sd", -1)),
+    window.toSorted((a, b) => dateSort(a, b, "sd", -1)),
     "classifier",
   ).toSorted((a, b) => dateSort(a, b, "sd", 1));
 
@@ -61,12 +70,41 @@ export const percentAndAgesForDivWindow = (
 
   const lastScore = fFlagsApplied.toSorted((a, b) => dateSort(a, b, "sd", -1))[0];
   const age1 = ageForDate(now, lastScore?.sd || now);
+
+  const contextWindow = structuredClone(window).map((c: ClassifierScore) => {
+    const key = classifierScoreKey(c);
+    const isFlaggedY = fFlagsApplied.some(used => classifierScoreKey(used) === key);
+    const isFlaggedD = !dFlagsApplied.some(used => classifierScoreKey(used) === key);
+    const isFlaggedF = !isFlaggedY && !isFlaggedD;
+
+    if (isFlaggedY) {
+      c.flag = "Y";
+    } else if (isFlaggedD) {
+      c.flag = "D";
+    } else if (isFlaggedF) {
+      c.flag = "F";
+    }
+
+    return c;
+  });
+
   return {
     percent,
     age,
     age1,
+    contextWindow,
   };
 };
+
+export const percentAndAgesForDivWindow = (
+  div: string,
+  state: ClassificationState,
+  now = new Date(),
+  minWindowSize: number = 4,
+  bestWindowSize: number = 6,
+  percentCap: number = 100,
+) =>
+  calculateWindow(state[div].window, { now, minWindowSize, bestWindowSize, percentCap });
 
 export const dedupeGrandbagging = (scores: ClassifierScore[]) =>
   Object.values(

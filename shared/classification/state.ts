@@ -33,7 +33,23 @@ export interface ClassifierScore {
   sd: Date | string;
 
   percent: number;
+
+  // falgs after window calculation score
+  flag?: "D" | "E" | "F" | "Y";
+  dailyDupes?: ClassifierScore[];
 }
+
+export const classifierScoreKey = (score: ClassifierScore): string => {
+  const dateString = new Date(score.sd).toISOString();
+
+  return [
+    score.source,
+    score.classifier,
+    score.division,
+    dateString,
+    score.percent.toFixed(4),
+  ].join(":");
+};
 
 export const initialClassificationStateForDivision = (): DivisionClassification => ({
   class: "U",
