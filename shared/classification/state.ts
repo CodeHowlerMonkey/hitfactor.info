@@ -17,6 +17,7 @@ export interface DivisionClassification {
 
   age: number;
   age1: number;
+  effectiveWindow: ClassifierScore[];
 }
 export type DivisionClassificationWithoutWindow = Omit<DivisionClassification, "window">;
 
@@ -44,6 +45,7 @@ export const initialClassificationStateForDivision = (): DivisionClassification 
   percentWithDates: [],
   age: 0,
   age1: 0,
+  effectiveWindow: [],
 });
 
 export const getDivisionState = (state: ClassificationState, division: string) =>
@@ -80,9 +82,9 @@ export const addToCurWindow = (
   // push, truncate the tail, then re-add tail partially for each duplicate
   curWindow.push(c);
   curWindow.reverse();
+  const extraWindowLength = numberOfDuplicates(curWindow);
   const removed = curWindow.splice(targetWindowSize);
   curWindow.reverse();
-  const extraWindowLength = numberOfDuplicates(curWindow);
   const extraFromTail = removed.slice(0, extraWindowLength).reverse();
   curWindow.unshift(...extraFromTail);
 };

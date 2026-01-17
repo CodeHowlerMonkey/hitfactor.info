@@ -66,6 +66,7 @@ export const percentAndAgesForDivWindow = (
     percent,
     age,
     age1,
+    effectiveWindow: fFlagsApplied,
   };
 };
 
@@ -146,6 +147,7 @@ export const calculateUSPSAClassification = (
         percent: newPercent,
         age,
         age1,
+        effectiveWindow,
       } = percentAndAgesForDivWindow(
         division,
         state,
@@ -164,6 +166,7 @@ export const calculateUSPSAClassification = (
       state[division].class = newClass;
       state[division].age = age;
       state[division].age1 = age1;
+      state[division].effectiveWindow = effectiveWindow;
       state[c.division].percentWithDates.push({ p: newPercent, sd: new Date(c.sd) });
     }
   };

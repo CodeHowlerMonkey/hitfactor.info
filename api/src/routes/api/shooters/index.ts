@@ -192,6 +192,24 @@ const shootersRoutes = async fastify => {
     return shooterScoresChartData({ division, memberNumber });
   });
 
+  fastify.get("/:division/:memberNumber/debug", async (req, res) => {
+    // TODO: rename to LOCAL_ADMIN_TOOLS_ENABLED or something
+    if (!process.env.ALLOW_MARK_BAD) {
+      res.statusCode = 401;
+      return { nuhUh: 1 };
+    }
+
+    const { division, memberNumber } = req.params;
+    const reclass = await reclassificationForProgressMode(
+      "combined",
+      memberNumber,
+      division,
+      true,
+    );
+
+    return reclass;
+  });
+
   fastify.get("/:division/:memberNumber/chart/progress/:mode", async req => {
     const { division, memberNumber, mode } = req.params;
     const reclass = await reclassificationForProgressMode(
