@@ -10,6 +10,7 @@ import {
   useLocation,
   Link,
   Navigate,
+  useRouteError,
 } from "react-router-dom";
 
 import features from "../../../shared/features";
@@ -188,19 +189,11 @@ const Menu = () => {
   );
 };
 
-const Layout = () => (
+const CommonLayout = ({ children }) => (
   <div className="card relative min-h-screen">
     <div style={{ paddingBottom: "13rem" }}>
       <Menu />
-      <Suspense
-        fallback={
-          <div className="flex flex-justify-around p-4">
-            <ProgressSpinner />
-          </div>
-        }
-      >
-        <Outlet />
-      </Suspense>
+      {children}
       <div className="absolute h-13rem bottom-0 w-full">
         <Divider />
         <Footer />
@@ -209,6 +202,52 @@ const Layout = () => (
   </div>
 );
 
+const chunkErrorMessages = [
+  "Failed to fetch dynamically imported module",
+  "Importing a module script failed",
+  "error loading dynamically imported module",
+  "Loading chunk",
+];
+const ErrorElement = () => {
+  const error = useRouteError();
+
+  useEffect(() => {
+    const isChunkError = chunkErrorMessages.some(msg =>
+      error?.message?.toLowerCase().includes(msg.toLowerCase()),
+    );
+
+    if (isChunkError) {
+      const chunkErrorTimestamp = localStorage.getItem("chunk-error-ts");
+      if (Number(chunkErrorTimestamp) + 5_000 < new Date().getTime()) {
+        localStorage.setItem("chunk-error-ts", new Date().getTime());
+        window.location.reload();
+      } else {
+        console.error("already refreshed once");
+      }
+    }
+  }, [error]);
+
+  return (
+    <CommonLayout>
+      <h2>Sent It A Bit Too Hard, Bud!</h2>
+      <h3 style={{ fontStyle: "italic" }}>404 Not Found (or crash? I dunno)</h3>
+    </CommonLayout>
+  );
+};
+
+const Layout = () => (
+  <CommonLayout>
+    <Suspense
+      fallback={
+        <div className="flex flex-justify-around p-4">
+          <ProgressSpinner />
+        </div>
+      }
+    >
+      <Outlet />
+    </Suspense>
+  </CommonLayout>
+);
 const RedirectToClassifiers = () => <Navigate to="/classifiers" replace />;
 const HomePage = React.lazy(() => import("../pages/HomePage"));
 
@@ -216,13 +255,7 @@ const router = createBrowserRouter([
   {
     path: "/",
     Component: Layout,
-    errorElement: (
-      <div className="card">
-        <Menu />
-        <h2>Sent It A Bit Too Hard, Bud!</h2>
-        <h3 style={{ fontStyle: "italic" }}>404 Not Found (or crash? I dunno)</h3>
-      </div>
-    ),
+    errorElement: <ErrorElement />,
     children: [
       {
         path: "",
@@ -236,26 +269,26 @@ const router = createBrowserRouter([
         path: "shooters/:division?/:memberNumber?",
         Component: React.lazy(() => import("../pages/ShootersPage")),
       },
-      ...(features.scsaOnly
-        ? []
-        : [
-            {
-              path: "stats",
-              Component: React.lazy(() => import("../pages/StatsPage")),
-            },
-            {
-              path: "clubs",
-              Component: React.lazy(() => import("../pages/ClubsPage")),
-            },
-            {
-              path: "upload/:uuid?/:division?",
-              Component: React.lazy(() => import("../pages/UploadPage")),
-            },
-            {
-              path: "majors",
-              Component: React.lazy(() => import("../pages/MajorsPage")),
-            },
-          ]),
+      {
+        path: "stats",
+        Component: React.lazy(() => import("../pages/StatsPage")),
+      },
+      {
+        path: "clubs",
+        Component: React.lazy(() => import("../pages/ClubsPage")),
+      },
+      {
+        path: "upload/:uuid?/:division?",
+        Component: React.lazy(() => import("../pages/UploadPage")),
+      },
+      {
+        path: "majors",
+        Component: React.lazy(() => import("../pages/MajorsPage")),
+      },
+      {
+        path: "pslink/:uuid?",
+        Component: React.lazy(() => import("../pages/PSLinkPage")),
+      },
       ...(location.hostname !== "localhost"
         ? []
         : [

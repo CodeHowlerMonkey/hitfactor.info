@@ -26,8 +26,19 @@ const FastifyAppEntry: FastifyPluginAsync<AppOptions> = async (
   await fastify.register(FastifyStatic, {
     root: pathReact,
     prefix: "/",
+    setHeaders: (res, path) => {
+      if (path.endsWith("index.html")) {
+        res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
+      } else {
+        res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+      }
+    },
   });
-  await fastify.setNotFoundHandler((req, reply) => reply.sendFile("index.html"));
+  await fastify.setNotFoundHandler((req, reply) =>
+    reply
+      .header("Cache-Control", "no-store, no-cache, must-revalidate")
+      .sendFile("index.html"),
+  );
 
   // controllers
   await fastify.register(AutoLoad, {
