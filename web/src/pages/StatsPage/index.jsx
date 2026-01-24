@@ -4,6 +4,7 @@ import { TabView, TabPanel } from "primereact/tabview";
 import { useState } from "react";
 import { PieChart } from "react-minimal-pie-chart";
 import MultiProgress from "react-multi-progress";
+import { Tooltip as ReactTooltip } from "react-tooltip";
 
 import ModeSwitch from "@web/components/ModeSwitch";
 
@@ -19,6 +20,15 @@ import divisionPopularity5 from "../../../../data/stats/divisions_5YTD.json";
 import divisionPopularity6 from "../../../../data/stats/divisions_6YTD.json";
 import divisionPopularity7 from "../../../../data/stats/divisions_7YTD.json";
 import divisionPopularity8 from "../../../../data/stats/divisions_8YTD.json";
+import divisionMajorsPopularity0 from "../../../../data/stats/divisions_majors_0YTD.json";
+import divisionMajorsPopularity1 from "../../../../data/stats/divisions_majors_1YTD.json";
+import divisionMajorsPopularity2 from "../../../../data/stats/divisions_majors_2YTD.json";
+import divisionMajorsPopularity3 from "../../../../data/stats/divisions_majors_3YTD.json";
+import divisionMajorsPopularity4 from "../../../../data/stats/divisions_majors_4YTD.json";
+import divisionMajorsPopularity5 from "../../../../data/stats/divisions_majors_5YTD.json";
+import divisionMajorsPopularity6 from "../../../../data/stats/divisions_majors_6YTD.json";
+import divisionMajorsPopularity7 from "../../../../data/stats/divisions_majors_7YTD.json";
+import divisionMajorsPopularity8 from "../../../../data/stats/divisions_majors_8YTD.json";
 import { Row, Column } from "../../components";
 import { useApi } from "../../utils/client";
 import { bgColorForClass } from "../../utils/color";
@@ -230,18 +240,21 @@ const formatDate = d => {
 };
 
 const DivisionsChart = ({ apiData }) => {
+  const [hovered, setHovered] = useState(null);
   if (!apiData) {
     return null;
   }
-
-  const data = apiData.data.map(({ _id: title, scores: value, percent, start, end }) => ({
-    title,
-    value,
-    color: colorForDivision[title] || "grey",
-    percent,
-    start,
-    end,
-  }));
+  const data = apiData.data
+    .sort((a, b) => b.scores - a.scores)
+    .map(({ _id: title, scores: value, percent, start, end }) => ({
+      title,
+      tooltip: `${title}: ${value}`,
+      value,
+      color: colorForDivision[title] || "grey",
+      percent: Number(percent.toFixed(2)),
+      start,
+      end,
+    }));
 
   return (
     <div
@@ -254,23 +267,32 @@ const DivisionsChart = ({ apiData }) => {
       className="mx-auto my-2"
     >
       <div>
-        <PieChart
-          data={data}
-          style={{
-            fontFamily: '"Nunito Sans", -apple-system, Helvetica, Arial, sans-serif',
-            fontSize: "3.0px",
-            fontWeight: "bold",
-          }}
-          lineWidth={60}
-          label={({ dataEntry: { title, percent } }) => `${title}: ${percent}%`}
-          totalValue={apiData.total}
-          labelPosition={72}
-          labelStyle={dataIndex => ({
-            fill: data[dataIndex].title === "GM" ? "red" : "#000",
-            opacity: 0.75,
-            pointerEvents: "none",
-          })}
-        />
+        <div
+          data-tooltip-id="chart-tooltip"
+          data-tooltip-content={data[hovered]?.tooltip}
+          data-tooltip-float="true"
+        >
+          <PieChart
+            data={data}
+            style={{
+              fontFamily: '"Nunito Sans", -apple-system, Helvetica, Arial, sans-serif',
+              fontSize: "3.0px",
+              fontWeight: "bold",
+            }}
+            lineWidth={60}
+            label={({ dataEntry: { title, percent } }) => `${title}: ${percent}%`}
+            totalValue={apiData.total}
+            labelPosition={72}
+            labelStyle={dataIndex => ({
+              fill: data[dataIndex].title === "GM" ? "red" : "#000",
+              opacity: 0.75,
+              pointerEvents: "none",
+            })}
+            onMouseOver={(_, index) => setHovered(index)}
+            onMouseOut={() => setHovered(null)}
+          />
+          <ReactTooltip id="chart-tooltip" />
+        </div>
       </div>
       <div className="text-lg text-center">
         {formatDate(data[0].start)} — {formatDate(data[0].end)}
@@ -279,19 +301,49 @@ const DivisionsChart = ({ apiData }) => {
   );
 };
 
-const Divisions = () => (
-  <div className="flex gap-4 flex-wrap mt-4 mx-auto" style={{ maxWidth: 1280 }}>
-    <DivisionsChart apiData={divisionPopularity0} />
-    <DivisionsChart apiData={divisionPopularity1} />
-    <DivisionsChart apiData={divisionPopularity2} />
-    <DivisionsChart apiData={divisionPopularity3} />
-    <DivisionsChart apiData={divisionPopularity4} />
-    <DivisionsChart apiData={divisionPopularity5} />
-    <DivisionsChart apiData={divisionPopularity6} />
-    <DivisionsChart apiData={divisionPopularity7} />
-    <DivisionsChart apiData={divisionPopularity8} />
-  </div>
-);
+const Divisions = () => {
+  const [mode, setMode] = useState("Classifiers");
+
+  return (
+    <div className="flex-column mt-4">
+      <div className="card flex justify-content-center">
+        <SelectButton
+          className="compact text-xs"
+          value={mode}
+          onChange={e => setMode(e.value)}
+          options={["Classifiers", "Majors"]}
+        />
+      </div>
+      <div className="flex gap-4 flex-wrap mt-4 mx-auto" style={{ maxWidth: 1280 }}>
+        {mode === "Majors" ? (
+          <>
+            <DivisionsChart apiData={divisionMajorsPopularity0} />
+            <DivisionsChart apiData={divisionMajorsPopularity1} />
+            <DivisionsChart apiData={divisionMajorsPopularity2} />
+            <DivisionsChart apiData={divisionMajorsPopularity3} />
+            <DivisionsChart apiData={divisionMajorsPopularity4} />
+            <DivisionsChart apiData={divisionMajorsPopularity5} />
+            <DivisionsChart apiData={divisionMajorsPopularity6} />
+            <DivisionsChart apiData={divisionMajorsPopularity7} />
+            <DivisionsChart apiData={divisionMajorsPopularity8} />
+          </>
+        ) : (
+          <>
+            <DivisionsChart apiData={divisionPopularity0} />
+            <DivisionsChart apiData={divisionPopularity1} />
+            <DivisionsChart apiData={divisionPopularity2} />
+            <DivisionsChart apiData={divisionPopularity3} />
+            <DivisionsChart apiData={divisionPopularity4} />
+            <DivisionsChart apiData={divisionPopularity5} />
+            <DivisionsChart apiData={divisionPopularity6} />
+            <DivisionsChart apiData={divisionPopularity7} />
+            <DivisionsChart apiData={divisionPopularity8} />
+          </>
+        )}
+      </div>
+    </div>
+  );
+};
 
 // main "page" of this file
 export const StatsPage = () => {
