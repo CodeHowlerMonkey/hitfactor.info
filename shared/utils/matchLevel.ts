@@ -14,6 +14,7 @@ const specialAreas = [
   "2016 US Infinity Open",
 ];
 const specialMajors = [
+  "Team Pinoy USA", // < only one eligible so far, 2025, but it's named Level 2, and match is big
   "Red Rock Rumble",
   "Golden Bullet",
   "Double Tap",
