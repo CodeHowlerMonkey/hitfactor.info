@@ -312,6 +312,7 @@ interface ReclassificationBreakdownResult {
   age: number;
   age1: number;
   history: PercentWithDate[];
+  //effectiveWindow: ClassifierScore[];
 }
 const reclassificationBreakdown = (
   reclassificationInfo: ClassificationState,
@@ -324,6 +325,7 @@ const reclassificationBreakdown = (
   age: reclassificationInfo?.[division]?.age,
   age1: reclassificationInfo?.[division]?.age1,
   history: reclassificationInfo?.[division]?.percentWithDates,
+  //effectiveWindow: reclassificationInfo?.[division]?.effectiveWindow,
 });
 
 const recalc = (scores, date: Date, division: string) =>
