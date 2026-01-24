@@ -1,9 +1,11 @@
+import cx from "classnames";
 import { Column } from "primereact/column";
 import { DataTable } from "primereact/datatable";
 import { Dropdown } from "primereact/dropdown";
 import { InputText } from "primereact/inputtext";
 import qs from "query-string";
 import { useEffect, useRef, useState } from "react";
+import { Tooltip as ReactTooltip } from "react-tooltip";
 import { useDebounce } from "use-debounce";
 
 import ReportDialog from "./ReportDialog";
@@ -13,8 +15,58 @@ import useTablePagination from "./Table/useTablePagination";
 import useTableSort from "./Table/useTableSort";
 
 import { sportForDivision } from "../../../shared/constants/divisions";
+import { stageTargetsHitsText } from "../../../shared/utils/hitfactor";
 import { useApi } from "../utils/client";
 import { useIsHFU } from "../utils/useIsHFU";
+
+const displayString = s => {
+  if (!s?.length) {
+    return null;
+  }
+
+  const splits = s.map((cur, idx, all) => {
+    const prev = all[idx - 1] ?? 0;
+    return (cur - prev).toFixed(2);
+  });
+
+  return [...splits, `(${s.length})`].join(" ");
+};
+
+const StageTime = ({ score }) => {
+  const { stageTimeSecs: time, string0, string1, string2, string3 } = score ?? {};
+  const vals =
+    location.hostname === "localhost"
+      ? [
+          displayString(string0),
+          displayString(string1),
+          displayString(string2),
+          displayString(string3),
+        ].filter(Boolean)
+      : [];
+
+  return (
+    <div
+      data-tooltip-id="strings-tooltip"
+      data-tooltip-content={vals.join("\n")}
+      className={cx({ "cursor-pointer": vals.length > 1, "text-bold": vals.length > 1 })}
+    >
+      <div>{time ? `${time}s` : "—"}</div>
+    </div>
+  );
+};
+
+const HFCell = ({ hf, stageTimeSecs, targetHits }) => {
+  const letters = stageTargetsHitsText(targetHits);
+
+  return (
+    <div className="relative">
+      <div>{`${hf}`}</div>
+      <div className="absolute text-sm">
+        {stageTimeSecs}s <span className="text-xs">{letters}</span>
+      </div>
+    </div>
+  );
+};
 
 const TableFilter = ({ placeholder, onFilterChange }) => {
   const [filter, setFilter] = useState("");
@@ -152,24 +204,10 @@ const RunsTable = ({ classifier, division, clubs, onShooterSelection }) => {
         filterDisplay="row"
       >
         <Column field="place" header="#" align="center" style={{ maxWidth: "4em" }} />
-        {/* <Column
-        field="index"
-        header="#"
-        headerTooltip="Index for the dataRow with current filters and sorting options applied. Can be used for manual counting of things. "
-        headerTooltipOptions={headerTooltipOptions}
-      <Column
-        field="place"
-        //header="Place"
-        header="# / Perc."
-        headerTooltip="Record place for this score. Stays the same unless someone beats this score."
-        headerTooltipOptions={headerTooltipOptions}
-        body={(c) => [c.place, c.percentile].join(" / ")}
-      />
-    /> */}
         <Column
           field="percentile"
-          header="Perc."
-          headerTooltip="Percentile for this score. Shows how many percent of scores are higher than this one."
+          header="Top %"
+          headerTooltip="Top Percentile for this score. Shows how many percent of scores are higher than this one."
           headerTooltipOptions={headerTooltipOptions}
           body={c => `${c.percentile.toFixed(2)}%`}
         />
@@ -184,25 +222,24 @@ const RunsTable = ({ classifier, division, clubs, onShooterSelection }) => {
             />
           )}
         />
-        <Column field="hf" header={sport === "scsa" ? "Time" : "HF"} sortable />
         <Column
-          hidden={sport !== "hfu"}
           body={renderPercent}
           field="recPercent"
           header="Percent"
           sortable
-        />
-        <Column
-          hidden={sport !== "uspsa" && sport !== "scsa"}
-          body={renderPercent}
-          field="recPercent"
-          header="Rec. %"
-          sortable
-          headerTooltip="What classifier percentage this score SHOULD earn if Recommended HHFs are used."
+          headerTooltip="Percentage of Recommended High Hit Factor."
           headerTooltipOptions={headerTooltipOptions}
         />
+        <Column field="hf" header="HF" sortable />
+        {/* TODO: migrate stageTimeSecs to Number and make it sortable */}
+        <Column field="stageTimeSecs" header="Time" body={c => <StageTime score={c} />} />
         <Column
-          hidden={sport !== "uspsa" && sport !== "scsa"}
+          field="hits"
+          header="Hits"
+          body={c => stageTargetsHitsText(c.targetHits) || "-"}
+        />
+        <Column
+          hidden
           body={renderPercent}
           field="curPercent"
           header="HQ %"
@@ -211,7 +248,7 @@ const RunsTable = ({ classifier, division, clubs, onShooterSelection }) => {
           headerTooltipOptions={headerTooltipOptions}
         />
         <Column
-          hidden={sport !== "uspsa" && sport !== "scsa"}
+          hidden
           body={renderPercent}
           field="oldPercent"
           header="Old %"
@@ -242,6 +279,7 @@ const RunsTable = ({ classifier, division, clubs, onShooterSelection }) => {
           )}
         />
       </DataTable>
+      <ReactTooltip id="strings-tooltip" />
     </>
   );
 };

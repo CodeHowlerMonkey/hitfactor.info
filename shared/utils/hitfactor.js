@@ -36,7 +36,11 @@ const majorPointsForLetter = {
   NPM: 0,
 };
 
+/** Converts single target hits (Number like 257) to array of letters (['A', 'C']) */
 export const targetHitsToLetters = n => {
+  if (!Number.isFinite(n)) {
+    return [];
+  }
   let remainder = n;
 
   const NPMs = Math.floor(remainder / NPM);
@@ -78,6 +82,25 @@ export const targetHitsToLetters = n => {
     ...new Array(NPMs).fill("NPM"),
   ];
 };
+
+/**
+ * Converts array of numbers representing hits to readable hits string
+ * @param allTargetsHits [257, 2, 2]
+ * @returns "5A 1C"
+ */
+export const stageTargetsHitsText = (allTargetsHits, hideAlphas = false) =>
+  Object.entries(
+    (allTargetsHits?.map(targetHitsToLetters) || []).flat().reduce((acc, cur) => {
+      if (cur === "A" && hideAlphas) {
+        return acc;
+      }
+      acc[cur] ??= 0;
+      acc[cur] += 1;
+      return acc;
+    }, {}),
+  )
+    .map(([letter, hits]) => `${hits}${letter}`)
+    .join(" ");
 
 // 0.01 is very fuzzy, 0.0001 is ideal, TODO: pick 0.0001 unless 0.01 produces legit more eligible scores
 export const fuzzyEqual = (a, b, epsilon = 0.0001) => Math.abs(a - b) <= epsilon;
