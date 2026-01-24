@@ -245,6 +245,7 @@ interface MatchScoresFilter {
   division?: string | { $in: string[] };
   memberNumber?: string | string[];
   match?: string;
+  since?: Date;
   until?: Date;
 }
 
@@ -252,15 +253,19 @@ export const matchScoresFor = async ({
   division,
   memberNumber,
   match,
+  since,
   until,
 }: MatchScoresFilter): Promise<MatchScoreWithExtras[]> => {
+  const dateGTE = !since ? {} : { $gt: UTCDate(since) };
+  const dateLT = !until ? {} : { $lt: UTCDate(until) };
+  const date = !since && !until ? {} : { date: { ...dateGTE, ...dateLT } };
   const filter = {
     ...(division ? { division } : {}),
     ...(memberNumber
       ? { memberNumber: { $in: ([] as string[]).concat(memberNumber) } }
       : {}),
     ...(match ? { upload: match } : {}),
-    ...(until ? { date: { $lt: UTCDate(until) } } : {}),
+    ...date,
   };
 
   const shooterMaybe = !memberNumber && !!division && !!match ? ["shooter"] : [];
