@@ -117,7 +117,9 @@ const ClassifiersTable = ({ division, onClassifierSelection }) => {
       terrenceHHF: terrenceHHFs[d.code],
       terrenceHHFSchizoDiff: d.schizoHHF - terrenceHHFs[d.code],
       terrenceHHFSchizoDiffPercent: 100 * (d.schizoHHF / terrenceHHFs[d.code] - 1),
-      lambdaNormalized: (100 * d.lambda) / d.recHHF, //weibulReverseCDFFactory(d.k, d.lambda)(weibulLambdaPoint),
+      lambdaNormalized: (100 * d.lambda) / d.recHHF,
+      // for alignment to trickless recHHF (obtained without modifying other division data / cherry-picking / splits analysis / etc)
+      // lambdaNormalized: (100 * d.lambda) / (weibulReverseCDFFactory(d.k, d.lambda)(3) / 0.9),
       difficulty: 200 - (200 * d.lambda) / d.recHHF,
     }))
     .sort((a, b) => {
