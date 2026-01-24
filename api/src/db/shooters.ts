@@ -431,6 +431,7 @@ export const reclassifyShooters = async shooters => {
                     hqClassRank: percentForClass(hqClass),
                     class: hqClass,
                     memberId: psClassUpdates?.[memberNumber]?.memberId,
+                    memberNumberDivision: [memberNumber, division].join(":"),
 
                     age: recalcDivRec?.age,
                     age1: recalcDivRec?.age1,
