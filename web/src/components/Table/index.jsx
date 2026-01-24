@@ -186,12 +186,7 @@ export const renderClubIdMatchLink = (c, { field }) => {
       .filter(Boolean)
       .join("");
     return (
-      <a
-        target="_blank"
-        href={`https://practiscore.com/results/new/${c.upload}`}
-        title={title}
-        rel="noreferrer"
-      >
+      <a href={`/pslink/${c.upload}`} target="_blank" title={title} rel="noreferrer">
         {contentShort || matchNameShort}
       </a>
     );
