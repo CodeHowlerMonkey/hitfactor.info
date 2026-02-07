@@ -45,24 +45,9 @@ const StageTime = ({ score }) => {
       : [];
 
   return (
-    <div
-      data-tooltip-id="strings-tooltip"
-      data-tooltip-content={vals.join("\n")}
-      className={cx({ "cursor-pointer": vals.length > 1, "text-bold": vals.length > 1 })}
-    >
-      <div>{time ? `${time}s` : "—"}</div>
-    </div>
-  );
-};
-
-const HFCell = ({ hf, stageTimeSecs, targetHits }) => {
-  const letters = stageTargetsHitsText(targetHits);
-
-  return (
-    <div className="relative">
-      <div>{`${hf}`}</div>
-      <div className="absolute text-sm">
-        {stageTimeSecs}s <span className="text-xs">{letters}</span>
+    <div data-tooltip-id="strings-tooltip" data-tooltip-content={vals.join("\n")}>
+      <div className={cx({ "font-bold": vals.length >= 1 })}>
+        {time ? `${time}s` : "—"}
       </div>
     </div>
   );
