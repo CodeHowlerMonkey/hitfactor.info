@@ -1,8 +1,9 @@
 /* eslint-disable no-console */
 
 import { connect } from "@api/db";
-import { Shooter, Shooters } from "@api/db/shooters";
+import { Shooters } from "@api/db/shooters";
 import { loadAllJSONFromDir } from "@api/utils";
+import { classForPercent } from "@shared/classification/brackets";
 import { uspsaDivIdToShort } from "@shared/constants/divisions";
 
 const shooters = loadAllJSONFromDir("../../data/uspsa/classifications")
@@ -40,6 +41,9 @@ const go = async () => {
           return [];
         }
 
+        const classCurrent = classForPercent(current);
+        const classHigh = classForPercent(high);
+
         return [
           {
             updateOne: {
@@ -49,6 +53,8 @@ const go = async () => {
                   $set: {
                     current,
                     high,
+                    classCurrent,
+                    classHigh,
                   },
                 },
               ],

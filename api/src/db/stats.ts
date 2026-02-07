@@ -158,6 +158,8 @@ export const hydrateStats = async () => {
   console.time("stats");
   const byCurrent = await statsByDivAndAll("recUncappedClassCurrent");
   const byHigh = await statsByDivAndAll("recUncappedClassHigh");
+  const byHQCurrent = await statsByDivAndAll("classCurrent");
+  const byHQHigh = await statsByDivAndAll("classHigh");
 
   await Stats.bulkWrite([
     {
@@ -180,6 +182,8 @@ export const hydrateStats = async () => {
             $set: {
               byCurrent,
               byHigh,
+              byHQCurrent,
+              byHQHigh,
             },
           },
         ],

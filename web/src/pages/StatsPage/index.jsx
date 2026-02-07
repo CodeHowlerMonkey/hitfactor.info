@@ -211,6 +211,8 @@ const titleForDivMap = {
 const modeMap = {
   Current: "byCurrent",
   High: "byHigh",
+  HQ: "byHQCurrent",
+  "HQ High": "byHQHigh",
 };
 const modes = Object.keys(modeMap);
 const modeBucketForMode = mode => modeMap[mode];
