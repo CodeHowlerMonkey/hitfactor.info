@@ -41,8 +41,19 @@ const fieldModeMap = {
   ELO: "elo",
   Classifiers: "classifiers",
   Majors: "majors",
-  // HQ: "current",
-  // HQHigh: "high",
+  ...(location.hostname === "localhost"
+    ? {
+        HQ: "current",
+        HQHigh: "high",
+      }
+    : {}),
+  // HQ: "curHHFPercent",
+  // "HQ High": "curHHFPercentHigh",
+  /*
+  "Rec.HHFOnly": "recHHFOnlyPercent",
+  "Rec.Soft": "recSoftPercent",
+  "Rec.Brutal": "recPercent",
+  */
   Recommended: "recPercentUncapped",
   "Recommended High": "recPercentUncappedHigh",
 };

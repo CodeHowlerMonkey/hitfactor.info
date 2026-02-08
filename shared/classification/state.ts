@@ -17,7 +17,10 @@ export interface DivisionClassification {
 
   age: number;
   age1: number;
+  ageMax: number;
   effectiveWindow: ClassifierScore[];
+  age1Date?: Date;
+  ageMaxDate?: Date;
 }
 export type DivisionClassificationWithoutWindow = Omit<DivisionClassification, "window">;
 
@@ -45,7 +48,10 @@ export const initialClassificationStateForDivision = (): DivisionClassification 
   percentWithDates: [],
   age: 0,
   age1: 0,
+  ageMax: 0,
   effectiveWindow: [],
+  age1Date: undefined,
+  ageMaxDate: undefined,
 });
 
 export const getDivisionState = (state: ClassificationState, division: string) =>

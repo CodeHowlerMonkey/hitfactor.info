@@ -36,4 +36,7 @@ export interface Shooter {
 
   age: number;
   age1: number;
+  ageMax: number;
+  age1Date?: Date;
+  ageMaxDate?: Date;
 }

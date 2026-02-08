@@ -75,6 +75,11 @@ ShooterSchema.index({
   division: 1,
   reclassificationsClassifiersCurrent: 1,
 });
+ShooterSchema.index({
+  division: 1,
+  reclassificationsRecPercentUncappedCurrent: 1,
+  ageMaxDate: 1,
+});
 
 export const Shooters =
   mongoose.models.Shooters || mongoose.model("Shooters", ShooterSchema);
@@ -311,8 +316,11 @@ interface ReclassificationBreakdownResult {
   classHigh: ClassLetter;
   age: number;
   age1: number;
+  ageMax: number;
   history: PercentWithDate[];
   //effectiveWindow: ClassifierScore[];
+  age1Date?: Date;
+  ageMaxDate?: Date;
 }
 const reclassificationBreakdown = (
   reclassificationInfo: ClassificationState,
@@ -324,8 +332,11 @@ const reclassificationBreakdown = (
   classHigh: classForPercent(reclassificationInfo?.[division]?.highPercent),
   age: reclassificationInfo?.[division]?.age,
   age1: reclassificationInfo?.[division]?.age1,
+  ageMax: reclassificationInfo?.[division]?.ageMax,
   history: reclassificationInfo?.[division]?.percentWithDates,
   //effectiveWindow: reclassificationInfo?.[division]?.effectiveWindow,
+  age1Date: reclassificationInfo?.[division]?.age1Date,
+  ageMaxDate: reclassificationInfo?.[division]?.ageMaxDate,
 });
 
 const recalc = (scores, date: Date, division: string) =>
@@ -435,6 +446,9 @@ export const reclassifyShooters = async shooters => {
 
                     age: recalcDivRec?.age,
                     age1: recalcDivRec?.age1,
+                    ageMax: recalcDivRec?.ageMax,
+                    age1Date: recalcDivRec?.age1Date,
+                    ageMaxDate: recalcDivRec?.ageMaxDate,
 
                     elo: eloPointForShooter(division, memberNumber)?.rating,
                     reclassificationsRecPercentUncappedCurrent: recalcDivRec.current, //aka recPercentUncapped

@@ -60,12 +60,18 @@ export const percentAndAgesForDivWindow = (
       0,
     ) / fFlagsApplied.length || 0;
 
-  const lastScore = fFlagsApplied.toSorted((a, b) => dateSort(a, b, "sd", -1))[0];
+  const effectiveWindow = fFlagsApplied.toSorted((a, b) => dateSort(a, b, "sd", -1));
+  const lastScore = effectiveWindow[0];
+  const firstScore = effectiveWindow[effectiveWindow.length - 1];
   const age1 = ageForDate(now, lastScore?.sd || now);
+  const ageMax = ageForDate(now, firstScore?.sd || now);
   return {
     percent,
     age,
     age1,
+    ageMax,
+    age1Date: lastScore?.sd ? new Date(lastScore?.sd) : undefined,
+    ageMaxDate: firstScore?.sd ? new Date(firstScore?.sd) : undefined,
     effectiveWindow: fFlagsApplied,
   };
 };
@@ -147,6 +153,9 @@ export const calculateUSPSAClassification = (
         percent: newPercent,
         age,
         age1,
+        age1Date,
+        ageMax,
+        ageMaxDate,
         effectiveWindow,
       } = percentAndAgesForDivWindow(
         division,
@@ -166,6 +175,9 @@ export const calculateUSPSAClassification = (
       state[division].class = newClass;
       state[division].age = age;
       state[division].age1 = age1;
+      state[division].ageMax = ageMax;
+      state[division].age1Date = age1Date;
+      state[division].ageMaxDate = ageMaxDate;
       state[division].effectiveWindow = effectiveWindow;
       state[c.division].percentWithDates.push({ p: newPercent, sd: new Date(c.sd) });
     }
