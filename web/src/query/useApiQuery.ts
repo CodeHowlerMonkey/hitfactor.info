@@ -6,7 +6,8 @@ export const API_URL = "/api"; // react build served through node
 
 export const queryKeyForPathAndQueryString = (pathAndQueryString: string): string[] => {
   try {
-    const url = new URL(`https://0:0/${pathAndQueryString}`);
+    const url = new URL(`https://0:0${pathAndQueryString}`);
+    //console.log(url);
     const pathSegments = url.pathname.split("/").filter(Boolean);
     const searchParamPairs = [...url.searchParams]
       .filter(([, v]) => !!v)

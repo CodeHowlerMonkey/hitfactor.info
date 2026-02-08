@@ -7,19 +7,17 @@ interface WeibullStatusProps {
   showHHF?: boolean;
 }
 
-// TODO: Mean Absolute Error, Mean Squared Error, Max Error
-// and their quantile counterparts  MAQE, QMSE, Max Quantile Error
 export const WeibullStatus = ({
   showHHF,
   weibull: {
     loading,
     k,
     lambda,
-    skewness,
-    kurtosis,
-    meanSquaredError,
+    //skewness,
+    //kurtosis,
+    //meanSquaredError,
     meanAbsoluteError,
-    superMeanSquaredError,
+    //superMeanSquaredError,
     superMeanAbsoluteError,
     maxError,
     hhf3,
@@ -47,14 +45,14 @@ export const WeibullStatus = ({
         {showHHF && <div>RHHF = {hhf3.toFixed(4)}</div>}
         <div>k = {k.toFixed(4)}</div>
         <div>𝛌 = {lambda.toFixed(4)}</div>
-        <div>Skewness = {skewness.toFixed(4)}</div>
-        <div>Kurtosis = {kurtosis.toFixed(4)}</div>
+        {/*<div>Skewness = {skewness.toFixed(4)}</div>*/}
+        {/*<div>Kurtosis = {kurtosis.toFixed(4)}</div>*/}
       </div>
       <div className="flex flex-column justify-content-center text-md text-500 font-bold">
-        <div>SMSE = {superMeanSquaredError.toFixed(4)}</div>
         <div>SMAE = {superMeanAbsoluteError.toFixed(4)}</div>
-        <div>MSE = {meanSquaredError.toFixed(4)}</div>
         <div>MAE = {meanAbsoluteError.toFixed(4)}</div>
+      </div>
+      <div className="flex flex-column justify-content-center text-md text-500 font-bold">
         <div>ME = {maxError.toFixed(4)}</div>
       </div>
     </div>

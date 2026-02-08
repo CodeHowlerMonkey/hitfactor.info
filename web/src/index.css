@@ -32,6 +32,12 @@ a:link:not(.p-menuitem-link), a:visited:not(.p-menuitem-link) {
   font-size: 1em;
 }
 
+.compact.p-dropdown .p-dropdown-label.p-inputtext {
+  padding: 8px 10px;
+}
+.compact.p-dropdown .p-dropdown-trigger {
+  width: 2.0rem;
+}
 .compact .p-button.p-component {
   padding: 10px 10px;
 }

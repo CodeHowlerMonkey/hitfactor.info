@@ -285,14 +285,10 @@ export const classifierDivisionArrayForHFURecHHFs = (classifiers): string[] =>
 
 export const divisionsForScoresAdapter = division => {
   if (division === "all") {
-    return uspsaDivShortNames;
-  }
-  const hfu = hfuDivisionExplosionForScores[division];
-  if (hfu) {
-    return hfu;
+    return { division: { $in: uspsaDivShortNames } };
   }
 
-  return [division];
+  return { division };
 };
 
 export const divisionsForRecHHFAdapter = (division, classifier = "") => {

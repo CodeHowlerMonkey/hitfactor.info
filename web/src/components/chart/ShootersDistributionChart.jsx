@@ -1,3 +1,4 @@
+import { Dropdown } from "primereact/dropdown";
 import { ProgressSpinner } from "primereact/progressspinner";
 import { SelectButton } from "primereact/selectbutton";
 import { useMemo, useState } from "react";
@@ -16,6 +17,7 @@ import {
   closestYForX,
   wbl1COAnnotationColor,
 } from "./common";
+import { ageModes, modes, fieldForMode, ageModeParam } from "./fields";
 import { useAsyncWeibull } from "./useAsyncWeibull";
 import { WeibullStatus } from "./WeibullStatus";
 
@@ -23,32 +25,19 @@ import { useApi } from "../../utils/client";
 import { bgColorForClass } from "../../utils/color";
 import { useIsHFU } from "../../utils/useIsHFU";
 
-const fieldModeMap = {
-  Classifiers: "classifiers",
-  Majors: "majors",
-  Recommended: "recPercentUncapped",
-  "Recommended High": "recPercentUncappedHigh",
-  ...(location.hostname === "localhost"
-    ? {
-        HQ: "current",
-        HQHigh: "high",
-      }
-    : {}),
-};
-const fieldForMode = mode => fieldModeMap[mode];
-const modes = Object.keys(fieldModeMap);
 const recommendedMode = modes[0];
 
 export const ShootersDistributionChart = ({ division, style }) => {
   const isHFU = useIsHFU(division);
   const [colorModeState, setColorMode] = useState(recommendedMode);
   const [xModeState, setXMode] = useState(recommendedMode);
+  const [ageMode, setAgeMode] = useState(ageModes[0]);
 
   const colorMode = colorModeState;
   const xMode = xModeState;
 
   const { json: data, loading } = useApi(
-    `/shooters/${division}/chart?xMode=${fieldForMode(xMode)}&colorMode=${fieldForMode(colorMode)}`,
+    `/shooters/${division}/chart?xMode=${fieldForMode(xMode)}&colorMode=${fieldForMode(colorMode)}${ageModeParam(ageMode)}`,
   );
 
   const curModeData = useMemo(() => data || [], [data]);
@@ -203,27 +192,35 @@ export const ShootersDistributionChart = ({ division, style }) => {
 
   return (
     <div style={style}>
-      <div className="flex mt-4 justify-content-center gap-4 mb-2 text-base lg:text-xl">
+      <div className="flex mt-4 justify-content-around gap-4 mb-2 text-base lg:text-xl">
         {!isHFU && (
-          <div className="flex flex-column gap-2">
-            <div className="flex flex-column justify-content-center align-items-start">
+          <div className="flex flex-row gap-2">
+            <div className="flex flex-column justify-content-center align-items-start gap-1">
               <span className="text-md text-500 font-bold">Color</span>
-              <SelectButton
+              <Dropdown
                 className="compact text-xs"
-                allowEmpty={false}
                 options={modes}
                 value={colorMode}
                 onChange={e => setColorMode(e.value)}
               />
             </div>
-            <div className="flex flex-column justify-content-center align-items-start">
+            <div className="flex flex-column justify-content-center align-items-start gap-1">
               <span className="text-md text-500 font-bold">Position</span>
-              <SelectButton
+              <Dropdown
                 className="compact text-xs"
-                allowEmpty={false}
                 options={modes}
                 value={xMode}
                 onChange={e => setXMode(e.value)}
+              />
+            </div>
+            <div className="flex flex-column justify-content-start align-items-start ml-4 mr-8 gap-1">
+              <span className="text-md text-500 font-bold">Age</span>
+              <SelectButton
+                className="compact text-xs"
+                allowEmpty={false}
+                options={ageModes}
+                value={ageMode}
+                onChange={e => setAgeMode(e.value)}
               />
             </div>
           </div>

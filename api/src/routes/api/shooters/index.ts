@@ -232,12 +232,15 @@ const shootersRoutes = async fastify => {
   });
 
   fastify.get("/:division/chart", async req => {
-    const { division, postMegaDoc } = req.params;
-    const { xMode, colorMode, mode } = req.query;
+    const { division } = req.params;
+    const { xMode, colorMode, mode, age } = req.query;
     const shootersTable = await Shooters.find({
       division,
       reclassificationsRecPercentUncappedCurrent: { $gt: 0 },
-      ...(!postMegaDoc
+      ...(age !== "preMegaDoc"
+        ? {}
+        : { ageMaxDate: { $exists: true, $ne: null, $lt: new Date("2025-04-01") } }),
+      ...(age !== "postMegaDoc"
         ? {}
         : { ageMaxDate: { $exists: true, $ne: null, $gte: new Date("2025-05-01") } }),
     })

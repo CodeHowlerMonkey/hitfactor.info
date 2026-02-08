@@ -12,6 +12,7 @@ import {
   hfuDivisionMapForHHF,
   hfuDivisionRecHHFExclusion,
   sportForDivision,
+  uspsaDivShortNames,
 } from "../divisions";
 
 const classifierFactory = (classifier, division) => ({
@@ -103,14 +104,11 @@ test("hfuDivisionMapForHHF", () => {
 });
 
 test("divisionsForScoresAdapter", () => {
-  assert.deepEqual(divisionsForScoresAdapter("co"), ["co"]);
-  assert.deepEqual(divisionsForScoresAdapter("opt"), [
-    "opt",
-    "co",
-    "lo",
-    "pcsl_po",
-    "pcsl_acp",
-  ]);
+  assert.deepEqual(divisionsForScoresAdapter("co"), { division: "co" });
+  assert.deepEqual(divisionsForScoresAdapter("opt"), { division: "opt" });
+  assert.deepEqual(divisionsForScoresAdapter("all"), {
+    division: { $in: uspsaDivShortNames },
+  });
 });
 
 test("divisionsForRecHHFAdapter", () => {

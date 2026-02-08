@@ -195,7 +195,8 @@ interface URLFactoryParams {
   limit?: number;
 }
 const urlWithParams = ({ division, classifier, full, limit }: URLFactoryParams) =>
-  `/classifiers/${division}/${classifier}/chart?full=${full ? 1 : 0}&limit=${limit || 0}`;
+  `/classifiers/${division}/${classifier}/chart?full=${full ? 1 : 0}&limit=${full ? limit || 0 : 0}`;
+export const scoresChartURLWithParams = urlWithParams;
 
 const dataForModes = (
   incomingData: AdvancedScorePoint[] | null,

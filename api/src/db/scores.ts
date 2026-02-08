@@ -206,6 +206,8 @@ ScoreSchema.index({ memberNumberDivision: 1 });
 ScoreSchema.index({ classifierDivision: 1 });
 ScoreSchema.index({ hf: -1 });
 ScoreSchema.index({ classifier: 1, division: 1, hf: -1 });
+ScoreSchema.index({ classifier: 1, division: 1, hf: -1, bad: 1 });
+ScoreSchema.index({ classifier: 1, division: 1, hf: -1, bad: 1, sd: 1 });
 
 export const Scores =
   (mongoose.models.Scores as mongoose.Model<Score, unknown, ScoreVirtuals>) ||
@@ -330,7 +332,7 @@ export const shooterScoresChartData = async ({
 }) => {
   const scores = await Scores.find({
     memberNumber,
-    division: { $in: divisionsForScoresAdapter(divisionParam) },
+    ...divisionsForScoresAdapter(divisionParam),
     bad: { $ne: true },
   })
     .populate("HHFs")

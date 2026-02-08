@@ -7,7 +7,6 @@ import {
 } from "../../../dataUtil/classifiersData";
 import {
   divisionsForScoresAdapter,
-  hfuDivisionsShortNamesThatNeedMinorHF,
   L10_OPTICS_EFFECTIVE_TS,
 } from "../../../dataUtil/divisions";
 import { HF, N, Percent, PositiveOrMinus1 } from "../../../dataUtil/numbers";
@@ -34,22 +33,10 @@ const _getRecHHFField = field => ({
   },
 });
 
-const _replaceHFWithMinorHFIfNeeded = division =>
-  !hfuDivisionsShortNamesThatNeedMinorHF.includes(division)
-    ? []
-    : [
-        {
-          $addFields: {
-            originalHF: "$hf",
-            hf: "$minorHF",
-          },
-        },
-      ];
-
 const _matchScoresForClassifierDivision = (number, division) => ({
   $match: {
     classifier: number,
-    division: { $in: divisionsForScoresAdapter(division) },
+    ...divisionsForScoresAdapter(division),
     hf: { $gt: 0 },
     bad: { $ne: true },
 
@@ -57,15 +44,6 @@ const _matchScoresForClassifierDivision = (number, division) => ({
   },
 });
 
-// override division and all division-derived fields to given division, used for correct lookup of HFU scores, even when they came from another division
-const _overwriteDivision = division => ({
-  $addFields: {
-    originalDivision: "$division",
-    division,
-    classifierDivision: { $concat: ["$classifier", ":", division] },
-    memberNumberDivision: { $concat: ["$memberNumber", ":", division] },
-  },
-});
 const _runsAggregation = async ({
   classifier,
   division,
@@ -76,14 +54,12 @@ const _runsAggregation = async ({
   filterClubString,
 }) =>
   Scores.aggregate([
+    _matchScoresForClassifierDivision(classifier, division),
     {
       $project: {
         __v: false,
       },
     },
-    ..._replaceHFWithMinorHFIfNeeded(division),
-    _matchScoresForClassifierDivision(classifier, division),
-    _overwriteDivision(division),
     {
       $lookup: {
         from: "shooters",
@@ -267,123 +243,128 @@ const classifiersRoutes = async fastify => {
     const full = Number(fullString);
     const limit = Number(limitString) || 99999;
 
-    const runs = await Scores.aggregate([
-      {
-        $project: {
-          sd: true,
-          minorHF: true,
-          hf: true,
-          memberNumber: true,
-          memberNumberDivision: true,
-          classifier: true,
-          division: true,
-          bad: true,
-          _id: false,
-        },
-      },
-      ..._replaceHFWithMinorHFIfNeeded(division),
-      _matchScoresForClassifierDivision(number, division),
-      _overwriteDivision(division),
-      {
-        $lookup: {
-          from: "shooters",
-          localField: "memberNumberDivision",
-          foreignField: "memberNumberDivision",
-          as: "shooters",
-        },
-      },
-      {
-        $lookup: {
-          from: "rechhfs",
-          localField: "classifierDivision",
-          foreignField: "classifierDivision",
-          as: "rechhfs",
-        },
-      },
-      {
-        $addFields: {
-          recHHF: _getRecHHFField("recHHF"),
-        },
-      },
-      {
-        $project: { rechhfs: false },
-      },
-      {
-        $addFields: {
-          scoreRecPercent: percentAggregationOp("$hf", "$recHHF", 4),
-          curPercent: _getShooterField("current"),
-
-          // reclassifications current
-          curHHFPercent: _getShooterField("reclassificationsCurPercentCurrent"),
-          recHHFOnlyPercent: _getShooterField(
-            "reclassificationsRecHHFOnlyPercentCurrent",
-          ),
-          recSoftPercent: _getShooterField("reclassificationsSoftPercentCurrent"),
-          recPercent: _getShooterField("reclassificationsRecPercentCurrent"),
-          recPercentUncapped: _getShooterField(
-            "reclassificationsRecPercentUncappedCurrent",
-          ),
-
-          // reclassifications high
-          curHHFPercentHigh: _getShooterField("reclassificationsCurPercentHigh"),
-          recHHFOnlyPercentHigh: _getShooterField(
-            "reclassificationsRecHHFOnlyPercentHigh",
-          ),
-          recSoftPercentHigh: _getShooterField("reclassificationsSoftPercentHigh"),
-          recPercentHigh: _getShooterField("reclassificationsRecPercentHigh"),
-          recPercentUncappedHigh: _getShooterField(
-            "reclassificationsRecPercentUncappedHigh",
-          ),
-
-          elo: _getShooterField("elo"),
-          name: _getShooterField("name"),
-        },
-      },
-      {
-        $project: {
-          shooters: false,
-          recHHFs: false,
-          memberNumberDivision: false,
-          classifier: false,
-          division: false,
-        },
-      },
-
-      { $sort: { sd: 1 } },
-      { $limit: limit },
-      { $sort: { hf: -1 } },
-      ...(full
-        ? []
-        : [
-            {
-              $bucketAuto: {
-                groupBy: "$hf",
-                buckets: 400,
-                output: {
-                  hf: { $avg: "$hf" },
-                  sd: { $first: "$sd" },
-                  curPercent: { $avg: "$curPercent" },
-                  curHHFPercent: { $avg: "$curHHFPercent" },
-                  recPercent: { $avg: "$recPercent" },
-                  scoreRecPercent: { $avg: "$scoreRecPercent" },
-                  recPercentUncapped: { $avg: "$recPercentUncapped" },
-                },
-              },
+    try {
+      const runs = await Scores.aggregate(
+        [
+          _matchScoresForClassifierDivision(number, division),
+          {
+            $project: {
+              sd: true,
+              minorHF: true,
+              hf: true,
+              memberNumber: true,
+              memberNumberDivision: true,
+              classifier: true,
+              division: true,
+              bad: true,
+              _id: false,
             },
-          ]),
-    ]);
+          },
+          {
+            $lookup: {
+              from: "shooters",
+              localField: "memberNumberDivision",
+              foreignField: "memberNumberDivision",
+              as: "shooters",
+            },
+          },
+          {
+            $lookup: {
+              from: "rechhfs",
+              localField: "classifierDivision",
+              foreignField: "classifierDivision",
+              as: "rechhfs",
+            },
+          },
+          {
+            $addFields: {
+              recHHF: _getRecHHFField("recHHF"),
+            },
+          },
+          {
+            $project: { rechhfs: false },
+          },
+          {
+            $addFields: {
+              scoreRecPercent: percentAggregationOp("$hf", "$recHHF", 4),
+              curPercent: _getShooterField("current"),
 
-    return runs.map((run, index, allRuns) => ({
-      ...run,
-      x: HF(run.hf),
-      y: PositiveOrMinus1(Percent(index, allRuns.length)),
-      memberNumber: run.memberNumber || "",
-      curPercent: run.curPercent || 0,
-      curHHFPercent: run.curHHFPercent || 0,
-      recPercent: run.recPercent || 0,
-      scoreRecPercent: run.scoreRecPercent || 0,
-      date: run.sd?.getTime(),
-    }));
+              // reclassifications current
+              curHHFPercent: _getShooterField("reclassificationsCurPercentCurrent"),
+              recHHFOnlyPercent: _getShooterField(
+                "reclassificationsRecHHFOnlyPercentCurrent",
+              ),
+              recSoftPercent: _getShooterField("reclassificationsSoftPercentCurrent"),
+              recPercent: _getShooterField("reclassificationsRecPercentCurrent"),
+              recPercentUncapped: _getShooterField(
+                "reclassificationsRecPercentUncappedCurrent",
+              ),
+
+              // reclassifications high
+              curHHFPercentHigh: _getShooterField("reclassificationsCurPercentHigh"),
+              recHHFOnlyPercentHigh: _getShooterField(
+                "reclassificationsRecHHFOnlyPercentHigh",
+              ),
+              recSoftPercentHigh: _getShooterField("reclassificationsSoftPercentHigh"),
+              recPercentHigh: _getShooterField("reclassificationsRecPercentHigh"),
+              recPercentUncappedHigh: _getShooterField(
+                "reclassificationsRecPercentUncappedHigh",
+              ),
+
+              elo: _getShooterField("elo"),
+              name: _getShooterField("name"),
+            },
+          },
+          {
+            $project: {
+              shooters: false,
+              recHHFs: false,
+              memberNumberDivision: false,
+              classifier: false,
+              division: false,
+            },
+          },
+
+          { $sort: { sd: 1 } },
+          { $limit: limit },
+          { $sort: { hf: -1 } },
+          ...(full
+            ? []
+            : [
+                {
+                  $bucketAuto: {
+                    groupBy: "$hf",
+                    buckets: 400,
+                    output: {
+                      hf: { $avg: "$hf" },
+                      sd: { $first: "$sd" },
+                      curPercent: { $avg: "$curPercent" },
+                      curHHFPercent: { $avg: "$curHHFPercent" },
+                      recPercent: { $avg: "$recPercent" },
+                      scoreRecPercent: { $avg: "$scoreRecPercent" },
+                      recPercentUncapped: { $avg: "$recPercentUncapped" },
+                    },
+                  },
+                },
+              ]),
+        ],
+        { timeoutMS: 20_000 },
+      );
+
+      return runs.map((run, index, allRuns) => ({
+        ...run,
+        x: HF(run.hf),
+        y: PositiveOrMinus1(Percent(index, allRuns.length)),
+        memberNumber: run.memberNumber || "",
+        curPercent: run.curPercent || 0,
+        curHHFPercent: run.curHHFPercent || 0,
+        recPercent: run.recPercent || 0,
+        scoreRecPercent: run.scoreRecPercent || 0,
+        date: run.sd?.getTime(),
+      }));
+    } catch (all) {
+      return [];
+    }
   });
 };
 

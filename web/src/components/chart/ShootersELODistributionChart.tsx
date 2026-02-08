@@ -1,3 +1,4 @@
+import { Dropdown } from "primereact/dropdown";
 import { ProgressSpinner } from "primereact/progressspinner";
 import { SelectButton } from "primereact/selectbutton";
 import { useMemo, useState } from "react";
@@ -18,6 +19,7 @@ import {
   closestYForX,
   linearAnnotationColor,
 } from "./common";
+import { ageModeParam, ageModes, eloModes, fieldForMode } from "./fields";
 
 import { eloPointForShooter } from "../../../../api/src/dataUtil/elo";
 import {
@@ -37,30 +39,8 @@ const mainModeFieldForMode = mode => mainModeMap[mode];
 const mainModes = Object.keys(mainModeMap);
 const defaultMainMode = mainModes[0];
 
-const fieldModeMap = {
-  ELO: "elo",
-  Classifiers: "classifiers",
-  Majors: "majors",
-  ...(location.hostname === "localhost"
-    ? {
-        HQ: "current",
-        HQHigh: "high",
-      }
-    : {}),
-  // HQ: "curHHFPercent",
-  // "HQ High": "curHHFPercentHigh",
-  /*
-  "Rec.HHFOnly": "recHHFOnlyPercent",
-  "Rec.Soft": "recSoftPercent",
-  "Rec.Brutal": "recPercent",
-  */
-  Recommended: "recPercentUncapped",
-  "Recommended High": "recPercentUncappedHigh",
-};
-const fieldForMode = mode => fieldModeMap[mode];
-const modes = Object.keys(fieldModeMap);
-const recommendedMode = modes[0];
-const percentModes = modes.filter(c => c !== "ELO");
+const recommendedMode = eloModes[0];
+const percentModes = eloModes.filter(c => c !== "ELO");
 
 interface RawDataPoint {
   x: number;
@@ -93,8 +73,9 @@ export const ShootersELODistributionChart = ({
   const [colorMode, setColorMode] = useState(recommendedMode);
   const [xMode, setXMode] = useState(recommendedMode);
   const [yMode, setYMode] = useState(recommendedMode);
-
-  const { json: data, loading } = useApi(`/shooters/${division}/chart?mode=elo`);
+  const [ageMode, setAgeMode] = useState(ageModes[0]);
+  const endpoint = `/shooters/${division}/chart?mode=elo${ageModeParam(ageMode)}`;
+  const { json: data, loading } = useApi(endpoint);
   const curModeData = useMemo(() => {
     if (!data) {
       return [];
@@ -310,8 +291,8 @@ export const ShootersELODistributionChart = ({
 
   return (
     <div>
-      <div className="flex mt-4 justify-content-around text-base lg:text-xl">
-        <div className="flex flex-column justify-content-start align-items-start">
+      <div className="flex mt-4 text-base justify-content-between lg:text-xl flex-wrap gap-4">
+        <div className="flex flex-column justify-content-start align-items-start ml-4 mr-8 gap-1">
           <span className="text-md text-500 font-bold">Mode</span>
           <SelectButton
             className="compact text-xs"
@@ -321,42 +302,56 @@ export const ShootersELODistributionChart = ({
             onChange={e => setMainMode(e.value)}
           />
         </div>
-        <div className="flex flex-column gap-2">
-          <div className="flex flex-column justify-content-center align-items-start">
-            <span className="text-md text-500 font-bold">Color</span>
-            <SelectButton
-              className="compact text-xs"
-              allowEmpty={false}
-              options={modes}
-              value={colorMode}
-              onChange={e => setColorMode(e.value)}
-            />
-          </div>
-          <div className="flex flex-column justify-content-center align-items-start">
-            <span className="text-md text-500 font-bold">Position X</span>
-            <SelectButton
-              disabled={mainModeFieldForMode(mainMode) !== "vs"}
-              className="compact text-xs"
-              allowEmpty={false}
-              options={modes}
-              value={xMode}
-              onChange={e => setXMode(e.value)}
-            />
-          </div>
-          <div className="flex flex-column justify-content-center align-items-start">
-            <span className="text-md text-500 font-bold">Position Y</span>
-            <SelectButton
-              disabled={mainModeFieldForMode(mainMode) !== "vs"}
-              className="compact text-xs"
-              allowEmpty={false}
-              options={modes}
-              value={yMode}
-              onChange={e => setYMode(e.value)}
-            />
-          </div>
+        <div className="flex flex-column justify-content-center align-items-start gap-1">
+          <span className="text-md text-500 font-bold">Color</span>
+          <Dropdown
+            className="compact text-xs"
+            options={eloModes}
+            value={colorMode}
+            onChange={e => setColorMode(e.value)}
+          />
         </div>
+        <div className="flex flex-column justify-content-center align-items-start gap-1">
+          <span className="text-md text-500 font-bold">Position X</span>
+          <Dropdown
+            disabled={mainModeFieldForMode(mainMode) !== "vs"}
+            className="compact text-xs"
+            options={eloModes}
+            value={xMode}
+            onChange={e => setXMode(e.value)}
+          />
+        </div>
+        <div className="flex flex-column justify-content-center align-items-start gap-1">
+          <span className="text-md text-500 font-bold">Position Y</span>
+          <Dropdown
+            disabled={mainModeFieldForMode(mainMode) !== "vs"}
+            className="compact text-xs"
+            options={eloModes}
+            value={yMode}
+            onChange={e => setYMode(e.value)}
+          />
+        </div>
+        <div className="flex flex-column justify-content-start align-items-start ml-4 mr-8 gap-1">
+          <span className="text-md text-500 font-bold">Age</span>
+          <SelectButton
+            className="compact text-xs"
+            allowEmpty={false}
+            options={ageModes}
+            value={ageMode}
+            onChange={e => setAgeMode(e.value)}
+          />
+        </div>
+      </div>
+      <div
+        style={{
+          position: "relative",
+          maxWidth: "100%",
+          height: "calc(min(90vh, 100vh - 320px)",
+        }}
+      >
+        {graph}
         {!isVersus ? null : (
-          <div className="flex gap-4 text-sm">
+          <div className="flex gap-4 text-sm absolute bottom-0 right-0 mb-6 mr-5">
             <div className="flex flex-column justify-content-center text-md text-500 font-bold">
               <div>Correlation = {correl.toFixed(6)}</div>
               <div className="hidden">Covariance = {covar.toFixed(6)}</div>
@@ -368,14 +363,6 @@ export const ShootersELODistributionChart = ({
             </div>
           </div>
         )}
-      </div>
-      <div
-        style={{
-          maxWidth: "100%",
-          height: "calc(min(90vh, 100vh - 320px)",
-        }}
-      >
-        {graph}
       </div>
     </div>
   );
