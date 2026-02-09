@@ -241,12 +241,14 @@ const classifiersRoutes = async fastify => {
     const { division, number } = req.params;
     const { full: fullString, limit: limitString } = req.query;
     const full = Number(fullString);
-    const limit = Number(limitString) || 99999;
+    const limit = Number(limitString) || 9999999;
 
     try {
       const runs = await Scores.aggregate(
         [
           _matchScoresForClassifierDivision(number, division),
+          // limit to 3000 most recent scores in preview chart mode before any $lookups
+          ...(full ? [] : [{ $sort: { sd: -1 } }, { $limit: 3000 }]),
           {
             $project: {
               sd: true,
@@ -328,25 +330,6 @@ const classifiersRoutes = async fastify => {
           { $sort: { sd: 1 } },
           { $limit: limit },
           { $sort: { hf: -1 } },
-          ...(full
-            ? []
-            : [
-                {
-                  $bucketAuto: {
-                    groupBy: "$hf",
-                    buckets: 400,
-                    output: {
-                      hf: { $avg: "$hf" },
-                      sd: { $first: "$sd" },
-                      curPercent: { $avg: "$curPercent" },
-                      curHHFPercent: { $avg: "$curHHFPercent" },
-                      recPercent: { $avg: "$recPercent" },
-                      scoreRecPercent: { $avg: "$scoreRecPercent" },
-                      recPercentUncapped: { $avg: "$recPercentUncapped" },
-                    },
-                  },
-                },
-              ]),
         ],
         { timeoutMS: 20_000 },
       );

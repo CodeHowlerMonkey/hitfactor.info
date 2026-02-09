@@ -26,7 +26,6 @@ export { type Shooter } from "@data/types/Shooter";
 type ShooterModel = Model<Shooter, object>;
 const ShooterSchema = new Schema<Shooter, ShooterModel>({}, { strict: false });
 ShooterSchema.index({ memberNumber: 1, division: 1 });
-ShooterSchema.index({ memberNumber: 1 });
 ShooterSchema.index({ memberNumberDivision: 1 });
 ShooterSchema.index({ memberId: 1 });
 ShooterSchema.index({
@@ -54,10 +53,6 @@ ShooterSchema.index({
 ShooterSchema.index({
   division: 1,
   reclassificationsRecPercentUncappedCurrent: -1,
-});
-ShooterSchema.index({
-  division: 1,
-  reclassificationsRecPercentUncappedCurrent: 1,
 });
 ShooterSchema.index({
   division: 1,

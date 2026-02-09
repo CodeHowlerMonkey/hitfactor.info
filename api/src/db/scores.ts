@@ -200,6 +200,7 @@ ScoreSchema.virtual("percentMinusCurPercent").get(function () {
   return this.curPercent >= 0 ? N(this.percent - this.curPercent) : -1;
 });
 
+ScoreSchema.index({ sd: -1 });
 ScoreSchema.index({ classifier: 1, division: 1 });
 ScoreSchema.index({ memberNumber: 1 });
 ScoreSchema.index({ memberNumberDivision: 1 });
