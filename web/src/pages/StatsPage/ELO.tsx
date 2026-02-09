@@ -1,15 +1,15 @@
-import { useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 
 import { DivisionNavigation } from "../../components";
 import ShootersELODistributionChart from "../../components/chart/ShootersELODistributionChart";
 
 const ELO = () => {
-  // TODO: react-router params for all of StatsPage
-  const [division, setDivision] = useState();
+  const { division } = useParams();
+  const navigate = useNavigate();
 
   return (
     <>
-      <DivisionNavigation uspsaOnly onSelect={setDivision} />
+      <DivisionNavigation uspsaOnly onSelect={div => navigate(`/stats/elo/${div}`)} />
       {division && <ShootersELODistributionChart division={division} />}
     </>
   );

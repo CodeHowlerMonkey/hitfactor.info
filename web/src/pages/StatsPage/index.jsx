@@ -4,6 +4,7 @@ import { TabView, TabPanel } from "primereact/tabview";
 import { useState } from "react";
 import { PieChart } from "react-minimal-pie-chart";
 import MultiProgress from "react-multi-progress";
+import { useNavigate, useParams } from "react-router-dom";
 import { Tooltip as ReactTooltip } from "react-tooltip";
 
 import ModeSwitch from "@web/components/ModeSwitch";
@@ -347,8 +348,13 @@ const Divisions = () => {
   );
 };
 
+const tabs = ["pieCharts", "alignment", "distribution", "elo", "divisions"];
+
 // main "page" of this file
 export const StatsPage = () => {
+  const { statsTab } = useParams();
+  const statsTabIndex = tabs.indexOf(statsTab) || 0;
+  const navigate = useNavigate();
   const [mode, setMode] = useState(modes[0]);
   const modeSwitchProps = { modes, mode, setMode };
   const modeBucket = modeBucketForMode(mode);
@@ -368,7 +374,13 @@ export const StatsPage = () => {
 
   return (
     <div className="p-0 md:px-4">
-      <TabView panelContainerClassName="p-0 md:px-4">
+      <TabView
+        panelContainerClassName="p-0 md:px-4"
+        activeIndex={statsTabIndex}
+        onTabChange={({ index }) => {
+          navigate(`/stats/${tabs[index]}`);
+        }}
+      >
         <TabPanel header="Pie Charts">
           <div {...tabPanel}>
             <ModeSwitch {...modeSwitchProps} />

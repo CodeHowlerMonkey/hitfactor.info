@@ -1,15 +1,18 @@
-import { useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 
 import { DivisionNavigation } from "../../components";
 import { ShootersDistributionChart } from "../../components/chart/ShootersDistributionChart";
 
 const Distribution = () => {
-  // TODO: react-router params for all of ClassificationsPage
-  const [division, setDivision] = useState(null);
+  const { division } = useParams();
+  const navigate = useNavigate();
 
   return (
     <>
-      <DivisionNavigation onSelect={setDivision} hideSCSA />
+      <DivisionNavigation
+        onSelect={div => navigate(`/stats/distribution/${div}`)}
+        hideSCSA
+      />
       {division && <ShootersDistributionChart division={division} />}
     </>
   );

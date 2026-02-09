@@ -270,7 +270,11 @@ const router = createBrowserRouter([
         Component: React.lazy(() => import("../pages/ShootersPage")),
       },
       {
-        path: "stats",
+        path: "stats/",
+        Component: () => <Navigate to="/stats/pieCharts" replace />,
+      },
+      {
+        path: "stats/:statsTab/:division?",
         Component: React.lazy(() => import("../pages/StatsPage")),
       },
       {
