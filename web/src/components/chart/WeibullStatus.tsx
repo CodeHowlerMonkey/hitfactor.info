@@ -51,10 +51,13 @@ export const WeibullStatus = ({
       <div className="flex flex-column justify-content-center text-md text-500 font-bold">
         <div>SMAE = {superMeanAbsoluteError.toFixed(4)}</div>
         <div>MAE = {meanAbsoluteError.toFixed(4)}</div>
+        {showHHF && <div>ME = {maxError.toFixed(4)}</div>}
       </div>
-      <div className="flex flex-column justify-content-center text-md text-500 font-bold">
-        <div>ME = {maxError.toFixed(4)}</div>
-      </div>
+      {!showHHF && (
+        <div className="flex flex-column justify-content-center text-md text-500 font-bold">
+          <div>ME = {maxError.toFixed(4)}</div>
+        </div>
+      )}
     </div>
   </div>
 );
