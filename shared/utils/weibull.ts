@@ -390,8 +390,11 @@ const linearRegressionSAE = (points: Point[]) => (lrrArray: number[]) =>
     0,
   );
 
-export const linearRegression = (points: Point[]): LinearRegressionResult => {
-  const [m, b] = optimizeNelderMead(linearRegressionSAE(points), [0, 0], 1e-12);
+export const linearRegression = (
+  points: Point[],
+  precision: number = 1e-12,
+): LinearRegressionResult => {
+  const [m, b] = optimizeNelderMead(linearRegressionSAE(points), [0, 0], precision);
   return {
     slope: m,
     intercept: b,

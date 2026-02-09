@@ -110,10 +110,11 @@ export const ShootersELODistributionChart = ({
           ...c,
           x: c[fieldForMode(xMode)],
           y: c[fieldForMode(yMode)],
+          color: c[fieldForMode(colorMode)],
         }))
-        ?.filter(c => c.y > 0 && c.x > 0) || []
+        ?.filter(c => c.y > 0 && c.x > 0 && !!c.color) || []
     );
-  }, [division, data, xMode, yMode, isVersus]);
+  }, [division, data, xMode, yMode, isVersus, colorMode]);
 
   const percentiles = useMemo(
     () =>
@@ -148,7 +149,10 @@ export const ShootersELODistributionChart = ({
     () =>
       !isVersus || !curModeData?.length
         ? { slope: 0, intercept: 0 }
-        : linearRegression(curModeData.filter(c => c.x >= 60)),
+        : linearRegression(
+            curModeData.filter(c => c.x >= 60),
+            1e-2,
+          ),
     [isVersus, curModeData],
   );
 
