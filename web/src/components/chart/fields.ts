@@ -1,12 +1,8 @@
 export const fieldModeMap = {
   Classifiers: "classifiers",
   Majors: "majors",
-  ...(location.hostname === "localhost"
-    ? {
-        HQ: "current",
-        HQHigh: "high",
-      }
-    : {}),
+  HQ: "current",
+  HQHigh: "high",
   Recommended: "recPercentUncapped",
   "Recommended High": "recPercentUncappedHigh",
 };

@@ -192,7 +192,7 @@ export const ShootersDistributionChart = ({ division, style }) => {
 
   return (
     <div style={style}>
-      <div className="flex mt-4 justify-content-around gap-4 mb-2 text-base lg:text-xl">
+      <div className="flex mt-4 justify-content-around gap-4 mb-2 text-base lg:text-xl flex-wrap">
         {!isHFU && (
           <div className="flex flex-row gap-2">
             <div className="flex flex-column justify-content-center align-items-start gap-1">
@@ -216,7 +216,7 @@ export const ShootersDistributionChart = ({ division, style }) => {
             <div className="flex flex-column justify-content-start align-items-start ml-4 mr-8 gap-1">
               <span className="text-md text-500 font-bold">Age</span>
               <SelectButton
-                className="compact text-xs"
+                className="compact text-xs flex flex-nowrap white-space-nowrap"
                 allowEmpty={false}
                 options={ageModes}
                 value={ageMode}
