@@ -267,6 +267,10 @@ export const MatchBumpChart = ({ match, division, loading }) => {
     eligibleData.length >= matchBumpThresholds.filteredDataPointsMaybe;
   const goodCorrelation = eligibleCorrel >= matchBumpThresholds.filteredCorrelation;
 
+  const bumpK = 1 / lrr.slope;
+  const bumpB = -lrr.intercept / lrr.slope;
+  const bumpBSign = bumpB >= 0 ? "+" : "-";
+
   return (
     <div>
       <div className="flex mt-4 justify-content-around text-base lg:text-xl">
@@ -296,8 +300,7 @@ export const MatchBumpChart = ({ match, division, loading }) => {
             </div>
             <div className="flex gap-4">
               Linear Regression: y = {lrr.slope.toFixed(4)}x + {lrr.intercept.toFixed(4)};
-              Bump = Match x {(1 / lrr.slope).toFixed(2)} +{" "}
-              {-(lrr.intercept / lrr.slope).toFixed(2)}
+              Bump = Match x {bumpK.toFixed(4)} {bumpBSign} {Math.abs(bumpB).toFixed(2)}%
               <div />
               <div>MAE: {lrr.mae.toFixed(2)}%</div>
             </div>
