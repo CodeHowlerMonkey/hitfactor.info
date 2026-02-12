@@ -69,6 +69,15 @@ export const ShootersDistributionChart = ({ division, style }) => {
   const graph = (
     <Scatter
       options={{
+        onClick: (_e, elements) => {
+          const valid = elements?.find(e => !!e?.element?.$context?.raw?.memberNumber);
+          const memberNumber = valid?.element?.$context?.raw?.memberNumber;
+          if (!memberNumber) {
+            return;
+          }
+
+          window.open(`/shooters/${division}/${memberNumber}`, "_blank");
+        },
         maintainAspectRatio: false,
         scales: { y: { reverse: true } },
         elements: {
