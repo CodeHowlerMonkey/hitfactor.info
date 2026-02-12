@@ -149,8 +149,6 @@ const normalizeDivision = divisionNameRaw => {
 
     pistolcalibercarbine: "pcc",
     carbine: "pcc",
-
-    // TODO: add other sports here as well
   };
 
   return normalizationMap[lowercaseNoSpace] || lowercaseNoSpace;

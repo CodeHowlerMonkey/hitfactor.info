@@ -7,6 +7,7 @@ import { loadAllJSONFromDir } from "@api/utils";
 import { uspsaDivIdToShort } from "@shared/constants/divisions";
 import { UTCDate } from "@shared/utils/date";
 
+// TODO: old deprecated import, remove
 export const binaryScoreFromUSPSAScore = (uspsaScore): Score => {
   const hf = Number(uspsaScore.hit_factor);
 
@@ -24,7 +25,7 @@ export const binaryScoreFromUSPSAScore = (uspsaScore): Score => {
     classifierDivision: [classifier, division].join(":"),
     sd,
     modified: sd,
-    source: "Stage Score", // TODO: distinguish majors and classifiers on USPSA import
+    source: "Stage Score",
 
     percent: uspsaScore.classification_pct,
     code: uspsaScore.classifier_flag,
