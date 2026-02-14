@@ -334,6 +334,10 @@ export const singleClassifierExtendedMetaDoc = async (
       classifier,
       hf: { $gte: 0 },
       bad: { $ne: true },
+
+      // avoid correlation loss due to garbage data
+      // (e.g. NA, NONE, and other common invalid memberNumbers)
+      memberNumber: /^[a-zA-Z]+\d+$/i,
     })
       .populate("Shooters")
       .sort({ hf: -1 })

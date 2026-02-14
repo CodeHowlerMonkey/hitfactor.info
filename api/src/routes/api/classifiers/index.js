@@ -250,6 +250,8 @@ const classifiersRoutes = async fastify => {
           _matchScoresForClassifierDivision(number, division),
           // limit to 3000 most recent scores in preview chart mode before any $lookups
           ...(full ? [] : [{ $sort: { sd: -1 } }, { $limit: 3000 }]),
+          // hide invalid memberNumbers in full mode for correlation analysis
+          ...(!full ? [] : [{ $match: { memberNumber: /^[a-zA-Z]+\d+$/i } }]),
           {
             $project: {
               sd: true,
