@@ -1,6 +1,7 @@
 import { v4 as randomUUID } from "uuid";
 
 import { classificationDifficulty } from "@shared/constants/difficulty";
+import { ageForDate } from "@shared/utils/date";
 import orderedUniqBy from "@shared/utils/orderedUniqBy";
 
 import { classForPercent } from "./brackets";
@@ -26,10 +27,6 @@ const windowSizeForScore = (
 
   return bestWindowSize;
 };
-
-/** @returns difference between now and sd in months */
-const ageForDate = (now: Date, sd: Date | string): number =>
-  (now.getTime() - new Date(sd).getTime()) / (28 * 24 * 60 * 60 * 1000);
 
 export const percentAndAgesForDivWindow = (
   div: string,
