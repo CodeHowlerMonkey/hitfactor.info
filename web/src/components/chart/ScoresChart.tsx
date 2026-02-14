@@ -1,8 +1,8 @@
 import { useWindowWidth } from "@react-hook/window-size";
 import cx from "classnames";
-import { uniqBy } from "lodash";
 import { Button } from "primereact/button";
 import { Dialog } from "primereact/dialog";
+import { Dropdown } from "primereact/dropdown";
 import { ProgressSpinner } from "primereact/progressspinner";
 import { SelectButton } from "primereact/selectbutton";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -35,21 +35,13 @@ import { useApi } from "../../utils/client";
 import { bgColorForClass } from "../../utils/color";
 
 const versusModeMap = {
-  HF: "hf",
-  "%": "scoreRecPercent",
   Rank: "rank",
-  ELO: "elo",
-  Classification: "recPercentUncapped",
-  ClassificationHigh: "recPercentUncappedHigh",
+  HF: "hf",
+  Recommended: "recPercentUncapped",
+  Classifiers: "classifiers",
+  Majors: "majors",
 };
-const versusModeLabelMap = {
-  HF: "HF",
-  "%": "Percent",
-  Rank: "Percentile",
-  ELO: "ELO",
-  Classification: "Rec. Classification",
-};
-const versusDefaultClassificationMode: VersusMode = "Classification";
+const versusDefaultClassificationMode: VersusMode = "Recommended";
 const versusFieldForMode = mode => versusModeMap[mode];
 const versusModes = Object.keys(versusModeMap);
 
@@ -211,17 +203,10 @@ const dataForModes = (
       : prodMode === "Prod. 10"
         ? incomingData?.filter(c => c.date < 1706770800000)
         : incomingData?.filter(c => c.date >= 1706770800000);
-  let sorted = (prodData?.toSorted((a, b) => b.hf - a.hf) || []).map((c, i, all) => ({
+  const sorted = (prodData?.toSorted((a, b) => b.hf - a.hf) || []).map((c, i, all) => ({
     ...c,
     rank: PositiveOrMinus1(Percent(i, all.length)),
   }));
-
-  if ([xMode, yMode].includes("ELO")) {
-    sorted = sorted.filter(c => c.elo > 0);
-    sorted = uniqBy(sorted, c => c.memberNumber);
-  } else if ([colorMode].includes("ELO")) {
-    sorted = sorted.filter(c => c.elo > 0);
-  }
 
   const withXY = sorted.map(c => ({
     ...c,
@@ -272,6 +257,7 @@ export const ScoresChart = ({
     loading,
     isFetching,
   } = useApi(urlFactory({ division, classifier, full, limit: numberOfScoresUsed }));
+
   const [lastData, setLastData] = useState<AdvancedScorePoint[] | null>(null);
   useEffect(() => {
     if (curData) {
@@ -285,7 +271,7 @@ export const ScoresChart = ({
           prev.delete("full");
           setXMode("HF");
           setYMode("Rank");
-          setColorMode("Classification");
+          setColorMode("Recommended");
         } else {
           prev.set("full", "");
         }
@@ -321,8 +307,7 @@ export const ScoresChart = ({
   const weibullData: number[] = useMemo(
     () =>
       full || showWeibullProp
-        ? (dataForModes(lastData, "HF", "Rank", "Classification", "All").map(c => c.x) ??
-          [])
+        ? (dataForModes(lastData, "HF", "Rank", "Recommended", "All").map(c => c.x) ?? [])
         : [],
     [lastData, full, showWeibullProp],
   );
@@ -374,7 +359,7 @@ export const ScoresChart = ({
     if (pointsGraphName || !full) {
       return null;
     }
-    return `${memberNumber} ${name}; ${versusModeLabelMap[xMode]}: ${x.toFixed(4)}; ${versusModeLabelMap[yMode]}: ${y.toFixed(4)}; ${new Date(date).toLocaleDateString()}`;
+    return `${memberNumber} ${name}; ${xMode}: ${x.toFixed(4)}; ${yMode}: ${y.toFixed(4)}; ${new Date(date).toLocaleDateString()}`;
   };
   const labelCallback = pointLabelCallback ?? defaultLabelCallback;
 
@@ -387,8 +372,12 @@ export const ScoresChart = ({
         // wanted false for rezize but annotations are bugged and draw HHF/GM lines wrong
         maintainAspectRatio: false,
         scales: {
-          y: { reverse: yMode === "Rank", max: 100, min: -20 },
-          x: { min: 0, max: recHHF * 1.25 },
+          y: {
+            reverse: yMode === "Rank",
+            max: full ? undefined : 100,
+            min: full ? undefined : -20,
+          },
+          x: { min: full ? undefined : 0, max: full ? undefined : recHHF * 1.25 },
         },
         elements: {
           point: {
@@ -566,9 +555,8 @@ export const ScoresChart = ({
                     <span style={{ fontSize: "1rem" }} className="text-500 font-bold">
                       Color
                     </span>
-                    <SelectButton
+                    <Dropdown
                       className="compact text-xs"
-                      allowEmpty={false}
                       options={versusModes.filter(c => !["Rank", "HF"].includes(c))}
                       value={colorMode}
                       onChange={e => setColorMode(e.value)}
@@ -578,10 +566,8 @@ export const ScoresChart = ({
                     <span style={{ fontSize: "1rem" }} className="text-500 font-bold">
                       Position X
                     </span>
-                    <SelectButton
-                      //disabled={mainModeFieldForMode(mainMode) !== "vs"}
+                    <Dropdown
                       className="compact text-xs"
-                      allowEmpty={false}
                       options={versusModes}
                       value={xMode}
                       onChange={e => setXMode(e.value)}
@@ -592,10 +578,8 @@ export const ScoresChart = ({
                       Position Y
                     </span>
 
-                    <SelectButton
-                      //disabled={mainModeFieldForMode(mainMode) !== "vs"}
+                    <Dropdown
                       className="compact text-xs"
-                      allowEmpty={false}
                       options={versusModes}
                       value={yMode}
                       onChange={e => setYMode(e.value)}

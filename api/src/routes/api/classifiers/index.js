@@ -1,4 +1,5 @@
 import { uspsaClassifiers2025 } from "@shared/constants/classifiers";
+import { ageForDate } from "@shared/utils/date";
 
 import {
   basicInfoForClassifier,
@@ -288,30 +289,24 @@ const classifiersRoutes = async fastify => {
           },
           {
             $addFields: {
-              scoreRecPercent: percentAggregationOp("$hf", "$recHHF", 4),
-              curPercent: _getShooterField("current"),
-
-              // reclassifications current
-              curHHFPercent: _getShooterField("reclassificationsCurPercentCurrent"),
-              recHHFOnlyPercent: _getShooterField(
-                "reclassificationsRecHHFOnlyPercentCurrent",
-              ),
-              recSoftPercent: _getShooterField("reclassificationsSoftPercentCurrent"),
-              recPercent: _getShooterField("reclassificationsRecPercentCurrent"),
               recPercentUncapped: _getShooterField(
                 "reclassificationsRecPercentUncappedCurrent",
               ),
-
-              // reclassifications high
-              curHHFPercentHigh: _getShooterField("reclassificationsCurPercentHigh"),
-              recHHFOnlyPercentHigh: _getShooterField(
-                "reclassificationsRecHHFOnlyPercentHigh",
-              ),
-              recSoftPercentHigh: _getShooterField("reclassificationsSoftPercentHigh"),
-              recPercentHigh: _getShooterField("reclassificationsRecPercentHigh"),
               recPercentUncappedHigh: _getShooterField(
                 "reclassificationsRecPercentUncappedHigh",
               ),
+
+              ...(!full
+                ? {}
+                : {
+                    recPercentHistory: _getShooterField(
+                      "reclassificationsRecPercentHistory",
+                    ),
+                    majorsHistory: _getShooterField("reclassificationsMajorsHistory"),
+                    classifiersHistory: _getShooterField(
+                      "reclassificationsClassifiersHistory",
+                    ),
+                  }),
 
               elo: _getShooterField("elo"),
               name: _getShooterField("name"),
@@ -334,17 +329,55 @@ const classifiersRoutes = async fastify => {
         { timeoutMS: 20_000 },
       );
 
-      return runs.map((run, index, allRuns) => ({
-        ...run,
-        x: HF(run.hf),
-        y: PositiveOrMinus1(Percent(index, allRuns.length)),
-        memberNumber: run.memberNumber || "",
-        curPercent: run.curPercent || 0,
-        curHHFPercent: run.curHHFPercent || 0,
-        recPercent: run.recPercent || 0,
-        scoreRecPercent: run.scoreRecPercent || 0,
-        date: run.sd?.getTime(),
-      }));
+      return runs.map((run, index, allRuns) => {
+        const majorsHistory = run.majorsHistory?.findLast(
+          ({ sd }) => run.sd.getTime() - sd.getTime() > 0,
+        );
+        const classifiersHistory = run.classifiersHistory?.findLast(
+          ({ sd }) => run.sd.getTime() - sd.getTime() > 0,
+        );
+        const recPercentHistory = run.recPercentHistory?.findLast(
+          ({ sd }) => run.sd.getTime() - sd.getTime() > 0,
+        );
+
+        delete run.majorsHistory;
+        delete run.classifiersHistory;
+        delete run.recPercentHistory;
+
+        return {
+          ...run,
+          x: HF(run.hf),
+          y: PositiveOrMinus1(Percent(index, allRuns.length)),
+          memberNumber: run.memberNumber || "",
+          curPercent: run.curPercent || 0,
+          curHHFPercent: run.curHHFPercent || 0,
+          recPercent: run.recPercent || 0,
+          date: run.sd?.getTime(),
+
+          ...(!full
+            ? {}
+            : {
+                majors: majorsHistory?.p ?? 0,
+                classifiers: classifiersHistory?.p ?? 0,
+                recPercentUncapped: recPercentHistory?.p ?? 0,
+                majorsDate: majorsHistory?.sd ?? null,
+                classifiersDate: classifiersHistory?.sd ?? null,
+                recPercentDate: recPercentHistory?.sd ?? null,
+                majorsAge:
+                  !majorsHistory?.sd || !run.sd
+                    ? null
+                    : ageForDate(run.sd, majorsHistory.sd),
+                classifiersAge:
+                  !classifiersHistory?.sd || !run.sd
+                    ? null
+                    : ageForDate(run.sd, classifiersHistory.sd),
+                recPercentAge:
+                  !recPercentHistory?.sd || !run.sd
+                    ? null
+                    : ageForDate(run.sd, recPercentHistory.sd),
+              }),
+        };
+      });
     } catch (all) {
       return [];
     }
