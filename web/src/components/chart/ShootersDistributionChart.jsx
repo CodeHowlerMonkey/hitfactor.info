@@ -23,12 +23,10 @@ import { WeibullStatus } from "./WeibullStatus";
 
 import { useApi } from "../../utils/client";
 import { bgColorForClass } from "../../utils/color";
-import { useIsHFU } from "../../utils/useIsHFU";
 
 const recommendedMode = modes[0];
 
 export const ShootersDistributionChart = ({ division, style }) => {
-  const isHFU = useIsHFU(division);
   const [colorModeState, setColorMode] = useState(recommendedMode);
   const [xModeState, setXMode] = useState(recommendedMode);
   const [ageMode, setAgeMode] = useState(ageModes[0]);
@@ -195,38 +193,36 @@ export const ShootersDistributionChart = ({ division, style }) => {
   return (
     <div style={style}>
       <div className="flex mt-4 justify-content-around gap-4 mb-2 text-base lg:text-xl flex-wrap">
-        {!isHFU && (
-          <div className="flex flex-row gap-2">
-            <div className="flex flex-column justify-content-center align-items-start gap-1">
-              <span className="text-md text-500 font-bold">Color</span>
-              <Dropdown
-                className="compact text-xs"
-                options={modes}
-                value={colorMode}
-                onChange={e => setColorMode(e.value)}
-              />
-            </div>
-            <div className="flex flex-column justify-content-center align-items-start gap-1">
-              <span className="text-md text-500 font-bold">Position</span>
-              <Dropdown
-                className="compact text-xs"
-                options={modes}
-                value={xMode}
-                onChange={e => setXMode(e.value)}
-              />
-            </div>
-            <div className="flex flex-column justify-content-start align-items-start ml-4 mr-8 gap-1">
-              <span className="text-md text-500 font-bold">Age</span>
-              <SelectButton
-                className="compact text-xs flex flex-nowrap white-space-nowrap"
-                allowEmpty={false}
-                options={ageModes}
-                value={ageMode}
-                onChange={e => setAgeMode(e.value)}
-              />
-            </div>
+        <div className="flex flex-row gap-2">
+          <div className="flex flex-column justify-content-center align-items-start gap-1">
+            <span className="text-md text-500 font-bold">Color</span>
+            <Dropdown
+              className="compact text-xs"
+              options={modes}
+              value={colorMode}
+              onChange={e => setColorMode(e.value)}
+            />
           </div>
-        )}
+          <div className="flex flex-column justify-content-center align-items-start gap-1">
+            <span className="text-md text-500 font-bold">Position</span>
+            <Dropdown
+              className="compact text-xs"
+              options={modes}
+              value={xMode}
+              onChange={e => setXMode(e.value)}
+            />
+          </div>
+          <div className="flex flex-column justify-content-start align-items-start ml-4 mr-8 gap-1">
+            <span className="text-md text-500 font-bold">Age</span>
+            <SelectButton
+              className="compact text-xs flex flex-nowrap white-space-nowrap"
+              allowEmpty={false}
+              options={ageModes}
+              value={ageMode}
+              onChange={e => setAgeMode(e.value)}
+            />
+          </div>
+        </div>
         <WeibullStatus weibull={weibull} />
       </div>
       <div
