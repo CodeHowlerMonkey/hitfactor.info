@@ -1,3 +1,4 @@
+import cx from "classnames";
 export * from "./useTablePagination";
 export * from "./useTableSort";
 
@@ -221,4 +222,38 @@ export const clubMatchColumn = {
       </span>
     );
   },
+};
+
+const displayString = s => {
+  if (!s?.length) {
+    return null;
+  }
+
+  const splits = s.map((cur, idx, all) => {
+    const prev = all[idx - 1] ?? 0;
+    return (cur - prev).toFixed(2);
+  });
+
+  return [...splits, `(${s.length})`].join(" ");
+};
+
+export const StageTime = ({ score }) => {
+  const { stageTimeSecs: time, string0, string1, string2, string3 } = score ?? {};
+  const vals =
+    location.hostname === "localhost"
+      ? [
+          displayString(string0),
+          displayString(string1),
+          displayString(string2),
+          displayString(string3),
+        ].filter(Boolean)
+      : [];
+
+  return (
+    <div data-tooltip-id="strings-tooltip" data-tooltip-content={vals.join("\n")}>
+      <div className={cx({ "font-bold": vals.length >= 1 })}>
+        {time ? `${time}s` : "—"}
+      </div>
+    </div>
+  );
 };

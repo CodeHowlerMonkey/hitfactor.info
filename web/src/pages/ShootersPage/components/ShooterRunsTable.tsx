@@ -10,6 +10,7 @@ import {
   ScoreSourceClassifier,
   ScoreSourceMajor,
 } from "@data/types/ScoresModes";
+import { stageTargetsHitsText } from "@shared/utils/hitfactor";
 
 import ClassifierCell from "../../../components/ClassifierCell";
 import ClassifierDropdown from "../../../components/ClassifierDropdown";
@@ -19,6 +20,7 @@ import {
   renderHFOrNA,
   renderPercent,
   clubMatchColumn,
+  StageTime,
 } from "../../../components/Table";
 
 const HFEdit = ({ value: valueProp, updateWhatIfs, id }) => {
@@ -156,6 +158,14 @@ const ShooterRunsTable = ({
           }
         />
         <Column
+          body={renderPercent}
+          field="recPercent"
+          header="Percent"
+          sortable
+          headerTooltip="Recommended classifier percentage for this score."
+          headerTooltipOptions={headerTooltipOptions}
+        />
+        <Column
           field="hf"
           header="HF"
           style={{ maxWidth: "9.3em" }}
@@ -170,15 +180,15 @@ const ShooterRunsTable = ({
             return <span title={title}>{hf}</span>;
           }}
         />
+        {/* TODO: migrate stageTimeSecs to Number and make it sortable */}
+        <Column field="stageTimeSecs" header="Time" body={c => <StageTime score={c} />} />
         <Column
-          body={renderPercent}
-          field="recPercent"
-          header="Rec. %"
-          sortable
-          headerTooltip="Recommended classifier percentage for this score."
-          headerTooltipOptions={headerTooltipOptions}
+          field="hits"
+          header="Hits"
+          body={c => stageTargetsHitsText(c.targetHits) || "—"}
         />
         <Column
+          hidden
           body={renderPercent}
           field="curPercent"
           header="HQ %"
@@ -187,6 +197,7 @@ const ShooterRunsTable = ({
           headerTooltipOptions={headerTooltipOptions}
         />
         <Column
+          hidden
           body={renderPercent}
           field="oldPercent"
           header="Old %"

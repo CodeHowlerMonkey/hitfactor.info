@@ -1,4 +1,3 @@
-import cx from "classnames";
 import { Column } from "primereact/column";
 import { DataTable } from "primereact/datatable";
 import { Dropdown } from "primereact/dropdown";
@@ -10,7 +9,7 @@ import { useDebounce } from "use-debounce";
 
 import ReportDialog from "./ReportDialog";
 import ShooterCell from "./ShooterCell";
-import { clubMatchColumn, renderPercent, headerTooltipOptions } from "./Table";
+import { clubMatchColumn, renderPercent, headerTooltipOptions, StageTime } from "./Table";
 import useTablePagination from "./Table/useTablePagination";
 import useTableSort from "./Table/useTableSort";
 
@@ -18,40 +17,6 @@ import { sportForDivision } from "../../../shared/constants/divisions";
 import { stageTargetsHitsText } from "../../../shared/utils/hitfactor";
 import { useApi } from "../utils/client";
 import { useIsHFU } from "../utils/useIsHFU";
-
-const displayString = s => {
-  if (!s?.length) {
-    return null;
-  }
-
-  const splits = s.map((cur, idx, all) => {
-    const prev = all[idx - 1] ?? 0;
-    return (cur - prev).toFixed(2);
-  });
-
-  return [...splits, `(${s.length})`].join(" ");
-};
-
-const StageTime = ({ score }) => {
-  const { stageTimeSecs: time, string0, string1, string2, string3 } = score ?? {};
-  const vals =
-    location.hostname === "localhost"
-      ? [
-          displayString(string0),
-          displayString(string1),
-          displayString(string2),
-          displayString(string3),
-        ].filter(Boolean)
-      : [];
-
-  return (
-    <div data-tooltip-id="strings-tooltip" data-tooltip-content={vals.join("\n")}>
-      <div className={cx({ "font-bold": vals.length >= 1 })}>
-        {time ? `${time}s` : "—"}
-      </div>
-    </div>
-  );
-};
 
 const TableFilter = ({ placeholder, onFilterChange }) => {
   const [filter, setFilter] = useState("");
@@ -221,7 +186,7 @@ const RunsTable = ({ classifier, division, clubs, onShooterSelection }) => {
         <Column
           field="hits"
           header="Hits"
-          body={c => stageTargetsHitsText(c.targetHits) || "-"}
+          body={c => stageTargetsHitsText(c.targetHits) || "—"}
         />
         <Column
           hidden
