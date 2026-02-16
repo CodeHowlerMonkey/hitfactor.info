@@ -83,6 +83,10 @@ export const targetHitsToLetters = n => {
   ];
 };
 
+const hitsSortOrder = Object.fromEntries(
+  ["A", "B", "C", "D", "M", "NS", "NPM"].map((c, index) => [c, index]),
+);
+
 /**
  * Converts array of numbers representing hits to readable hits string
  * @param allTargetsHits [257, 2, 2]
@@ -99,6 +103,7 @@ export const stageTargetsHitsText = (allTargetsHits, hideAlphas = false) =>
       return acc;
     }, {}),
   )
+    .sort(([a], [b]) => hitsSortOrder[a] - hitsSortOrder[b])
     .map(([letter, hits]) => `${hits}${letter}`)
     .join(" ");
 
