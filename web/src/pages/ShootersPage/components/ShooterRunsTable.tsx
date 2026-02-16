@@ -3,6 +3,7 @@ import { Column } from "primereact/column";
 import { DataTable } from "primereact/datatable";
 import { InputNumber } from "primereact/inputnumber";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { Tooltip as ReactTooltip } from "react-tooltip";
 import { useDebouncedCallback } from "use-debounce";
 
 import {
@@ -251,6 +252,7 @@ const ShooterRunsTable = ({
         />
         {/* TODO: <Column field="percentile" header="Percentile" sortable={false} /> */}
       </DataTable>
+      <ReactTooltip id="strings-tooltip" />
     </>
   );
 };
