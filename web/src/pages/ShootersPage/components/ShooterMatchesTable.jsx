@@ -165,7 +165,7 @@ const ShooterMatchScoresTable = ({
         field="shooterMajorsPercentHistorical"
         header="Majors"
         sortable
-        headerTooltip="Combined Classification Percentage at the Time of the Match"
+        headerTooltip="Majors-Matches-Only Classification at the Time of the Match"
         headerTooltipOptions={headerTooltipOptions}
       />
       <Column
